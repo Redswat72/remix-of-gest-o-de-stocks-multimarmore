@@ -121,29 +121,32 @@ function mapOrigemMaterial(valor: string | undefined): OrigemMaterial | undefine
   return undefined;
 }
 
+// Extrai apenas os dígitos de uma string (ex: "MM001" -> "1", "001" -> "1")
+function extrairNumero(str: string): string | null {
+  const digits = str.replace(/\D/g, ''); // Remove tudo que não é dígito
+  if (!digits) return null;
+  return String(parseInt(digits, 10)); // Remove zeros à esquerda
+}
+
 // Função para encontrar local pelo nome ou código
-// Normaliza zeros à esquerda para comparação numérica (ex: "1" = "001")
+// Suporta match flexível: "1" corresponde a "MM001", "001", "MM1", etc.
 function encontrarLocal(locais: Local[], nomeOuCodigo: string): Local | undefined {
   if (!nomeOuCodigo) return undefined;
   
   const busca = String(nomeOuCodigo).toLowerCase().trim();
-  // Tenta interpretar como número para ignorar zeros à esquerda
-  const buscaNum = parseInt(busca, 10);
-  const buscaNumStr = !isNaN(buscaNum) ? String(buscaNum) : null;
+  const buscaNumStr = extrairNumero(busca);
   
   return locais.find(l => {
     const codigoLower = l.codigo.toLowerCase();
     const nomeLower = l.nome.toLowerCase();
-    // Comparação numérica (ignora zeros à esquerda)
-    const codigoNum = parseInt(l.codigo, 10);
-    const codigoNumStr = !isNaN(codigoNum) ? String(codigoNum) : null;
+    const codigoNumStr = extrairNumero(l.codigo);
     
     return (
       nomeLower === busca ||
       codigoLower === busca ||
       nomeLower.includes(busca) ||
       busca.includes(codigoLower) ||
-      // Match numérico: "1" == "001"
+      // Match numérico flexível: "1" == "MM001" == "001" == "MM1"
       (buscaNumStr && codigoNumStr && buscaNumStr === codigoNumStr)
     );
   });
