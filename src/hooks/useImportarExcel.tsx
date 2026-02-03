@@ -216,10 +216,14 @@ function parseBlocos(
     const erros: string[] = [];
     const avisos: string[] = [];
 
-    const tipoPedra = String(row[colMap.tipoPedra] || '').trim();
-    if (!tipoPedra) erros.push('Tipo de pedra obrigatório');
+    // MAPEAMENTO CORRIGIDO: Excel "Variedade" → DB "tipo_pedra"
+    // Coluna Excel "Tipo_pedra" do modelo é ignorada para este campo
+    const variedadeRaw = colMap.variedade !== -1 ? String(row[colMap.variedade] || '').trim() : '';
+    const tipoPedra = variedadeRaw; // tipo_pedra DB recebe valor de Variedade Excel
+    if (!tipoPedra) erros.push('Variedade é obrigatória (preenche o Tipo de Pedra)');
 
-    const variedade = colMap.variedade !== -1 ? String(row[colMap.variedade] || '').trim() : '';
+    // variedade do LinhaExcel fica vazia (só usamos para tipoPedra)
+    const variedade = '';
     const origemBloco = colMap.origemBloco !== -1 ? String(row[colMap.origemBloco] || '').trim() : '';
 
     const parqueMMRaw = String(row[colMap.parqueMM] || '').trim();
@@ -355,10 +359,12 @@ function parseChapas(
     const erros: string[] = [];
     const avisos: string[] = [];
 
-    const tipoPedra = String(row[colMap.tipoPedra] || '').trim();
-    if (!tipoPedra) erros.push('Tipo de pedra obrigatório');
+    // MAPEAMENTO CORRIGIDO: Excel "Variedade" → DB "tipo_pedra"
+    const variedadeRaw = colMap.variedade !== -1 ? String(row[colMap.variedade] || '').trim() : '';
+    const tipoPedra = variedadeRaw;
+    if (!tipoPedra) erros.push('Variedade é obrigatória (preenche o Tipo de Pedra)');
 
-    const variedade = colMap.variedade !== -1 ? String(row[colMap.variedade] || '').trim() : '';
+    const variedade = '';
     const origemBloco = colMap.origemBloco !== -1 ? String(row[colMap.origemBloco] || '').trim() : '';
 
     const parqueMMRaw = String(row[colMap.parqueMM] || '').trim();
@@ -507,10 +513,10 @@ function parseLadrilhos(
     const erros: string[] = [];
     const avisos: string[] = [];
 
-    const tipoPedra = String(row[colMap.tipoPedra] || '').trim();
-    if (!tipoPedra) erros.push('Tipo de pedra obrigatório');
-
-    const variedade = colMap.variedade !== -1 ? String(row[colMap.variedade] || '').trim() : '';
+    // MAPEAMENTO CORRIGIDO: Excel "Variedade" → DB "tipo_pedra"
+    const variedadeRaw = colMap.variedade !== -1 ? String(row[colMap.variedade] || '').trim() : '';
+    const tipoPedra = variedadeRaw;
+    if (!tipoPedra) erros.push('Variedade é obrigatória (preenche o Tipo de Pedra)');
 
     const parqueMMRaw = String(row[colMap.parqueMM] || '').trim();
     const linhaRaw = colMap.linha !== -1 ? String(row[colMap.linha] || '').trim() : '';
@@ -562,7 +568,7 @@ function parseLadrilhos(
       rowIndex: i + 1,
       idmm,
       tipoPedra,
-      variedade,
+      variedade: '',
       forma: 'ladrilho',
       parqueMM: parqueMMRaw,
       linha: linhaRaw || undefined,
