@@ -6,108 +6,132 @@
 
 @layer base {
   :root {
-    /* Cores Multimármore - Design Industrial */
-    --background: 210 20% 98%;
-    --foreground: 222 47% 11%;
+    /* ========================================
+       PALETA MONDAY.COM STYLE - MULTIMÁRMORE
+       Fundo branco, cores vivas funcionais
+       ======================================== */
+    
+    /* Fundos - Branco puro para legibilidade */
+    --background: 0 0% 100%;
+    --foreground: 215 25% 15%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 215 25% 15%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 215 25% 15%;
 
-    /* Azul Industrial - Primary */
-    --primary: 217 91% 60%;
+    /* Primary - Azul Multimármore #2F80ED */
+    --primary: 214 83% 56%;
     --primary-foreground: 0 0% 100%;
 
-    /* Cinza Pedra - Secondary */
-    --secondary: 220 13% 91%;
-    --secondary-foreground: 222 47% 11%;
+    /* Secondary - Cinza muito claro */
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 215 25% 25%;
 
     --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 46%;
+    --muted-foreground: 215 16% 47%;
 
     --accent: 220 14% 96%;
-    --accent-foreground: 222 47% 11%;
+    --accent-foreground: 215 25% 15%;
 
-    /* Vermelho Alerta - Destructive */
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-
-    /* Verde Sucesso */
-    --success: 142 71% 45%;
+    /* ========= CORES FUNCIONAIS ========= */
+    
+    /* Verde - Entrada #27AE60 */
+    --success: 145 63% 42%;
     --success-foreground: 0 0% 100%;
-
-    /* Amarelo Aviso */
-    --warning: 45 93% 47%;
+    
+    /* Laranja - Transferência #F2994A */
+    --warning: 30 87% 62%;
     --warning-foreground: 0 0% 0%;
-
-    /* Azul Info */
-    --info: 199 89% 48%;
+    
+    /* Vermelho - Saída/Destructive #EB5757 */
+    --destructive: 0 79% 63%;
+    --destructive-foreground: 0 0% 100%;
+    
+    /* Amarelo - Aviso #F2C94C */
+    --caution: 45 86% 62%;
+    --caution-foreground: 0 0% 0%;
+    
+    /* Roxo - Superadmin #9B51E0 */
+    --purple: 268 70% 60%;
+    --purple-foreground: 0 0% 100%;
+    
+    /* Azul Info #2F80ED */
+    --info: 214 83% 56%;
     --info-foreground: 0 0% 100%;
 
+    /* Bordas e inputs */
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 217 91% 60%;
+    --ring: 214 83% 56%;
 
-    --radius: 0.625rem;
+    --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 217 91% 60%;
+    /* Sidebar - Branca com borda */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 215 25% 35%;
+    --sidebar-primary: 214 83% 56%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
+    --sidebar-accent: 220 14% 96%;
+    --sidebar-accent-foreground: 215 25% 15%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-ring: 214 83% 56%;
   }
 
   .dark {
-    --background: 222 47% 11%;
-    --foreground: 210 20% 98%;
+    /* Dark mode mantém funcionalidade mas com contraste */
+    --background: 222 47% 8%;
+    --foreground: 210 40% 98%;
 
-    --card: 222 47% 15%;
-    --card-foreground: 210 20% 98%;
+    --card: 222 47% 11%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 222 47% 15%;
-    --popover-foreground: 210 20% 98%;
+    --popover: 222 47% 11%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 217 91% 60%;
+    --primary: 214 83% 56%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 217 33% 17%;
-    --secondary-foreground: 210 20% 98%;
+    --secondary-foreground: 210 40% 98%;
 
     --muted: 217 33% 17%;
     --muted-foreground: 215 20% 65%;
 
     --accent: 217 33% 17%;
-    --accent-foreground: 210 20% 98%;
+    --accent-foreground: 210 40% 98%;
 
-    --destructive: 0 62% 55%;
-    --destructive-foreground: 0 0% 100%;
-
-    --success: 142 71% 45%;
+    --success: 145 63% 42%;
     --success-foreground: 0 0% 100%;
 
-    --warning: 45 93% 47%;
+    --warning: 30 87% 62%;
     --warning-foreground: 0 0% 0%;
 
-    --info: 199 89% 48%;
+    --destructive: 0 79% 63%;
+    --destructive-foreground: 0 0% 100%;
+
+    --caution: 45 86% 62%;
+    --caution-foreground: 0 0% 0%;
+
+    --purple: 268 70% 60%;
+    --purple-foreground: 0 0% 100%;
+
+    --info: 214 83% 56%;
     --info-foreground: 0 0% 100%;
 
     --border: 217 33% 22%;
     --input: 217 33% 22%;
-    --ring: 217 91% 60%;
+    --ring: 214 83% 56%;
 
-    --sidebar-background: 222 47% 11%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 217 91% 60%;
+    --sidebar-background: 222 47% 8%;
+    --sidebar-foreground: 215 20% 75%;
+    --sidebar-primary: 214 83% 56%;
     --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 217 33% 17%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-accent-foreground: 210 40% 98%;
     --sidebar-border: 217 33% 22%;
-    --sidebar-ring: 217 91% 60%;
+    --sidebar-ring: 214 83% 56%;
   }
 }
 
@@ -122,7 +146,72 @@
 }
 
 @layer utilities {
-  /* Utilities para alto contraste em ambiente industrial */
+  /* ========= BADGES DE MOVIMENTO ========= */
+  .badge-entrada {
+    @apply bg-success/15 text-success border-success/30;
+  }
+  .badge-transferencia {
+    @apply bg-warning/15 text-warning border-warning/30;
+  }
+  .badge-saida {
+    @apply bg-destructive/15 text-destructive border-destructive/30;
+  }
+  .badge-cancelado {
+    @apply bg-muted text-muted-foreground border-border;
+  }
+  
+  /* ========= BADGES DE ROLE ========= */
+  .badge-operador {
+    @apply bg-info/15 text-info border-info/30;
+  }
+  .badge-admin {
+    @apply bg-success/15 text-success border-success/30;
+  }
+  .badge-superadmin {
+    @apply bg-purple/15 text-purple border-purple/30;
+  }
+  
+  /* ========= CARD COM LINHA NO TOPO ========= */
+  .card-accent-top {
+    @apply relative overflow-hidden;
+  }
+  .card-accent-top::before {
+    content: '';
+    @apply absolute top-0 left-0 right-0 h-1;
+    background: var(--card-accent-color, hsl(var(--primary)));
+  }
+  .card-accent-success::before {
+    --card-accent-color: hsl(var(--success));
+  }
+  .card-accent-warning::before {
+    --card-accent-color: hsl(var(--warning));
+  }
+  .card-accent-destructive::before {
+    --card-accent-color: hsl(var(--destructive));
+  }
+  .card-accent-purple::before {
+    --card-accent-color: hsl(var(--purple));
+  }
+  .card-accent-info::before {
+    --card-accent-color: hsl(var(--info));
+  }
+  
+  /* ========= TABELA ZEBRA SUAVE ========= */
+  .table-zebra tbody tr:nth-child(even) {
+    @apply bg-muted/30;
+  }
+  
+  /* ========= TOUCH TARGETS (44px mín) ========= */
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
+  
+  /* Skeleton loader */
+  .skeleton {
+    @apply animate-pulse bg-muted rounded;
+  }
+
+  /* Colors utility */
   .text-success {
     color: hsl(var(--success));
   }
@@ -141,15 +230,17 @@
   .bg-info {
     background-color: hsl(var(--info));
   }
-  
-  /* Touch targets mínimos para uso industrial (44x44px) */
-  .touch-target {
-    @apply min-h-[44px] min-w-[44px];
+  .text-purple {
+    color: hsl(var(--purple));
   }
-  
-  /* Skeleton loader */
-  .skeleton {
-    @apply animate-pulse bg-muted rounded;
+  .bg-purple {
+    background-color: hsl(var(--purple));
+  }
+  .text-caution {
+    color: hsl(var(--caution));
+  }
+  .bg-caution {
+    background-color: hsl(var(--caution));
   }
 }
 

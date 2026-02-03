@@ -7,7 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { Package, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import logoMultimarmore from '@/assets/logo-multimarmore.png';
 
 export default function Login() {
   const { user, loading, signIn, signUp } = useAuth();
@@ -93,20 +94,23 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-muted p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-16 h-16 rounded-2xl bg-primary flex items-center justify-center mb-4 shadow-lg">
-            <Package className="w-8 h-8 text-primary-foreground" />
-          </div>
-          <h1 className="text-2xl font-bold">Multimármore</h1>
-          <p className="text-muted-foreground">Gestão de Stock</p>
+          <img 
+            src={logoMultimarmore} 
+            alt="Multimármore" 
+            className="h-20 w-auto object-contain mb-4"
+          />
+          <p className="text-muted-foreground text-center">
+            Plataforma de Gestão de Stock
+          </p>
         </div>
 
-        <Card className="shadow-xl">
+        <Card className="shadow-lg border-border">
           <Tabs defaultValue="login">
-            <CardHeader>
+            <CardHeader className="pb-4">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="login">Entrar</TabsTrigger>
                 <TabsTrigger value="signup">Registar</TabsTrigger>
@@ -115,8 +119,8 @@ export default function Login() {
 
             <CardContent>
               {/* Login Tab */}
-              <TabsContent value="login">
-                <CardTitle className="mb-2">Bem-vindo de volta</CardTitle>
+              <TabsContent value="login" className="mt-0">
+                <CardTitle className="mb-2 text-lg">Bem-vindo de volta</CardTitle>
                 <CardDescription className="mb-6">
                   Introduza as suas credenciais para aceder
                 </CardDescription>
@@ -132,6 +136,7 @@ export default function Login() {
                       onChange={(e) => setLoginEmail(e.target.value)}
                       required
                       autoComplete="email"
+                      className="h-11"
                     />
                   </div>
 
@@ -145,12 +150,13 @@ export default function Login() {
                       onChange={(e) => setLoginPassword(e.target.value)}
                       required
                       autoComplete="current-password"
+                      className="h-11"
                     />
                   </div>
 
                   <Button
                     type="submit"
-                    className="w-full h-12 text-base"
+                    className="w-full h-12 text-base font-semibold"
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? (
@@ -166,8 +172,8 @@ export default function Login() {
               </TabsContent>
 
               {/* Signup Tab */}
-              <TabsContent value="signup">
-                <CardTitle className="mb-2">Criar conta</CardTitle>
+              <TabsContent value="signup" className="mt-0">
+                <CardTitle className="mb-2 text-lg">Criar conta</CardTitle>
                 <CardDescription className="mb-6">
                   Preencha os dados para criar uma nova conta
                 </CardDescription>
@@ -183,6 +189,7 @@ export default function Login() {
                       onChange={(e) => setSignupNome(e.target.value)}
                       required
                       autoComplete="name"
+                      className="h-11"
                     />
                   </div>
 
@@ -196,6 +203,7 @@ export default function Login() {
                       onChange={(e) => setSignupEmail(e.target.value)}
                       required
                       autoComplete="email"
+                      className="h-11"
                     />
                   </div>
 
@@ -210,6 +218,7 @@ export default function Login() {
                       required
                       minLength={6}
                       autoComplete="new-password"
+                      className="h-11"
                     />
                   </div>
 
@@ -224,12 +233,13 @@ export default function Login() {
                       required
                       minLength={6}
                       autoComplete="new-password"
+                      className="h-11"
                     />
                   </div>
 
                   <Button
                     type="submit"
-                    className="w-full h-12 text-base"
+                    className="w-full h-12 text-base font-semibold"
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? (
@@ -247,8 +257,8 @@ export default function Login() {
           </Tabs>
         </Card>
 
-        <p className="text-center text-sm text-muted-foreground mt-6">
-          Plataforma de Gestão de Stock de Pedra Natural
+        <p className="text-center text-xs text-muted-foreground mt-6">
+          Crafting Iconic Elegance
         </p>
       </div>
     </div>

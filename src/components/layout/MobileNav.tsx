@@ -32,9 +32,9 @@ export function MobileNav() {
               <Link
                 key={item.href}
                 to={item.href}
-                className="flex flex-col items-center justify-center -mt-4"
+                className="flex flex-col items-center justify-center -mt-5"
               >
-                <div className="flex items-center justify-center w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg touch-target">
+                <div className="flex items-center justify-center w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/25 touch-target">
                   <Icon className="w-6 h-6" />
                 </div>
               </Link>
@@ -46,14 +46,14 @@ export function MobileNav() {
               key={item.href}
               to={item.href}
               className={cn(
-                'flex flex-col items-center justify-center gap-1 px-3 py-2 touch-target',
+                'flex flex-col items-center justify-center gap-1 px-3 py-2 touch-target transition-colors',
                 isActive 
                   ? 'text-primary' 
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
-              <Icon className="w-5 h-5" />
-              <span className="text-xs font-medium">{item.label}</span>
+              <Icon className={cn("w-5 h-5", isActive && "text-primary")} />
+              <span className={cn("text-xs font-medium", isActive && "text-primary")}>{item.label}</span>
             </Link>
           );
         })}
