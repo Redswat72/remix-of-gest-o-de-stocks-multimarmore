@@ -132,7 +132,7 @@ function StockGlobalTab() {
 
   const handleDownloadTemplate = () => {
     try {
-      gerarModeloExcel({ incluirExemplos: true });
+      gerarModeloExcel({ incluirExemplos: true, tipo: 'blocos' });
       toast({
         title: 'Modelo descarregado',
         description: 'O modelo de importação foi guardado com sucesso.',
