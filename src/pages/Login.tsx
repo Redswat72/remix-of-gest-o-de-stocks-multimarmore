@@ -101,7 +101,7 @@ export default function Login() {
           <img 
             src={logoMultimarmore} 
             alt="Multimármore" 
-            className="h-20 w-auto object-contain mb-4"
+            className="h-40 w-auto object-contain mb-4"
           />
           <p className="text-muted-foreground text-center">
             Plataforma de Gestão de Stock
