@@ -20,6 +20,7 @@ import Historico from "./pages/Historico";
 import Superadmin from "./pages/Superadmin";
 import Auditoria from "./pages/Auditoria";
 import Produtos from "./pages/Produtos";
+import ImportarStock from "./pages/ImportarStock";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -108,6 +109,17 @@ const App = () => (
                 <ProtectedRoute superadminOnly>
                   <AppLayout>
                     <Auditoria />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/importar-stock"
+              element={
+                <ProtectedRoute superadminOnly>
+                  <AppLayout>
+                    <ImportarStock />
                   </AppLayout>
                 </ProtectedRoute>
               }
