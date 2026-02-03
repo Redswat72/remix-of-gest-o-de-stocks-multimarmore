@@ -44,18 +44,18 @@ import {
 } from 'recharts';
 
 const CORES_GRAFICO = {
-  entradas: 'hsl(142, 76%, 36%)',
-  saidas: 'hsl(38, 92%, 50%)',
-  transferencias: 'hsl(217, 91%, 60%)',
+  entradas: '#27AE60',  // Verde
+  saidas: '#EB5757',    // Vermelho
+  transferencias: '#F2994A', // Laranja
 };
 
 const CORES_PIE = [
-  'hsl(217, 91%, 60%)',
-  'hsl(142, 76%, 36%)',
-  'hsl(38, 92%, 50%)',
-  'hsl(262, 83%, 58%)',
-  'hsl(0, 84%, 60%)',
-  'hsl(199, 89%, 48%)',
+  '#2F80ED',  // Azul
+  '#27AE60',  // Verde
+  '#F2994A',  // Laranja
+  '#9B51E0',  // Roxo
+  '#EB5757',  // Vermelho
+  '#F2C94C',  // Amarelo
 ];
 
 export default function Dashboard() {
@@ -95,11 +95,11 @@ export default function Dashboard() {
   const getTipoIcon = (tipo: string) => {
     switch (tipo) {
       case 'entrada':
-        return <ArrowDownToLine className="w-4 h-4 text-green-600" />;
+        return <ArrowDownToLine className="w-4 h-4 text-success" />;
       case 'transferencia':
-        return <ArrowRightLeft className="w-4 h-4 text-blue-600" />;
+        return <ArrowRightLeft className="w-4 h-4 text-warning" />;
       case 'saida':
-        return <ArrowUpFromLine className="w-4 h-4 text-amber-600" />;
+        return <ArrowUpFromLine className="w-4 h-4 text-destructive" />;
       default:
         return null;
     }
@@ -108,11 +108,11 @@ export default function Dashboard() {
   const getTipoBadge = (tipo: string) => {
     switch (tipo) {
       case 'entrada':
-        return <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">Entrada</Badge>;
+        return <Badge variant="outline" className="badge-entrada">Entrada</Badge>;
       case 'transferencia':
-        return <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">Transferência</Badge>;
+        return <Badge variant="outline" className="badge-transferencia">Transferência</Badge>;
       case 'saida':
-        return <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">Saída</Badge>;
+        return <Badge variant="outline" className="badge-saida">Saída</Badge>;
       default:
         return null;
     }
@@ -152,10 +152,10 @@ export default function Dashboard() {
       {/* KPIs Principais */}
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
         {/* Entradas do Mês */}
-        <Card>
+        <Card className="card-accent-top card-accent-success">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Entradas (Mês)</CardTitle>
-            <ArrowDownToLine className="h-4 w-4 text-green-600" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Entradas (Mês)</CardTitle>
+            <ArrowDownToLine className="h-4 w-4 text-success" />
           </CardHeader>
           <CardContent>
             {statsLoading ? (
@@ -184,10 +184,10 @@ export default function Dashboard() {
         </Card>
 
         {/* Saídas do Mês */}
-        <Card>
+        <Card className="card-accent-top card-accent-destructive">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Saídas (Mês)</CardTitle>
-            <ArrowUpFromLine className="h-4 w-4 text-amber-600" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Saídas (Mês)</CardTitle>
+            <ArrowUpFromLine className="h-4 w-4 text-destructive" />
           </CardHeader>
           <CardContent>
             {statsLoading ? (
@@ -216,10 +216,10 @@ export default function Dashboard() {
         </Card>
 
         {/* Total Stock */}
-        <Card>
+        <Card className="card-accent-top card-accent-info">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Stock Total</CardTitle>
-            <Boxes className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Stock Total</CardTitle>
+            <Boxes className="h-4 w-4 text-info" />
           </CardHeader>
           <CardContent>
             {statsLoading ? (
@@ -236,10 +236,10 @@ export default function Dashboard() {
         </Card>
 
         {/* Locais Ativos */}
-        <Card>
+        <Card className="card-accent-top card-accent-purple">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Parques Ativos</CardTitle>
-            <MapPin className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Parques Ativos</CardTitle>
+            <MapPin className="h-4 w-4 text-purple" />
           </CardHeader>
           <CardContent>
             {statsLoading ? (

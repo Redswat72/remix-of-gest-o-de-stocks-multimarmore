@@ -75,21 +75,21 @@ export default function Historico() {
   const getTipoIcon = (tipo: string) => {
     switch (tipo) {
       case 'entrada':
-        return <ArrowDownToLine className="w-4 h-4 text-green-600" />;
+        return <ArrowDownToLine className="w-4 h-4 text-success" />;
       case 'transferencia':
-        return <ArrowRightLeft className="w-4 h-4 text-blue-600" />;
+        return <ArrowRightLeft className="w-4 h-4 text-warning" />;
       case 'saida':
-        return <Package className="w-4 h-4 text-orange-600" />;
+        return <Package className="w-4 h-4 text-destructive" />;
       default:
         return null;
     }
   };
 
   const getTipoBadge = (tipo: string) => {
-    const variants: Record<string, string> = {
-      entrada: 'bg-success/20 text-success',
-      transferencia: 'bg-info/20 text-info',
-      saida: 'bg-warning/20 text-warning',
+    const classes: Record<string, string> = {
+      entrada: 'badge-entrada',
+      transferencia: 'badge-transferencia',
+      saida: 'badge-saida',
     };
     const labels: Record<string, string> = {
       entrada: 'Entrada',
@@ -97,7 +97,7 @@ export default function Historico() {
       saida: 'Saída',
     };
     return (
-      <Badge variant="outline" className={variants[tipo]}>
+      <Badge variant="outline" className={classes[tipo]}>
         {labels[tipo]}
       </Badge>
     );
@@ -286,7 +286,7 @@ export default function Historico() {
             </div>
           ) : movimentos && movimentos.length > 0 ? (
             <div className="overflow-x-auto">
-              <Table>
+              <Table className="table-zebra">
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[50px]"></TableHead>
@@ -351,11 +351,11 @@ export default function Historico() {
                           </TableCell>
                           <TableCell>
                             {mov.cancelado ? (
-                              <Badge variant="destructive" className="gap-1">
+                              <Badge variant="outline" className="badge-cancelado gap-1">
                                 <XCircle className="w-3 h-3" /> Cancelado
                               </Badge>
                             ) : (
-                              <Badge variant="outline" className="text-green-600 border-green-600">
+                              <Badge variant="outline" className="badge-entrada">
                                 Ativo
                               </Badge>
                             )}

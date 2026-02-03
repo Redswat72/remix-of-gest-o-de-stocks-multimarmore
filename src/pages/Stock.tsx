@@ -94,19 +94,19 @@ export default function Stock() {
       return <Badge variant="destructive" className="gap-1"><XCircle className="w-3 h-3" /> Sem stock</Badge>;
     }
     if (quantidade <= STOCK_BAIXO_THRESHOLD) {
-      return <Badge variant="outline" className="border-warning text-warning gap-1"><AlertTriangle className="w-3 h-3" /> Stock baixo</Badge>;
+      return <Badge variant="outline" className="border-caution text-caution gap-1"><AlertTriangle className="w-3 h-3" /> Stock baixo</Badge>;
     }
     return null;
   };
 
   const getFormaBadge = (forma: string) => {
-    const colors: Record<string, string> = {
-      bloco: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-      chapa: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-      ladrilho: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
+    const classes: Record<string, string> = {
+      bloco: 'badge-operador',
+      chapa: 'badge-admin',
+      ladrilho: 'badge-superadmin',
     };
     return (
-      <Badge variant="outline" className={colors[forma] || ''}>
+      <Badge variant="outline" className={classes[forma] || ''}>
         {forma.charAt(0).toUpperCase() + forma.slice(1)}
       </Badge>
     );
@@ -255,7 +255,7 @@ export default function Stock() {
             </div>
           ) : stockFiltrado && stockFiltrado.length > 0 ? (
             <div className="overflow-x-auto">
-              <Table>
+              <Table className="table-zebra">
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[50px]"></TableHead>
