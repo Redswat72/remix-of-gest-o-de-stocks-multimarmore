@@ -122,16 +122,31 @@ function mapOrigemMaterial(valor: string | undefined): OrigemMaterial | undefine
 }
 
 // Função para encontrar local pelo nome ou código
+// Normaliza zeros à esquerda para comparação numérica (ex: "1" = "001")
 function encontrarLocal(locais: Local[], nomeOuCodigo: string): Local | undefined {
   if (!nomeOuCodigo) return undefined;
   
   const busca = String(nomeOuCodigo).toLowerCase().trim();
-  return locais.find(l => 
-    l.nome.toLowerCase() === busca || 
-    l.codigo.toLowerCase() === busca ||
-    l.nome.toLowerCase().includes(busca) ||
-    busca.includes(l.codigo.toLowerCase())
-  );
+  // Tenta interpretar como número para ignorar zeros à esquerda
+  const buscaNum = parseInt(busca, 10);
+  const buscaNumStr = !isNaN(buscaNum) ? String(buscaNum) : null;
+  
+  return locais.find(l => {
+    const codigoLower = l.codigo.toLowerCase();
+    const nomeLower = l.nome.toLowerCase();
+    // Comparação numérica (ignora zeros à esquerda)
+    const codigoNum = parseInt(l.codigo, 10);
+    const codigoNumStr = !isNaN(codigoNum) ? String(codigoNum) : null;
+    
+    return (
+      nomeLower === busca ||
+      codigoLower === busca ||
+      nomeLower.includes(busca) ||
+      busca.includes(codigoLower) ||
+      // Match numérico: "1" == "001"
+      (buscaNumStr && codigoNumStr && buscaNumStr === codigoNumStr)
+    );
+  });
 }
 
 // Normalizar nome de coluna
