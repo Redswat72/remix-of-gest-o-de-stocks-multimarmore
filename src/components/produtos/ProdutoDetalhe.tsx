@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { QRCodeSVG } from 'qrcode.react';
 import { 
   MapPin, 
   Package, 
@@ -9,7 +10,9 @@ import {
   Copy,
   Check,
   Loader2,
-  Clock
+  Clock,
+  QrCode,
+  X
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -70,6 +73,8 @@ export function ProdutoDetalhe({
   const [isGenerating, setIsGenerating] = useState(false);
   const [signedUrls, setSignedUrls] = useState<FotoHdMetadata[]>([]);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
+  const [qrCodeUrl, setQrCodeUrl] = useState<string | null>(null);
+  const [qrCodeLabel, setQrCodeLabel] = useState<string>('');
 
   const fotosList = createFotosList(produto);
   const fotos = [produto.foto1_url, produto.foto2_url, produto.foto3_url, produto.foto4_url].filter(Boolean);
@@ -411,6 +416,19 @@ export function ProdutoDetalhe({
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8"
+                                title="Ver QR Code"
+                                onClick={() => {
+                                  setQrCodeUrl(foto.signedUrl || foto.url);
+                                  setQrCodeLabel(foto.label);
+                                }}
+                              >
+                                <QrCode className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8"
+                                title="Copiar link"
                                 onClick={() => copyToClipboard(foto.signedUrl || foto.url, index)}
                               >
                                 {copiedIndex === index ? (
@@ -423,6 +441,7 @@ export function ProdutoDetalhe({
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8"
+                                title="Abrir em nova janela"
                                 asChild
                               >
                                 <a 
@@ -476,6 +495,65 @@ export function ProdutoDetalhe({
         idmm={produto.idmm}
         tipoPedra={produto.tipo_pedra}
       />
+
+      {/* QR Code Dialog */}
+      <Dialog open={!!qrCodeUrl} onOpenChange={(open) => !open && setQrCodeUrl(null)}>
+        <DialogContent className="max-w-xs">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <QrCode className="h-5 w-5" />
+              QR Code
+            </DialogTitle>
+            <DialogDescription>
+              {qrCodeLabel} • {produto.idmm}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex flex-col items-center gap-4 py-4">
+            {qrCodeUrl && (
+              <div className="bg-white p-4 rounded-lg">
+                <QRCodeSVG 
+                  value={qrCodeUrl} 
+                  size={200}
+                  level="M"
+                  includeMargin={false}
+                />
+              </div>
+            )}
+            
+            <p className="text-xs text-center text-muted-foreground">
+              Aponte a câmara do telemóvel para aceder à foto HD
+            </p>
+
+            <div className="flex gap-2 w-full">
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                onClick={() => qrCodeUrl && copyToClipboard(qrCodeUrl, -1)}
+              >
+                <Copy className="h-4 w-4 mr-2" />
+                Copiar link
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex-1"
+                asChild
+              >
+                <a 
+                  href={qrCodeUrl || ''} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                >
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Abrir
+                </a>
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
