@@ -173,8 +173,9 @@ export function useStockPorLocal() {
       const porLocal = new Map<string, StockPorLocal>();
 
       data.forEach(item => {
-        const local = item.local as { id: string; nome: string } | null;
-        if (!local) return;
+        const localData = item.local as unknown;
+        const local = (Array.isArray(localData) ? localData[0] : localData) as { id: string; nome: string } | null;
+        if (!local || !local.id) return;
 
         if (!porLocal.has(local.id)) {
           porLocal.set(local.id, {
@@ -216,8 +217,10 @@ export function useProdutosStockBaixo(limite: number = 5) {
       if (!data) return [];
 
       return data.map(item => {
-        const produto = item.produto as { id: string; idmm: string; tipo_pedra: string; forma: string } | null;
-        const local = item.local as { nome: string } | null;
+        const produtoData = item.produto as unknown;
+        const produto = (Array.isArray(produtoData) ? produtoData[0] : produtoData) as { id: string; idmm: string; tipo_pedra: string; forma: string } | null;
+        const localData = item.local as unknown;
+        const local = (Array.isArray(localData) ? localData[0] : localData) as { nome: string } | null;
         
         return {
           produtoId: produto?.id || '',
