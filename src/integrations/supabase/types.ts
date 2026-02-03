@@ -249,6 +249,7 @@ export type Database = {
           foto1_url: string | null
           foto2_url: string | null
           foto3_url: string | null
+          foto4_url: string | null
           id: string
           idmm: string
           largura_cm: number | null
@@ -272,6 +273,7 @@ export type Database = {
           foto1_url?: string | null
           foto2_url?: string | null
           foto3_url?: string | null
+          foto4_url?: string | null
           id?: string
           idmm: string
           largura_cm?: number | null
@@ -295,6 +297,7 @@ export type Database = {
           foto1_url?: string | null
           foto2_url?: string | null
           foto3_url?: string | null
+          foto4_url?: string | null
           id?: string
           idmm?: string
           largura_cm?: number | null

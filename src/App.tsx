@@ -15,6 +15,7 @@ import NovoMovimento from "./pages/NovoMovimento";
 import Historico from "./pages/Historico";
 import Superadmin from "./pages/Superadmin";
 import Auditoria from "./pages/Auditoria";
+import Produtos from "./pages/Produtos";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -109,10 +110,7 @@ const App = () => (
               element={
                 <ProtectedRoute adminOnly>
                   <AppLayout>
-                    <div className="text-center py-12">
-                      <h1 className="text-2xl font-bold mb-2">Gestão de Produtos</h1>
-                      <p className="text-muted-foreground">Em desenvolvimento...</p>
-                    </div>
+                    <Produtos />
                   </AppLayout>
                 </ProtectedRoute>
               }
