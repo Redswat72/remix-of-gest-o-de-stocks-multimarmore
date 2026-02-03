@@ -1,12 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Loader2, MapPin, X, Camera, ImagePlus, Check, RotateCcw } from 'lucide-react';
+import { Loader2, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Progress } from '@/components/ui/progress';
 import {
   Select,
   SelectContent,
@@ -22,8 +21,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import { useImageUpload } from '@/hooks/useImageUpload';
-import { cn } from '@/lib/utils';
+import { ProdutoFotos } from '@/components/produtos/ProdutoFotos';
 import type { Produto } from '@/types/database';
 
 const produtoSchema = z.object({
@@ -45,30 +43,16 @@ type ProdutoFormData = z.infer<typeof produtoSchema>;
 
 interface ProdutoFormProps {
   produto?: Produto | null;
-  onSubmit: (data: ProdutoFormData, fotoUrls: (string | null)[]) => Promise<void>;
+  onSubmit: (data: ProdutoFormData, fotoUrls: (string | null)[], fotoHdUrls: (string | null)[]) => Promise<void>;
   onCancel: () => void;
   isLoading?: boolean;
+  canUploadHd?: boolean;
 }
 
-interface FotoSlot {
-  url: string | null;
-  preview: string | null;
-  file: File | null;
-  isUploading: boolean;
-  progress: number;
-}
-
-export function ProdutoForm({ produto, onSubmit, onCancel, isLoading }: ProdutoFormProps) {
-  const [fotos, setFotos] = useState<FotoSlot[]>([
-    { url: null, preview: null, file: null, isUploading: false, progress: 0 },
-    { url: null, preview: null, file: null, isUploading: false, progress: 0 },
-    { url: null, preview: null, file: null, isUploading: false, progress: 0 },
-    { url: null, preview: null, file: null, isUploading: false, progress: 0 },
-  ]);
+export function ProdutoForm({ produto, onSubmit, onCancel, isLoading, canUploadHd = false }: ProdutoFormProps) {
+  const [fotoUrls, setFotoUrls] = useState<(string | null)[]>([null, null, null, null]);
+  const [fotoHdUrls, setFotoHdUrls] = useState<(string | null)[]>([null, null, null, null]);
   const [gettingLocation, setGettingLocation] = useState(false);
-  const fileInputRefs = useRef<(HTMLInputElement | null)[]>([null, null, null, null]);
-  const cameraInputRefs = useRef<(HTMLInputElement | null)[]>([null, null, null, null]);
-  const { uploadImage, deleteImage } = useImageUpload();
 
   const form = useForm<ProdutoFormData>({
     resolver: zodResolver(produtoSchema),
@@ -89,135 +73,33 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading }: ProdutoF
   });
 
   const forma = form.watch('forma');
+  const idmm = form.watch('idmm');
   const maxFotos = forma === 'bloco' ? 4 : 2;
 
+  // Carregar fotos existentes do produto
   useEffect(() => {
     if (produto) {
-      const existingUrls = [
-        produto.foto1_url,
-        produto.foto2_url,
-        produto.foto3_url,
-        produto.foto4_url,
-      ];
-      setFotos(existingUrls.map(url => ({
-        url,
-        preview: url,
-        file: null,
-        isUploading: false,
-        progress: 0,
-      })));
+      setFotoUrls([
+        produto.foto1_url || null,
+        produto.foto2_url || null,
+        produto.foto3_url || null,
+        produto.foto4_url || null,
+      ]);
+      // Carregar fotos HD se existirem
+      const produtoWithHd = produto as Produto & {
+        foto1_hd_url?: string | null;
+        foto2_hd_url?: string | null;
+        foto3_hd_url?: string | null;
+        foto4_hd_url?: string | null;
+      };
+      setFotoHdUrls([
+        produtoWithHd.foto1_hd_url || null,
+        produtoWithHd.foto2_hd_url || null,
+        produtoWithHd.foto3_hd_url || null,
+        produtoWithHd.foto4_hd_url || null,
+      ]);
     }
   }, [produto]);
-
-  const handleFileSelect = async (index: number, file: File) => {
-    if (!file.type.startsWith('image/')) return;
-
-    // Criar preview local
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      setFotos(prev => {
-        const newFotos = [...prev];
-        newFotos[index] = {
-          ...newFotos[index],
-          preview: e.target?.result as string,
-          file,
-        };
-        return newFotos;
-      });
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const handleConfirmUpload = async (index: number) => {
-    const foto = fotos[index];
-    if (!foto.file) return;
-
-    // Determinar slot (F1, F2, F3, F4)
-    const slotMap = ['F1', 'F2', 'F3', 'F4'] as const;
-    const slot = slotMap[index];
-    
-    // Obter IDMM do formulário
-    const idmm = form.getValues('idmm') || 'sem-id';
-
-    setFotos(prev => {
-      const newFotos = [...prev];
-      newFotos[index] = { ...newFotos[index], isUploading: true };
-      return newFotos;
-    });
-
-    const result = await uploadImage(foto.file, {
-      bucket: 'produtos',
-      naming: { type: 'produto', idmm, slot },
-      maxSizeKB: 500,
-      maxWidth: 1200,
-      maxHeight: 1200,
-      quality: 0.85,
-    });
-
-    if (result) {
-      setFotos(prev => {
-        const newFotos = [...prev];
-        newFotos[index] = {
-          url: result.url,
-          preview: result.url,
-          file: null,
-          isUploading: false,
-          progress: 0,
-        };
-        return newFotos;
-      });
-    } else {
-      setFotos(prev => {
-        const newFotos = [...prev];
-        newFotos[index] = { ...newFotos[index], isUploading: false };
-        return newFotos;
-      });
-    }
-  };
-
-  const handleCancelPreview = (index: number) => {
-    setFotos(prev => {
-      const newFotos = [...prev];
-      // Restaurar URL anterior se existia
-      const originalUrl = produto ? [
-        produto.foto1_url,
-        produto.foto2_url,
-        produto.foto3_url,
-        produto.foto4_url,
-      ][index] : null;
-      
-      newFotos[index] = {
-        url: originalUrl,
-        preview: originalUrl,
-        file: null,
-        isUploading: false,
-        progress: 0,
-      };
-      return newFotos;
-    });
-  };
-
-  const handleRemoveFoto = async (index: number) => {
-    const foto = fotos[index];
-    if (foto.url) {
-      const urlParts = foto.url.split('/produtos/');
-      if (urlParts.length > 1) {
-        await deleteImage('produtos', urlParts[1]);
-      }
-    }
-
-    setFotos(prev => {
-      const newFotos = [...prev];
-      newFotos[index] = {
-        url: null,
-        preview: null,
-        file: null,
-        isUploading: false,
-        progress: 0,
-      };
-      return newFotos;
-    });
-  };
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
@@ -242,15 +124,9 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading }: ProdutoF
   };
 
   const handleSubmit = async (data: ProdutoFormData) => {
-    // Garantir que todas as fotos pendentes estão carregadas
-    const hasePendingUploads = fotos.some(f => f.file !== null);
-    if (hasePendingUploads) {
-      alert('Por favor, confirme ou cancele os uploads pendentes antes de guardar.');
-      return;
-    }
-
-    const fotoUrls = fotos.slice(0, maxFotos).map(f => f.url);
-    await onSubmit(data, fotoUrls);
+    const urlsToSubmit = fotoUrls.slice(0, maxFotos);
+    const hdUrlsToSubmit = fotoHdUrls.slice(0, maxFotos);
+    await onSubmit(data, urlsToSubmit, hdUrlsToSubmit);
   };
 
   return (
@@ -438,135 +314,20 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading }: ProdutoF
           </div>
         </div>
 
-        {/* Fotos com Câmara e Galeria */}
+        {/* Fotos - Componente Separado */}
         <div className="space-y-4">
           <h3 className="font-medium text-sm text-muted-foreground">
-            Fotos ({forma === 'bloco' ? 'máx. 4' : 'máx. 2'})
+            Fotografias ({forma === 'bloco' ? 'máx. 4' : 'máx. 2'})
           </h3>
-          <div className="grid grid-cols-2 gap-4">
-            {Array.from({ length: maxFotos }).map((_, index) => {
-              const foto = fotos[index];
-              const hasPreview = !!foto?.preview;
-              const isPending = foto?.file !== null;
-
-              return (
-                <div key={index} className="relative">
-                  <div className={cn(
-                    "relative aspect-square rounded-lg border-2 overflow-hidden transition-all",
-                    hasPreview 
-                      ? "border-border bg-muted" 
-                      : "border-dashed border-border bg-muted/30 hover:border-primary/50"
-                  )}>
-                    {hasPreview ? (
-                      <>
-                        <img
-                          src={foto.preview!}
-                          alt={`Foto ${index + 1}`}
-                          className="w-full h-full object-cover"
-                        />
-                        
-                        {/* Overlay de upload */}
-                        {foto.isUploading && (
-                          <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center gap-2">
-                            <Loader2 className="w-8 h-8 text-primary animate-spin" />
-                            <Progress value={foto.progress} className="w-3/4 h-2" />
-                          </div>
-                        )}
-
-                        {/* Botões de confirmação para preview pendente */}
-                        {isPending && !foto.isUploading && (
-                          <div className="absolute inset-0 bg-background/60 flex items-center justify-center gap-2">
-                            <Button
-                              type="button"
-                              size="icon"
-                              variant="outline"
-                              onClick={() => handleCancelPreview(index)}
-                              className="h-12 w-12"
-                            >
-                              <RotateCcw className="w-5 h-5" />
-                            </Button>
-                            <Button
-                              type="button"
-                              size="icon"
-                              onClick={() => handleConfirmUpload(index)}
-                              className="h-12 w-12"
-                            >
-                              <Check className="w-5 h-5" />
-                            </Button>
-                          </div>
-                        )}
-
-                        {/* Botão remover para foto guardada */}
-                        {!isPending && !foto.isUploading && (
-                          <Button
-                            type="button"
-                            size="icon"
-                            variant="destructive"
-                            className="absolute top-2 right-2 h-8 w-8"
-                            onClick={() => handleRemoveFoto(index)}
-                          >
-                            <X className="w-4 h-4" />
-                          </Button>
-                        )}
-                      </>
-                    ) : (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-2">
-                        <div className="flex gap-2">
-                          {/* Botão Galeria */}
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="lg"
-                            onClick={() => fileInputRefs.current[index]?.click()}
-                            className="touch-target"
-                          >
-                            <ImagePlus className="w-5 h-5" />
-                          </Button>
-                          
-                          {/* Botão Câmara */}
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="lg"
-                            onClick={() => cameraInputRefs.current[index]?.click()}
-                            className="touch-target"
-                          >
-                            <Camera className="w-5 h-5" />
-                          </Button>
-                        </div>
-                        <span className="text-xs text-muted-foreground">Foto {index + 1}</span>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Inputs escondidos */}
-                  <input
-                    ref={el => { fileInputRefs.current[index] = el; }}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleFileSelect(index, file);
-                      e.target.value = '';
-                    }}
-                  />
-                  <input
-                    ref={el => { cameraInputRefs.current[index] = el; }}
-                    type="file"
-                    accept="image/*"
-                    capture="environment"
-                    className="hidden"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) handleFileSelect(index, file);
-                      e.target.value = '';
-                    }}
-                  />
-                </div>
-              );
-            })}
-          </div>
+          <ProdutoFotos
+            maxFotos={maxFotos}
+            idmm={idmm || 'novo'}
+            fotoUrls={fotoUrls}
+            fotoHdUrls={fotoHdUrls}
+            onFotosChange={setFotoUrls}
+            onFotosHdChange={setFotoHdUrls}
+            canUploadHd={canUploadHd}
+          />
         </div>
 
         {/* GPS */}

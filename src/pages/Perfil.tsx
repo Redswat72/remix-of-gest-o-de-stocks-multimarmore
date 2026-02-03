@@ -53,7 +53,7 @@ export default function Perfil() {
       maxSizeKB: 300,
       maxWidth: 400,
       maxHeight: 400,
-      quality: 0.85,
+      jpegQuality: 0.85,
     });
 
     if (result) {
