@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Search, Filter, Download, Package, AlertTriangle, XCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { Search, Filter, Download, Package, AlertTriangle, XCircle, ChevronDown, ChevronUp, Weight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -122,6 +122,7 @@ export default function Stock() {
           'Tipo de Pedra': item.produto.tipo_pedra,
           'Nome Comercial': item.produto.nome_comercial || '-',
           Forma: item.produto.forma,
+          'Peso (ton)': item.produto.forma === 'bloco' ? (item.produto.peso_ton || '-') : '-',
           Parque: '-',
           Quantidade: 0,
           'Stock Total': item.stockTotal,
@@ -133,6 +134,7 @@ export default function Stock() {
         'Tipo de Pedra': item.produto.tipo_pedra,
         'Nome Comercial': item.produto.nome_comercial || '-',
         Forma: item.produto.forma,
+        'Peso (ton)': item.produto.forma === 'bloco' ? (item.produto.peso_ton || '-') : '-',
         Parque: s.local.nome,
         Quantidade: s.quantidade,
         'Stock Total': item.stockTotal,
@@ -279,6 +281,7 @@ export default function Stock() {
                     </TableHead>
                     <TableHead>Nome Comercial</TableHead>
                     <TableHead>Forma</TableHead>
+                    <TableHead className="text-right">Peso (ton)</TableHead>
                     <TableHead 
                       className="text-right cursor-pointer hover:bg-muted/50"
                       onClick={() => toggleSort('stockTotal')}
@@ -320,6 +323,16 @@ export default function Stock() {
                             {item.produto.nome_comercial || '-'}
                           </TableCell>
                           <TableCell>{getFormaBadge(item.produto.forma)}</TableCell>
+                          <TableCell className="text-right">
+                            {item.produto.forma === 'bloco' && item.produto.peso_ton ? (
+                              <span className="flex items-center justify-end gap-1 font-medium">
+                                <Weight className="w-3 h-3 text-muted-foreground" />
+                                {item.produto.peso_ton}
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground">-</span>
+                            )}
+                          </TableCell>
                           <TableCell className="text-right font-semibold">
                             {item.stockTotal}
                           </TableCell>
@@ -327,7 +340,7 @@ export default function Stock() {
                         </TableRow>
                         <CollapsibleContent asChild>
                           <TableRow className="bg-muted/30">
-                            <TableCell colSpan={7} className="py-3">
+                            <TableCell colSpan={8} className="py-3">
                               <div className="pl-12">
                                 <p className="text-sm font-medium mb-2">Stock por Parque:</p>
                                 <div className="flex flex-wrap gap-2">
