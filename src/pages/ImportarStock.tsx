@@ -21,8 +21,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
-import { useParseExcel, useExecutarImportacao, LinhaExcel, LinhaExcelBlocos, LinhaExcelChapas, LinhaExcelLadrilhos, ResultadoImportacao } from '@/hooks/useImportarExcel';
+import { useParseExcel, useExecutarImportacao, LinhaExcel, LinhaExcelBlocos, LinhaExcelChapas, LinhaExcelLadrilhos, ResultadoImportacao, PargaExcel } from '@/hooks/useImportarExcel';
 import { gerarModeloExcel, TipoImportacao } from '@/lib/excelTemplateGenerator';
 import { cn } from '@/lib/utils';
 
@@ -166,35 +167,89 @@ export default function ImportarStock() {
     return (linha as LinhaExcelBlocos | LinhaExcelLadrilhos).quantidade;
   };
 
-  // Renderizar resumo das pargas para chapas
+  // Renderizar resumo das pargas para chapas com tooltips de fotos
   const renderPargasResumo = (linha: LinhaExcelChapas) => {
-    const pargas = linha.pargas
+    const pargasAtivas = linha.pargas
       .map((p, idx) => {
         if (p.quantidade && p.quantidade > 0) {
-          return { num: idx + 1, nome: p.nome || `Parga ${idx + 1}`, qtd: p.quantidade };
+          return { 
+            num: idx + 1, 
+            nome: p.nome || `Parga ${idx + 1}`, 
+            qtd: p.quantidade,
+            foto1: p.foto1Url,
+            foto2: p.foto2Url
+          };
         }
         return null;
       })
       .filter(Boolean);
     
-    if (pargas.length === 0) return '-';
+    if (pargasAtivas.length === 0) return '-';
     
-    return pargas.map(p => `${p!.nome}: ${p!.qtd}`).join(' | ');
+    return (
+      <TooltipProvider>
+        <div className="flex flex-wrap gap-1">
+          {pargasAtivas.map((p, i) => (
+            <Tooltip key={i}>
+              <TooltipTrigger asChild>
+                <span className="cursor-help underline decoration-dotted underline-offset-2">
+                  {p!.nome}: {p!.qtd}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-xs">
+                <div className="space-y-1 text-xs">
+                  <p className="font-medium">{p!.nome}</p>
+                  <p><span className="text-muted-foreground">1ª Chapa:</span> {p!.foto1 || <span className="text-destructive">Sem foto</span>}</p>
+                  <p><span className="text-muted-foreground">Última:</span> {p!.foto2 || <span className="text-muted-foreground italic">Não definida</span>}</p>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          ))}
+        </div>
+      </TooltipProvider>
+    );
   };
 
-  // Renderizar dimensões das pargas
+  // Renderizar dimensões das pargas com tooltips
   const renderPargasDimensoes = (linha: LinhaExcelChapas) => {
-    const pargas = linha.pargas
+    const pargasAtivas = linha.pargas
       .map((p, idx) => {
         if (p.quantidade && p.quantidade > 0) {
-          return `P${idx + 1}: ${p.comprimento || '-'}×${p.altura || '-'}×${p.espessura || '-'}`;
+          return {
+            num: idx + 1,
+            comprimento: p.comprimento,
+            altura: p.altura,
+            espessura: p.espessura
+          };
         }
         return null;
       })
       .filter(Boolean);
     
-    if (pargas.length === 0) return '-';
-    return pargas.join(' | ');
+    if (pargasAtivas.length === 0) return '-';
+    
+    return (
+      <TooltipProvider>
+        <div className="flex flex-wrap gap-1">
+          {pargasAtivas.map((p, i) => (
+            <Tooltip key={i}>
+              <TooltipTrigger asChild>
+                <span className="cursor-help">
+                  P{p!.num}: {p!.comprimento || '-'}×{p!.altura || '-'}×{p!.espessura || '-'}
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">
+                <div className="text-xs space-y-0.5">
+                  <p>Comprimento: {p!.comprimento || '-'} cm</p>
+                  <p>Altura: {p!.altura || '-'} cm</p>
+                  <p>Espessura: {p!.espessura || '-'} cm</p>
+                </div>
+              </TooltipContent>
+            </Tooltip>
+          ))}
+        </div>
+      </TooltipProvider>
+    );
   };
 
   return (
