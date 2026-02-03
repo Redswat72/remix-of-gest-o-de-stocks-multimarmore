@@ -21,6 +21,7 @@ import Superadmin from "./pages/Superadmin";
 import Auditoria from "./pages/Auditoria";
 import Produtos from "./pages/Produtos";
 import ImportarStock from "./pages/ImportarStock";
+import ImportarInventario from "./pages/ImportarInventario";
 import Perfil from "./pages/Perfil";
 import ProdutoPublico from "./pages/ProdutoPublico";
 import ProdutoFicha from "./pages/ProdutoFicha";
@@ -126,6 +127,17 @@ const App = () => (
                 <ProtectedRoute superadminOnly>
                   <AppLayout>
                     <ImportarStock />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/importar-inventario"
+              element={
+                <ProtectedRoute superadminOnly>
+                  <AppLayout>
+                    <ImportarInventario />
                   </AppLayout>
                 </ProtectedRoute>
               }
