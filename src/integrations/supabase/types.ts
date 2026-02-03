@@ -262,12 +262,32 @@ export type Database = {
           longitude: number | null
           nome_comercial: string | null
           observacoes: string | null
+          parga1_altura_cm: number | null
+          parga1_comprimento_cm: number | null
+          parga1_espessura_cm: number | null
+          parga1_foto1_url: string | null
+          parga1_foto2_url: string | null
           parga1_nome: string | null
           parga1_quantidade: number | null
+          parga2_altura_cm: number | null
+          parga2_comprimento_cm: number | null
+          parga2_espessura_cm: number | null
+          parga2_foto1_url: string | null
+          parga2_foto2_url: string | null
           parga2_nome: string | null
           parga2_quantidade: number | null
+          parga3_altura_cm: number | null
+          parga3_comprimento_cm: number | null
+          parga3_espessura_cm: number | null
+          parga3_foto1_url: string | null
+          parga3_foto2_url: string | null
           parga3_nome: string | null
           parga3_quantidade: number | null
+          parga4_altura_cm: number | null
+          parga4_comprimento_cm: number | null
+          parga4_espessura_cm: number | null
+          parga4_foto1_url: string | null
+          parga4_foto2_url: string | null
           parga4_nome: string | null
           parga4_quantidade: number | null
           peso_ton: number | null
@@ -303,12 +323,32 @@ export type Database = {
           longitude?: number | null
           nome_comercial?: string | null
           observacoes?: string | null
+          parga1_altura_cm?: number | null
+          parga1_comprimento_cm?: number | null
+          parga1_espessura_cm?: number | null
+          parga1_foto1_url?: string | null
+          parga1_foto2_url?: string | null
           parga1_nome?: string | null
           parga1_quantidade?: number | null
+          parga2_altura_cm?: number | null
+          parga2_comprimento_cm?: number | null
+          parga2_espessura_cm?: number | null
+          parga2_foto1_url?: string | null
+          parga2_foto2_url?: string | null
           parga2_nome?: string | null
           parga2_quantidade?: number | null
+          parga3_altura_cm?: number | null
+          parga3_comprimento_cm?: number | null
+          parga3_espessura_cm?: number | null
+          parga3_foto1_url?: string | null
+          parga3_foto2_url?: string | null
           parga3_nome?: string | null
           parga3_quantidade?: number | null
+          parga4_altura_cm?: number | null
+          parga4_comprimento_cm?: number | null
+          parga4_espessura_cm?: number | null
+          parga4_foto1_url?: string | null
+          parga4_foto2_url?: string | null
           parga4_nome?: string | null
           parga4_quantidade?: number | null
           peso_ton?: number | null
@@ -344,12 +384,32 @@ export type Database = {
           longitude?: number | null
           nome_comercial?: string | null
           observacoes?: string | null
+          parga1_altura_cm?: number | null
+          parga1_comprimento_cm?: number | null
+          parga1_espessura_cm?: number | null
+          parga1_foto1_url?: string | null
+          parga1_foto2_url?: string | null
           parga1_nome?: string | null
           parga1_quantidade?: number | null
+          parga2_altura_cm?: number | null
+          parga2_comprimento_cm?: number | null
+          parga2_espessura_cm?: number | null
+          parga2_foto1_url?: string | null
+          parga2_foto2_url?: string | null
           parga2_nome?: string | null
           parga2_quantidade?: number | null
+          parga3_altura_cm?: number | null
+          parga3_comprimento_cm?: number | null
+          parga3_espessura_cm?: number | null
+          parga3_foto1_url?: string | null
+          parga3_foto2_url?: string | null
           parga3_nome?: string | null
           parga3_quantidade?: number | null
+          parga4_altura_cm?: number | null
+          parga4_comprimento_cm?: number | null
+          parga4_espessura_cm?: number | null
+          parga4_foto1_url?: string | null
+          parga4_foto2_url?: string | null
           parga4_nome?: string | null
           parga4_quantidade?: number | null
           peso_ton?: number | null

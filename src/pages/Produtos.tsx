@@ -37,6 +37,7 @@ import { ProdutoCard } from '@/components/produtos/ProdutoCard';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import type { Produto } from '@/types/database';
+import type { PargaFotos } from '@/components/produtos/ChapaFormSection';
 
 interface Filters {
   search: string;
@@ -93,10 +94,27 @@ export default function Produtos() {
     return true;
   });
 
-  const handleSubmit = async (data: any, fotoUrls: (string | null)[], fotoHdUrls: (string | null)[]) => {
+  const handleSubmit = async (
+    data: any, 
+    fotoUrls: (string | null)[], 
+    fotoHdUrls: (string | null)[],
+    pargaFotos?: PargaFotos
+  ) => {
     setIsSubmitting(true);
     
     try {
+      // Build parga fotos data if provided
+      const pargaFotosData = pargaFotos ? {
+        parga1_foto1_url: pargaFotos.parga1_foto1_url,
+        parga1_foto2_url: pargaFotos.parga1_foto2_url,
+        parga2_foto1_url: pargaFotos.parga2_foto1_url,
+        parga2_foto2_url: pargaFotos.parga2_foto2_url,
+        parga3_foto1_url: pargaFotos.parga3_foto1_url,
+        parga3_foto2_url: pargaFotos.parga3_foto2_url,
+        parga4_foto1_url: pargaFotos.parga4_foto1_url,
+        parga4_foto2_url: pargaFotos.parga4_foto2_url,
+      } : {};
+
       if (editingProduto) {
         // Atualizar produto com URLs das fotos operacionais e HD
         await updateMutation.mutateAsync({
@@ -110,6 +128,7 @@ export default function Produtos() {
           foto2_hd_url: fotoHdUrls[1] || null,
           foto3_hd_url: fotoHdUrls[2] || null,
           foto4_hd_url: fotoHdUrls[3] || null,
+          ...pargaFotosData,
         });
         
         toast({
@@ -128,6 +147,7 @@ export default function Produtos() {
           foto2_hd_url: fotoHdUrls[1] || null,
           foto3_hd_url: fotoHdUrls[2] || null,
           foto4_hd_url: fotoHdUrls[3] || null,
+          ...pargaFotosData,
         });
         
         toast({
