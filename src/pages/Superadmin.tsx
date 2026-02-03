@@ -8,7 +8,9 @@ import {
   Pencil,
   Check,
   X,
-  Loader2
+  Loader2,
+  FileDown,
+  FileSpreadsheet
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,6 +28,7 @@ import { useLocais, useCreateLocal, useUpdateLocal } from '@/hooks/useLocais';
 import { useProfiles, useUpdateProfile, useUpdateUserRole } from '@/hooks/useProfiles';
 import { useStockAgregado } from '@/hooks/useStock';
 import { exportToExcel } from '@/lib/exportExcel';
+import { gerarModeloExcel } from '@/lib/excelTemplateGenerator';
 import type { AppRole, LocalFormData } from '@/types/database';
 
 export default function Superadmin() {
@@ -81,6 +84,7 @@ export default function Superadmin() {
 
 // === Stock Global Tab ===
 function StockGlobalTab() {
+  const { toast } = useToast();
   const { data: stockAgregado, isLoading } = useStockAgregado();
   const { data: locais } = useLocais({ ativo: true });
 
@@ -108,6 +112,22 @@ function StockGlobalTab() {
     exportToExcel(exportData, 'stock-global-multimarmore');
   };
 
+  const handleDownloadTemplate = () => {
+    try {
+      gerarModeloExcel({ incluirExemplos: true });
+      toast({
+        title: 'Modelo descarregado',
+        description: 'O modelo de importação foi guardado com sucesso.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível gerar o modelo de importação.',
+        variant: 'destructive',
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <Card>
@@ -122,14 +142,33 @@ function StockGlobalTab() {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between">
-        <div>
-          <CardTitle>Stock Global da Empresa</CardTitle>
-          <CardDescription>Visão agregada de todos os parques</CardDescription>
+      <CardHeader>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <CardTitle>Stock Global da Empresa</CardTitle>
+            <CardDescription>Visão agregada de todos os parques</CardDescription>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button 
+              variant="outline" 
+              onClick={handleDownloadTemplate}
+              className="gap-2"
+            >
+              <FileDown className="h-4 w-4" />
+              <span className="hidden sm:inline">Modelo Importação</span>
+              <span className="sm:hidden">Modelo</span>
+            </Button>
+            <Button 
+              onClick={handleExport} 
+              disabled={!stockAgregado?.length}
+              className="gap-2"
+            >
+              <FileSpreadsheet className="h-4 w-4" />
+              <span className="hidden sm:inline">Exportar Excel</span>
+              <span className="sm:hidden">Exportar</span>
+            </Button>
+          </div>
         </div>
-        <Button onClick={handleExport} disabled={!stockAgregado?.length}>
-          Exportar Excel
-        </Button>
       </CardHeader>
       <CardContent>
         {stockAgregado && stockAgregado.length > 0 ? (
