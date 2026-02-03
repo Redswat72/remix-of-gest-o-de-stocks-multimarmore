@@ -59,6 +59,7 @@ export interface Produto {
   largura_cm: number | null;
   altura_cm: number | null;
   espessura_cm: number | null;
+  peso_ton: number | null;
   area_m2: number | null;
   volume_m3: number | null;
   foto1_url: string | null;
@@ -142,6 +143,7 @@ export interface ProdutoFormData {
   largura_cm?: number;
   altura_cm?: number;
   espessura_cm?: number;
+  peso_ton?: number;
   observacoes?: string;
 }
 

@@ -24,7 +24,7 @@ import {
 import { ProdutoFotos } from '@/components/produtos/ProdutoFotos';
 import type { Produto } from '@/types/database';
 
-const produtoSchema = z.object({
+const produtoBaseSchema = z.object({
   idmm: z.string().min(1, 'IDMM é obrigatório').max(50, 'Máximo 50 caracteres'),
   tipo_pedra: z.string().min(1, 'Tipo de pedra é obrigatório').max(100, 'Máximo 100 caracteres'),
   nome_comercial: z.string().max(100, 'Máximo 100 caracteres').optional(),
@@ -34,10 +34,25 @@ const produtoSchema = z.object({
   largura_cm: z.number().positive('Deve ser positivo').optional().nullable(),
   altura_cm: z.number().positive('Deve ser positivo').optional().nullable(),
   espessura_cm: z.number().positive('Deve ser positivo').optional().nullable(),
+  peso_ton: z.number().positive('Deve ser positivo').optional().nullable(),
   latitude: z.number().min(-90).max(90).optional().nullable(),
   longitude: z.number().min(-180).max(180).optional().nullable(),
   observacoes: z.string().max(500, 'Máximo 500 caracteres').optional(),
 });
+
+// Schema com refinamento para peso obrigatório em blocos
+const produtoSchema = produtoBaseSchema.refine(
+  (data) => {
+    if (data.forma === 'bloco') {
+      return data.peso_ton !== null && data.peso_ton !== undefined && data.peso_ton > 0;
+    }
+    return true;
+  },
+  {
+    message: 'Peso em toneladas é obrigatório para blocos',
+    path: ['peso_ton'],
+  }
+);
 
 type ProdutoFormData = z.infer<typeof produtoSchema>;
 
@@ -54,6 +69,9 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading, canUploadH
   const [fotoHdUrls, setFotoHdUrls] = useState<(string | null)[]>([null, null, null, null]);
   const [gettingLocation, setGettingLocation] = useState(false);
 
+  // Aceder ao peso_ton do produto com type assertion
+  const produtoWithPeso = produto as (Produto & { peso_ton?: number | null }) | null | undefined;
+
   const form = useForm<ProdutoFormData>({
     resolver: zodResolver(produtoSchema),
     defaultValues: {
@@ -66,6 +84,7 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading, canUploadH
       largura_cm: produto?.largura_cm || null,
       altura_cm: produto?.altura_cm || null,
       espessura_cm: produto?.espessura_cm || null,
+      peso_ton: produtoWithPeso?.peso_ton || null,
       latitude: produto?.latitude || null,
       longitude: produto?.longitude || null,
       observacoes: produto?.observacoes || '',
@@ -287,32 +306,36 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading, canUploadH
                 )}
               />
             )}
-
-            {(forma === 'chapa' || forma === 'ladrilho') && (
-              <FormField
-                control={form.control}
-                name="espessura_cm"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Espessura</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        step="0.1"
-                        inputMode="decimal"
-                        {...field}
-                        value={field.value ?? ''}
-                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
-                        className="touch-target"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
           </div>
         </div>
+
+        {/* Peso - apenas para blocos */}
+        {forma === 'bloco' && (
+          <div>
+            <FormField
+              control={form.control}
+              name="peso_ton"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Peso (toneladas) *</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      inputMode="decimal"
+                      {...field}
+                      value={field.value ?? ''}
+                      onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                      placeholder="Ex: 12.5"
+                      className="touch-target max-w-[200px]"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        )}
 
         {/* Fotos - Componente Separado */}
         <div className="space-y-4">

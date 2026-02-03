@@ -71,6 +71,7 @@ interface CreateProdutoData extends ProdutoFormData {
   foto4_url?: string | null;
   latitude?: number | null;
   longitude?: number | null;
+  peso_ton?: number | null;
 }
 
 export function useCreateProduto() {
@@ -94,6 +95,7 @@ export function useCreateProduto() {
           largura_cm: formData.largura_cm || null,
           altura_cm: formData.altura_cm || null,
           espessura_cm: formData.espessura_cm || null,
+          peso_ton: formData.peso_ton || null,
           observacoes: formData.observacoes || null,
           foto1_url: formData.foto1_url || null,
           foto2_url: formData.foto2_url || null,
@@ -126,6 +128,7 @@ interface UpdateProdutoData {
   largura_cm?: number | null;
   altura_cm?: number | null;
   espessura_cm?: number | null;
+  peso_ton?: number | null;
   observacoes?: string | null;
   foto1_url?: string | null;
   foto2_url?: string | null;
