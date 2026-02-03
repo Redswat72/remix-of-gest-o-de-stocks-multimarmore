@@ -1,7 +1,8 @@
-import { Bell, Search, LogOut } from 'lucide-react';
+import { Bell, Search, LogOut, Sun, Moon, Monitor } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
+import { useTheme } from '@/hooks/useTheme';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,6 +18,7 @@ import { Link } from 'react-router-dom';
 
 export function Header() {
   const { profile, roles, signOut, userLocal } = useAuth();
+  const { theme, setTheme, resolvedTheme } = useTheme();
 
   const getInitials = (nome: string) => {
     return nome
@@ -72,6 +74,36 @@ export function Header() {
             📍 {userLocal.nome}
           </Badge>
         )}
+
+        {/* Theme Toggle */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+              {resolvedTheme === 'dark' ? (
+                <Moon className="w-5 h-5" />
+              ) : (
+                <Sun className="w-5 h-5" />
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => setTheme('light')} className="gap-2">
+              <Sun className="w-4 h-4" />
+              Claro
+              {theme === 'light' && <span className="ml-auto text-primary">✓</span>}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setTheme('dark')} className="gap-2">
+              <Moon className="w-4 h-4" />
+              Escuro
+              {theme === 'dark' && <span className="ml-auto text-primary">✓</span>}
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setTheme('system')} className="gap-2">
+              <Monitor className="w-4 h-4" />
+              Sistema
+              {theme === 'system' && <span className="ml-auto text-primary">✓</span>}
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         {/* Notifications */}
         <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:text-foreground">
