@@ -10,7 +10,9 @@ import type { TipoImportacao } from '@/lib/excelTemplateGenerator';
 export interface LinhaExcelBase {
   rowIndex: number;
   idmm: string;
+  tipoPedra: string;
   variedade: string;
+  origemBloco?: string;
   forma: FormaProduto;
   parqueMM: string;
   linha?: string;
@@ -174,7 +176,9 @@ function parseBlocos(
 ): LinhaExcelBlocos[] {
   const colMap = {
     idmm: findColumnIndex(headers, ['id_mm', 'idmm', 'id mm', 'id-mm', 'codigo', 'ref']),
-    variedade: findColumnIndex(headers, ['variedade', 'tipo_pedra', 'tipo pedra', 'tipo', 'material', 'pedra']),
+    tipoPedra: findColumnIndex(headers, ['tipo_pedra', 'tipo pedra', 'tipo', 'material', 'pedra']),
+    variedade: findColumnIndex(headers, ['variedade', 'variety']),
+    origemBloco: findColumnIndex(headers, ['origem_bloco', 'origem bloco', 'origembloco', 'origem do bloco']),
     nomeComercial: findColumnIndex(headers, ['nome_comercial', 'nome comercial', 'nome', 'comercial']),
     acabamento: findColumnIndex(headers, ['acabamento', 'acabam', 'finish']),
     dimensoes: findColumnIndex(headers, ['dimensoes', 'dimensões', 'dim']),
@@ -195,7 +199,7 @@ function parseBlocos(
   };
 
   if (colMap.idmm === -1) colMap.idmm = 0;
-  if (colMap.variedade === -1) colMap.variedade = 1;
+  if (colMap.tipoPedra === -1) colMap.tipoPedra = 1;
 
   const linhasParsed: LinhaExcelBlocos[] = [];
 
@@ -212,8 +216,11 @@ function parseBlocos(
     const erros: string[] = [];
     const avisos: string[] = [];
 
-    const variedade = String(row[colMap.variedade] || '').trim();
-    if (!variedade) erros.push('Variedade/Tipo de pedra obrigatório');
+    const tipoPedra = String(row[colMap.tipoPedra] || '').trim();
+    if (!tipoPedra) erros.push('Tipo de pedra obrigatório');
+
+    const variedade = colMap.variedade !== -1 ? String(row[colMap.variedade] || '').trim() : '';
+    const origemBloco = colMap.origemBloco !== -1 ? String(row[colMap.origemBloco] || '').trim() : '';
 
     const parqueMMRaw = String(row[colMap.parqueMM] || '').trim();
     const linhaRaw = colMap.linha !== -1 ? String(row[colMap.linha] || '').trim() : '';
@@ -273,7 +280,9 @@ function parseBlocos(
     linhasParsed.push({
       rowIndex: i + 1,
       idmm,
+      tipoPedra,
       variedade,
+      origemBloco: origemBloco || undefined,
       forma: 'bloco',
       nomeComercial: nomeComercial || undefined,
       acabamento: acabamento || undefined,
@@ -307,7 +316,9 @@ function parseChapas(
 ): LinhaExcelChapas[] {
   const colMap = {
     idmm: findColumnIndex(headers, ['id_mm_bloco', 'id_mm', 'idmm', 'id mm bloco', 'id-mm']),
-    variedade: findColumnIndex(headers, ['variedade', 'tipo_pedra', 'tipo', 'material', 'pedra']),
+    tipoPedra: findColumnIndex(headers, ['tipo_pedra', 'tipo pedra', 'tipo', 'material', 'pedra']),
+    variedade: findColumnIndex(headers, ['variedade', 'variety']),
+    origemBloco: findColumnIndex(headers, ['origem_bloco', 'origem bloco', 'origembloco', 'origem do bloco']),
     origem: findColumnIndex(headers, ['origem_material', 'origem material', 'origem']),
     parqueMM: findColumnIndex(headers, ['parque_mm', 'parque mm', 'parquemm', 'parque', 'local']),
     linha: findColumnIndex(headers, ['linha', 'corredor', 'fila', 'posicao']),
@@ -327,7 +338,7 @@ function parseChapas(
   }));
 
   if (colMap.idmm === -1) colMap.idmm = 0;
-  if (colMap.variedade === -1) colMap.variedade = 1;
+  if (colMap.tipoPedra === -1) colMap.tipoPedra = 1;
 
   const linhasParsed: LinhaExcelChapas[] = [];
 
@@ -344,8 +355,11 @@ function parseChapas(
     const erros: string[] = [];
     const avisos: string[] = [];
 
-    const variedade = String(row[colMap.variedade] || '').trim();
-    if (!variedade) erros.push('Variedade/Tipo de pedra obrigatório');
+    const tipoPedra = String(row[colMap.tipoPedra] || '').trim();
+    if (!tipoPedra) erros.push('Tipo de pedra obrigatório');
+
+    const variedade = colMap.variedade !== -1 ? String(row[colMap.variedade] || '').trim() : '';
+    const origemBloco = colMap.origemBloco !== -1 ? String(row[colMap.origemBloco] || '').trim() : '';
 
     const parqueMMRaw = String(row[colMap.parqueMM] || '').trim();
     const linhaRaw = colMap.linha !== -1 ? String(row[colMap.linha] || '').trim() : '';
@@ -429,7 +443,9 @@ function parseChapas(
     linhasParsed.push({
       rowIndex: i + 1,
       idmm,
+      tipoPedra,
       variedade,
+      origemBloco: origemBloco || undefined,
       forma: 'chapa',
       parqueMM: parqueMMRaw,
       linha: linhaRaw || undefined,
@@ -457,7 +473,8 @@ function parseLadrilhos(
 ): LinhaExcelLadrilhos[] {
   const colMap = {
     idmm: findColumnIndex(headers, ['id_mm', 'idmm', 'id mm', 'id-mm', 'codigo', 'ref']),
-    variedade: findColumnIndex(headers, ['variedade', 'tipo_pedra', 'tipo', 'material', 'pedra']),
+    tipoPedra: findColumnIndex(headers, ['tipo_pedra', 'tipo pedra', 'tipo', 'material', 'pedra']),
+    variedade: findColumnIndex(headers, ['variedade', 'variety']),
     origem: findColumnIndex(headers, ['origem_material', 'origem material', 'origem']),
     parqueMM: findColumnIndex(headers, ['parque_mm', 'parque mm', 'parquemm', 'parque', 'local']),
     linha: findColumnIndex(headers, ['linha', 'corredor', 'fila', 'posicao']),
@@ -473,7 +490,7 @@ function parseLadrilhos(
   };
 
   if (colMap.idmm === -1) colMap.idmm = 0;
-  if (colMap.variedade === -1) colMap.variedade = 1;
+  if (colMap.tipoPedra === -1) colMap.tipoPedra = 1;
 
   const linhasParsed: LinhaExcelLadrilhos[] = [];
 
@@ -490,8 +507,10 @@ function parseLadrilhos(
     const erros: string[] = [];
     const avisos: string[] = [];
 
-    const variedade = String(row[colMap.variedade] || '').trim();
-    if (!variedade) erros.push('Variedade/Tipo de pedra obrigatório');
+    const tipoPedra = String(row[colMap.tipoPedra] || '').trim();
+    if (!tipoPedra) erros.push('Tipo de pedra obrigatório');
+
+    const variedade = colMap.variedade !== -1 ? String(row[colMap.variedade] || '').trim() : '';
 
     const parqueMMRaw = String(row[colMap.parqueMM] || '').trim();
     const linhaRaw = colMap.linha !== -1 ? String(row[colMap.linha] || '').trim() : '';
@@ -542,6 +561,7 @@ function parseLadrilhos(
     linhasParsed.push({
       rowIndex: i + 1,
       idmm,
+      tipoPedra,
       variedade,
       forma: 'ladrilho',
       parqueMM: parqueMMRaw,
@@ -663,7 +683,9 @@ export function useExecutarImportacao() {
           return {
             tipo: 'chapa',
             idmm: chapaLinha.idmm,
-            variedade: chapaLinha.variedade,
+            tipo_pedra: chapaLinha.tipoPedra,
+            variedade: chapaLinha.variedade || undefined,
+            origem_bloco: chapaLinha.origemBloco || undefined,
             forma: 'chapa',
             parque: chapaLinha.parqueMM,
             linha: chapaLinha.linha || undefined,
@@ -705,7 +727,8 @@ export function useExecutarImportacao() {
           return {
             tipo: 'ladrilho',
             idmm: ladrilhoLinha.idmm,
-            variedade: ladrilhoLinha.variedade,
+            tipo_pedra: ladrilhoLinha.tipoPedra,
+            variedade: ladrilhoLinha.variedade || undefined,
             forma: 'ladrilho',
             parque: ladrilhoLinha.parqueMM,
             linha: ladrilhoLinha.linha || undefined,
@@ -725,7 +748,9 @@ export function useExecutarImportacao() {
           return {
             tipo: 'bloco',
             idmm: blocoLinha.idmm,
-            variedade: blocoLinha.variedade,
+            tipo_pedra: blocoLinha.tipoPedra,
+            variedade: blocoLinha.variedade || undefined,
+            origem_bloco: blocoLinha.origemBloco || undefined,
             forma: 'bloco',
             nome_comercial: blocoLinha.nomeComercial || undefined,
             acabamento: blocoLinha.acabamento || undefined,

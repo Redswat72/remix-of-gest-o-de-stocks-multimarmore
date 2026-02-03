@@ -235,6 +235,22 @@ export default function ProdutoFicha() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Variedade */}
+              {produto.variedade && (
+                <div>
+                  <span className="text-sm text-muted-foreground">Variedade</span>
+                  <p className="font-medium">{produto.variedade}</p>
+                </div>
+              )}
+
+              {/* Origem do Bloco */}
+              {produto.origem_bloco && (
+                <div>
+                  <span className="text-sm text-muted-foreground">Origem do Bloco</span>
+                  <p className="font-medium">{produto.origem_bloco}</p>
+                </div>
+              )}
+
               {/* Nome Comercial */}
               {produto.nome_comercial && (
                 <div>

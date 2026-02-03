@@ -262,6 +262,7 @@ export type Database = {
           longitude: number | null
           nome_comercial: string | null
           observacoes: string | null
+          origem_bloco: string | null
           parga1_altura_cm: number | null
           parga1_comprimento_cm: number | null
           parga1_espessura_cm: number | null
@@ -296,6 +297,7 @@ export type Database = {
           quantidade_total_chapas: number | null
           tipo_pedra: string
           updated_at: string
+          variedade: string | null
           volume_m3: number | null
         }
         Insert: {
@@ -323,6 +325,7 @@ export type Database = {
           longitude?: number | null
           nome_comercial?: string | null
           observacoes?: string | null
+          origem_bloco?: string | null
           parga1_altura_cm?: number | null
           parga1_comprimento_cm?: number | null
           parga1_espessura_cm?: number | null
@@ -357,6 +360,7 @@ export type Database = {
           quantidade_total_chapas?: number | null
           tipo_pedra: string
           updated_at?: string
+          variedade?: string | null
           volume_m3?: number | null
         }
         Update: {
@@ -384,6 +388,7 @@ export type Database = {
           longitude?: number | null
           nome_comercial?: string | null
           observacoes?: string | null
+          origem_bloco?: string | null
           parga1_altura_cm?: number | null
           parga1_comprimento_cm?: number | null
           parga1_espessura_cm?: number | null
@@ -418,6 +423,7 @@ export type Database = {
           quantidade_total_chapas?: number | null
           tipo_pedra?: string
           updated_at?: string
+          variedade?: string | null
           volume_m3?: number | null
         }
         Relationships: []

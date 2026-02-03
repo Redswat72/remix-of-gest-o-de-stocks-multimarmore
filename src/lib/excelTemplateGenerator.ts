@@ -28,6 +28,9 @@ export interface ModeloInventarioConfig {
 export const COLUNAS_MODELO_BLOCOS = {
   Data: { obrigatorio: false, descricao: 'Data do registo (formato: DD/MM/AAAA)', exemplo: '03/02/2026' },
   ID_MM: { obrigatorio: true, descricao: 'Identificador único do produto (código interno Multimármore)', exemplo: 'MM-2026-001' },
+  Tipo_pedra: { obrigatorio: true, descricao: 'Tipo geral da pedra (ex: "Mármore", "Granito", "Calcário")', exemplo: 'Mármore' },
+  Variedade: { obrigatorio: false, descricao: 'Variedade específica da pedra (ex: "Estremoz Clássico", "Rosa Aurora")', exemplo: 'Estremoz Clássico' },
+  Origem_bloco: { obrigatorio: false, descricao: 'Origem do bloco (ex: "Portugal", "Espanha", "Itália")', exemplo: 'Portugal' },
   Parque_MM: { obrigatorio: true, descricao: 'Código do parque físico (deve existir na tabela de locais)', exemplo: 'P1' },
   Linha: { obrigatorio: false, descricao: 'Posição interna no parque (linha, corredor, fila)', exemplo: 'A-12' },
   Origem_material: { obrigatorio: false, descricao: 'Origem do material: "adquirido" ou "producao_propria"', exemplo: 'adquirido' },
@@ -35,7 +38,6 @@ export const COLUNAS_MODELO_BLOCOS = {
   Largura_cm: { obrigatorio: false, descricao: 'Largura em centímetros', exemplo: '150' },
   Altura_cm: { obrigatorio: false, descricao: 'Altura em centímetros', exemplo: '120' },
   Peso_ton: { obrigatorio: true, descricao: 'Peso em toneladas (OBRIGATÓRIO para blocos)', exemplo: '12.5' },
-  Variedade: { obrigatorio: true, descricao: 'Tipo/variedade da pedra (ex: "Estremoz Branco", "Ruivina")', exemplo: 'Estremoz Branco' },
   Nome_comercial: { obrigatorio: false, descricao: 'Nome comercial do produto (se diferente da variedade)', exemplo: 'Branco Neve' },
   Quantidade: { obrigatorio: false, descricao: 'Quantidade de unidades (default: 1)', exemplo: '1' },
   Notas: { obrigatorio: false, descricao: 'Observações adicionais sobre o produto', exemplo: 'Pequena fissura no canto superior' },
@@ -49,6 +51,9 @@ const EXEMPLOS_BLOCOS = [
   {
     Data: '03/02/2026',
     ID_MM: 'MM-2026-001',
+    Tipo_pedra: 'Mármore',
+    Variedade: 'Estremoz Clássico',
+    Origem_bloco: 'Portugal',
     Parque_MM: 'P1',
     Linha: 'A-12',
     Origem_material: 'adquirido',
@@ -56,7 +61,6 @@ const EXEMPLOS_BLOCOS = [
     Largura_cm: 150,
     Altura_cm: 120,
     Peso_ton: 12.5,
-    Variedade: 'Estremoz Branco',
     Nome_comercial: 'Branco Neve Premium',
     Quantidade: 1,
     Notas: 'Bloco de alta qualidade, sem defeitos visíveis',
@@ -68,6 +72,9 @@ const EXEMPLOS_BLOCOS = [
   {
     Data: '03/02/2026',
     ID_MM: 'MM-2026-002',
+    Tipo_pedra: 'Mármore',
+    Variedade: 'Ruivina',
+    Origem_bloco: 'Portugal',
     Parque_MM: 'P2',
     Linha: 'B-05',
     Origem_material: 'producao_propria',
@@ -75,7 +82,6 @@ const EXEMPLOS_BLOCOS = [
     Largura_cm: 120,
     Altura_cm: 100,
     Peso_ton: 6.5,
-    Variedade: 'Ruivina',
     Nome_comercial: '',
     Quantidade: 1,
     Notas: '',
@@ -92,7 +98,9 @@ export const COLUNAS_MODELO_CHAPAS = {
   // Dados base do bloco de origem
   Data: { obrigatorio: false, descricao: 'Data do registo (formato: DD/MM/AAAA)', exemplo: '03/02/2026' },
   ID_MM_Bloco: { obrigatorio: true, descricao: 'ID do bloco de origem (ex: MM-2026-001)', exemplo: 'MM-2026-001' },
-  Variedade: { obrigatorio: true, descricao: 'Tipo/variedade da pedra', exemplo: 'Estremoz Branco' },
+  Tipo_pedra: { obrigatorio: true, descricao: 'Tipo geral da pedra (ex: "Mármore", "Granito")', exemplo: 'Mármore' },
+  Variedade: { obrigatorio: false, descricao: 'Variedade específica da pedra', exemplo: 'Estremoz Clássico' },
+  Origem_bloco: { obrigatorio: false, descricao: 'Origem do bloco (ex: "Portugal")', exemplo: 'Portugal' },
   Origem_material: { obrigatorio: false, descricao: 'Origem: "adquirido" ou "producao_propria"', exemplo: 'adquirido' },
   Parque_MM: { obrigatorio: true, descricao: 'Código do parque físico', exemplo: 'P1' },
   Linha: { obrigatorio: false, descricao: 'Posição no parque', exemplo: 'A-12' },
@@ -142,7 +150,9 @@ const EXEMPLOS_CHAPAS = [
   {
     Data: '03/02/2026',
     ID_MM_Bloco: 'MM-2026-001',
-    Variedade: 'Estremoz Branco',
+    Tipo_pedra: 'Mármore',
+    Variedade: 'Estremoz Clássico',
+    Origem_bloco: 'Portugal',
     Origem_material: 'adquirido',
     Parque_MM: 'P1',
     Linha: 'A-12',
@@ -184,7 +194,8 @@ const EXEMPLOS_CHAPAS = [
 export const COLUNAS_MODELO_LADRILHOS = {
   Data: { obrigatorio: false, descricao: 'Data do registo (formato: DD/MM/AAAA)', exemplo: '03/02/2026' },
   ID_MM: { obrigatorio: true, descricao: 'Identificador único do produto', exemplo: 'MM-LAD-2026-001' },
-  Variedade: { obrigatorio: true, descricao: 'Tipo/variedade da pedra', exemplo: 'Moleanos' },
+  Tipo_pedra: { obrigatorio: true, descricao: 'Tipo geral da pedra (ex: "Calcário", "Mármore")', exemplo: 'Calcário' },
+  Variedade: { obrigatorio: false, descricao: 'Variedade específica da pedra', exemplo: 'Moleanos Clássico' },
   Origem_material: { obrigatorio: false, descricao: 'Origem: "adquirido" ou "producao_propria"', exemplo: 'producao_propria' },
   Parque_MM: { obrigatorio: true, descricao: 'Código do parque físico', exemplo: 'P1' },
   Linha: { obrigatorio: false, descricao: 'Posição no parque', exemplo: 'C-03' },
@@ -203,7 +214,8 @@ const EXEMPLOS_LADRILHOS = [
   {
     Data: '03/02/2026',
     ID_MM: 'MM-LAD-2026-001',
-    Variedade: 'Moleanos',
+    Tipo_pedra: 'Calcário',
+    Variedade: 'Moleanos Clássico',
     Origem_material: 'producao_propria',
     Parque_MM: 'P1',
     Linha: 'C-03',
@@ -220,7 +232,8 @@ const EXEMPLOS_LADRILHOS = [
   {
     Data: '03/02/2026',
     ID_MM: 'MM-LAD-2026-002',
-    Variedade: 'Estremoz Branco',
+    Tipo_pedra: 'Mármore',
+    Variedade: 'Estremoz Clássico',
     Origem_material: 'adquirido',
     Parque_MM: 'P2',
     Linha: 'D-01',
@@ -270,7 +283,9 @@ function getNotasInstrucoes(tipo: TipoImportacao): string[] {
     '',
     '• ID_MM: Deve ser único e não vazio',
     '• Parque_MM: OBRIGATÓRIO - deve corresponder a um código de parque ativo no sistema',
-    '• Variedade: Campo obrigatório, identifica o tipo de pedra',
+    '• Tipo_pedra: OBRIGATÓRIO - tipo geral da pedra (ex: Mármore, Granito, Calcário)',
+    '• Variedade: Opcional - variedade específica da pedra (ex: Estremoz Clássico)',
+    '• Origem_bloco: Opcional - origem geográfica do bloco (ex: Portugal, Espanha)',
   ];
 
   const notasEspecificas: Record<TipoImportacao, string[]> = {

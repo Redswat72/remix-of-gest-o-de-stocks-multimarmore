@@ -52,6 +52,8 @@ export interface Produto {
   id: string;
   idmm: string;
   tipo_pedra: string;
+  variedade: string | null;
+  origem_bloco: string | null;
   nome_comercial: string | null;
   forma: FormaProduto;
   acabamento: string | null;
@@ -167,6 +169,8 @@ export interface MovimentoFormData {
 export interface ProdutoFormData {
   idmm: string;
   tipo_pedra: string;
+  variedade?: string;
+  origem_bloco?: string;
   nome_comercial?: string;
   forma: FormaProduto;
   acabamento?: string;

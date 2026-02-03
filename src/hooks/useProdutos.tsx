@@ -65,6 +65,8 @@ export function useProduto(id?: string) {
 }
 
 interface CreateProdutoData extends ProdutoFormData {
+  variedade?: string | null;
+  origem_bloco?: string | null;
   foto1_url?: string | null;
   foto2_url?: string | null;
   foto3_url?: string | null;
@@ -117,6 +119,8 @@ export function useCreateProduto() {
         .insert({
           idmm: formData.idmm,
           tipo_pedra: formData.tipo_pedra,
+          variedade: formData.variedade || null,
+          origem_bloco: formData.origem_bloco || null,
           nome_comercial: formData.nome_comercial || null,
           forma: formData.forma,
           acabamento: formData.acabamento || null,
@@ -179,6 +183,8 @@ interface UpdateProdutoData {
   id: string;
   idmm?: string;
   tipo_pedra?: string;
+  variedade?: string | null;
+  origem_bloco?: string | null;
   nome_comercial?: string | null;
   forma?: FormaProduto;
   acabamento?: string | null;
