@@ -74,13 +74,31 @@ export default function NovoMovimento() {
   const selectedCliente = clientes?.find(c => c.id === clienteId);
 
   // Validações por step
+  // Validação para entradas: se material adquirido (não MM), exige documento
+  const isDocumentoObrigatorioEntrada = tipo === 'entrada' && origemMaterial === 'adquirido';
+
+  // Validações por step
   const canProceed = (): boolean => {
     switch (step) {
       case 1:
         return !!tipo;
       case 2:
+        // Transferência e saída: documento obrigatório
         if (tipo === 'transferencia' || tipo === 'saida') {
-          return tipoDocumento !== 'sem_documento';
+          if (tipoDocumento === 'sem_documento') return false;
+          // Número do documento também obrigatório
+          if (!numeroDocumento.trim()) return false;
+          return true;
+        }
+        // Entrada: origem_material sempre obrigatória
+        if (tipo === 'entrada') {
+          if (!origemMaterial) return false;
+          // Se adquirido, exige documento e número
+          if (origemMaterial === 'adquirido') {
+            if (tipoDocumento === 'sem_documento') return false;
+            if (!numeroDocumento.trim()) return false;
+          }
+          return true;
         }
         return true;
       case 3:
@@ -261,32 +279,47 @@ export default function NovoMovimento() {
             <div className="space-y-6">
               {tipo === 'entrada' && (
                 <div className="space-y-3">
-                  <Label>Origem do Material</Label>
+                  <Label>Origem do Material <span className="text-destructive">*</span></Label>
                   <RadioGroup 
                     value={origemMaterial} 
-                    onValueChange={(v) => setOrigemMaterial(v as OrigemMaterial)}
+                    onValueChange={(v) => {
+                      setOrigemMaterial(v as OrigemMaterial);
+                      // Se produção própria, pode ser sem documento
+                      if (v === 'producao_propria') {
+                        setTipoDocumento('sem_documento');
+                        setNumeroDocumento('');
+                      }
+                    }}
                     className="grid gap-3 sm:grid-cols-2"
                   >
-                    <div className="flex items-center space-x-2 border rounded-lg p-4 cursor-pointer hover:bg-muted/50">
+                    <div className={`flex items-center space-x-2 border rounded-lg p-4 cursor-pointer hover:bg-muted/50 ${origemMaterial === 'adquirido' ? 'ring-2 ring-primary' : ''}`}>
                       <RadioGroupItem value="adquirido" id="adquirido" />
                       <Label htmlFor="adquirido" className="cursor-pointer flex-1">
                         <span className="font-medium">Adquirido</span>
                         <p className="text-sm text-muted-foreground">Material comprado a fornecedor</p>
                       </Label>
                     </div>
-                    <div className="flex items-center space-x-2 border rounded-lg p-4 cursor-pointer hover:bg-muted/50">
+                    <div className={`flex items-center space-x-2 border rounded-lg p-4 cursor-pointer hover:bg-muted/50 ${origemMaterial === 'producao_propria' ? 'ring-2 ring-primary' : ''}`}>
                       <RadioGroupItem value="producao_propria" id="producao_propria" />
                       <Label htmlFor="producao_propria" className="cursor-pointer flex-1">
-                        <span className="font-medium">Produção Própria</span>
+                        <span className="font-medium">Produção Própria (MM)</span>
                         <p className="text-sm text-muted-foreground">Material produzido internamente</p>
                       </Label>
                     </div>
                   </RadioGroup>
+                  <p className="text-sm text-muted-foreground">
+                    A origem do material é obrigatória para entradas
+                  </p>
                 </div>
               )}
 
               <div className="space-y-3">
-                <Label>Tipo de Documento</Label>
+                <Label>
+                  Tipo de Documento 
+                  {(tipo === 'transferencia' || tipo === 'saida' || isDocumentoObrigatorioEntrada) && (
+                    <span className="text-destructive"> *</span>
+                  )}
+                </Label>
                 <Select value={tipoDocumento} onValueChange={(v) => setTipoDocumento(v as TipoDocumento)}>
                   <SelectTrigger>
                     <SelectValue />
@@ -297,8 +330,8 @@ export default function NovoMovimento() {
                         key={td.value} 
                         value={td.value}
                         disabled={
-                          (tipo === 'transferencia' || tipo === 'saida') && 
-                          td.value === 'sem_documento'
+                          ((tipo === 'transferencia' || tipo === 'saida' || isDocumentoObrigatorioEntrada) && 
+                          td.value === 'sem_documento')
                         }
                       >
                         {td.label}
@@ -311,16 +344,31 @@ export default function NovoMovimento() {
                     Documento obrigatório para {tipo === 'transferencia' ? 'transferências' : 'saídas'}
                   </p>
                 )}
+                {isDocumentoObrigatorioEntrada && (
+                  <p className="text-sm text-muted-foreground">
+                    Documento obrigatório para material adquirido
+                  </p>
+                )}
+                {tipo === 'entrada' && origemMaterial === 'producao_propria' && (
+                  <p className="text-sm text-muted-foreground">
+                    Documento opcional para produção própria
+                  </p>
+                )}
               </div>
 
-              {tipoDocumento !== 'sem_documento' && (
+              {(tipoDocumento !== 'sem_documento' || isDocumentoObrigatorioEntrada || tipo === 'transferencia' || tipo === 'saida') && tipoDocumento !== 'sem_documento' && (
                 <div className="space-y-2">
-                  <Label>Número do Documento</Label>
+                  <Label>Número do Documento <span className="text-destructive">*</span></Label>
                   <Input 
                     placeholder="Ex: GT-2024/0001"
                     value={numeroDocumento}
                     onChange={(e) => setNumeroDocumento(e.target.value)}
                   />
+                  {!numeroDocumento.trim() && (
+                    <p className="text-sm text-destructive">
+                      Número do documento é obrigatório
+                    </p>
+                  )}
                 </div>
               )}
             </div>

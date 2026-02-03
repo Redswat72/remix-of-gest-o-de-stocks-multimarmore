@@ -347,17 +347,18 @@ export function useExecutarImportacao() {
             produtosCriados++;
           }
 
-          // Criar movimento de entrada
+          // Criar movimento de entrada (importação histórica - validações relaxadas)
           const { error: movimentoError } = await supabase
             .from('movimentos')
             .insert({
               tipo: 'entrada' as const,
               tipo_documento: 'sem_documento' as TipoDocumento,
+              numero_documento: null,
               produto_id: produtoId,
               quantidade: linha.quantidade,
               local_destino_id: linha.localId,
-              origem_material: linha.origemMaterial || null,
-              observacoes: `Importação Excel: ${linha.observacoes || 'Sem observações'}`,
+              origem_material: linha.origemMaterial || null, // Opcional para importação histórica
+              observacoes: `[Importação histórica via Excel] ${linha.observacoes || 'Sem observações'}`,
               operador_id: user.id,
             });
 
@@ -370,7 +371,7 @@ export function useExecutarImportacao() {
         }
       }
 
-      // Registar na auditoria
+      // Registar na auditoria com nota de importação histórica
       await supabase.from('auditoria').insert({
         user_id: user.id,
         user_nome: 'Sistema',
@@ -378,8 +379,9 @@ export function useExecutarImportacao() {
         user_role: 'superadmin',
         tipo_acao: 'importacao_excel',
         entidade: 'stock',
-        descricao: `Importação Excel: ${linhasValidas.length} linhas processadas, ${produtosCriados} produtos criados, ${movimentosCriados} movimentos criados, ${erros} erros`,
+        descricao: `[Importação histórica via Excel] ${linhasValidas.length} linhas processadas, ${produtosCriados} produtos criados, ${movimentosCriados} movimentos criados, ${erros} erros`,
         dados_novos: {
+          nota: 'Importação histórica via Excel - validações relaxadas para dados legados',
           total_linhas: linhas.length,
           linhas_validas: linhasValidas.length,
           produtos_criados: produtosCriados,
