@@ -144,12 +144,18 @@ export default function ImportarStock() {
                 <p className="text-sm text-muted-foreground">Movimentos</p>
               </div>
             </div>
-            {resultado.erros > 0 && (
+            {resultado.erros?.length > 0 && (
               <Alert variant="destructive" className="mb-4">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertTitle>Atenção</AlertTitle>
-                <AlertDescription>
-                  {resultado.erros} linhas não puderam ser processadas devido a erros.
+                <AlertDescription className="space-y-1">
+                  <p>{resultado.erros.length} linhas não puderam ser processadas:</p>
+                  <ul className="list-disc list-inside text-sm mt-2">
+                    {resultado.erros.slice(0, 3).map((e, i) => (
+                      <li key={i}>Linha {e.linha}: {e.erro}</li>
+                    ))}
+                    {resultado.erros.length > 3 && <li>...e mais {resultado.erros.length - 3} erros</li>}
+                  </ul>
                 </AlertDescription>
               </Alert>
             )}

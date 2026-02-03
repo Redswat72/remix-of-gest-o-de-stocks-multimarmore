@@ -3,13 +3,15 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import * as XLSX from 'xlsx';
-import type { FormaProduto, OrigemMaterial, TipoDocumento } from '@/types/database';
+import type { FormaProduto, OrigemMaterial } from '@/types/database';
 
 export interface LinhaExcel {
   rowIndex: number;
   idmm: string;
   variedade: string;
   forma: FormaProduto;
+  nomeComercial?: string;
+  acabamento?: string;
   comprimento?: number;
   largura?: number;
   altura?: number;
@@ -27,12 +29,36 @@ export interface LinhaExcel {
   localId?: string;
 }
 
+// Interface para os dados que serão enviados à RPC
+interface LinhaRPC {
+  idmm: string;
+  variedade: string;
+  forma: string;
+  nome_comercial?: string;
+  acabamento?: string;
+  comprimento_cm?: number;
+  largura_cm?: number;
+  altura_cm?: number;
+  espessura_cm?: number;
+  peso_ton?: number;
+  parque: string;
+  linha?: string;
+  quantidade: number;
+  observacoes?: string;
+  foto1_url?: string;
+  foto2_url?: string;
+  foto3_url?: string;
+  foto4_url?: string;
+}
+
 export interface ResultadoImportacao {
+  sucesso: boolean;
   totalLinhas: number;
   linhasProcessadas: number;
   produtosCriados: number;
   movimentosCriados: number;
-  erros: number;
+  linhasIgnoradas: number;
+  erros: Array<{ linha: number; erro: string }>;
   dataHora: string;
 }
 
@@ -176,6 +202,7 @@ export function useParseExcel() {
         variedade: findColumnIndex(['variedade', 'tipo_pedra', 'tipo pedra', 'tipo', 'material', 'pedra']),
         nomeComercial: findColumnIndex(['nome_comercial', 'nome comercial', 'nome', 'comercial']),
         forma: findColumnIndex(['forma', 'tipo_produto', 'tipo produto', 'formato']),
+        acabamento: findColumnIndex(['acabamento', 'acabam', 'finish']),
         dimensoes: findColumnIndex(['dimensoes', 'dimensões', 'dim']),
         comprimento: findColumnIndex(['comprimento_cm', 'comprimento', 'comp', 'c']),
         largura: findColumnIndex(['largura_cm', 'largura', 'larg', 'l']),
@@ -258,11 +285,8 @@ export function useParseExcel() {
         const formaRaw = colMap.forma !== -1 ? String(row[colMap.forma] || '') : '';
         const forma = mapForma(formaRaw);
 
-        // Validar peso obrigatório para blocos
-        if (forma === 'bloco' && !pesoTon) {
-          erros.push('Peso em toneladas é obrigatório para blocos');
-        }
-
+        const nomeComercial = colMap.nomeComercial !== -1 ? String(row[colMap.nomeComercial] || '').trim() : undefined;
+        const acabamento = colMap.acabamento !== -1 ? String(row[colMap.acabamento] || '').trim() : undefined;
         const observacoes = colMap.observacoes !== -1 ? String(row[colMap.observacoes] || '').trim() : '';
 
         // Verificar se produto existe
@@ -288,6 +312,8 @@ export function useParseExcel() {
           idmm,
           variedade,
           forma,
+          nomeComercial: nomeComercial || undefined,
+          acabamento: acabamento || undefined,
           comprimento: dimensoes.comprimento,
           largura: dimensoes.largura,
           altura: dimensoes.altura,
@@ -330,11 +356,12 @@ export function useParseExcel() {
 
 export function useExecutarImportacao() {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { user, isSuperadmin } = useAuth();
 
   return useMutation({
     mutationFn: async (linhas: LinhaExcel[]): Promise<ResultadoImportacao> => {
       if (!user) throw new Error('Utilizador não autenticado');
+      if (!isSuperadmin) throw new Error('Apenas superadmins podem importar stock');
 
       // Filtrar linhas válidas (sem erros)
       const linhasValidas = linhas.filter(l => l.erros.length === 0);
@@ -343,103 +370,64 @@ export function useExecutarImportacao() {
         throw new Error('Nenhuma linha válida para importar');
       }
 
-      let produtosCriados = 0;
-      let movimentosCriados = 0;
-      let erros = 0;
+      // Converter linhas para formato JSON que a RPC espera
+      const rowsJson: LinhaRPC[] = linhasValidas.map(linha => ({
+        idmm: linha.idmm,
+        variedade: linha.variedade,
+        forma: linha.forma,
+        nome_comercial: linha.nomeComercial || undefined,
+        acabamento: linha.acabamento || undefined,
+        comprimento_cm: linha.comprimento || undefined,
+        largura_cm: linha.largura || undefined,
+        altura_cm: linha.altura || undefined,
+        espessura_cm: linha.espessura || undefined,
+        peso_ton: linha.pesoTon || undefined,
+        parque: linha.parqueMM,
+        linha: linha.linha || undefined,
+        quantidade: linha.quantidade,
+        observacoes: linha.observacoes || undefined,
+        foto1_url: linha.fotos?.[0] || undefined,
+        foto2_url: linha.fotos?.[1] || undefined,
+        foto3_url: linha.fotos?.[2] || undefined,
+        foto4_url: linha.fotos?.[3] || undefined,
+      }));
 
-      // Buscar produtos existentes
-      const { data: produtosExistentes } = await supabase
-        .from('produtos')
-        .select('id, idmm')
-        .eq('ativo', true);
-
-      const produtosMap = new Map(
-        (produtosExistentes || []).map(p => [p.idmm.toLowerCase(), p.id])
-      );
-
-      for (const linha of linhasValidas) {
-        try {
-          let produtoId = produtosMap.get(linha.idmm.toLowerCase());
-
-          // Criar produto se não existir
-          if (!produtoId) {
-            const { data: novoProduto, error: produtoError } = await supabase
-              .from('produtos')
-              .insert({
-                idmm: linha.idmm,
-                tipo_pedra: linha.variedade,
-                forma: linha.forma,
-                comprimento_cm: linha.comprimento || null,
-                largura_cm: linha.largura || null,
-                altura_cm: linha.altura || null,
-                espessura_cm: linha.espessura || null,
-                peso_ton: linha.pesoTon || null,
-                linha: linha.linha || null,
-                observacoes: linha.observacoes || null,
-                foto1_url: linha.fotos?.[0] || null,
-                foto2_url: linha.fotos?.[1] || null,
-                foto3_url: linha.fotos?.[2] || null,
-                foto4_url: linha.fotos?.[3] || null,
-              })
-              .select('id')
-              .single();
-
-            if (produtoError) throw produtoError;
-            
-            produtoId = novoProduto.id;
-            produtosMap.set(linha.idmm.toLowerCase(), produtoId);
-            produtosCriados++;
-          }
-
-          // Criar movimento de entrada (importação histórica - validações relaxadas)
-          const { error: movimentoError } = await supabase
-            .from('movimentos')
-            .insert({
-              tipo: 'entrada' as const,
-              tipo_documento: 'sem_documento' as TipoDocumento,
-              numero_documento: null,
-              produto_id: produtoId,
-              quantidade: linha.quantidade,
-              local_destino_id: linha.localId,
-              origem_material: linha.origemMaterial || null, // Opcional para importação histórica
-              observacoes: `[Importação histórica via Excel] ${linha.observacoes || 'Sem observações'}`,
-              operador_id: user.id,
-            });
-
-          if (movimentoError) throw movimentoError;
-          movimentosCriados++;
-
-        } catch (error) {
-          console.error(`Erro na linha ${linha.rowIndex}:`, error);
-          erros++;
-        }
-      }
-
-      // Registar na auditoria com nota de importação histórica
-      await supabase.from('auditoria').insert({
-        user_id: user.id,
-        user_nome: 'Sistema',
-        user_email: user.email || 'sistema@app',
-        user_role: 'superadmin',
-        tipo_acao: 'importacao_excel',
-        entidade: 'stock',
-        descricao: `[Importação histórica via Excel] ${linhasValidas.length} linhas processadas, ${produtosCriados} produtos criados, ${movimentosCriados} movimentos criados, ${erros} erros`,
-        dados_novos: {
-          nota: 'Importação histórica via Excel - validações relaxadas para dados legados',
-          total_linhas: linhas.length,
-          linhas_validas: linhasValidas.length,
-          produtos_criados: produtosCriados,
-          movimentos_criados: movimentosCriados,
-          erros,
-        },
+      // Chamar a RPC - única chamada ao backend
+      const { data, error } = await supabase.rpc('importar_stock_excel', {
+        _rows: rowsJson as unknown as Record<string, unknown>[],
       });
 
+      if (error) {
+        console.error('Erro RPC importar_stock_excel:', error);
+        throw new Error(error.message || 'Erro ao executar importação');
+      }
+
+      // Verificar resposta da RPC
+      if (!data || typeof data !== 'object') {
+        throw new Error('Resposta inválida da função de importação');
+      }
+
+      const resultado = data as {
+        sucesso: boolean;
+        produtos_criados: number;
+        movimentos_criados: number;
+        linhas_ignoradas: number;
+        linhas_processadas: number;
+        erros: Array<{ linha: number; erro: string }>;
+      };
+
+      if (!resultado.sucesso) {
+        throw new Error('A importação falhou. Verifique os erros retornados.');
+      }
+
       return {
+        sucesso: resultado.sucesso,
         totalLinhas: linhas.length,
-        linhasProcessadas: linhasValidas.length,
-        produtosCriados,
-        movimentosCriados,
-        erros,
+        linhasProcessadas: resultado.linhas_processadas,
+        produtosCriados: resultado.produtos_criados,
+        movimentosCriados: resultado.movimentos_criados,
+        linhasIgnoradas: resultado.linhas_ignoradas,
+        erros: resultado.erros || [],
         dataHora: new Date().toISOString(),
       };
     },

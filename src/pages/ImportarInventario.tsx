@@ -606,8 +606,9 @@ interface StepResultadoProps {
 }
 
 function StepResultado({ resultado, onReset, onGoToStock }: StepResultadoProps) {
-  const sucesso = resultado.erros === 0;
-  const hasErrors = resultado.erros > 0;
+  const numErros = resultado.erros?.length || 0;
+  const sucesso = numErros === 0;
+  const hasErrors = numErros > 0;
 
   return (
     <Card>
@@ -644,19 +645,25 @@ function StepResultado({ resultado, onReset, onGoToStock }: StepResultadoProps) 
                 "text-3xl font-bold",
                 hasErrors ? "text-destructive" : "text-primary"
               )}>
-                {resultado.erros}
+                {numErros}
               </p>
               <p className="text-sm text-muted-foreground">Erros</p>
             </div>
           </div>
         </div>
 
-        {resultado.erros > 0 && (
+        {hasErrors && (
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
             <AlertTitle>Algumas linhas falharam</AlertTitle>
-            <AlertDescription>
-              {resultado.erros} linhas não foram processadas. Verifique os dados e tente novamente.
+            <AlertDescription className="space-y-1">
+              <p>{numErros} linhas não foram processadas:</p>
+              <ul className="list-disc list-inside text-sm mt-2">
+                {resultado.erros.slice(0, 5).map((e, i) => (
+                  <li key={i}>Linha {e.linha}: {e.erro}</li>
+                ))}
+                {numErros > 5 && <li>...e mais {numErros - 5} erros</li>}
+              </ul>
             </AlertDescription>
           </Alert>
         )}
