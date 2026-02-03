@@ -10,6 +10,10 @@ import { AppLayout } from "@/components/layout/AppLayout";
 // Pages
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import Stock from "./pages/Stock";
+import NovoMovimento from "./pages/NovoMovimento";
+import Historico from "./pages/Historico";
+import Superadmin from "./pages/Superadmin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -44,16 +48,12 @@ const App = () => (
               }
             />
 
-            {/* Rotas placeholder - serão implementadas */}
             <Route
               path="/stock"
               element={
                 <ProtectedRoute>
                   <AppLayout>
-                    <div className="text-center py-12">
-                      <h1 className="text-2xl font-bold mb-2">Consulta de Stock</h1>
-                      <p className="text-muted-foreground">Em desenvolvimento...</p>
-                    </div>
+                    <Stock />
                   </AppLayout>
                 </ProtectedRoute>
               }
@@ -64,10 +64,7 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <AppLayout>
-                    <div className="text-center py-12">
-                      <h1 className="text-2xl font-bold mb-2">Registar Movimento</h1>
-                      <p className="text-muted-foreground">Em desenvolvimento...</p>
-                    </div>
+                    <NovoMovimento />
                   </AppLayout>
                 </ProtectedRoute>
               }
@@ -78,10 +75,18 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <AppLayout>
-                    <div className="text-center py-12">
-                      <h1 className="text-2xl font-bold mb-2">Histórico de Movimentos</h1>
-                      <p className="text-muted-foreground">Em desenvolvimento...</p>
-                    </div>
+                    <Historico />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/superadmin"
+              element={
+                <ProtectedRoute superadminOnly>
+                  <AppLayout>
+                    <Superadmin />
                   </AppLayout>
                 </ProtectedRoute>
               }
@@ -122,7 +127,7 @@ const App = () => (
                   <AppLayout>
                     <div className="text-center py-12">
                       <h1 className="text-2xl font-bold mb-2">Gestão de Locais</h1>
-                      <p className="text-muted-foreground">Em desenvolvimento...</p>
+                      <p className="text-muted-foreground">Esta página foi movida para o Painel Superadmin</p>
                     </div>
                   </AppLayout>
                 </ProtectedRoute>

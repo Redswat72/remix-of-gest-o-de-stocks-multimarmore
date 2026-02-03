@@ -32,7 +32,7 @@ const navItems: NavItem[] = [
   { href: '/historico', label: 'Histórico', icon: History },
   { href: '/produtos', label: 'Produtos', icon: Boxes, adminOnly: true },
   { href: '/clientes', label: 'Clientes', icon: Users, adminOnly: true },
-  { href: '/locais', label: 'Locais', icon: MapPin, superadminOnly: true },
+  { href: '/superadmin', label: 'Superadmin', icon: MapPin, superadminOnly: true },
   { href: '/configuracoes', label: 'Configurações', icon: Settings },
 ];
 
