@@ -14,6 +14,7 @@ export interface LinhaExcel {
   largura?: number;
   altura?: number;
   espessura?: number;
+  pesoTon?: number;
   localizacao: string;
   origemMaterial?: OrigemMaterial;
   quantidade: number;
@@ -142,6 +143,7 @@ export function useParseExcel() {
         largura: headers.findIndex(h => h.includes('largura') || h.includes('larg') || h === 'l'),
         altura: headers.findIndex(h => h.includes('altura') || h.includes('alt') || h === 'a' || h === 'h'),
         espessura: headers.findIndex(h => h.includes('espessura') || h.includes('esp') || h === 'e'),
+        pesoTon: headers.findIndex(h => h.includes('peso') || h.includes('ton') || h === 'peso_ton' || h === 'pesoton'),
         localizacao: headers.findIndex(h => h.includes('localização') || h.includes('localizacao') || h.includes('local') || h.includes('parque')),
         origem: headers.findIndex(h => h.includes('origem') || h.includes('proveniência') || h.includes('proveniencia')),
         quantidade: headers.findIndex(h => h.includes('quantidade') || h.includes('qtd') || h.includes('qty') || h === 'un'),
@@ -195,6 +197,7 @@ export function useParseExcel() {
         }
 
         const espessura = colMap.espessura !== -1 ? Number(row[colMap.espessura]) || undefined : undefined;
+        const pesoTon = colMap.pesoTon !== -1 ? Number(row[colMap.pesoTon]) || undefined : undefined;
         const quantidade = colMap.quantidade !== -1 ? Number(row[colMap.quantidade]) || 1 : 1;
         
         if (quantidade <= 0) erros.push('Quantidade deve ser maior que 0');
@@ -204,6 +207,11 @@ export function useParseExcel() {
 
         const formaRaw = colMap.forma !== -1 ? String(row[colMap.forma] || '') : '';
         const forma = mapForma(formaRaw);
+
+        // Validar peso obrigatório para blocos
+        if (forma === 'bloco' && !pesoTon) {
+          erros.push('Peso em toneladas é obrigatório para blocos');
+        }
 
         const observacoes = colMap.observacoes !== -1 ? String(row[colMap.observacoes] || '').trim() : '';
 
@@ -233,6 +241,7 @@ export function useParseExcel() {
           largura: dimensoes.largura,
           altura: dimensoes.altura,
           espessura,
+          pesoTon,
           localizacao: localizacaoRaw,
           origemMaterial,
           quantidade,
@@ -312,6 +321,7 @@ export function useExecutarImportacao() {
                 largura_cm: linha.largura || null,
                 altura_cm: linha.altura || null,
                 espessura_cm: linha.espessura || null,
+                peso_ton: linha.pesoTon || null,
                 observacoes: linha.observacoes || null,
                 foto1_url: linha.fotos?.[0] || null,
                 foto2_url: linha.fotos?.[1] || null,
