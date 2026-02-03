@@ -203,12 +203,12 @@ export default function Stock() {
             </div>
 
             {/* Tipo de Pedra */}
-            <Select value={tipoPedraFilter} onValueChange={setTipoPedraFilter}>
+            <Select value={tipoPedraFilter || "all"} onValueChange={(v) => setTipoPedraFilter(v === "all" ? "" : v)}>
               <SelectTrigger>
                 <SelectValue placeholder="Tipo de Pedra" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos</SelectItem>
+                <SelectItem value="all">Todos</SelectItem>
                 {tiposPedra?.map(tipo => (
                   <SelectItem key={tipo} value={tipo}>{tipo}</SelectItem>
                 ))}
@@ -216,12 +216,12 @@ export default function Stock() {
             </Select>
 
             {/* Forma */}
-            <Select value={formaFilter} onValueChange={setFormaFilter}>
+            <Select value={formaFilter || "all"} onValueChange={(v) => setFormaFilter(v === "all" ? "" : v)}>
               <SelectTrigger>
                 <SelectValue placeholder="Forma" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todas</SelectItem>
+                <SelectItem value="all">Todas</SelectItem>
                 <SelectItem value="bloco">Bloco</SelectItem>
                 <SelectItem value="chapa">Chapa</SelectItem>
                 <SelectItem value="ladrilho">Ladrilho</SelectItem>
@@ -229,12 +229,12 @@ export default function Stock() {
             </Select>
 
             {/* Parque */}
-            <Select value={localFilter} onValueChange={setLocalFilter}>
+            <Select value={localFilter || "all"} onValueChange={(v) => setLocalFilter(v === "all" ? "" : v)}>
               <SelectTrigger>
                 <SelectValue placeholder="Parque" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os parques</SelectItem>
+                <SelectItem value="all">Todos os parques</SelectItem>
                 {locais?.map(local => (
                   <SelectItem key={local.id} value={local.id}>{local.nome}</SelectItem>
                 ))}
