@@ -294,7 +294,7 @@ export default function ImportarStock() {
                       <TableHead>Variedade</TableHead>
                       <TableHead>Forma</TableHead>
                       <TableHead>Dimensões</TableHead>
-                      <TableHead>Local</TableHead>
+                      <TableHead>Parque MM</TableHead>
                       <TableHead className="text-center">Qtd</TableHead>
                       <TableHead>Estado</TableHead>
                     </TableRow>
@@ -320,7 +320,12 @@ export default function ImportarStock() {
                             .filter(Boolean)
                             .join(' × ') || '-'}
                         </TableCell>
-                        <TableCell>{linha.localizacao || '-'}</TableCell>
+                        <TableCell>
+                          <span className="font-mono text-sm">{linha.parqueMM || '-'}</span>
+                          {linha.linha && (
+                            <span className="text-muted-foreground text-xs ml-1">({linha.linha})</span>
+                          )}
+                        </TableCell>
                         <TableCell className="text-center font-medium">
                           {linha.quantidade}
                         </TableCell>

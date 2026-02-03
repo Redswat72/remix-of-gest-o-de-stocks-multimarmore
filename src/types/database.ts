@@ -62,6 +62,7 @@ export interface Produto {
   peso_ton: number | null;
   area_m2: number | null;
   volume_m3: number | null;
+  linha: string | null;
   foto1_url: string | null;
   foto2_url: string | null;
   foto3_url: string | null;

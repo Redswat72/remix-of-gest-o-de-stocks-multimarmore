@@ -15,7 +15,8 @@ export interface LinhaExcel {
   altura?: number;
   espessura?: number;
   pesoTon?: number;
-  localizacao: string;
+  parqueMM: string;
+  linha?: string;
   origemMaterial?: OrigemMaterial;
   quantidade: number;
   observacoes?: string;
@@ -144,7 +145,8 @@ export function useParseExcel() {
         altura: headers.findIndex(h => h.includes('altura') || h.includes('alt') || h === 'a' || h === 'h'),
         espessura: headers.findIndex(h => h.includes('espessura') || h.includes('esp') || h === 'e'),
         pesoTon: headers.findIndex(h => h.includes('peso') || h.includes('ton') || h === 'peso_ton' || h === 'pesoton'),
-        localizacao: headers.findIndex(h => h.includes('localização') || h.includes('localizacao') || h.includes('local') || h.includes('parque')),
+        parqueMM: headers.findIndex(h => h.includes('parque_mm') || h.includes('parquemm') || h === 'parque mm' || h === 'parque'),
+        linha: headers.findIndex(h => h === 'linha' || h.includes('linha') || h.includes('corredor') || h.includes('fila')),
         origem: headers.findIndex(h => h.includes('origem') || h.includes('proveniência') || h.includes('proveniencia')),
         quantidade: headers.findIndex(h => h.includes('quantidade') || h.includes('qtd') || h.includes('qty') || h === 'un'),
         observacoes: headers.findIndex(h => h.includes('observações') || h.includes('observacoes') || h.includes('notas') || h.includes('danos') || h.includes('obs')),
@@ -154,7 +156,6 @@ export function useParseExcel() {
       // Se IDMM não encontrado, tentar coluna A
       if (colMap.idmm === -1) colMap.idmm = 0;
       if (colMap.variedade === -1) colMap.variedade = 1;
-      if (colMap.localizacao === -1) colMap.localizacao = headers.findIndex(h => !h.includes('enviado'));
 
       const linhasParsed: LinhaExcel[] = [];
 
@@ -178,10 +179,16 @@ export function useParseExcel() {
         const variedade = String(row[colMap.variedade] || '').trim();
         if (!variedade) erros.push('Variedade/Tipo de pedra obrigatório');
 
-        const localizacaoRaw = String(row[colMap.localizacao] || '').trim();
-        const local = encontrarLocal(locais, localizacaoRaw);
-        if (!local) {
-          erros.push(`Local "${localizacaoRaw}" não encontrado`);
+        const parqueMMRaw = String(row[colMap.parqueMM] || '').trim();
+        const linhaRaw = colMap.linha !== -1 ? String(row[colMap.linha] || '').trim() : '';
+        
+        if (!parqueMMRaw) {
+          erros.push('Parque MM é obrigatório');
+        }
+        
+        const local = encontrarLocal(locais, parqueMMRaw);
+        if (parqueMMRaw && !local) {
+          erros.push(`Parque MM "${parqueMMRaw}" não encontrado na tabela de locais`);
         }
 
         // Parsear dimensões
@@ -242,7 +249,8 @@ export function useParseExcel() {
           altura: dimensoes.altura,
           espessura,
           pesoTon,
-          localizacao: localizacaoRaw,
+          parqueMM: parqueMMRaw,
+          linha: linhaRaw || undefined,
           origemMaterial,
           quantidade,
           observacoes: observacoes || undefined,
@@ -322,6 +330,7 @@ export function useExecutarImportacao() {
                 altura_cm: linha.altura || null,
                 espessura_cm: linha.espessura || null,
                 peso_ton: linha.pesoTon || null,
+                linha: linha.linha || null,
                 observacoes: linha.observacoes || null,
                 foto1_url: linha.fotos?.[0] || null,
                 foto2_url: linha.fotos?.[1] || null,

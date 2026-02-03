@@ -410,7 +410,7 @@ function StepPreview({ linhas, stats, file, onBack, onNext, isParsing }: StepPre
                 <TableHead>IDMM</TableHead>
                 <TableHead>Variedade</TableHead>
                 <TableHead>Forma</TableHead>
-                <TableHead>Local</TableHead>
+                <TableHead>Parque MM</TableHead>
                 <TableHead className="w-16 text-center">Qtd</TableHead>
                 <TableHead>Estado</TableHead>
               </TableRow>
@@ -437,7 +437,10 @@ function StepPreview({ linhas, stats, file, onBack, onNext, isParsing }: StepPre
                   <TableCell>
                     <div className="flex items-center gap-1">
                       <MapPin className="w-3 h-3 text-muted-foreground" />
-                      {linha.localizacao}
+                      <span className="font-mono text-sm">{linha.parqueMM}</span>
+                      {linha.linha && (
+                        <span className="text-muted-foreground text-xs">({linha.linha})</span>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell className="text-center">{linha.quantidade}</TableCell>
