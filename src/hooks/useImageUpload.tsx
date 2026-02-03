@@ -4,15 +4,20 @@ import { supabase } from '@/integrations/supabase/client';
 // Tipo de nomeação automática
 type NamingType = 
   | { type: 'avatar'; userId: string }
-  | { type: 'produto'; idmm: string; slot: 'F1' | 'F2' | 'F3' | 'F4' };
+  | { type: 'produto'; idmm: string; slot: 'F1' | 'F2' | 'F3' | 'F4' }
+  | { type: 'produto_hd'; idmm: string; slot: 'F1' | 'F2' | 'F3' | 'F4' };
+
+// Tipo de qualidade de imagem
+type ImageMode = 'operacional' | 'hd';
 
 interface UploadOptions {
-  bucket: 'avatars' | 'produtos';
+  bucket: 'avatars' | 'produtos' | 'produtos_hd';
   naming: NamingType;
+  imageMode?: ImageMode;
   maxSizeKB?: number;
   maxWidth?: number;
   maxHeight?: number;
-  quality?: number;
+  jpegQuality?: number;
 }
 
 interface UploadResult {
@@ -27,15 +32,55 @@ function generateFileName(naming: NamingType): string {
   if (naming.type === 'avatar') {
     // avatar_{userId}_{timestamp}.jpg
     return `avatar_${naming.userId}_${timestamp}.jpg`;
-  } else {
+  } else if (naming.type === 'produto') {
     // produto_{idmm}_{slot}_{timestamp}.jpg
-    // Limpar IDMM de caracteres especiais
     const cleanIdmm = naming.idmm.replace(/[^a-zA-Z0-9-_]/g, '_');
     return `produto_${cleanIdmm}_${naming.slot}_${timestamp}.jpg`;
+  } else {
+    // produto_hd_{idmm}_{slot}_{timestamp}.jpg
+    const cleanIdmm = naming.idmm.replace(/[^a-zA-Z0-9-_]/g, '_');
+    return `produto_hd_${cleanIdmm}_${naming.slot}_${timestamp}.jpg`;
   }
 }
 
-// Compressão de imagem usando canvas
+// Corrigir orientação da imagem (EXIF)
+async function fixImageOrientation(file: File): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target?.result as string;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Erro ao criar contexto do canvas'));
+          return;
+        }
+        
+        ctx.drawImage(img, 0, 0);
+        
+        // Converter para blob original (PNG para máxima qualidade)
+        canvas.toBlob(
+          (blob) => {
+            if (blob) resolve(blob);
+            else reject(new Error('Erro ao processar imagem'));
+          },
+          'image/jpeg',
+          1.0 // Máxima qualidade para HD
+        );
+      };
+      img.onerror = () => reject(new Error('Erro ao carregar imagem'));
+    };
+    reader.onerror = () => reject(new Error('Erro ao ler ficheiro'));
+  });
+}
+
+// Compressão de imagem usando canvas (para fotos operacionais)
 async function compressImage(
   file: File,
   maxWidth: number,
@@ -53,17 +98,11 @@ async function compressImage(
         let width = img.width;
         let height = img.height;
 
-        // Calcular novas dimensões mantendo proporção
-        if (width > height) {
-          if (width > maxWidth) {
-            height = Math.round((height * maxWidth) / width);
-            width = maxWidth;
-          }
-        } else {
-          if (height > maxHeight) {
-            width = Math.round((width * maxHeight) / height);
-            height = maxHeight;
-          }
+        // Calcular novas dimensões mantendo proporção (lado maior até maxWidth/maxHeight)
+        const ratio = Math.min(maxWidth / width, maxHeight / height);
+        if (ratio < 1) {
+          width = Math.round(width * ratio);
+          height = Math.round(height * ratio);
         }
 
         canvas.width = width;
@@ -75,16 +114,17 @@ async function compressImage(
           return;
         }
 
+        // Melhorar qualidade de renderização
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        
         ctx.drawImage(img, 0, 0, width, height);
         
-        // Sempre converter para JPEG
+        // Converter para JPEG com qualidade especificada
         canvas.toBlob(
           (blob) => {
-            if (blob) {
-              resolve(blob);
-            } else {
-              reject(new Error('Erro ao comprimir imagem'));
-            }
+            if (blob) resolve(blob);
+            else reject(new Error('Erro ao comprimir imagem'));
           },
           'image/jpeg',
           quality
@@ -108,10 +148,11 @@ export function useImageUpload() {
     const {
       bucket,
       naming,
+      imageMode = 'operacional',
       maxSizeKB = 500,
-      maxWidth = 1200,
-      maxHeight = 1200,
-      quality = 0.8,
+      maxWidth = 2000,
+      maxHeight = 2000,
+      jpegQuality = 0.85,
     } = options;
 
     setIsUploading(true);
@@ -126,15 +167,27 @@ export function useImageUpload() {
 
       setProgress(20);
 
-      // Comprimir e converter para JPG
-      const imageBlob = await compressImage(file, maxWidth, maxHeight, quality);
+      let imageBlob: Blob;
 
-      // Verificar tamanho após compressão
-      if (imageBlob.size > maxSizeKB * 1024) {
-        // Tentar novamente com qualidade menor
-        const lowerQualityBlob = await compressImage(file, maxWidth, maxHeight, quality * 0.7);
-        if (lowerQualityBlob.size > maxSizeKB * 1024 * 2) {
-          throw new Error(`Imagem demasiado grande. Máximo permitido: ${maxSizeKB * 2}KB`);
+      if (imageMode === 'hd') {
+        // HD: Apenas corrigir orientação, sem compressão destrutiva
+        imageBlob = await fixImageOrientation(file);
+        
+        // Verificar tamanho máximo para HD (20MB)
+        if (imageBlob.size > 20 * 1024 * 1024) {
+          throw new Error('Imagem HD demasiado grande. Máximo permitido: 20MB');
+        }
+      } else {
+        // Operacional: Comprimir e redimensionar
+        imageBlob = await compressImage(file, maxWidth, maxHeight, jpegQuality);
+
+        // Verificar tamanho após compressão
+        if (imageBlob.size > maxSizeKB * 1024 * 2) {
+          // Tentar novamente com qualidade menor
+          imageBlob = await compressImage(file, maxWidth, maxHeight, jpegQuality * 0.7);
+          if (imageBlob.size > maxSizeKB * 1024 * 3) {
+            throw new Error(`Imagem demasiado grande após compressão`);
+          }
         }
       }
 
@@ -151,7 +204,7 @@ export function useImageUpload() {
         .from(bucket)
         .upload(filePath, imageBlob, {
           contentType: 'image/jpeg',
-          upsert: false, // NÃO sobrescrever ficheiros existentes
+          upsert: false,
         });
 
       if (uploadError) {

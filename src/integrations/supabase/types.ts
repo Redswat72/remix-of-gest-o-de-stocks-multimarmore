@@ -246,9 +246,13 @@ export type Database = {
           created_at: string
           espessura_cm: number | null
           forma: Database["public"]["Enums"]["forma_produto"]
+          foto1_hd_url: string | null
           foto1_url: string | null
+          foto2_hd_url: string | null
           foto2_url: string | null
+          foto3_hd_url: string | null
           foto3_url: string | null
+          foto4_hd_url: string | null
           foto4_url: string | null
           id: string
           idmm: string
@@ -270,9 +274,13 @@ export type Database = {
           created_at?: string
           espessura_cm?: number | null
           forma: Database["public"]["Enums"]["forma_produto"]
+          foto1_hd_url?: string | null
           foto1_url?: string | null
+          foto2_hd_url?: string | null
           foto2_url?: string | null
+          foto3_hd_url?: string | null
           foto3_url?: string | null
+          foto4_hd_url?: string | null
           foto4_url?: string | null
           id?: string
           idmm: string
@@ -294,9 +302,13 @@ export type Database = {
           created_at?: string
           espessura_cm?: number | null
           forma?: Database["public"]["Enums"]["forma_produto"]
+          foto1_hd_url?: string | null
           foto1_url?: string | null
+          foto2_hd_url?: string | null
           foto2_url?: string | null
+          foto3_hd_url?: string | null
           foto3_url?: string | null
+          foto4_hd_url?: string | null
           foto4_url?: string | null
           id?: string
           idmm?: string

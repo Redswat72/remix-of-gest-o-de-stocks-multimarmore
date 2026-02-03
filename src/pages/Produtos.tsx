@@ -34,7 +34,7 @@ import {
 import { useProdutos, useCreateProduto, useUpdateProduto, useDeleteProduto } from '@/hooks/useProdutos';
 import { ProdutoForm } from '@/components/produtos/ProdutoForm';
 import { ProdutoCard } from '@/components/produtos/ProdutoCard';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import type { Produto } from '@/types/database';
 
@@ -65,10 +65,14 @@ export default function Produtos() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { toast } = useToast();
+  const { roles } = useAuth();
   const { data: produtos, isLoading, error } = useProdutos();
   const createMutation = useCreateProduto();
   const updateMutation = useUpdateProduto();
   const deleteMutation = useDeleteProduto();
+  
+  // Verificar se pode carregar fotos HD (admin ou superadmin)
+  const canUploadHd = roles.includes('admin') || roles.includes('superadmin');
 
   // Filtrar produtos
   const filteredProdutos = produtos?.filter((p) => {
@@ -89,12 +93,12 @@ export default function Produtos() {
     return true;
   });
 
-  const handleSubmit = async (data: any, fotoUrls: (string | null)[]) => {
+  const handleSubmit = async (data: any, fotoUrls: (string | null)[], fotoHdUrls: (string | null)[]) => {
     setIsSubmitting(true);
     
     try {
       if (editingProduto) {
-        // Atualizar produto com URLs das fotos já carregadas
+        // Atualizar produto com URLs das fotos operacionais e HD
         await updateMutation.mutateAsync({
           id: editingProduto.id,
           ...data,
@@ -102,6 +106,10 @@ export default function Produtos() {
           foto2_url: fotoUrls[1] || null,
           foto3_url: fotoUrls[2] || null,
           foto4_url: fotoUrls[3] || null,
+          foto1_hd_url: fotoHdUrls[0] || null,
+          foto2_hd_url: fotoHdUrls[1] || null,
+          foto3_hd_url: fotoHdUrls[2] || null,
+          foto4_hd_url: fotoHdUrls[3] || null,
         });
         
         toast({
@@ -116,6 +124,10 @@ export default function Produtos() {
           foto2_url: fotoUrls[1] || null,
           foto3_url: fotoUrls[2] || null,
           foto4_url: fotoUrls[3] || null,
+          foto1_hd_url: fotoHdUrls[0] || null,
+          foto2_hd_url: fotoHdUrls[1] || null,
+          foto3_hd_url: fotoHdUrls[2] || null,
+          foto4_hd_url: fotoHdUrls[3] || null,
         });
         
         toast({
@@ -388,6 +400,7 @@ export default function Produtos() {
             onSubmit={handleSubmit}
             onCancel={() => { setIsFormOpen(false); setEditingProduto(null); }}
             isLoading={isSubmitting}
+            canUploadHd={canUploadHd}
           />
         </DialogContent>
       </Dialog>

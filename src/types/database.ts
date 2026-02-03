@@ -65,6 +65,10 @@ export interface Produto {
   foto2_url: string | null;
   foto3_url: string | null;
   foto4_url: string | null;
+  foto1_hd_url: string | null;
+  foto2_hd_url: string | null;
+  foto3_hd_url: string | null;
+  foto4_hd_url: string | null;
   latitude: number | null;
   longitude: number | null;
   observacoes: string | null;
