@@ -312,7 +312,8 @@ function StepUpload({ onFileChange, onDrop, isParsing, parseErro }: StepUploadPr
           <Info className="h-4 w-4" />
           <AlertTitle>Estrutura esperada</AlertTitle>
           <AlertDescription>
-            O ficheiro deve conter uma folha "INVENTARIO" com as colunas: ID_MM, Localizacao, Variedade (obrigatórias) e opcionalmente Data, Forma, Dimensões, Notas, Foto URLs.
+            O ficheiro deve conter as colunas: <strong>ID_MM</strong>, <strong>Parque_MM</strong>, <strong>Variedade</strong> (obrigatórias). 
+            Opcionais: Data, Forma, Comprimento_cm, Largura_cm, Altura_cm, Espessura_cm, Peso_ton, Linha, Origem_material, Quantidade, Notas, Foto1_URL a Foto4_URL.
           </AlertDescription>
         </Alert>
       </CardContent>

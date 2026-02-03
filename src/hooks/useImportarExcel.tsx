@@ -133,29 +133,72 @@ export function useParseExcel() {
 
       // Identificar cabeçalhos (primeira linha)
       const headers = (jsonData[0] as string[]).map(h => String(h || '').toLowerCase().trim());
-      
-      // Mapear colunas
+
+      // Função auxiliar para normalizar nomes de colunas (remove acentos, underscores, espaços)
+      const normalizeColumnName = (name: string): string => {
+        return name
+          .toLowerCase()
+          .normalize('NFD')
+          .replace(/[\u0300-\u036f]/g, '') // Remove acentos
+          .replace(/[_\s]+/g, '') // Remove underscores e espaços
+          .trim();
+      };
+
+      // Função para encontrar coluna com correspondência flexível
+      const findColumnIndex = (possibleNames: string[]): number => {
+        const normalizedHeaders = headers.map(normalizeColumnName);
+        const normalizedNames = possibleNames.map(normalizeColumnName);
+
+        // Prioridade 1: Match exato
+        for (const name of normalizedNames) {
+          const idx = normalizedHeaders.indexOf(name);
+          if (idx !== -1) return idx;
+        }
+
+        // Prioridade 2: Começa com
+        for (const name of normalizedNames) {
+          const idx = normalizedHeaders.findIndex(h => h.startsWith(name));
+          if (idx !== -1) return idx;
+        }
+
+        // Prioridade 3: Contém (fallback)
+        for (const name of normalizedNames) {
+          const idx = normalizedHeaders.findIndex(h => h.includes(name));
+          if (idx !== -1) return idx;
+        }
+
+        return -1;
+      };
+
+      // Mapear colunas com correspondência flexível
       const colMap = {
-        idmm: headers.findIndex(h => h.includes('id') && h.includes('mm') || h === 'idmm' || h === 'id mm'),
-        variedade: headers.findIndex(h => h.includes('variedade') || h.includes('tipo') || h.includes('pedra') || h.includes('material')),
-        forma: headers.findIndex(h => h.includes('forma') || h.includes('tipo produto')),
-        dimensoes: headers.findIndex(h => h.includes('dimensões') || h.includes('dimensoes') || h.includes('dim')),
-        comprimento: headers.findIndex(h => h.includes('comprimento') || h.includes('comp') || h === 'c'),
-        largura: headers.findIndex(h => h.includes('largura') || h.includes('larg') || h === 'l'),
-        altura: headers.findIndex(h => h.includes('altura') || h.includes('alt') || h === 'a' || h === 'h'),
-        espessura: headers.findIndex(h => h.includes('espessura') || h.includes('esp') || h === 'e'),
-        pesoTon: headers.findIndex(h => h.includes('peso') || h.includes('ton') || h === 'peso_ton' || h === 'pesoton'),
-        parqueMM: headers.findIndex(h => h.includes('parque_mm') || h.includes('parquemm') || h === 'parque mm' || h === 'parque'),
-        linha: headers.findIndex(h => h === 'linha' || h.includes('linha') || h.includes('corredor') || h.includes('fila')),
-        origem: headers.findIndex(h => h.includes('origem') || h.includes('proveniência') || h.includes('proveniencia')),
-        quantidade: headers.findIndex(h => h.includes('quantidade') || h.includes('qtd') || h.includes('qty') || h === 'un'),
-        observacoes: headers.findIndex(h => h.includes('observações') || h.includes('observacoes') || h.includes('notas') || h.includes('danos') || h.includes('obs')),
-        foto1: headers.findIndex(h => h.includes('foto') || h.includes('imagem') || h.includes('url')),
+        idmm: findColumnIndex(['id_mm', 'idmm', 'id mm', 'id-mm', 'codigo', 'ref']),
+        variedade: findColumnIndex(['variedade', 'tipo_pedra', 'tipo pedra', 'tipo', 'material', 'pedra']),
+        nomeComercial: findColumnIndex(['nome_comercial', 'nome comercial', 'nome', 'comercial']),
+        forma: findColumnIndex(['forma', 'tipo_produto', 'tipo produto', 'formato']),
+        dimensoes: findColumnIndex(['dimensoes', 'dimensões', 'dim']),
+        comprimento: findColumnIndex(['comprimento_cm', 'comprimento', 'comp', 'c']),
+        largura: findColumnIndex(['largura_cm', 'largura', 'larg', 'l']),
+        altura: findColumnIndex(['altura_cm', 'altura', 'alt', 'h']),
+        espessura: findColumnIndex(['espessura_cm', 'espessura', 'esp', 'e']),
+        pesoTon: findColumnIndex(['peso_ton', 'peso ton', 'peso', 'ton', 'toneladas']),
+        parqueMM: findColumnIndex(['parque_mm', 'parque mm', 'parquemm', 'parque', 'local', 'localizacao', 'localização']),
+        linha: findColumnIndex(['linha', 'corredor', 'fila', 'posicao', 'posição']),
+        origem: findColumnIndex(['origem_material', 'origem material', 'origem', 'proveniencia', 'proveniência']),
+        quantidade: findColumnIndex(['quantidade', 'qtd', 'qty', 'un', 'unidades']),
+        observacoes: findColumnIndex(['notas', 'observacoes', 'observações', 'obs', 'danos', 'defeitos']),
+        foto1: findColumnIndex(['foto1_url', 'foto1', 'foto', 'imagem', 'url']),
+        foto2: findColumnIndex(['foto2_url', 'foto2']),
+        foto3: findColumnIndex(['foto3_url', 'foto3']),
+        foto4: findColumnIndex(['foto4_url', 'foto4']),
+        data: findColumnIndex(['data', 'data_registo', 'data registo', 'date']),
       };
 
       // Se IDMM não encontrado, tentar coluna A
       if (colMap.idmm === -1) colMap.idmm = 0;
       if (colMap.variedade === -1) colMap.variedade = 1;
+
+      console.log('Colunas mapeadas:', { headers, colMap });
 
       const linhasParsed: LinhaExcel[] = [];
 
@@ -228,13 +271,14 @@ export function useParseExcel() {
           avisos.push('Produto já existe - será criado apenas o movimento');
         }
 
-        // Extrair fotos (até 4)
+        // Extrair fotos (até 4 - usando colunas individuais mapeadas)
         const fotos: string[] = [];
-        if (colMap.foto1 !== -1) {
-          for (let j = 0; j < 4; j++) {
-            const fotoIdx = colMap.foto1 + j;
-            if (row[fotoIdx] && String(row[fotoIdx]).startsWith('http')) {
-              fotos.push(String(row[fotoIdx]));
+        const fotoColumns = [colMap.foto1, colMap.foto2, colMap.foto3, colMap.foto4];
+        for (const fotoIdx of fotoColumns) {
+          if (fotoIdx !== -1 && row[fotoIdx]) {
+            const fotoUrl = String(row[fotoIdx]).trim();
+            if (fotoUrl.startsWith('http://') || fotoUrl.startsWith('https://')) {
+              fotos.push(fotoUrl);
             }
           }
         }
