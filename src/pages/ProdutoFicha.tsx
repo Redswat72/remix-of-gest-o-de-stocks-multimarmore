@@ -24,6 +24,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useProduto, useUpdateProduto } from '@/hooks/useProdutos';
+import { useUltimoMovimentoProduto } from '@/hooks/useUltimoMovimentoProduto';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { ProdutoForm } from '@/components/produtos/ProdutoForm';
@@ -34,6 +35,11 @@ const FORMA_LABELS: Record<string, string> = {
   bloco: 'Bloco',
   chapa: 'Chapa',
   ladrilho: 'Ladrilho',
+};
+
+const ORIGEM_MATERIAL_LABELS: Record<string, string> = {
+  adquirido: 'Adquirido',
+  producao_propria: 'Produção própria',
 };
 
 export default function ProdutoFicha() {
@@ -47,6 +53,7 @@ export default function ProdutoFicha() {
   const [lightboxIndex, setLightboxIndex] = useState(0);
 
   const { data: produto, isLoading, error } = useProduto(id);
+  const { data: ultimoMovimento } = useUltimoMovimentoProduto(produto?.id);
   const updateMutation = useUpdateProduto();
 
   const canEdit = isAdmin || isSuperadmin;
@@ -129,6 +136,13 @@ export default function ProdutoFicha() {
 
   // Usar createFotosList para preparar fotos para o lightbox
   const fotos = createFotosList(produto);
+
+  const parqueMM =
+    ultimoMovimento?.local_destino?.codigo ||
+    ultimoMovimento?.local_origem?.codigo ||
+    ultimoMovimento?.local_destino?.nome ||
+    ultimoMovimento?.local_origem?.nome ||
+    null;
 
   return (
     <div className="space-y-6">
@@ -235,6 +249,14 @@ export default function ProdutoFicha() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Linha */}
+              {produto.linha && (
+                <div>
+                  <span className="text-sm text-muted-foreground">Linha</span>
+                  <p className="font-medium">{produto.linha}</p>
+                </div>
+              )}
+
               {/* Variedade */}
               {produto.variedade && (
                 <div>
@@ -291,7 +313,7 @@ export default function ProdutoFicha() {
                       <p className="font-medium">{produto.altura_cm} cm</p>
                     </div>
                   )}
-                  {produto.forma !== 'bloco' && produto.espessura_cm && (
+                  {produto.espessura_cm && (
                     <div>
                       <span className="text-xs text-muted-foreground">Espessura</span>
                       <p className="font-medium">{produto.espessura_cm} cm</p>
@@ -391,6 +413,29 @@ export default function ProdutoFicha() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
+              {ultimoMovimento?.data_movimento && (
+                <div className="flex justify-between gap-4">
+                  <span className="text-muted-foreground">Data</span>
+                  <span className="text-right">
+                    {format(new Date(ultimoMovimento.data_movimento), "d 'de' MMM yyyy", { locale: pt })}
+                  </span>
+                </div>
+              )}
+              {parqueMM && (
+                <div className="flex justify-between gap-4">
+                  <span className="text-muted-foreground">Parque MM</span>
+                  <span className="text-right">{parqueMM}</span>
+                </div>
+              )}
+              {ultimoMovimento?.origem_material && (
+                <div className="flex justify-between gap-4">
+                  <span className="text-muted-foreground">Origem material</span>
+                  <span className="text-right">
+                    {ORIGEM_MATERIAL_LABELS[String(ultimoMovimento.origem_material)] || ultimoMovimento.origem_material}
+                  </span>
+                </div>
+              )}
+              {(ultimoMovimento?.data_movimento || parqueMM || ultimoMovimento?.origem_material) && <Separator />}
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Criado em</span>
                 <span>{format(new Date(produto.created_at), "d 'de' MMM yyyy", { locale: pt })}</span>
