@@ -258,6 +258,7 @@ export type Database = {
           idmm: string
           largura_cm: number | null
           latitude: number | null
+          linha: string | null
           longitude: number | null
           nome_comercial: string | null
           observacoes: string | null
@@ -289,6 +290,7 @@ export type Database = {
           idmm: string
           largura_cm?: number | null
           latitude?: number | null
+          linha?: string | null
           longitude?: number | null
           nome_comercial?: string | null
           observacoes?: string | null
@@ -320,6 +322,7 @@ export type Database = {
           idmm?: string
           largura_cm?: number | null
           latitude?: number | null
+          linha?: string | null
           longitude?: number | null
           nome_comercial?: string | null
           observacoes?: string | null
