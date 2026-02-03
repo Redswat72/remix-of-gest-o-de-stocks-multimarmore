@@ -433,11 +433,9 @@ function parseChapas(
         if (!altura) erros.push(`Parga ${p + 1}: Altura é obrigatória`);
         if (!espessura) erros.push(`Parga ${p + 1}: Espessura é obrigatória`);
 
-        // Validar fotos obrigatórias
+        // Validar foto obrigatória (apenas 1ª chapa)
         const foto1Valida = foto1Url && (foto1Url.startsWith('http://') || foto1Url.startsWith('https://'));
-        const foto2Valida = foto2Url && (foto2Url.startsWith('http://') || foto2Url.startsWith('https://'));
         if (!foto1Valida) erros.push(`Parga ${p + 1}: Foto da 1ª chapa é obrigatória`);
-        if (!foto2Valida) erros.push(`Parga ${p + 1}: Foto da última chapa é obrigatória`);
       }
 
       pargas[p] = {
