@@ -399,6 +399,17 @@ export function useExecutarImportacao() {
 
       if (error) {
         console.error('Erro RPC importar_stock_excel:', error);
+
+        // Postgres: relation does not exist
+        // Ex: 42P01 + message: relation "public.auditoria" does not exist
+        const pgCode = (error as unknown as { code?: string }).code;
+        const msg = String(error.message || '');
+        if (pgCode === '42P01' && msg.toLowerCase().includes('auditoria')) {
+          throw new Error(
+            'Falha no backend: a tabela "auditoria" não existe. Crie a tabela e as respetivas políticas no backend antes de voltar a importar.'
+          );
+        }
+
         throw new Error(error.message || 'Erro ao executar importação');
       }
 
