@@ -63,11 +63,20 @@ export function useProduto(id?: string) {
   });
 }
 
+interface CreateProdutoData extends ProdutoFormData {
+  foto1_url?: string | null;
+  foto2_url?: string | null;
+  foto3_url?: string | null;
+  foto4_url?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+}
+
 export function useCreateProduto() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (formData: ProdutoFormData) => {
+    mutationFn: async (formData: CreateProdutoData) => {
       const { data, error } = await supabase
         .from('produtos')
         .insert({
@@ -81,6 +90,12 @@ export function useCreateProduto() {
           altura_cm: formData.altura_cm || null,
           espessura_cm: formData.espessura_cm || null,
           observacoes: formData.observacoes || null,
+          foto1_url: formData.foto1_url || null,
+          foto2_url: formData.foto2_url || null,
+          foto3_url: formData.foto3_url || null,
+          foto4_url: formData.foto4_url || null,
+          latitude: formData.latitude || null,
+          longitude: formData.longitude || null,
         })
         .select()
         .single();
@@ -94,25 +109,34 @@ export function useCreateProduto() {
   });
 }
 
+interface UpdateProdutoData {
+  id: string;
+  idmm?: string;
+  tipo_pedra?: string;
+  nome_comercial?: string | null;
+  forma?: FormaProduto;
+  acabamento?: string | null;
+  comprimento_cm?: number | null;
+  largura_cm?: number | null;
+  altura_cm?: number | null;
+  espessura_cm?: number | null;
+  observacoes?: string | null;
+  foto1_url?: string | null;
+  foto2_url?: string | null;
+  foto3_url?: string | null;
+  foto4_url?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+}
+
 export function useUpdateProduto() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, data: formData }: { id: string; data: Partial<ProdutoFormData> }) => {
+    mutationFn: async ({ id, ...updateData }: UpdateProdutoData) => {
       const { data, error } = await supabase
         .from('produtos')
-        .update({
-          idmm: formData.idmm,
-          tipo_pedra: formData.tipo_pedra,
-          nome_comercial: formData.nome_comercial || null,
-          forma: formData.forma,
-          acabamento: formData.acabamento || null,
-          comprimento_cm: formData.comprimento_cm || null,
-          largura_cm: formData.largura_cm || null,
-          altura_cm: formData.altura_cm || null,
-          espessura_cm: formData.espessura_cm || null,
-          observacoes: formData.observacoes || null,
-        })
+        .update(updateData)
         .eq('id', id)
         .select()
         .single();
