@@ -261,6 +261,8 @@ export type Database = {
           longitude: number | null
           nome_comercial: string | null
           observacoes: string | null
+          qr_code_data: string | null
+          qr_code_url: string | null
           tipo_pedra: string
           updated_at: string
           volume_m3: number | null
@@ -289,6 +291,8 @@ export type Database = {
           longitude?: number | null
           nome_comercial?: string | null
           observacoes?: string | null
+          qr_code_data?: string | null
+          qr_code_url?: string | null
           tipo_pedra: string
           updated_at?: string
           volume_m3?: number | null
@@ -317,6 +321,8 @@ export type Database = {
           longitude?: number | null
           nome_comercial?: string | null
           observacoes?: string | null
+          qr_code_data?: string | null
+          qr_code_url?: string | null
           tipo_pedra?: string
           updated_at?: string
           volume_m3?: number | null

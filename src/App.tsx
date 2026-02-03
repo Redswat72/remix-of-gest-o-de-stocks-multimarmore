@@ -22,6 +22,8 @@ import Auditoria from "./pages/Auditoria";
 import Produtos from "./pages/Produtos";
 import ImportarStock from "./pages/ImportarStock";
 import Perfil from "./pages/Perfil";
+import ProdutoPublico from "./pages/ProdutoPublico";
+import ProdutoFicha from "./pages/ProdutoFicha";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -45,8 +47,11 @@ const App = () => (
           <Sonner />
           <BrowserRouter>
           <Routes>
-            {/* Rota pública */}
+            {/* Rotas públicas */}
             <Route path="/login" element={<Login />} />
+            
+            {/* Rota pública para QR Code - redireciona para login se não autenticado */}
+            <Route path="/p/:idmm" element={<ProdutoPublico />} />
 
             {/* Rotas protegidas */}
             <Route
@@ -132,6 +137,18 @@ const App = () => (
                 <ProtectedRoute adminOnly>
                   <AppLayout>
                     <Produtos />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Ficha do Produto (protegida) */}
+            <Route
+              path="/produto/:id"
+              element={
+                <ProtectedRoute>
+                  <AppLayout>
+                    <ProdutoFicha />
                   </AppLayout>
                 </ProtectedRoute>
               }

@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { MapPin, Edit, Trash2, Package, Image as ImageIcon, Sparkles, ZoomIn } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { MapPin, Edit, Trash2, Package, Image as ImageIcon, Sparkles, ZoomIn, ExternalLink } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -15,6 +16,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { FotoLightbox, createFotosList } from './FotoLightbox';
+import { ProdutoQrCode } from './ProdutoQrCode';
 import type { Produto } from '@/types/database';
 
 const FORMA_LABELS: Record<string, string> = {
@@ -37,6 +39,7 @@ interface ProdutoCardProps {
 }
 
 export function ProdutoCard({ produto, onEdit, onDelete, isDeleting }: ProdutoCardProps) {
+  const navigate = useNavigate();
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
 
@@ -180,7 +183,17 @@ export function ProdutoCard({ produto, onEdit, onDelete, isDeleting }: ProdutoCa
           </div>
 
           {/* Ações */}
-          <div className="flex gap-2">
+          <div className="flex gap-2 flex-wrap">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1"
+              onClick={() => navigate(`/produto/${produto.id}`)}
+            >
+              <ExternalLink className="h-4 w-4 mr-1" />
+              Ver Ficha
+            </Button>
+            
             <Button
               variant="outline"
               size="sm"
@@ -190,6 +203,10 @@ export function ProdutoCard({ produto, onEdit, onDelete, isDeleting }: ProdutoCa
               <Edit className="h-4 w-4 mr-1" />
               Editar
             </Button>
+          </div>
+          
+          <div className="flex gap-2 mt-2">
+            <ProdutoQrCode idmm={produto.idmm} tipoPedra={produto.tipo_pedra} compact />
             
             <AlertDialog>
               <AlertDialogTrigger asChild>

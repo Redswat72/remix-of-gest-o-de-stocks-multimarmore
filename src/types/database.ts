@@ -71,6 +71,8 @@ export interface Produto {
   foto4_hd_url: string | null;
   latitude: number | null;
   longitude: number | null;
+  qr_code_url: string | null;
+  qr_code_data: string | null;
   observacoes: string | null;
   ativo: boolean;
   created_at: string;
