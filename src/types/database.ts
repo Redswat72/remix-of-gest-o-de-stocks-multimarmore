@@ -79,6 +79,16 @@ export interface Produto {
   ativo: boolean;
   created_at: string;
   updated_at: string;
+  // Campos de pargas (apenas para chapas)
+  parga1_nome: string | null;
+  parga1_quantidade: number | null;
+  parga2_nome: string | null;
+  parga2_quantidade: number | null;
+  parga3_nome: string | null;
+  parga3_quantidade: number | null;
+  parga4_nome: string | null;
+  parga4_quantidade: number | null;
+  quantidade_total_chapas: number | null;
 }
 
 export interface Stock {
@@ -146,6 +156,15 @@ export interface ProdutoFormData {
   espessura_cm?: number;
   peso_ton?: number;
   observacoes?: string;
+  // Campos de pargas (apenas para chapas)
+  parga1_nome?: string;
+  parga1_quantidade?: number;
+  parga2_nome?: string;
+  parga2_quantidade?: number;
+  parga3_nome?: string;
+  parga3_quantidade?: number;
+  parga4_nome?: string;
+  parga4_quantidade?: number;
 }
 
 export interface ClienteFormData {

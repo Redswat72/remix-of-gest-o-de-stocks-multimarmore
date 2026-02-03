@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Loader2, MapPin } from 'lucide-react';
+import { Loader2, MapPin, Layers } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
@@ -38,6 +39,15 @@ const produtoBaseSchema = z.object({
   latitude: z.number().min(-90).max(90).optional().nullable(),
   longitude: z.number().min(-180).max(180).optional().nullable(),
   observacoes: z.string().max(500, 'Máximo 500 caracteres').optional(),
+  // Campos de pargas (apenas para chapas)
+  parga1_nome: z.string().max(50, 'Máximo 50 caracteres').optional().nullable(),
+  parga1_quantidade: z.number().int().min(0, 'Não pode ser negativo').optional().nullable(),
+  parga2_nome: z.string().max(50, 'Máximo 50 caracteres').optional().nullable(),
+  parga2_quantidade: z.number().int().min(0, 'Não pode ser negativo').optional().nullable(),
+  parga3_nome: z.string().max(50, 'Máximo 50 caracteres').optional().nullable(),
+  parga3_quantidade: z.number().int().min(0, 'Não pode ser negativo').optional().nullable(),
+  parga4_nome: z.string().max(50, 'Máximo 50 caracteres').optional().nullable(),
+  parga4_quantidade: z.number().int().min(0, 'Não pode ser negativo').optional().nullable(),
 });
 
 // Schema com refinamento para peso obrigatório em blocos
@@ -88,11 +98,30 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading, canUploadH
       latitude: produto?.latitude || null,
       longitude: produto?.longitude || null,
       observacoes: produto?.observacoes || '',
+      // Campos de pargas
+      parga1_nome: produto?.parga1_nome || '',
+      parga1_quantidade: produto?.parga1_quantidade || null,
+      parga2_nome: produto?.parga2_nome || '',
+      parga2_quantidade: produto?.parga2_quantidade || null,
+      parga3_nome: produto?.parga3_nome || '',
+      parga3_quantidade: produto?.parga3_quantidade || null,
+      parga4_nome: produto?.parga4_nome || '',
+      parga4_quantidade: produto?.parga4_quantidade || null,
     },
   });
 
   const forma = form.watch('forma');
   const idmm = form.watch('idmm');
+  
+  // Watch para pargas - calcular total em tempo real
+  const parga1Qty = form.watch('parga1_quantidade') || 0;
+  const parga2Qty = form.watch('parga2_quantidade') || 0;
+  const parga3Qty = form.watch('parga3_quantidade') || 0;
+  const parga4Qty = form.watch('parga4_quantidade') || 0;
+  
+  const quantidadeTotalChapas = useMemo(() => {
+    return (parga1Qty || 0) + (parga2Qty || 0) + (parga3Qty || 0) + (parga4Qty || 0);
+  }, [parga1Qty, parga2Qty, parga3Qty, parga4Qty]);
 
   // Carregar fotos existentes do produto
   useEffect(() => {
@@ -337,7 +366,216 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading, canUploadH
           </div>
         )}
 
-        {/* Fotos - Componente Separado */}
+        {/* Distribuição por Pargas - Apenas para Chapas */}
+        {forma === 'chapa' && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Layers className="h-4 w-4 text-muted-foreground" />
+              <h3 className="font-medium text-sm text-muted-foreground">Distribuição por Pargas</h3>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Parga 1 */}
+              <Card className="bg-muted/30 border-muted">
+                <CardContent className="pt-4 pb-4 space-y-3">
+                  <p className="text-sm font-medium text-foreground">Parga 1</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <FormField
+                      control={form.control}
+                      name="parga1_nome"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs">Nome</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              value={field.value || ''}
+                              placeholder="Ex: A1"
+                              className="h-9"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="parga1_quantidade"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs">Nº Chapas</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              inputMode="numeric"
+                              {...field}
+                              value={field.value ?? ''}
+                              onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                              placeholder="0"
+                              className="h-9"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Parga 2 */}
+              <Card className="bg-muted/30 border-muted">
+                <CardContent className="pt-4 pb-4 space-y-3">
+                  <p className="text-sm font-medium text-foreground">Parga 2</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <FormField
+                      control={form.control}
+                      name="parga2_nome"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs">Nome</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              value={field.value || ''}
+                              placeholder="Ex: A2"
+                              className="h-9"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="parga2_quantidade"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs">Nº Chapas</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              inputMode="numeric"
+                              {...field}
+                              value={field.value ?? ''}
+                              onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                              placeholder="0"
+                              className="h-9"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Parga 3 */}
+              <Card className="bg-muted/30 border-muted">
+                <CardContent className="pt-4 pb-4 space-y-3">
+                  <p className="text-sm font-medium text-foreground">Parga 3</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <FormField
+                      control={form.control}
+                      name="parga3_nome"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs">Nome</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              value={field.value || ''}
+                              placeholder="Ex: B1"
+                              className="h-9"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="parga3_quantidade"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs">Nº Chapas</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              inputMode="numeric"
+                              {...field}
+                              value={field.value ?? ''}
+                              onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                              placeholder="0"
+                              className="h-9"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Parga 4 */}
+              <Card className="bg-muted/30 border-muted">
+                <CardContent className="pt-4 pb-4 space-y-3">
+                  <p className="text-sm font-medium text-foreground">Parga 4</p>
+                  <div className="grid grid-cols-2 gap-3">
+                    <FormField
+                      control={form.control}
+                      name="parga4_nome"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs">Nome</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              value={field.value || ''}
+                              placeholder="Ex: B2"
+                              className="h-9"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="parga4_quantidade"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel className="text-xs">Nº Chapas</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="number"
+                              inputMode="numeric"
+                              {...field}
+                              value={field.value ?? ''}
+                              onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                              placeholder="0"
+                              className="h-9"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Total de Chapas */}
+            <div className="flex items-center justify-end gap-3 p-3 bg-primary/5 rounded-lg border border-primary/10">
+              <span className="text-sm font-medium text-muted-foreground">Quantidade Total de Chapas:</span>
+              <span className="text-lg font-bold text-primary">{quantidadeTotalChapas}</span>
+            </div>
+          </div>
+        )}
+
         <div className="space-y-4">
           <h3 className="font-medium text-sm text-muted-foreground">
             Fotografias ({forma === 'bloco' ? 'máx. 4' : 'máx. 2'})

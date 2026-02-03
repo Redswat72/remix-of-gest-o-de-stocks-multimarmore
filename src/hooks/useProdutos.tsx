@@ -72,6 +72,15 @@ interface CreateProdutoData extends ProdutoFormData {
   latitude?: number | null;
   longitude?: number | null;
   peso_ton?: number | null;
+  // Campos de pargas
+  parga1_nome?: string | null;
+  parga1_quantidade?: number | null;
+  parga2_nome?: string | null;
+  parga2_quantidade?: number | null;
+  parga3_nome?: string | null;
+  parga3_quantidade?: number | null;
+  parga4_nome?: string | null;
+  parga4_quantidade?: number | null;
 }
 
 export function useCreateProduto() {
@@ -104,6 +113,15 @@ export function useCreateProduto() {
           latitude: formData.latitude || null,
           longitude: formData.longitude || null,
           qr_code_url: qrCodeUrl,
+          // Campos de pargas (apenas para chapas)
+          parga1_nome: formData.parga1_nome || null,
+          parga1_quantidade: formData.parga1_quantidade || null,
+          parga2_nome: formData.parga2_nome || null,
+          parga2_quantidade: formData.parga2_quantidade || null,
+          parga3_nome: formData.parga3_nome || null,
+          parga3_quantidade: formData.parga3_quantidade || null,
+          parga4_nome: formData.parga4_nome || null,
+          parga4_quantidade: formData.parga4_quantidade || null,
         })
         .select()
         .single();
@@ -136,6 +154,15 @@ interface UpdateProdutoData {
   foto4_url?: string | null;
   latitude?: number | null;
   longitude?: number | null;
+  // Campos de pargas
+  parga1_nome?: string | null;
+  parga1_quantidade?: number | null;
+  parga2_nome?: string | null;
+  parga2_quantidade?: number | null;
+  parga3_nome?: string | null;
+  parga3_quantidade?: number | null;
+  parga4_nome?: string | null;
+  parga4_quantidade?: number | null;
 }
 
 export function useUpdateProduto() {
