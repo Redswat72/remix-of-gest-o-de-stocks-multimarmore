@@ -262,9 +262,18 @@ export type Database = {
           longitude: number | null
           nome_comercial: string | null
           observacoes: string | null
+          parga1_nome: string | null
+          parga1_quantidade: number | null
+          parga2_nome: string | null
+          parga2_quantidade: number | null
+          parga3_nome: string | null
+          parga3_quantidade: number | null
+          parga4_nome: string | null
+          parga4_quantidade: number | null
           peso_ton: number | null
           qr_code_data: string | null
           qr_code_url: string | null
+          quantidade_total_chapas: number | null
           tipo_pedra: string
           updated_at: string
           volume_m3: number | null
@@ -294,9 +303,18 @@ export type Database = {
           longitude?: number | null
           nome_comercial?: string | null
           observacoes?: string | null
+          parga1_nome?: string | null
+          parga1_quantidade?: number | null
+          parga2_nome?: string | null
+          parga2_quantidade?: number | null
+          parga3_nome?: string | null
+          parga3_quantidade?: number | null
+          parga4_nome?: string | null
+          parga4_quantidade?: number | null
           peso_ton?: number | null
           qr_code_data?: string | null
           qr_code_url?: string | null
+          quantidade_total_chapas?: number | null
           tipo_pedra: string
           updated_at?: string
           volume_m3?: number | null
@@ -326,9 +344,18 @@ export type Database = {
           longitude?: number | null
           nome_comercial?: string | null
           observacoes?: string | null
+          parga1_nome?: string | null
+          parga1_quantidade?: number | null
+          parga2_nome?: string | null
+          parga2_quantidade?: number | null
+          parga3_nome?: string | null
+          parga3_quantidade?: number | null
+          parga4_nome?: string | null
+          parga4_quantidade?: number | null
           peso_ton?: number | null
           qr_code_data?: string | null
           qr_code_url?: string | null
+          quantidade_total_chapas?: number | null
           tipo_pedra?: string
           updated_at?: string
           volume_m3?: number | null
