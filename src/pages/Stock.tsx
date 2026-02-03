@@ -121,6 +121,7 @@ export default function Stock() {
           IDMM: item.produto.idmm,
           'Tipo de Pedra': item.produto.tipo_pedra,
           'Nome Comercial': item.produto.nome_comercial || '-',
+          'Parque MM': '-',
           Forma: item.produto.forma,
           'Peso (ton)': item.produto.forma === 'bloco' ? (item.produto.peso_ton || '-') : '-',
           Parque: '-',
@@ -133,6 +134,7 @@ export default function Stock() {
         IDMM: item.produto.idmm,
         'Tipo de Pedra': item.produto.tipo_pedra,
         'Nome Comercial': item.produto.nome_comercial || '-',
+        'Parque MM': s.local.codigo,
         Forma: item.produto.forma,
         'Peso (ton)': item.produto.forma === 'bloco' ? (item.produto.peso_ton || '-') : '-',
         Parque: s.local.nome,
@@ -280,6 +282,7 @@ export default function Stock() {
                       </div>
                     </TableHead>
                     <TableHead>Nome Comercial</TableHead>
+                    <TableHead>Parque MM</TableHead>
                     <TableHead>Forma</TableHead>
                     <TableHead className="text-right">Peso (ton)</TableHead>
                     <TableHead 
@@ -322,6 +325,9 @@ export default function Stock() {
                           <TableCell className="text-muted-foreground">
                             {item.produto.nome_comercial || '-'}
                           </TableCell>
+                          <TableCell className="font-mono text-sm text-muted-foreground">
+                            {item.stockPorLocal.map(s => s.local.codigo).join(', ') || '-'}
+                          </TableCell>
                           <TableCell>{getFormaBadge(item.produto.forma)}</TableCell>
                           <TableCell className="text-right">
                             {item.produto.forma === 'bloco' && item.produto.peso_ton ? (
@@ -340,7 +346,7 @@ export default function Stock() {
                         </TableRow>
                         <CollapsibleContent asChild>
                           <TableRow className="bg-muted/30">
-                            <TableCell colSpan={8} className="py-3">
+                            <TableCell colSpan={9} className="py-3">
                               <div className="pl-12">
                                 <p className="text-sm font-medium mb-2">Stock por Parque:</p>
                                 <div className="flex flex-wrap gap-2">
