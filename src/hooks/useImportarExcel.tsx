@@ -428,7 +428,20 @@ export function useExecutarImportacao() {
       };
 
       if (!resultado.sucesso) {
-        throw new Error('A importação falhou. Verifique os erros retornados.');
+        const erros = Array.isArray(resultado.erros) ? resultado.erros : [];
+        if (erros.length === 0) {
+          throw new Error('A importação falhou, mas o backend não devolveu detalhes de erro.');
+        }
+
+        // Mostrar um resumo curto no toast (evitar mensagens gigantes)
+        const maxItens = 6;
+        const resumo = erros
+          .slice(0, maxItens)
+          .map((e) => `Linha ${e.linha}: ${e.erro}`)
+          .join(' • ');
+
+        const sufixo = erros.length > maxItens ? ` (e mais ${erros.length - maxItens})` : '';
+        throw new Error(`A importação falhou. ${resumo}${sufixo}`);
       }
 
       return {
