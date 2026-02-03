@@ -74,7 +74,6 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading, canUploadH
 
   const forma = form.watch('forma');
   const idmm = form.watch('idmm');
-  const maxFotos = forma === 'bloco' ? 4 : 2;
 
   // Carregar fotos existentes do produto
   useEffect(() => {
@@ -124,6 +123,7 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading, canUploadH
   };
 
   const handleSubmit = async (data: ProdutoFormData) => {
+    const maxFotos = data.forma === 'bloco' ? 4 : 2;
     const urlsToSubmit = fotoUrls.slice(0, maxFotos);
     const hdUrlsToSubmit = fotoHdUrls.slice(0, maxFotos);
     await onSubmit(data, urlsToSubmit, hdUrlsToSubmit);
@@ -320,7 +320,7 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading, canUploadH
             Fotografias ({forma === 'bloco' ? 'máx. 4' : 'máx. 2'})
           </h3>
           <ProdutoFotos
-            maxFotos={maxFotos}
+            forma={forma}
             idmm={idmm || 'novo'}
             fotoUrls={fotoUrls}
             fotoHdUrls={fotoHdUrls}
