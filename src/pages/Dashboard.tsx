@@ -525,7 +525,7 @@ export default function Dashboard() {
                       )}
                     </div>
                     <p className="text-sm font-medium truncate mt-1">
-                      {(mov.produto as { idmm: string; tipo_pedra: string })?.idmm} - {(mov.produto as { idmm: string; tipo_pedra: string })?.tipo_pedra}
+                      {((Array.isArray(mov.produto) ? mov.produto[0] : mov.produto) as { idmm: string; tipo_pedra: string } | null)?.idmm} - {((Array.isArray(mov.produto) ? mov.produto[0] : mov.produto) as { idmm: string; tipo_pedra: string } | null)?.tipo_pedra}
                     </p>
                     <p className="text-xs text-muted-foreground">
                       {mov.quantidade} un. • {new Date(mov.data_movimento).toLocaleDateString('pt-PT')}
