@@ -132,6 +132,13 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading }: ProdutoF
     const foto = fotos[index];
     if (!foto.file) return;
 
+    // Determinar slot (F1, F2, F3, F4)
+    const slotMap = ['F1', 'F2', 'F3', 'F4'] as const;
+    const slot = slotMap[index];
+    
+    // Obter IDMM do formulário
+    const idmm = form.getValues('idmm') || 'sem-id';
+
     setFotos(prev => {
       const newFotos = [...prev];
       newFotos[index] = { ...newFotos[index], isUploading: true };
@@ -140,7 +147,7 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading }: ProdutoF
 
     const result = await uploadImage(foto.file, {
       bucket: 'produtos',
-      folder: produto?.id || 'novo',
+      naming: { type: 'produto', idmm, slot },
       maxSizeKB: 500,
       maxWidth: 1200,
       maxHeight: 1200,

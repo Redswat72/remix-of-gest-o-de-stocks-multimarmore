@@ -49,7 +49,7 @@ export default function Perfil() {
 
     const result = await uploadImage(file, {
       bucket: 'avatars',
-      folder: user.id,
+      naming: { type: 'avatar', userId: user.id },
       maxSizeKB: 300,
       maxWidth: 400,
       maxHeight: 400,

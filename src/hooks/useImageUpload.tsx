@@ -1,9 +1,14 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
+// Tipo de nomeação automática
+type NamingType = 
+  | { type: 'avatar'; userId: string }
+  | { type: 'produto'; idmm: string; slot: 'F1' | 'F2' | 'F3' | 'F4' };
+
 interface UploadOptions {
   bucket: 'avatars' | 'produtos';
-  folder?: string;
+  naming: NamingType;
   maxSizeKB?: number;
   maxWidth?: number;
   maxHeight?: number;
@@ -13,6 +18,21 @@ interface UploadOptions {
 interface UploadResult {
   url: string;
   path: string;
+}
+
+// Gerar nome do ficheiro conforme as regras
+function generateFileName(naming: NamingType): string {
+  const timestamp = Date.now();
+  
+  if (naming.type === 'avatar') {
+    // avatar_{userId}_{timestamp}.jpg
+    return `avatar_${naming.userId}_${timestamp}.jpg`;
+  } else {
+    // produto_{idmm}_{slot}_{timestamp}.jpg
+    // Limpar IDMM de caracteres especiais
+    const cleanIdmm = naming.idmm.replace(/[^a-zA-Z0-9-_]/g, '_');
+    return `produto_${cleanIdmm}_${naming.slot}_${timestamp}.jpg`;
+  }
 }
 
 // Compressão de imagem usando canvas
@@ -57,6 +77,7 @@ async function compressImage(
 
         ctx.drawImage(img, 0, 0, width, height);
         
+        // Sempre converter para JPEG
         canvas.toBlob(
           (blob) => {
             if (blob) {
@@ -86,7 +107,7 @@ export function useImageUpload() {
   ): Promise<UploadResult | null> => {
     const {
       bucket,
-      folder = '',
+      naming,
       maxSizeKB = 500,
       maxWidth = 1200,
       maxHeight = 1200,
@@ -105,30 +126,62 @@ export function useImageUpload() {
 
       setProgress(20);
 
-      // Comprimir imagem
-      let imageBlob: Blob = file;
-      if (file.size > maxSizeKB * 1024) {
-        imageBlob = await compressImage(file, maxWidth, maxHeight, quality);
+      // Comprimir e converter para JPG
+      const imageBlob = await compressImage(file, maxWidth, maxHeight, quality);
+
+      // Verificar tamanho após compressão
+      if (imageBlob.size > maxSizeKB * 1024) {
+        // Tentar novamente com qualidade menor
+        const lowerQualityBlob = await compressImage(file, maxWidth, maxHeight, quality * 0.7);
+        if (lowerQualityBlob.size > maxSizeKB * 1024 * 2) {
+          throw new Error(`Imagem demasiado grande. Máximo permitido: ${maxSizeKB * 2}KB`);
+        }
       }
 
       setProgress(50);
 
-      // Gerar nome único
-      const fileExt = 'jpg';
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
-      const filePath = folder ? `${folder}/${fileName}` : fileName;
+      // Gerar nome único conforme regras
+      const fileName = generateFileName(naming);
+      const filePath = fileName;
 
       setProgress(70);
 
-      // Fazer upload
+      // Fazer upload SEM upsert para não sobrescrever
       const { data, error: uploadError } = await supabase.storage
         .from(bucket)
         .upload(filePath, imageBlob, {
           contentType: 'image/jpeg',
-          upsert: true,
+          upsert: false, // NÃO sobrescrever ficheiros existentes
         });
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        // Se já existir, gerar novo nome com sufixo aleatório
+        if (uploadError.message.includes('already exists') || uploadError.message.includes('Duplicate')) {
+          const newFileName = fileName.replace('.jpg', `_${Math.random().toString(36).substring(2, 6)}.jpg`);
+          const retryResult = await supabase.storage
+            .from(bucket)
+            .upload(newFileName, imageBlob, {
+              contentType: 'image/jpeg',
+              upsert: false,
+            });
+          
+          if (retryResult.error) throw retryResult.error;
+          
+          setProgress(90);
+          
+          const { data: urlData } = supabase.storage
+            .from(bucket)
+            .getPublicUrl(retryResult.data.path);
+
+          setProgress(100);
+
+          return {
+            url: urlData.publicUrl,
+            path: retryResult.data.path,
+          };
+        }
+        throw uploadError;
+      }
 
       setProgress(90);
 
