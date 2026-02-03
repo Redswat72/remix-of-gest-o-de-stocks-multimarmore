@@ -10,7 +10,8 @@ import {
   Boxes,
   LogOut,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  ClipboardList
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -33,6 +34,7 @@ const navItems: NavItem[] = [
   { href: '/produtos', label: 'Produtos', icon: Boxes, adminOnly: true },
   { href: '/clientes', label: 'Clientes', icon: Users, adminOnly: true },
   { href: '/superadmin', label: 'Superadmin', icon: MapPin, superadminOnly: true },
+  { href: '/auditoria', label: 'Auditoria', icon: ClipboardList, superadminOnly: true },
   { href: '/configuracoes', label: 'Configurações', icon: Settings },
 ];
 
