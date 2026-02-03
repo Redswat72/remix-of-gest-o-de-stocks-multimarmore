@@ -46,7 +46,13 @@ export function useUpdateProfile() {
       data 
     }: { 
       userId: string; 
-      data: { nome?: string; local_id?: string | null; ativo?: boolean } 
+      data: { 
+        nome?: string; 
+        local_id?: string | null; 
+        ativo?: boolean;
+        telefone?: string | null;
+        avatar_url?: string | null;
+      } 
     }) => {
       const { error } = await supabase
         .from('profiles')
@@ -57,6 +63,7 @@ export function useUpdateProfile() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profiles'] });
+      queryClient.invalidateQueries({ queryKey: ['auth'] });
     },
   });
 }

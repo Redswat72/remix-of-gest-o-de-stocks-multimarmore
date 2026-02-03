@@ -89,57 +89,19 @@ export default function Produtos() {
     return true;
   });
 
-  // Upload de fotos
-  const uploadFotos = async (produtoId: string, fotos: (File | string | null)[]): Promise<(string | null)[]> => {
-    const urls: (string | null)[] = [];
-    
-    for (let i = 0; i < fotos.length; i++) {
-      const foto = fotos[i];
-      
-      if (!foto) {
-        urls.push(null);
-      } else if (typeof foto === 'string') {
-        // Já é uma URL existente
-        urls.push(foto);
-      } else {
-        // É um File - fazer upload
-        const fileExt = foto.name.split('.').pop();
-        const fileName = `${produtoId}/foto${i + 1}_${Date.now()}.${fileExt}`;
-        
-        const { data, error } = await supabase.storage
-          .from('produtos')
-          .upload(fileName, foto, { upsert: true });
-        
-        if (error) {
-          console.error('Erro ao fazer upload:', error);
-          urls.push(null);
-        } else {
-          const { data: { publicUrl } } = supabase.storage
-            .from('produtos')
-            .getPublicUrl(data.path);
-          urls.push(publicUrl);
-        }
-      }
-    }
-    
-    return urls;
-  };
-
-  const handleSubmit = async (data: any, fotos: (File | string | null)[]) => {
+  const handleSubmit = async (data: any, fotoUrls: (string | null)[]) => {
     setIsSubmitting(true);
     
     try {
       if (editingProduto) {
-        // Atualizar
-        const fotoUrls = await uploadFotos(editingProduto.id, fotos);
-        
+        // Atualizar produto com URLs das fotos já carregadas
         await updateMutation.mutateAsync({
           id: editingProduto.id,
           ...data,
-          foto1_url: fotoUrls[0],
-          foto2_url: fotoUrls[1],
-          foto3_url: fotoUrls[2],
-          foto4_url: fotoUrls[3],
+          foto1_url: fotoUrls[0] || null,
+          foto2_url: fotoUrls[1] || null,
+          foto3_url: fotoUrls[2] || null,
+          foto4_url: fotoUrls[3] || null,
         });
         
         toast({
@@ -147,27 +109,14 @@ export default function Produtos() {
           description: `O produto ${data.idmm} foi atualizado com sucesso.`,
         });
       } else {
-        // Criar
-        const result = await createMutation.mutateAsync({
+        // Criar produto com URLs das fotos
+        await createMutation.mutateAsync({
           ...data,
-          foto1_url: null,
-          foto2_url: null,
-          foto3_url: null,
-          foto4_url: null,
+          foto1_url: fotoUrls[0] || null,
+          foto2_url: fotoUrls[1] || null,
+          foto3_url: fotoUrls[2] || null,
+          foto4_url: fotoUrls[3] || null,
         });
-        
-        // Upload das fotos após criar
-        if (result?.id) {
-          const fotoUrls = await uploadFotos(result.id, fotos);
-          
-          await updateMutation.mutateAsync({
-            id: result.id,
-            foto1_url: fotoUrls[0],
-            foto2_url: fotoUrls[1],
-            foto3_url: fotoUrls[2],
-            foto4_url: fotoUrls[3],
-          });
-        }
         
         toast({
           title: 'Produto criado',

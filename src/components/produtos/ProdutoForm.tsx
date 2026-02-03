@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Loader2, MapPin, X, Image as ImageIcon } from 'lucide-react';
+import { Loader2, MapPin, X, Camera, ImagePlus, Check, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Progress } from '@/components/ui/progress';
 import {
   Select,
   SelectContent,
@@ -21,6 +22,8 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import { useImageUpload } from '@/hooks/useImageUpload';
+import { cn } from '@/lib/utils';
 import type { Produto } from '@/types/database';
 
 const produtoSchema = z.object({
@@ -42,15 +45,30 @@ type ProdutoFormData = z.infer<typeof produtoSchema>;
 
 interface ProdutoFormProps {
   produto?: Produto | null;
-  onSubmit: (data: ProdutoFormData, fotos: (File | string | null)[]) => Promise<void>;
+  onSubmit: (data: ProdutoFormData, fotoUrls: (string | null)[]) => Promise<void>;
   onCancel: () => void;
   isLoading?: boolean;
 }
 
+interface FotoSlot {
+  url: string | null;
+  preview: string | null;
+  file: File | null;
+  isUploading: boolean;
+  progress: number;
+}
+
 export function ProdutoForm({ produto, onSubmit, onCancel, isLoading }: ProdutoFormProps) {
-  const [fotos, setFotos] = useState<(File | string | null)[]>([null, null, null, null]);
-  const [fotoPreviews, setFotoPreviews] = useState<(string | null)[]>([null, null, null, null]);
+  const [fotos, setFotos] = useState<FotoSlot[]>([
+    { url: null, preview: null, file: null, isUploading: false, progress: 0 },
+    { url: null, preview: null, file: null, isUploading: false, progress: 0 },
+    { url: null, preview: null, file: null, isUploading: false, progress: 0 },
+    { url: null, preview: null, file: null, isUploading: false, progress: 0 },
+  ]);
   const [gettingLocation, setGettingLocation] = useState(false);
+  const fileInputRefs = useRef<(HTMLInputElement | null)[]>([null, null, null, null]);
+  const cameraInputRefs = useRef<(HTMLInputElement | null)[]>([null, null, null, null]);
+  const { uploadImage, deleteImage } = useImageUpload();
 
   const form = useForm<ProdutoFormData>({
     resolver: zodResolver(produtoSchema),
@@ -75,38 +93,123 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading }: ProdutoF
 
   useEffect(() => {
     if (produto) {
-      const existingFotos: (string | null)[] = [
+      const existingUrls = [
         produto.foto1_url,
         produto.foto2_url,
         produto.foto3_url,
-        produto.foto4_url || null,
+        produto.foto4_url,
       ];
-      setFotos(existingFotos);
-      setFotoPreviews(existingFotos);
+      setFotos(existingUrls.map(url => ({
+        url,
+        preview: url,
+        file: null,
+        isUploading: false,
+        progress: 0,
+      })));
     }
   }, [produto]);
 
-  const handleFotoChange = (index: number, file: File | null) => {
-    const newFotos = [...fotos];
-    const newPreviews = [...fotoPreviews];
-    
-    if (file) {
-      newFotos[index] = file;
-      newPreviews[index] = URL.createObjectURL(file);
-    } else {
-      newFotos[index] = null;
-      if (fotoPreviews[index]?.startsWith('blob:')) {
-        URL.revokeObjectURL(fotoPreviews[index]!);
-      }
-      newPreviews[index] = null;
-    }
-    
-    setFotos(newFotos);
-    setFotoPreviews(newPreviews);
+  const handleFileSelect = async (index: number, file: File) => {
+    if (!file.type.startsWith('image/')) return;
+
+    // Criar preview local
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setFotos(prev => {
+        const newFotos = [...prev];
+        newFotos[index] = {
+          ...newFotos[index],
+          preview: e.target?.result as string,
+          file,
+        };
+        return newFotos;
+      });
+    };
+    reader.readAsDataURL(file);
   };
 
-  const removeFoto = (index: number) => {
-    handleFotoChange(index, null);
+  const handleConfirmUpload = async (index: number) => {
+    const foto = fotos[index];
+    if (!foto.file) return;
+
+    setFotos(prev => {
+      const newFotos = [...prev];
+      newFotos[index] = { ...newFotos[index], isUploading: true };
+      return newFotos;
+    });
+
+    const result = await uploadImage(foto.file, {
+      bucket: 'produtos',
+      folder: produto?.id || 'novo',
+      maxSizeKB: 500,
+      maxWidth: 1200,
+      maxHeight: 1200,
+      quality: 0.85,
+    });
+
+    if (result) {
+      setFotos(prev => {
+        const newFotos = [...prev];
+        newFotos[index] = {
+          url: result.url,
+          preview: result.url,
+          file: null,
+          isUploading: false,
+          progress: 0,
+        };
+        return newFotos;
+      });
+    } else {
+      setFotos(prev => {
+        const newFotos = [...prev];
+        newFotos[index] = { ...newFotos[index], isUploading: false };
+        return newFotos;
+      });
+    }
+  };
+
+  const handleCancelPreview = (index: number) => {
+    setFotos(prev => {
+      const newFotos = [...prev];
+      // Restaurar URL anterior se existia
+      const originalUrl = produto ? [
+        produto.foto1_url,
+        produto.foto2_url,
+        produto.foto3_url,
+        produto.foto4_url,
+      ][index] : null;
+      
+      newFotos[index] = {
+        url: originalUrl,
+        preview: originalUrl,
+        file: null,
+        isUploading: false,
+        progress: 0,
+      };
+      return newFotos;
+    });
+  };
+
+  const handleRemoveFoto = async (index: number) => {
+    const foto = fotos[index];
+    if (foto.url) {
+      const urlParts = foto.url.split('/produtos/');
+      if (urlParts.length > 1) {
+        await deleteImage('produtos', urlParts[1]);
+      }
+    }
+
+    setFotos(prev => {
+      const newFotos = [...prev];
+      newFotos[index] = {
+        url: null,
+        preview: null,
+        file: null,
+        isUploading: false,
+        progress: 0,
+      };
+      return newFotos;
+    });
   };
 
   const getCurrentLocation = () => {
@@ -132,8 +235,15 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading }: ProdutoF
   };
 
   const handleSubmit = async (data: ProdutoFormData) => {
-    const fotosToSubmit = fotos.slice(0, maxFotos);
-    await onSubmit(data, fotosToSubmit);
+    // Garantir que todas as fotos pendentes estão carregadas
+    const hasePendingUploads = fotos.some(f => f.file !== null);
+    if (hasePendingUploads) {
+      alert('Por favor, confirme ou cancele os uploads pendentes antes de guardar.');
+      return;
+    }
+
+    const fotoUrls = fotos.slice(0, maxFotos).map(f => f.url);
+    await onSubmit(data, fotoUrls);
   };
 
   return (
@@ -148,7 +258,7 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading }: ProdutoF
               <FormItem>
                 <FormLabel>IDMM *</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="Ex: BL-001" />
+                  <Input {...field} placeholder="Ex: BL-001" className="touch-target" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -163,7 +273,7 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading }: ProdutoF
                 <FormLabel>Forma *</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="touch-target">
                       <SelectValue />
                     </SelectTrigger>
                   </FormControl>
@@ -187,7 +297,7 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading }: ProdutoF
               <FormItem>
                 <FormLabel>Tipo de Pedra *</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="Ex: Mármore Branco" />
+                  <Input {...field} placeholder="Ex: Mármore Branco" className="touch-target" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -201,7 +311,7 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading }: ProdutoF
               <FormItem>
                 <FormLabel>Nome Comercial</FormLabel>
                 <FormControl>
-                  <Input {...field} value={field.value || ''} placeholder="Ex: Estremoz Clássico" />
+                  <Input {...field} value={field.value || ''} placeholder="Ex: Estremoz Clássico" className="touch-target" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -216,7 +326,7 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading }: ProdutoF
             <FormItem>
               <FormLabel>Acabamento</FormLabel>
               <FormControl>
-                <Input {...field} value={field.value || ''} placeholder="Ex: Polido, Amaciado" />
+                <Input {...field} value={field.value || ''} placeholder="Ex: Polido, Amaciado" className="touch-target" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -237,9 +347,11 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading }: ProdutoF
                     <Input
                       type="number"
                       step="0.1"
+                      inputMode="decimal"
                       {...field}
                       value={field.value ?? ''}
                       onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                      className="touch-target"
                     />
                   </FormControl>
                   <FormMessage />
@@ -257,9 +369,11 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading }: ProdutoF
                     <Input
                       type="number"
                       step="0.1"
+                      inputMode="decimal"
                       {...field}
                       value={field.value ?? ''}
                       onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                      className="touch-target"
                     />
                   </FormControl>
                   <FormMessage />
@@ -278,9 +392,11 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading }: ProdutoF
                       <Input
                         type="number"
                         step="0.1"
+                        inputMode="decimal"
                         {...field}
                         value={field.value ?? ''}
                         onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                        className="touch-target"
                       />
                     </FormControl>
                     <FormMessage />
@@ -300,9 +416,11 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading }: ProdutoF
                       <Input
                         type="number"
                         step="0.1"
+                        inputMode="decimal"
                         {...field}
                         value={field.value ?? ''}
                         onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                        className="touch-target"
                       />
                     </FormControl>
                     <FormMessage />
@@ -313,45 +431,134 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading }: ProdutoF
           </div>
         </div>
 
-        {/* Fotos */}
+        {/* Fotos com Câmara e Galeria */}
         <div className="space-y-4">
           <h3 className="font-medium text-sm text-muted-foreground">
             Fotos ({forma === 'bloco' ? 'máx. 4' : 'máx. 2'})
           </h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {Array.from({ length: maxFotos }).map((_, index) => (
-              <div key={index} className="relative">
-                {fotoPreviews[index] ? (
-                  <div className="relative aspect-square rounded-lg overflow-hidden border bg-muted">
-                    <img
-                      src={fotoPreviews[index]!}
-                      alt={`Foto ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      size="icon"
-                      className="absolute top-1 right-1 h-6 w-6"
-                      onClick={() => removeFoto(index)}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
+          <div className="grid grid-cols-2 gap-4">
+            {Array.from({ length: maxFotos }).map((_, index) => {
+              const foto = fotos[index];
+              const hasPreview = !!foto?.preview;
+              const isPending = foto?.file !== null;
+
+              return (
+                <div key={index} className="relative">
+                  <div className={cn(
+                    "relative aspect-square rounded-lg border-2 overflow-hidden transition-all",
+                    hasPreview 
+                      ? "border-border bg-muted" 
+                      : "border-dashed border-border bg-muted/30 hover:border-primary/50"
+                  )}>
+                    {hasPreview ? (
+                      <>
+                        <img
+                          src={foto.preview!}
+                          alt={`Foto ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                        
+                        {/* Overlay de upload */}
+                        {foto.isUploading && (
+                          <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center gap-2">
+                            <Loader2 className="w-8 h-8 text-primary animate-spin" />
+                            <Progress value={foto.progress} className="w-3/4 h-2" />
+                          </div>
+                        )}
+
+                        {/* Botões de confirmação para preview pendente */}
+                        {isPending && !foto.isUploading && (
+                          <div className="absolute inset-0 bg-background/60 flex items-center justify-center gap-2">
+                            <Button
+                              type="button"
+                              size="icon"
+                              variant="outline"
+                              onClick={() => handleCancelPreview(index)}
+                              className="h-12 w-12"
+                            >
+                              <RotateCcw className="w-5 h-5" />
+                            </Button>
+                            <Button
+                              type="button"
+                              size="icon"
+                              onClick={() => handleConfirmUpload(index)}
+                              className="h-12 w-12"
+                            >
+                              <Check className="w-5 h-5" />
+                            </Button>
+                          </div>
+                        )}
+
+                        {/* Botão remover para foto guardada */}
+                        {!isPending && !foto.isUploading && (
+                          <Button
+                            type="button"
+                            size="icon"
+                            variant="destructive"
+                            className="absolute top-2 right-2 h-8 w-8"
+                            onClick={() => handleRemoveFoto(index)}
+                          >
+                            <X className="w-4 h-4" />
+                          </Button>
+                        )}
+                      </>
+                    ) : (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 p-2">
+                        <div className="flex gap-2">
+                          {/* Botão Galeria */}
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="lg"
+                            onClick={() => fileInputRefs.current[index]?.click()}
+                            className="touch-target"
+                          >
+                            <ImagePlus className="w-5 h-5" />
+                          </Button>
+                          
+                          {/* Botão Câmara */}
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="lg"
+                            onClick={() => cameraInputRefs.current[index]?.click()}
+                            className="touch-target"
+                          >
+                            <Camera className="w-5 h-5" />
+                          </Button>
+                        </div>
+                        <span className="text-xs text-muted-foreground">Foto {index + 1}</span>
+                      </div>
+                    )}
                   </div>
-                ) : (
-                  <label className="flex flex-col items-center justify-center aspect-square rounded-lg border-2 border-dashed border-muted-foreground/25 hover:border-muted-foreground/50 cursor-pointer bg-muted/50 transition-colors">
-                    <ImageIcon className="h-8 w-8 text-muted-foreground/50" />
-                    <span className="text-xs text-muted-foreground mt-1">Foto {index + 1}</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => handleFotoChange(index, e.target.files?.[0] || null)}
-                    />
-                  </label>
-                )}
-              </div>
-            ))}
+
+                  {/* Inputs escondidos */}
+                  <input
+                    ref={el => { fileInputRefs.current[index] = el; }}
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleFileSelect(index, file);
+                      e.target.value = '';
+                    }}
+                  />
+                  <input
+                    ref={el => { cameraInputRefs.current[index] = el; }}
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) handleFileSelect(index, file);
+                      e.target.value = '';
+                    }}
+                  />
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -362,9 +569,10 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading }: ProdutoF
             <Button
               type="button"
               variant="outline"
-              size="sm"
+              size="default"
               onClick={getCurrentLocation}
               disabled={gettingLocation}
+              className="touch-target"
             >
               {gettingLocation ? (
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -385,10 +593,12 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading }: ProdutoF
                     <Input
                       type="number"
                       step="0.000001"
+                      inputMode="decimal"
                       {...field}
                       value={field.value ?? ''}
                       onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
                       placeholder="-90 a 90"
+                      className="touch-target"
                     />
                   </FormControl>
                   <FormMessage />
@@ -406,10 +616,12 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading }: ProdutoF
                     <Input
                       type="number"
                       step="0.000001"
+                      inputMode="decimal"
                       {...field}
                       value={field.value ?? ''}
                       onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
                       placeholder="-180 a 180"
+                      className="touch-target"
                     />
                   </FormControl>
                   <FormMessage />
@@ -441,10 +653,10 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading }: ProdutoF
 
         {/* Botões */}
         <div className="flex justify-end gap-3">
-          <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading}>
+          <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading} className="touch-target">
             Cancelar
           </Button>
-          <Button type="submit" disabled={isLoading}>
+          <Button type="submit" disabled={isLoading} className="touch-target">
             {isLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
             {produto ? 'Guardar Alterações' : 'Criar Produto'}
           </Button>

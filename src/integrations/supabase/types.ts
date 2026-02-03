@@ -314,31 +314,37 @@ export type Database = {
       profiles: {
         Row: {
           ativo: boolean
+          avatar_url: string | null
           created_at: string
           email: string
           id: string
           local_id: string | null
           nome: string
+          telefone: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
           ativo?: boolean
+          avatar_url?: string | null
           created_at?: string
           email: string
           id?: string
           local_id?: string | null
           nome: string
+          telefone?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
           ativo?: boolean
+          avatar_url?: string | null
           created_at?: string
           email?: string
           id?: string
           local_id?: string | null
           nome?: string
+          telefone?: string | null
           updated_at?: string
           user_id?: string
         }

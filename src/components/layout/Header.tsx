@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import logoMultimarmore from '@/assets/logo-multimarmore.png';
 import { Link } from 'react-router-dom';
@@ -116,6 +116,12 @@ export function Header() {
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="relative h-10 w-10 rounded-full">
               <Avatar className="h-10 w-10 border-2 border-border">
+                {(profile as { avatar_url?: string })?.avatar_url && (
+                  <AvatarImage 
+                    src={(profile as { avatar_url?: string }).avatar_url!} 
+                    alt={profile?.nome || 'Avatar'} 
+                  />
+                )}
                 <AvatarFallback className="bg-primary/10 text-primary font-semibold">
                   {profile ? getInitials(profile.nome) : '??'}
                 </AvatarFallback>
@@ -132,6 +138,12 @@ export function Header() {
                 </Badge>
               </div>
             </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link to="/perfil" className="flex items-center cursor-pointer">
+                <span>O Meu Perfil</span>
+              </Link>
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={signOut} className="text-destructive focus:text-destructive focus:bg-destructive/10">
               <LogOut className="mr-2 h-4 w-4" />
