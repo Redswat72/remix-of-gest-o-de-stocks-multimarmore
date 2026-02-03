@@ -75,12 +75,32 @@ interface CreateProdutoData extends ProdutoFormData {
   // Campos de pargas
   parga1_nome?: string | null;
   parga1_quantidade?: number | null;
+  parga1_comprimento_cm?: number | null;
+  parga1_altura_cm?: number | null;
+  parga1_espessura_cm?: number | null;
+  parga1_foto1_url?: string | null;
+  parga1_foto2_url?: string | null;
   parga2_nome?: string | null;
   parga2_quantidade?: number | null;
+  parga2_comprimento_cm?: number | null;
+  parga2_altura_cm?: number | null;
+  parga2_espessura_cm?: number | null;
+  parga2_foto1_url?: string | null;
+  parga2_foto2_url?: string | null;
   parga3_nome?: string | null;
   parga3_quantidade?: number | null;
+  parga3_comprimento_cm?: number | null;
+  parga3_altura_cm?: number | null;
+  parga3_espessura_cm?: number | null;
+  parga3_foto1_url?: string | null;
+  parga3_foto2_url?: string | null;
   parga4_nome?: string | null;
   parga4_quantidade?: number | null;
+  parga4_comprimento_cm?: number | null;
+  parga4_altura_cm?: number | null;
+  parga4_espessura_cm?: number | null;
+  parga4_foto1_url?: string | null;
+  parga4_foto2_url?: string | null;
 }
 
 export function useCreateProduto() {
@@ -116,12 +136,32 @@ export function useCreateProduto() {
           // Campos de pargas (apenas para chapas)
           parga1_nome: formData.parga1_nome || null,
           parga1_quantidade: formData.parga1_quantidade || null,
+          parga1_comprimento_cm: formData.parga1_comprimento_cm || null,
+          parga1_altura_cm: formData.parga1_altura_cm || null,
+          parga1_espessura_cm: formData.parga1_espessura_cm || null,
+          parga1_foto1_url: formData.parga1_foto1_url || null,
+          parga1_foto2_url: formData.parga1_foto2_url || null,
           parga2_nome: formData.parga2_nome || null,
           parga2_quantidade: formData.parga2_quantidade || null,
+          parga2_comprimento_cm: formData.parga2_comprimento_cm || null,
+          parga2_altura_cm: formData.parga2_altura_cm || null,
+          parga2_espessura_cm: formData.parga2_espessura_cm || null,
+          parga2_foto1_url: formData.parga2_foto1_url || null,
+          parga2_foto2_url: formData.parga2_foto2_url || null,
           parga3_nome: formData.parga3_nome || null,
           parga3_quantidade: formData.parga3_quantidade || null,
+          parga3_comprimento_cm: formData.parga3_comprimento_cm || null,
+          parga3_altura_cm: formData.parga3_altura_cm || null,
+          parga3_espessura_cm: formData.parga3_espessura_cm || null,
+          parga3_foto1_url: formData.parga3_foto1_url || null,
+          parga3_foto2_url: formData.parga3_foto2_url || null,
           parga4_nome: formData.parga4_nome || null,
           parga4_quantidade: formData.parga4_quantidade || null,
+          parga4_comprimento_cm: formData.parga4_comprimento_cm || null,
+          parga4_altura_cm: formData.parga4_altura_cm || null,
+          parga4_espessura_cm: formData.parga4_espessura_cm || null,
+          parga4_foto1_url: formData.parga4_foto1_url || null,
+          parga4_foto2_url: formData.parga4_foto2_url || null,
         })
         .select()
         .single();
@@ -157,12 +197,32 @@ interface UpdateProdutoData {
   // Campos de pargas
   parga1_nome?: string | null;
   parga1_quantidade?: number | null;
+  parga1_comprimento_cm?: number | null;
+  parga1_altura_cm?: number | null;
+  parga1_espessura_cm?: number | null;
+  parga1_foto1_url?: string | null;
+  parga1_foto2_url?: string | null;
   parga2_nome?: string | null;
   parga2_quantidade?: number | null;
+  parga2_comprimento_cm?: number | null;
+  parga2_altura_cm?: number | null;
+  parga2_espessura_cm?: number | null;
+  parga2_foto1_url?: string | null;
+  parga2_foto2_url?: string | null;
   parga3_nome?: string | null;
   parga3_quantidade?: number | null;
+  parga3_comprimento_cm?: number | null;
+  parga3_altura_cm?: number | null;
+  parga3_espessura_cm?: number | null;
+  parga3_foto1_url?: string | null;
+  parga3_foto2_url?: string | null;
   parga4_nome?: string | null;
   parga4_quantidade?: number | null;
+  parga4_comprimento_cm?: number | null;
+  parga4_altura_cm?: number | null;
+  parga4_espessura_cm?: number | null;
+  parga4_foto1_url?: string | null;
+  parga4_foto2_url?: string | null;
 }
 
 export function useUpdateProduto() {

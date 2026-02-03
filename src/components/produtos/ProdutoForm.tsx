@@ -1,11 +1,10 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Loader2, MapPin, Layers } from 'lucide-react';
+import { Loader2, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Select,
@@ -23,6 +22,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { ProdutoFotos } from '@/components/produtos/ProdutoFotos';
+import { ChapaFormSection, type PargaFotos } from '@/components/produtos/ChapaFormSection';
 import type { Produto } from '@/types/database';
 
 const produtoBaseSchema = z.object({
@@ -42,41 +42,86 @@ const produtoBaseSchema = z.object({
   // Campos de pargas (apenas para chapas)
   parga1_nome: z.string().max(50, 'Máximo 50 caracteres').optional().nullable(),
   parga1_quantidade: z.number().int().min(0, 'Não pode ser negativo').optional().nullable(),
+  parga1_comprimento_cm: z.number().positive('Deve ser positivo').optional().nullable(),
+  parga1_altura_cm: z.number().positive('Deve ser positivo').optional().nullable(),
+  parga1_espessura_cm: z.number().positive('Deve ser positivo').optional().nullable(),
   parga2_nome: z.string().max(50, 'Máximo 50 caracteres').optional().nullable(),
   parga2_quantidade: z.number().int().min(0, 'Não pode ser negativo').optional().nullable(),
+  parga2_comprimento_cm: z.number().positive('Deve ser positivo').optional().nullable(),
+  parga2_altura_cm: z.number().positive('Deve ser positivo').optional().nullable(),
+  parga2_espessura_cm: z.number().positive('Deve ser positivo').optional().nullable(),
   parga3_nome: z.string().max(50, 'Máximo 50 caracteres').optional().nullable(),
   parga3_quantidade: z.number().int().min(0, 'Não pode ser negativo').optional().nullable(),
+  parga3_comprimento_cm: z.number().positive('Deve ser positivo').optional().nullable(),
+  parga3_altura_cm: z.number().positive('Deve ser positivo').optional().nullable(),
+  parga3_espessura_cm: z.number().positive('Deve ser positivo').optional().nullable(),
   parga4_nome: z.string().max(50, 'Máximo 50 caracteres').optional().nullable(),
   parga4_quantidade: z.number().int().min(0, 'Não pode ser negativo').optional().nullable(),
+  parga4_comprimento_cm: z.number().positive('Deve ser positivo').optional().nullable(),
+  parga4_altura_cm: z.number().positive('Deve ser positivo').optional().nullable(),
+  parga4_espessura_cm: z.number().positive('Deve ser positivo').optional().nullable(),
 });
 
-// Schema com refinamento para peso obrigatório em blocos
-const produtoSchema = produtoBaseSchema.refine(
-  (data) => {
-    if (data.forma === 'bloco') {
-      return data.peso_ton !== null && data.peso_ton !== undefined && data.peso_ton > 0;
+// Schema com refinamento para peso obrigatório em blocos e validação de chapas
+const produtoSchema = produtoBaseSchema.superRefine((data, ctx) => {
+  if (data.forma === 'bloco') {
+    if (data.peso_ton === null || data.peso_ton === undefined || data.peso_ton <= 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Peso em toneladas é obrigatório para blocos',
+        path: ['peso_ton'],
+      });
     }
-    return true;
-  },
-  {
-    message: 'Peso em toneladas é obrigatório para blocos',
-    path: ['peso_ton'],
   }
-);
+  
+  if (data.forma === 'chapa') {
+    // Pelo menos uma parga com quantidade > 0
+    const totalChapas = 
+      (data.parga1_quantidade || 0) + 
+      (data.parga2_quantidade || 0) + 
+      (data.parga3_quantidade || 0) + 
+      (data.parga4_quantidade || 0);
+    
+    if (totalChapas === 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Pelo menos uma parga deve ter quantidade > 0',
+        path: ['parga1_quantidade'],
+      });
+    }
+  }
+});
 
 type ProdutoFormData = z.infer<typeof produtoSchema>;
 
 interface ProdutoFormProps {
   produto?: Produto | null;
-  onSubmit: (data: ProdutoFormData, fotoUrls: (string | null)[], fotoHdUrls: (string | null)[]) => Promise<void>;
+  onSubmit: (
+    data: ProdutoFormData, 
+    fotoUrls: (string | null)[], 
+    fotoHdUrls: (string | null)[],
+    pargaFotos?: PargaFotos
+  ) => Promise<void>;
   onCancel: () => void;
   isLoading?: boolean;
   canUploadHd?: boolean;
 }
 
+const emptyPargaFotos: PargaFotos = {
+  parga1_foto1_url: null,
+  parga1_foto2_url: null,
+  parga2_foto1_url: null,
+  parga2_foto2_url: null,
+  parga3_foto1_url: null,
+  parga3_foto2_url: null,
+  parga4_foto1_url: null,
+  parga4_foto2_url: null,
+};
+
 export function ProdutoForm({ produto, onSubmit, onCancel, isLoading, canUploadHd = false }: ProdutoFormProps) {
   const [fotoUrls, setFotoUrls] = useState<(string | null)[]>([null, null, null, null]);
   const [fotoHdUrls, setFotoHdUrls] = useState<(string | null)[]>([null, null, null, null]);
+  const [pargaFotos, setPargaFotos] = useState<PargaFotos>(emptyPargaFotos);
   const [gettingLocation, setGettingLocation] = useState(false);
 
   // Aceder ao peso_ton do produto com type assertion
@@ -101,27 +146,29 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading, canUploadH
       // Campos de pargas
       parga1_nome: produto?.parga1_nome || '',
       parga1_quantidade: produto?.parga1_quantidade || null,
+      parga1_comprimento_cm: produto?.parga1_comprimento_cm || null,
+      parga1_altura_cm: produto?.parga1_altura_cm || null,
+      parga1_espessura_cm: produto?.parga1_espessura_cm || null,
       parga2_nome: produto?.parga2_nome || '',
       parga2_quantidade: produto?.parga2_quantidade || null,
+      parga2_comprimento_cm: produto?.parga2_comprimento_cm || null,
+      parga2_altura_cm: produto?.parga2_altura_cm || null,
+      parga2_espessura_cm: produto?.parga2_espessura_cm || null,
       parga3_nome: produto?.parga3_nome || '',
       parga3_quantidade: produto?.parga3_quantidade || null,
+      parga3_comprimento_cm: produto?.parga3_comprimento_cm || null,
+      parga3_altura_cm: produto?.parga3_altura_cm || null,
+      parga3_espessura_cm: produto?.parga3_espessura_cm || null,
       parga4_nome: produto?.parga4_nome || '',
       parga4_quantidade: produto?.parga4_quantidade || null,
+      parga4_comprimento_cm: produto?.parga4_comprimento_cm || null,
+      parga4_altura_cm: produto?.parga4_altura_cm || null,
+      parga4_espessura_cm: produto?.parga4_espessura_cm || null,
     },
   });
 
   const forma = form.watch('forma');
   const idmm = form.watch('idmm');
-  
-  // Watch para pargas - calcular total em tempo real
-  const parga1Qty = form.watch('parga1_quantidade') || 0;
-  const parga2Qty = form.watch('parga2_quantidade') || 0;
-  const parga3Qty = form.watch('parga3_quantidade') || 0;
-  const parga4Qty = form.watch('parga4_quantidade') || 0;
-  
-  const quantidadeTotalChapas = useMemo(() => {
-    return (parga1Qty || 0) + (parga2Qty || 0) + (parga3Qty || 0) + (parga4Qty || 0);
-  }, [parga1Qty, parga2Qty, parga3Qty, parga4Qty]);
 
   // Carregar fotos existentes do produto
   useEffect(() => {
@@ -145,6 +192,17 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading, canUploadH
         produtoWithHd.foto3_hd_url || null,
         produtoWithHd.foto4_hd_url || null,
       ]);
+      // Carregar fotos de pargas
+      setPargaFotos({
+        parga1_foto1_url: produto.parga1_foto1_url || null,
+        parga1_foto2_url: produto.parga1_foto2_url || null,
+        parga2_foto1_url: produto.parga2_foto1_url || null,
+        parga2_foto2_url: produto.parga2_foto2_url || null,
+        parga3_foto1_url: produto.parga3_foto1_url || null,
+        parga3_foto2_url: produto.parga3_foto2_url || null,
+        parga4_foto1_url: produto.parga4_foto1_url || null,
+        parga4_foto2_url: produto.parga4_foto2_url || null,
+      });
     }
   }, [produto]);
 
@@ -174,7 +232,7 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading, canUploadH
     const maxFotos = data.forma === 'bloco' ? 4 : 2;
     const urlsToSubmit = fotoUrls.slice(0, maxFotos);
     const hdUrlsToSubmit = fotoHdUrls.slice(0, maxFotos);
-    await onSubmit(data, urlsToSubmit, hdUrlsToSubmit);
+    await onSubmit(data, urlsToSubmit, hdUrlsToSubmit, data.forma === 'chapa' ? pargaFotos : undefined);
   };
 
   return (
@@ -264,332 +322,138 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading, canUploadH
           )}
         />
 
-        {/* Dimensões */}
-        <div className="space-y-4">
-          <h3 className="font-medium text-sm text-muted-foreground">Dimensões (cm)</h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <FormField
-              control={form.control}
-              name="comprimento_cm"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Comprimento</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      step="0.1"
-                      inputMode="decimal"
-                      {...field}
-                      value={field.value ?? ''}
-                      onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
-                      className="touch-target"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="largura_cm"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Largura</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      step="0.1"
-                      inputMode="decimal"
-                      {...field}
-                      value={field.value ?? ''}
-                      onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
-                      className="touch-target"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {forma === 'bloco' && (
-              <FormField
-                control={form.control}
-                name="altura_cm"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Altura</FormLabel>
-                    <FormControl>
-                      <Input
-                        type="number"
-                        step="0.1"
-                        inputMode="decimal"
-                        {...field}
-                        value={field.value ?? ''}
-                        onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
-                        className="touch-target"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-          </div>
-        </div>
-
-        {/* Peso - apenas para blocos */}
-        {forma === 'bloco' && (
-          <div>
-            <FormField
-              control={form.control}
-              name="peso_ton"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Peso (toneladas) *</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      inputMode="decimal"
-                      {...field}
-                      value={field.value ?? ''}
-                      onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
-                      placeholder="Ex: 12.5"
-                      className="touch-target max-w-[200px]"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-        )}
-
-        {/* Distribuição por Pargas - Apenas para Chapas */}
-        {forma === 'chapa' && (
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Layers className="h-4 w-4 text-muted-foreground" />
-              <h3 className="font-medium text-sm text-muted-foreground">Distribuição por Pargas</h3>
-            </div>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Parga 1 */}
-              <Card className="bg-muted/30 border-muted">
-                <CardContent className="pt-4 pb-4 space-y-3">
-                  <p className="text-sm font-medium text-foreground">Parga 1</p>
-                  <div className="grid grid-cols-2 gap-3">
-                    <FormField
-                      control={form.control}
-                      name="parga1_nome"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs">Nome</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              value={field.value || ''}
-                              placeholder="Ex: A1"
-                              className="h-9"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="parga1_quantidade"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs">Nº Chapas</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              inputMode="numeric"
-                              {...field}
-                              value={field.value ?? ''}
-                              onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
-                              placeholder="0"
-                              className="h-9"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Parga 2 */}
-              <Card className="bg-muted/30 border-muted">
-                <CardContent className="pt-4 pb-4 space-y-3">
-                  <p className="text-sm font-medium text-foreground">Parga 2</p>
-                  <div className="grid grid-cols-2 gap-3">
-                    <FormField
-                      control={form.control}
-                      name="parga2_nome"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs">Nome</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              value={field.value || ''}
-                              placeholder="Ex: A2"
-                              className="h-9"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="parga2_quantidade"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs">Nº Chapas</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              inputMode="numeric"
-                              {...field}
-                              value={field.value ?? ''}
-                              onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
-                              placeholder="0"
-                              className="h-9"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Parga 3 */}
-              <Card className="bg-muted/30 border-muted">
-                <CardContent className="pt-4 pb-4 space-y-3">
-                  <p className="text-sm font-medium text-foreground">Parga 3</p>
-                  <div className="grid grid-cols-2 gap-3">
-                    <FormField
-                      control={form.control}
-                      name="parga3_nome"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs">Nome</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              value={field.value || ''}
-                              placeholder="Ex: B1"
-                              className="h-9"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="parga3_quantidade"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs">Nº Chapas</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              inputMode="numeric"
-                              {...field}
-                              value={field.value ?? ''}
-                              onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
-                              placeholder="0"
-                              className="h-9"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Parga 4 */}
-              <Card className="bg-muted/30 border-muted">
-                <CardContent className="pt-4 pb-4 space-y-3">
-                  <p className="text-sm font-medium text-foreground">Parga 4</p>
-                  <div className="grid grid-cols-2 gap-3">
-                    <FormField
-                      control={form.control}
-                      name="parga4_nome"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs">Nome</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              value={field.value || ''}
-                              placeholder="Ex: B2"
-                              className="h-9"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="parga4_quantidade"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-xs">Nº Chapas</FormLabel>
-                          <FormControl>
-                            <Input
-                              type="number"
-                              inputMode="numeric"
-                              {...field}
-                              value={field.value ?? ''}
-                              onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
-                              placeholder="0"
-                              className="h-9"
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {/* Total de Chapas */}
-            <div className="flex items-center justify-end gap-3 p-3 bg-primary/5 rounded-lg border border-primary/10">
-              <span className="text-sm font-medium text-muted-foreground">Quantidade Total de Chapas:</span>
-              <span className="text-lg font-bold text-primary">{quantidadeTotalChapas}</span>
-            </div>
-          </div>
-        )}
-
-        <div className="space-y-4">
-          <h3 className="font-medium text-sm text-muted-foreground">
-            Fotografias ({forma === 'bloco' ? 'máx. 4' : 'máx. 2'})
-          </h3>
-          <ProdutoFotos
-            forma={forma}
+        {/* Conteúdo específico por forma */}
+        {forma === 'chapa' ? (
+          /* Formulário específico para chapas */
+          <ChapaFormSection
+            form={form}
             idmm={idmm || 'novo'}
-            fotoUrls={fotoUrls}
-            fotoHdUrls={fotoHdUrls}
-            onFotosChange={setFotoUrls}
-            onFotosHdChange={setFotoHdUrls}
-            canUploadHd={canUploadHd}
+            produto={produto}
+            pargaFotos={pargaFotos}
+            onPargaFotosChange={setPargaFotos}
           />
-        </div>
+        ) : (
+          /* Formulário padrão para blocos e ladrilhos */
+          <>
+            {/* Dimensões */}
+            <div className="space-y-4">
+              <h3 className="font-medium text-sm text-muted-foreground">Dimensões (cm)</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <FormField
+                  control={form.control}
+                  name="comprimento_cm"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Comprimento</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="0.1"
+                          inputMode="decimal"
+                          {...field}
+                          value={field.value ?? ''}
+                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                          className="touch-target"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="largura_cm"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Largura</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="0.1"
+                          inputMode="decimal"
+                          {...field}
+                          value={field.value ?? ''}
+                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                          className="touch-target"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {forma === 'bloco' && (
+                  <FormField
+                    control={form.control}
+                    name="altura_cm"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Altura</FormLabel>
+                        <FormControl>
+                          <Input
+                            type="number"
+                            step="0.1"
+                            inputMode="decimal"
+                            {...field}
+                            value={field.value ?? ''}
+                            onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                            className="touch-target"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+              </div>
+            </div>
+
+            {/* Peso - apenas para blocos */}
+            {forma === 'bloco' && (
+              <div>
+                <FormField
+                  control={form.control}
+                  name="peso_ton"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Peso (toneladas) *</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          inputMode="decimal"
+                          {...field}
+                          value={field.value ?? ''}
+                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                          placeholder="Ex: 12.5"
+                          className="touch-target max-w-[200px]"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            )}
+
+            {/* Fotografias para bloco/ladrilho */}
+            <div className="space-y-4">
+              <h3 className="font-medium text-sm text-muted-foreground">
+                Fotografias ({forma === 'bloco' ? 'máx. 4' : 'máx. 2'})
+              </h3>
+              <ProdutoFotos
+                forma={forma}
+                idmm={idmm || 'novo'}
+                fotoUrls={fotoUrls}
+                fotoHdUrls={fotoHdUrls}
+                onFotosChange={setFotoUrls}
+                onFotosHdChange={setFotoHdUrls}
+                canUploadHd={canUploadHd}
+              />
+            </div>
+          </>
+        )}
 
         {/* GPS */}
         <div className="space-y-4">
