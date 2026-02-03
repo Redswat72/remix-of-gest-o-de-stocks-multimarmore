@@ -24,8 +24,8 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
-import { useParseExcel, useExecutarImportacao, type LinhaExcel, type ResultadoImportacao } from '@/hooks/useImportarExcel';
-import { gerarModeloExcel } from '@/lib/excelTemplateGenerator';
+import { useParseExcel, useExecutarImportacao, type LinhaExcel, type LinhaExcelBlocos, type LinhaExcelChapas, type LinhaExcelLadrilhos, type ResultadoImportacao } from '@/hooks/useImportarExcel';
+import { gerarModeloExcel, type TipoImportacao } from '@/lib/excelTemplateGenerator';
 import { cn } from '@/lib/utils';
 
 type Step = 'upload' | 'preview' | 'confirmar' | 'resultado';
@@ -93,7 +93,7 @@ export default function ImportarInventario() {
 
   const handleDownloadTemplate = () => {
     try {
-      gerarModeloExcel({ incluirExemplos: true });
+      gerarModeloExcel({ incluirExemplos: true, tipo: 'blocos' });
       toast({
         title: 'Modelo descarregado',
         description: 'O modelo de importação foi guardado com sucesso.',
@@ -109,7 +109,7 @@ export default function ImportarInventario() {
 
   const handleConfirmar = async () => {
     try {
-      const result = await executarImportacao.mutateAsync(linhas);
+      const result = await executarImportacao.mutateAsync({ linhas, tipo: 'blocos' });
       setResultado(result);
       setStep('resultado');
       toast({
@@ -444,7 +444,7 @@ function StepPreview({ linhas, stats, file, onBack, onNext, isParsing }: StepPre
                       )}
                     </div>
                   </TableCell>
-                  <TableCell className="text-center">{linha.quantidade}</TableCell>
+                  <TableCell className="text-center">{(linha as LinhaExcelBlocos).quantidade ?? (linha as LinhaExcelChapas).quantidadeTotal ?? '-'}</TableCell>
                   <TableCell>
                     <div className="space-y-1">
                       {linha.erros.length > 0 ? (

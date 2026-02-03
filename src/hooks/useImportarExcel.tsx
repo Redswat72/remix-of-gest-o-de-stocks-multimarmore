@@ -1,15 +1,28 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase-external';
 import { useAuth } from './useAuth';
 import * as XLSX from 'xlsx';
 import type { FormaProduto, OrigemMaterial } from '@/types/database';
+import type { TipoImportacao } from '@/lib/excelTemplateGenerator';
 
-export interface LinhaExcel {
+// Interfaces base para todas as importações
+export interface LinhaExcelBase {
   rowIndex: number;
   idmm: string;
   variedade: string;
   forma: FormaProduto;
+  parqueMM: string;
+  linha?: string;
+  origemMaterial?: OrigemMaterial;
+  erros: string[];
+  avisos: string[];
+  produtoExiste: boolean;
+  localId?: string;
+}
+
+// Interface para Blocos
+export interface LinhaExcelBlocos extends LinhaExcelBase {
   nomeComercial?: string;
   acabamento?: string;
   comprimento?: number;
@@ -17,40 +30,46 @@ export interface LinhaExcel {
   altura?: number;
   espessura?: number;
   pesoTon?: number;
-  parqueMM: string;
-  linha?: string;
-  origemMaterial?: OrigemMaterial;
   quantidade: number;
   observacoes?: string;
   fotos?: string[];
-  erros: string[];
-  avisos: string[];
-  produtoExiste: boolean;
-  localId?: string;
 }
 
-// Interface para os dados que serão enviados à RPC
-interface LinhaRPC {
-  idmm: string;
-  variedade: string;
-  forma: string;
-  nome_comercial?: string;
-  acabamento?: string;
-  comprimento_cm?: number;
-  largura_cm?: number;
-  altura_cm?: number;
-  espessura_cm?: number;
-  peso_ton?: number;
-  parque: string;
-  linha?: string;
-  quantidade: number;
+// Interface para Pargas (dentro de Chapas)
+export interface PargaExcel {
+  nome?: string;
+  quantidade?: number;
+  comprimento?: number;
+  altura?: number;
+  espessura?: number;
+  foto1Url?: string;
+  foto2Url?: string;
+}
+
+// Interface para Chapas
+export interface LinhaExcelChapas extends LinhaExcelBase {
+  pesoBloco?: number;
+  pargas: [PargaExcel, PargaExcel, PargaExcel, PargaExcel];
+  quantidadeTotal: number;
   observacoes?: string;
-  foto1_url?: string;
-  foto2_url?: string;
-  foto3_url?: string;
-  foto4_url?: string;
 }
 
+// Interface para Ladrilhos
+export interface LinhaExcelLadrilhos extends LinhaExcelBase {
+  comprimento: number;
+  largura: number;
+  espessura: number;
+  quantidade: number;
+  acabamento?: string;
+  nomeComercial?: string;
+  observacoes?: string;
+  fotos?: string[];
+}
+
+// União de todos os tipos
+export type LinhaExcel = LinhaExcelBlocos | LinhaExcelChapas | LinhaExcelLadrilhos;
+
+// Interface para resultado
 export interface ResultadoImportacao {
   sucesso: boolean;
   totalLinhas: number;
@@ -68,7 +87,7 @@ interface Local {
   codigo: string;
 }
 
-// Função para parsear dimensões do Excel (ex: "200x150x80" ou colunas separadas)
+// Função para parsear dimensões do Excel
 function parseDimensoes(valor: string | number | undefined): { comprimento?: number; largura?: number; altura?: number } {
   if (!valor) return {};
   
@@ -100,16 +119,6 @@ function mapOrigemMaterial(valor: string | undefined): OrigemMaterial | undefine
   return undefined;
 }
 
-// Função para mapear forma do produto
-function mapForma(valor: string | undefined): FormaProduto {
-  if (!valor) return 'bloco';
-  
-  const v = String(valor).toLowerCase().trim();
-  if (v.includes('chapa')) return 'chapa';
-  if (v.includes('ladrilho') || v.includes('azulejo') || v.includes('mosaico')) return 'ladrilho';
-  return 'bloco';
-}
-
 // Função para encontrar local pelo nome ou código
 function encontrarLocal(locais: Local[], nomeOuCodigo: string): Local | undefined {
   if (!nomeOuCodigo) return undefined;
@@ -123,18 +132,453 @@ function encontrarLocal(locais: Local[], nomeOuCodigo: string): Local | undefine
   );
 }
 
+// Normalizar nome de coluna
+function normalizeColumnName(name: string): string {
+  return name
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[_\s]+/g, '')
+    .trim();
+}
+
+// Encontrar índice de coluna com match flexível
+function findColumnIndex(headers: string[], possibleNames: string[]): number {
+  const normalizedHeaders = headers.map(normalizeColumnName);
+  const normalizedNames = possibleNames.map(normalizeColumnName);
+
+  for (const name of normalizedNames) {
+    const idx = normalizedHeaders.indexOf(name);
+    if (idx !== -1) return idx;
+  }
+
+  for (const name of normalizedNames) {
+    const idx = normalizedHeaders.findIndex(h => h.startsWith(name));
+    if (idx !== -1) return idx;
+  }
+
+  for (const name of normalizedNames) {
+    const idx = normalizedHeaders.findIndex(h => h.includes(name));
+    if (idx !== -1) return idx;
+  }
+
+  return -1;
+}
+
+// ===================== PARSE BLOCOS =====================
+function parseBlocos(
+  jsonData: unknown[][],
+  headers: string[],
+  locais: Local[],
+  produtosExistentes: Map<string, string>
+): LinhaExcelBlocos[] {
+  const colMap = {
+    idmm: findColumnIndex(headers, ['id_mm', 'idmm', 'id mm', 'id-mm', 'codigo', 'ref']),
+    variedade: findColumnIndex(headers, ['variedade', 'tipo_pedra', 'tipo pedra', 'tipo', 'material', 'pedra']),
+    nomeComercial: findColumnIndex(headers, ['nome_comercial', 'nome comercial', 'nome', 'comercial']),
+    acabamento: findColumnIndex(headers, ['acabamento', 'acabam', 'finish']),
+    dimensoes: findColumnIndex(headers, ['dimensoes', 'dimensões', 'dim']),
+    comprimento: findColumnIndex(headers, ['comprimento_cm', 'comprimento', 'comp', 'c']),
+    largura: findColumnIndex(headers, ['largura_cm', 'largura', 'larg', 'l']),
+    altura: findColumnIndex(headers, ['altura_cm', 'altura', 'alt', 'h']),
+    espessura: findColumnIndex(headers, ['espessura_cm', 'espessura', 'esp', 'e']),
+    pesoTon: findColumnIndex(headers, ['peso_ton', 'peso ton', 'peso', 'ton', 'toneladas']),
+    parqueMM: findColumnIndex(headers, ['parque_mm', 'parque mm', 'parquemm', 'parque', 'local', 'localizacao', 'localização']),
+    linha: findColumnIndex(headers, ['linha', 'corredor', 'fila', 'posicao', 'posição']),
+    origem: findColumnIndex(headers, ['origem_material', 'origem material', 'origem', 'proveniencia', 'proveniência']),
+    quantidade: findColumnIndex(headers, ['quantidade', 'qtd', 'qty', 'un', 'unidades']),
+    observacoes: findColumnIndex(headers, ['notas', 'observacoes', 'observações', 'obs', 'danos', 'defeitos']),
+    foto1: findColumnIndex(headers, ['foto1_url', 'foto1', 'foto', 'imagem', 'url']),
+    foto2: findColumnIndex(headers, ['foto2_url', 'foto2']),
+    foto3: findColumnIndex(headers, ['foto3_url', 'foto3']),
+    foto4: findColumnIndex(headers, ['foto4_url', 'foto4']),
+  };
+
+  if (colMap.idmm === -1) colMap.idmm = 0;
+  if (colMap.variedade === -1) colMap.variedade = 1;
+
+  const linhasParsed: LinhaExcelBlocos[] = [];
+
+  for (let i = 1; i < jsonData.length; i++) {
+    const row = jsonData[i] as (string | number | undefined)[];
+    
+    if (!row || row.every(cell => cell === undefined || cell === null || cell === '')) {
+      continue;
+    }
+
+    const idmm = String(row[colMap.idmm] || '').trim();
+    if (!idmm) continue;
+
+    const erros: string[] = [];
+    const avisos: string[] = [];
+
+    const variedade = String(row[colMap.variedade] || '').trim();
+    if (!variedade) erros.push('Variedade/Tipo de pedra obrigatório');
+
+    const parqueMMRaw = String(row[colMap.parqueMM] || '').trim();
+    const linhaRaw = colMap.linha !== -1 ? String(row[colMap.linha] || '').trim() : '';
+    
+    if (!parqueMMRaw) {
+      erros.push('Parque MM é obrigatório');
+    }
+    
+    const local = encontrarLocal(locais, parqueMMRaw);
+    if (parqueMMRaw && !local) {
+      erros.push(`Parque MM "${parqueMMRaw}" não encontrado na tabela de locais`);
+    }
+
+    let dimensoes: { comprimento?: number; largura?: number; altura?: number } = {};
+    if (colMap.dimensoes !== -1 && row[colMap.dimensoes]) {
+      dimensoes = parseDimensoes(row[colMap.dimensoes]);
+    } else {
+      dimensoes = {
+        comprimento: colMap.comprimento !== -1 ? Number(row[colMap.comprimento]) || undefined : undefined,
+        largura: colMap.largura !== -1 ? Number(row[colMap.largura]) || undefined : undefined,
+        altura: colMap.altura !== -1 ? Number(row[colMap.altura]) || undefined : undefined,
+      };
+    }
+
+    const espessura = colMap.espessura !== -1 ? Number(row[colMap.espessura]) || undefined : undefined;
+    const pesoTon = colMap.pesoTon !== -1 ? Number(row[colMap.pesoTon]) || undefined : undefined;
+    const quantidade = colMap.quantidade !== -1 ? Number(row[colMap.quantidade]) || 1 : 1;
+    
+    if (quantidade <= 0) erros.push('Quantidade deve ser maior que 0');
+    
+    // Peso obrigatório para blocos
+    if (!pesoTon) erros.push('Peso (ton) é obrigatório para blocos');
+
+    const origemRaw = colMap.origem !== -1 ? String(row[colMap.origem] || '') : '';
+    const origemMaterial = mapOrigemMaterial(origemRaw);
+
+    const nomeComercial = colMap.nomeComercial !== -1 ? String(row[colMap.nomeComercial] || '').trim() : undefined;
+    const acabamento = colMap.acabamento !== -1 ? String(row[colMap.acabamento] || '').trim() : undefined;
+    const observacoes = colMap.observacoes !== -1 ? String(row[colMap.observacoes] || '').trim() : '';
+
+    const produtoExiste = produtosExistentes.has(idmm.toLowerCase());
+    if (produtoExiste) {
+      avisos.push('Produto já existe - será criado apenas o movimento');
+    }
+
+    const fotos: string[] = [];
+    const fotoColumns = [colMap.foto1, colMap.foto2, colMap.foto3, colMap.foto4];
+    for (const fotoIdx of fotoColumns) {
+      if (fotoIdx !== -1 && row[fotoIdx]) {
+        const fotoUrl = String(row[fotoIdx]).trim();
+        if (fotoUrl.startsWith('http://') || fotoUrl.startsWith('https://')) {
+          fotos.push(fotoUrl);
+        }
+      }
+    }
+
+    linhasParsed.push({
+      rowIndex: i + 1,
+      idmm,
+      variedade,
+      forma: 'bloco',
+      nomeComercial: nomeComercial || undefined,
+      acabamento: acabamento || undefined,
+      comprimento: dimensoes.comprimento,
+      largura: dimensoes.largura,
+      altura: dimensoes.altura,
+      espessura,
+      pesoTon,
+      parqueMM: parqueMMRaw,
+      linha: linhaRaw || undefined,
+      origemMaterial,
+      quantidade,
+      observacoes: observacoes || undefined,
+      fotos: fotos.length > 0 ? fotos : undefined,
+      erros,
+      avisos,
+      produtoExiste,
+      localId: local?.id,
+    });
+  }
+
+  return linhasParsed;
+}
+
+// ===================== PARSE CHAPAS =====================
+function parseChapas(
+  jsonData: unknown[][],
+  headers: string[],
+  locais: Local[],
+  produtosExistentes: Map<string, string>
+): LinhaExcelChapas[] {
+  const colMap = {
+    idmm: findColumnIndex(headers, ['id_mm_bloco', 'id_mm', 'idmm', 'id mm bloco', 'id-mm']),
+    variedade: findColumnIndex(headers, ['variedade', 'tipo_pedra', 'tipo', 'material', 'pedra']),
+    origem: findColumnIndex(headers, ['origem_material', 'origem material', 'origem']),
+    parqueMM: findColumnIndex(headers, ['parque_mm', 'parque mm', 'parquemm', 'parque', 'local']),
+    linha: findColumnIndex(headers, ['linha', 'corredor', 'fila', 'posicao']),
+    pesoBloco: findColumnIndex(headers, ['peso_bloco_ton', 'peso_bloco', 'peso bloco', 'peso']),
+    observacoes: findColumnIndex(headers, ['notas', 'observacoes', 'observações', 'obs']),
+  };
+
+  // Mapeamento das 4 pargas
+  const pargaColumns = [1, 2, 3, 4].map(n => ({
+    nome: findColumnIndex(headers, [`parga${n}_nome`, `parga${n}nome`, `parga ${n} nome`]),
+    quantidade: findColumnIndex(headers, [`parga${n}_quantidade`, `parga${n}quantidade`, `parga ${n} quantidade`, `parga${n}_qtd`]),
+    comprimento: findColumnIndex(headers, [`parga${n}_comprimento_cm`, `parga${n}comprimentocm`, `parga${n}_comprimento`]),
+    altura: findColumnIndex(headers, [`parga${n}_altura_cm`, `parga${n}alturacm`, `parga${n}_altura`]),
+    espessura: findColumnIndex(headers, [`parga${n}_espessura_cm`, `parga${n}espessuracm`, `parga${n}_espessura`]),
+    foto1: findColumnIndex(headers, [`parga${n}_foto1_url`, `parga${n}foto1url`, `parga${n}_foto1`]),
+    foto2: findColumnIndex(headers, [`parga${n}_foto2_url`, `parga${n}foto2url`, `parga${n}_foto2`]),
+  }));
+
+  if (colMap.idmm === -1) colMap.idmm = 0;
+  if (colMap.variedade === -1) colMap.variedade = 1;
+
+  const linhasParsed: LinhaExcelChapas[] = [];
+
+  for (let i = 1; i < jsonData.length; i++) {
+    const row = jsonData[i] as (string | number | undefined)[];
+    
+    if (!row || row.every(cell => cell === undefined || cell === null || cell === '')) {
+      continue;
+    }
+
+    const idmm = String(row[colMap.idmm] || '').trim();
+    if (!idmm) continue;
+
+    const erros: string[] = [];
+    const avisos: string[] = [];
+
+    const variedade = String(row[colMap.variedade] || '').trim();
+    if (!variedade) erros.push('Variedade/Tipo de pedra obrigatório');
+
+    const parqueMMRaw = String(row[colMap.parqueMM] || '').trim();
+    const linhaRaw = colMap.linha !== -1 ? String(row[colMap.linha] || '').trim() : '';
+    
+    if (!parqueMMRaw) {
+      erros.push('Parque MM é obrigatório');
+    }
+    
+    const local = encontrarLocal(locais, parqueMMRaw);
+    if (parqueMMRaw && !local) {
+      erros.push(`Parque MM "${parqueMMRaw}" não encontrado na tabela de locais`);
+    }
+
+    const origemRaw = colMap.origem !== -1 ? String(row[colMap.origem] || '') : '';
+    const origemMaterial = mapOrigemMaterial(origemRaw);
+
+    const pesoBloco = colMap.pesoBloco !== -1 ? Number(row[colMap.pesoBloco]) || undefined : undefined;
+    const observacoes = colMap.observacoes !== -1 ? String(row[colMap.observacoes] || '').trim() : '';
+
+    // Parse das 4 pargas
+    const pargas: [PargaExcel, PargaExcel, PargaExcel, PargaExcel] = [
+      { nome: undefined, quantidade: undefined, comprimento: undefined, altura: undefined, espessura: undefined, foto1Url: undefined, foto2Url: undefined },
+      { nome: undefined, quantidade: undefined, comprimento: undefined, altura: undefined, espessura: undefined, foto1Url: undefined, foto2Url: undefined },
+      { nome: undefined, quantidade: undefined, comprimento: undefined, altura: undefined, espessura: undefined, foto1Url: undefined, foto2Url: undefined },
+      { nome: undefined, quantidade: undefined, comprimento: undefined, altura: undefined, espessura: undefined, foto1Url: undefined, foto2Url: undefined },
+    ];
+
+    let quantidadeTotal = 0;
+    let algumaPargaPreenchida = false;
+
+    for (let p = 0; p < 4; p++) {
+      const pc = pargaColumns[p];
+      const nome = pc.nome !== -1 ? String(row[pc.nome] || '').trim() : undefined;
+      const quantidade = pc.quantidade !== -1 ? Number(row[pc.quantidade]) || 0 : 0;
+      const comprimento = pc.comprimento !== -1 ? Number(row[pc.comprimento]) || undefined : undefined;
+      const altura = pc.altura !== -1 ? Number(row[pc.altura]) || undefined : undefined;
+      const espessura = pc.espessura !== -1 ? Number(row[pc.espessura]) || undefined : undefined;
+      const foto1Url = pc.foto1 !== -1 ? String(row[pc.foto1] || '').trim() : undefined;
+      const foto2Url = pc.foto2 !== -1 ? String(row[pc.foto2] || '').trim() : undefined;
+
+      if (quantidade > 0) {
+        algumaPargaPreenchida = true;
+        quantidadeTotal += quantidade;
+
+        // Validar medidas obrigatórias
+        if (!comprimento) erros.push(`Parga ${p + 1}: Comprimento é obrigatório`);
+        if (!altura) erros.push(`Parga ${p + 1}: Altura é obrigatória`);
+        if (!espessura) erros.push(`Parga ${p + 1}: Espessura é obrigatória`);
+
+        // Validar fotos obrigatórias
+        const foto1Valida = foto1Url && (foto1Url.startsWith('http://') || foto1Url.startsWith('https://'));
+        const foto2Valida = foto2Url && (foto2Url.startsWith('http://') || foto2Url.startsWith('https://'));
+        if (!foto1Valida) erros.push(`Parga ${p + 1}: Foto da 1ª chapa é obrigatória`);
+        if (!foto2Valida) erros.push(`Parga ${p + 1}: Foto da última chapa é obrigatória`);
+      }
+
+      pargas[p] = {
+        nome: nome || undefined,
+        quantidade: quantidade || undefined,
+        comprimento,
+        altura,
+        espessura,
+        foto1Url: foto1Url && foto1Url.startsWith('http') ? foto1Url : undefined,
+        foto2Url: foto2Url && foto2Url.startsWith('http') ? foto2Url : undefined,
+      };
+    }
+
+    if (!algumaPargaPreenchida) {
+      erros.push('Pelo menos uma parga deve estar preenchida com quantidade > 0');
+    }
+
+    if (quantidadeTotal <= 0) {
+      erros.push('Quantidade total de chapas deve ser > 0');
+    }
+
+    const produtoExiste = produtosExistentes.has(idmm.toLowerCase());
+    if (produtoExiste) {
+      avisos.push('Produto já existe - será criado apenas o movimento');
+    }
+
+    linhasParsed.push({
+      rowIndex: i + 1,
+      idmm,
+      variedade,
+      forma: 'chapa',
+      parqueMM: parqueMMRaw,
+      linha: linhaRaw || undefined,
+      origemMaterial,
+      pesoBloco,
+      pargas,
+      quantidadeTotal,
+      observacoes: observacoes || undefined,
+      erros,
+      avisos,
+      produtoExiste,
+      localId: local?.id,
+    });
+  }
+
+  return linhasParsed;
+}
+
+// ===================== PARSE LADRILHOS =====================
+function parseLadrilhos(
+  jsonData: unknown[][],
+  headers: string[],
+  locais: Local[],
+  produtosExistentes: Map<string, string>
+): LinhaExcelLadrilhos[] {
+  const colMap = {
+    idmm: findColumnIndex(headers, ['id_mm', 'idmm', 'id mm', 'id-mm', 'codigo', 'ref']),
+    variedade: findColumnIndex(headers, ['variedade', 'tipo_pedra', 'tipo', 'material', 'pedra']),
+    origem: findColumnIndex(headers, ['origem_material', 'origem material', 'origem']),
+    parqueMM: findColumnIndex(headers, ['parque_mm', 'parque mm', 'parquemm', 'parque', 'local']),
+    linha: findColumnIndex(headers, ['linha', 'corredor', 'fila', 'posicao']),
+    comprimento: findColumnIndex(headers, ['comprimento_cm', 'comprimento', 'comp']),
+    largura: findColumnIndex(headers, ['largura_cm', 'largura', 'larg']),
+    espessura: findColumnIndex(headers, ['espessura_cm', 'espessura', 'esp']),
+    quantidade: findColumnIndex(headers, ['quantidade', 'qtd', 'qty', 'un', 'unidades']),
+    acabamento: findColumnIndex(headers, ['acabamento', 'acabam', 'finish']),
+    nomeComercial: findColumnIndex(headers, ['nome_comercial', 'nome comercial', 'nome', 'comercial']),
+    observacoes: findColumnIndex(headers, ['notas', 'observacoes', 'observações', 'obs']),
+    foto1: findColumnIndex(headers, ['foto1_url', 'foto1', 'foto']),
+    foto2: findColumnIndex(headers, ['foto2_url', 'foto2']),
+  };
+
+  if (colMap.idmm === -1) colMap.idmm = 0;
+  if (colMap.variedade === -1) colMap.variedade = 1;
+
+  const linhasParsed: LinhaExcelLadrilhos[] = [];
+
+  for (let i = 1; i < jsonData.length; i++) {
+    const row = jsonData[i] as (string | number | undefined)[];
+    
+    if (!row || row.every(cell => cell === undefined || cell === null || cell === '')) {
+      continue;
+    }
+
+    const idmm = String(row[colMap.idmm] || '').trim();
+    if (!idmm) continue;
+
+    const erros: string[] = [];
+    const avisos: string[] = [];
+
+    const variedade = String(row[colMap.variedade] || '').trim();
+    if (!variedade) erros.push('Variedade/Tipo de pedra obrigatório');
+
+    const parqueMMRaw = String(row[colMap.parqueMM] || '').trim();
+    const linhaRaw = colMap.linha !== -1 ? String(row[colMap.linha] || '').trim() : '';
+    
+    if (!parqueMMRaw) {
+      erros.push('Parque MM é obrigatório');
+    }
+    
+    const local = encontrarLocal(locais, parqueMMRaw);
+    if (parqueMMRaw && !local) {
+      erros.push(`Parque MM "${parqueMMRaw}" não encontrado na tabela de locais`);
+    }
+
+    const origemRaw = colMap.origem !== -1 ? String(row[colMap.origem] || '') : '';
+    const origemMaterial = mapOrigemMaterial(origemRaw);
+
+    const comprimento = colMap.comprimento !== -1 ? Number(row[colMap.comprimento]) || 0 : 0;
+    const largura = colMap.largura !== -1 ? Number(row[colMap.largura]) || 0 : 0;
+    const espessura = colMap.espessura !== -1 ? Number(row[colMap.espessura]) || 0 : 0;
+    const quantidade = colMap.quantidade !== -1 ? Number(row[colMap.quantidade]) || 0 : 0;
+
+    // Validar campos obrigatórios para ladrilhos
+    if (!comprimento) erros.push('Comprimento é obrigatório');
+    if (!largura) erros.push('Largura é obrigatória');
+    if (!espessura) erros.push('Espessura é obrigatória');
+    if (quantidade <= 0) erros.push('Quantidade deve ser maior que 0');
+
+    const acabamento = colMap.acabamento !== -1 ? String(row[colMap.acabamento] || '').trim() : undefined;
+    const nomeComercial = colMap.nomeComercial !== -1 ? String(row[colMap.nomeComercial] || '').trim() : undefined;
+    const observacoes = colMap.observacoes !== -1 ? String(row[colMap.observacoes] || '').trim() : '';
+
+    const produtoExiste = produtosExistentes.has(idmm.toLowerCase());
+    if (produtoExiste) {
+      avisos.push('Produto já existe - será criado apenas o movimento');
+    }
+
+    const fotos: string[] = [];
+    const fotoColumns = [colMap.foto1, colMap.foto2];
+    for (const fotoIdx of fotoColumns) {
+      if (fotoIdx !== -1 && row[fotoIdx]) {
+        const fotoUrl = String(row[fotoIdx]).trim();
+        if (fotoUrl.startsWith('http://') || fotoUrl.startsWith('https://')) {
+          fotos.push(fotoUrl);
+        }
+      }
+    }
+
+    linhasParsed.push({
+      rowIndex: i + 1,
+      idmm,
+      variedade,
+      forma: 'ladrilho',
+      parqueMM: parqueMMRaw,
+      linha: linhaRaw || undefined,
+      origemMaterial,
+      comprimento,
+      largura,
+      espessura,
+      quantidade,
+      acabamento: acabamento || undefined,
+      nomeComercial: nomeComercial || undefined,
+      observacoes: observacoes || undefined,
+      fotos: fotos.length > 0 ? fotos : undefined,
+      erros,
+      avisos,
+      produtoExiste,
+      localId: local?.id,
+    });
+  }
+
+  return linhasParsed;
+}
+
+// ===================== HOOK PARSE EXCEL =====================
 export function useParseExcel() {
   const [linhas, setLinhas] = useState<LinhaExcel[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
+  const [tipoAtual, setTipoAtual] = useState<TipoImportacao>('blocos');
 
-  const parseFile = async (file: File) => {
+  const parseFile = async (file: File, tipo: TipoImportacao = 'blocos') => {
     setIsLoading(true);
     setErro(null);
     setLinhas([]);
+    setTipoAtual(tipo);
 
     try {
-      // Buscar locais e produtos existentes
       const [locaisRes, produtosRes] = await Promise.all([
         supabase.from('locais').select('id, nome, codigo').eq('ativo', true),
         supabase.from('produtos').select('id, idmm').eq('ativo', true),
@@ -146,7 +590,6 @@ export function useParseExcel() {
       const locais = locaisRes.data as Local[];
       const produtosExistentes = new Map(produtosRes.data.map(p => [p.idmm.toLowerCase(), p.id]));
 
-      // Ler ficheiro Excel
       const buffer = await file.arrayBuffer();
       const workbook = XLSX.read(buffer, { type: 'array' });
       const sheetName = workbook.SheetNames[0];
@@ -157,179 +600,21 @@ export function useParseExcel() {
         throw new Error('O ficheiro não contém dados suficientes');
       }
 
-      // Identificar cabeçalhos (primeira linha)
       const headers = (jsonData[0] as string[]).map(h => String(h || '').toLowerCase().trim());
 
-      // Função auxiliar para normalizar nomes de colunas (remove acentos, underscores, espaços)
-      const normalizeColumnName = (name: string): string => {
-        return name
-          .toLowerCase()
-          .normalize('NFD')
-          .replace(/[\u0300-\u036f]/g, '') // Remove acentos
-          .replace(/[_\s]+/g, '') // Remove underscores e espaços
-          .trim();
-      };
-
-      // Função para encontrar coluna com correspondência flexível
-      const findColumnIndex = (possibleNames: string[]): number => {
-        const normalizedHeaders = headers.map(normalizeColumnName);
-        const normalizedNames = possibleNames.map(normalizeColumnName);
-
-        // Prioridade 1: Match exato
-        for (const name of normalizedNames) {
-          const idx = normalizedHeaders.indexOf(name);
-          if (idx !== -1) return idx;
-        }
-
-        // Prioridade 2: Começa com
-        for (const name of normalizedNames) {
-          const idx = normalizedHeaders.findIndex(h => h.startsWith(name));
-          if (idx !== -1) return idx;
-        }
-
-        // Prioridade 3: Contém (fallback)
-        for (const name of normalizedNames) {
-          const idx = normalizedHeaders.findIndex(h => h.includes(name));
-          if (idx !== -1) return idx;
-        }
-
-        return -1;
-      };
-
-      // Mapear colunas com correspondência flexível
-      const colMap = {
-        idmm: findColumnIndex(['id_mm', 'idmm', 'id mm', 'id-mm', 'codigo', 'ref']),
-        variedade: findColumnIndex(['variedade', 'tipo_pedra', 'tipo pedra', 'tipo', 'material', 'pedra']),
-        nomeComercial: findColumnIndex(['nome_comercial', 'nome comercial', 'nome', 'comercial']),
-        forma: findColumnIndex(['forma', 'tipo_produto', 'tipo produto', 'formato']),
-        acabamento: findColumnIndex(['acabamento', 'acabam', 'finish']),
-        dimensoes: findColumnIndex(['dimensoes', 'dimensões', 'dim']),
-        comprimento: findColumnIndex(['comprimento_cm', 'comprimento', 'comp', 'c']),
-        largura: findColumnIndex(['largura_cm', 'largura', 'larg', 'l']),
-        altura: findColumnIndex(['altura_cm', 'altura', 'alt', 'h']),
-        espessura: findColumnIndex(['espessura_cm', 'espessura', 'esp', 'e']),
-        pesoTon: findColumnIndex(['peso_ton', 'peso ton', 'peso', 'ton', 'toneladas']),
-        parqueMM: findColumnIndex(['parque_mm', 'parque mm', 'parquemm', 'parque', 'local', 'localizacao', 'localização']),
-        linha: findColumnIndex(['linha', 'corredor', 'fila', 'posicao', 'posição']),
-        origem: findColumnIndex(['origem_material', 'origem material', 'origem', 'proveniencia', 'proveniência']),
-        quantidade: findColumnIndex(['quantidade', 'qtd', 'qty', 'un', 'unidades']),
-        observacoes: findColumnIndex(['notas', 'observacoes', 'observações', 'obs', 'danos', 'defeitos']),
-        foto1: findColumnIndex(['foto1_url', 'foto1', 'foto', 'imagem', 'url']),
-        foto2: findColumnIndex(['foto2_url', 'foto2']),
-        foto3: findColumnIndex(['foto3_url', 'foto3']),
-        foto4: findColumnIndex(['foto4_url', 'foto4']),
-        data: findColumnIndex(['data', 'data_registo', 'data registo', 'date']),
-      };
-
-      // Se IDMM não encontrado, tentar coluna A
-      if (colMap.idmm === -1) colMap.idmm = 0;
-      if (colMap.variedade === -1) colMap.variedade = 1;
-
-      console.log('Colunas mapeadas:', { headers, colMap });
-
-      const linhasParsed: LinhaExcel[] = [];
-
-      // Processar linhas de dados (começar na linha 2)
-      for (let i = 1; i < jsonData.length; i++) {
-        const row = jsonData[i] as (string | number | undefined)[];
-        
-        // Ignorar linhas vazias
-        if (!row || row.every(cell => cell === undefined || cell === null || cell === '')) {
-          continue;
-        }
-
-        const idmm = String(row[colMap.idmm] || '').trim();
-        
-        // Ignorar linhas sem IDMM
-        if (!idmm) continue;
-
-        const erros: string[] = [];
-        const avisos: string[] = [];
-
-        const variedade = String(row[colMap.variedade] || '').trim();
-        if (!variedade) erros.push('Variedade/Tipo de pedra obrigatório');
-
-        const parqueMMRaw = String(row[colMap.parqueMM] || '').trim();
-        const linhaRaw = colMap.linha !== -1 ? String(row[colMap.linha] || '').trim() : '';
-        
-        if (!parqueMMRaw) {
-          erros.push('Parque MM é obrigatório');
-        }
-        
-        const local = encontrarLocal(locais, parqueMMRaw);
-        if (parqueMMRaw && !local) {
-          erros.push(`Parque MM "${parqueMMRaw}" não encontrado na tabela de locais`);
-        }
-
-        // Parsear dimensões
-        let dimensoes: { comprimento?: number; largura?: number; altura?: number } = {};
-        if (colMap.dimensoes !== -1 && row[colMap.dimensoes]) {
-          dimensoes = parseDimensoes(row[colMap.dimensoes]);
-        } else {
-          dimensoes = {
-            comprimento: colMap.comprimento !== -1 ? Number(row[colMap.comprimento]) || undefined : undefined,
-            largura: colMap.largura !== -1 ? Number(row[colMap.largura]) || undefined : undefined,
-            altura: colMap.altura !== -1 ? Number(row[colMap.altura]) || undefined : undefined,
-          };
-        }
-
-        const espessura = colMap.espessura !== -1 ? Number(row[colMap.espessura]) || undefined : undefined;
-        const pesoTon = colMap.pesoTon !== -1 ? Number(row[colMap.pesoTon]) || undefined : undefined;
-        const quantidade = colMap.quantidade !== -1 ? Number(row[colMap.quantidade]) || 1 : 1;
-        
-        if (quantidade <= 0) erros.push('Quantidade deve ser maior que 0');
-
-        const origemRaw = colMap.origem !== -1 ? String(row[colMap.origem] || '') : '';
-        const origemMaterial = mapOrigemMaterial(origemRaw);
-
-        const formaRaw = colMap.forma !== -1 ? String(row[colMap.forma] || '') : '';
-        const forma = mapForma(formaRaw);
-
-        const nomeComercial = colMap.nomeComercial !== -1 ? String(row[colMap.nomeComercial] || '').trim() : undefined;
-        const acabamento = colMap.acabamento !== -1 ? String(row[colMap.acabamento] || '').trim() : undefined;
-        const observacoes = colMap.observacoes !== -1 ? String(row[colMap.observacoes] || '').trim() : '';
-
-        // Verificar se produto existe
-        const produtoExiste = produtosExistentes.has(idmm.toLowerCase());
-        if (produtoExiste) {
-          avisos.push('Produto já existe - será criado apenas o movimento');
-        }
-
-        // Extrair fotos (até 4 - usando colunas individuais mapeadas)
-        const fotos: string[] = [];
-        const fotoColumns = [colMap.foto1, colMap.foto2, colMap.foto3, colMap.foto4];
-        for (const fotoIdx of fotoColumns) {
-          if (fotoIdx !== -1 && row[fotoIdx]) {
-            const fotoUrl = String(row[fotoIdx]).trim();
-            if (fotoUrl.startsWith('http://') || fotoUrl.startsWith('https://')) {
-              fotos.push(fotoUrl);
-            }
-          }
-        }
-
-        linhasParsed.push({
-          rowIndex: i + 1,
-          idmm,
-          variedade,
-          forma,
-          nomeComercial: nomeComercial || undefined,
-          acabamento: acabamento || undefined,
-          comprimento: dimensoes.comprimento,
-          largura: dimensoes.largura,
-          altura: dimensoes.altura,
-          espessura,
-          pesoTon,
-          parqueMM: parqueMMRaw,
-          linha: linhaRaw || undefined,
-          origemMaterial,
-          quantidade,
-          observacoes: observacoes || undefined,
-          fotos: fotos.length > 0 ? fotos : undefined,
-          erros,
-          avisos,
-          produtoExiste,
-          localId: local?.id,
-        });
+      let linhasParsed: LinhaExcel[];
+      
+      switch (tipo) {
+        case 'chapas':
+          linhasParsed = parseChapas(jsonData, headers, locais, produtosExistentes);
+          break;
+        case 'ladrilhos':
+          linhasParsed = parseLadrilhos(jsonData, headers, locais, produtosExistentes);
+          break;
+        case 'blocos':
+        default:
+          linhasParsed = parseBlocos(jsonData, headers, locais, produtosExistentes);
+          break;
       }
 
       setLinhas(linhasParsed);
@@ -349,21 +634,22 @@ export function useParseExcel() {
     linhas,
     isLoading,
     erro,
+    tipoAtual,
     parseFile,
     limpar,
   };
 }
 
+// ===================== HOOK EXECUTAR IMPORTAÇÃO =====================
 export function useExecutarImportacao() {
   const queryClient = useQueryClient();
   const { user, isSuperadmin } = useAuth();
 
   return useMutation({
-    mutationFn: async (linhas: LinhaExcel[]): Promise<ResultadoImportacao> => {
+    mutationFn: async ({ linhas, tipo }: { linhas: LinhaExcel[]; tipo: TipoImportacao }): Promise<ResultadoImportacao> => {
       if (!user) throw new Error('Utilizador não autenticado');
       if (!isSuperadmin) throw new Error('Apenas superadmins podem importar stock');
 
-      // Filtrar linhas válidas (sem erros)
       const linhasValidas = linhas.filter(l => l.erros.length === 0);
       
       if (linhasValidas.length === 0) {
@@ -371,28 +657,96 @@ export function useExecutarImportacao() {
       }
 
       // Converter linhas para formato JSON que a RPC espera
-      const rowsJson: LinhaRPC[] = linhasValidas.map(linha => ({
-        idmm: linha.idmm,
-        variedade: linha.variedade,
-        forma: linha.forma,
-        nome_comercial: linha.nomeComercial || undefined,
-        acabamento: linha.acabamento || undefined,
-        comprimento_cm: linha.comprimento || undefined,
-        largura_cm: linha.largura || undefined,
-        altura_cm: linha.altura || undefined,
-        espessura_cm: linha.espessura || undefined,
-        peso_ton: linha.pesoTon || undefined,
-        parque: linha.parqueMM,
-        linha: linha.linha || undefined,
-        quantidade: linha.quantidade,
-        observacoes: linha.observacoes || undefined,
-        foto1_url: linha.fotos?.[0] || undefined,
-        foto2_url: linha.fotos?.[1] || undefined,
-        foto3_url: linha.fotos?.[2] || undefined,
-        foto4_url: linha.fotos?.[3] || undefined,
-      }));
+      const rowsJson = linhasValidas.map(linha => {
+        if (tipo === 'chapas') {
+          const chapaLinha = linha as LinhaExcelChapas;
+          return {
+            tipo: 'chapa',
+            idmm: chapaLinha.idmm,
+            variedade: chapaLinha.variedade,
+            forma: 'chapa',
+            parque: chapaLinha.parqueMM,
+            linha: chapaLinha.linha || undefined,
+            peso_ton: chapaLinha.pesoBloco || undefined,
+            quantidade: chapaLinha.quantidadeTotal,
+            observacoes: chapaLinha.observacoes || undefined,
+            // Pargas
+            parga1_nome: chapaLinha.pargas[0]?.nome,
+            parga1_quantidade: chapaLinha.pargas[0]?.quantidade,
+            parga1_comprimento_cm: chapaLinha.pargas[0]?.comprimento,
+            parga1_altura_cm: chapaLinha.pargas[0]?.altura,
+            parga1_espessura_cm: chapaLinha.pargas[0]?.espessura,
+            parga1_foto1_url: chapaLinha.pargas[0]?.foto1Url,
+            parga1_foto2_url: chapaLinha.pargas[0]?.foto2Url,
+            parga2_nome: chapaLinha.pargas[1]?.nome,
+            parga2_quantidade: chapaLinha.pargas[1]?.quantidade,
+            parga2_comprimento_cm: chapaLinha.pargas[1]?.comprimento,
+            parga2_altura_cm: chapaLinha.pargas[1]?.altura,
+            parga2_espessura_cm: chapaLinha.pargas[1]?.espessura,
+            parga2_foto1_url: chapaLinha.pargas[1]?.foto1Url,
+            parga2_foto2_url: chapaLinha.pargas[1]?.foto2Url,
+            parga3_nome: chapaLinha.pargas[2]?.nome,
+            parga3_quantidade: chapaLinha.pargas[2]?.quantidade,
+            parga3_comprimento_cm: chapaLinha.pargas[2]?.comprimento,
+            parga3_altura_cm: chapaLinha.pargas[2]?.altura,
+            parga3_espessura_cm: chapaLinha.pargas[2]?.espessura,
+            parga3_foto1_url: chapaLinha.pargas[2]?.foto1Url,
+            parga3_foto2_url: chapaLinha.pargas[2]?.foto2Url,
+            parga4_nome: chapaLinha.pargas[3]?.nome,
+            parga4_quantidade: chapaLinha.pargas[3]?.quantidade,
+            parga4_comprimento_cm: chapaLinha.pargas[3]?.comprimento,
+            parga4_altura_cm: chapaLinha.pargas[3]?.altura,
+            parga4_espessura_cm: chapaLinha.pargas[3]?.espessura,
+            parga4_foto1_url: chapaLinha.pargas[3]?.foto1Url,
+            parga4_foto2_url: chapaLinha.pargas[3]?.foto2Url,
+          };
+        } else if (tipo === 'ladrilhos') {
+          const ladrilhoLinha = linha as LinhaExcelLadrilhos;
+          return {
+            tipo: 'ladrilho',
+            idmm: ladrilhoLinha.idmm,
+            variedade: ladrilhoLinha.variedade,
+            forma: 'ladrilho',
+            parque: ladrilhoLinha.parqueMM,
+            linha: ladrilhoLinha.linha || undefined,
+            comprimento_cm: ladrilhoLinha.comprimento,
+            largura_cm: ladrilhoLinha.largura,
+            espessura_cm: ladrilhoLinha.espessura,
+            quantidade: ladrilhoLinha.quantidade,
+            acabamento: ladrilhoLinha.acabamento || undefined,
+            nome_comercial: ladrilhoLinha.nomeComercial || undefined,
+            observacoes: ladrilhoLinha.observacoes || undefined,
+            foto1_url: ladrilhoLinha.fotos?.[0] || undefined,
+            foto2_url: ladrilhoLinha.fotos?.[1] || undefined,
+          };
+        } else {
+          // Blocos
+          const blocoLinha = linha as LinhaExcelBlocos;
+          return {
+            tipo: 'bloco',
+            idmm: blocoLinha.idmm,
+            variedade: blocoLinha.variedade,
+            forma: 'bloco',
+            nome_comercial: blocoLinha.nomeComercial || undefined,
+            acabamento: blocoLinha.acabamento || undefined,
+            comprimento_cm: blocoLinha.comprimento || undefined,
+            largura_cm: blocoLinha.largura || undefined,
+            altura_cm: blocoLinha.altura || undefined,
+            espessura_cm: blocoLinha.espessura || undefined,
+            peso_ton: blocoLinha.pesoTon || undefined,
+            parque: blocoLinha.parqueMM,
+            linha: blocoLinha.linha || undefined,
+            quantidade: blocoLinha.quantidade,
+            observacoes: blocoLinha.observacoes || undefined,
+            foto1_url: blocoLinha.fotos?.[0] || undefined,
+            foto2_url: blocoLinha.fotos?.[1] || undefined,
+            foto3_url: blocoLinha.fotos?.[2] || undefined,
+            foto4_url: blocoLinha.fotos?.[3] || undefined,
+          };
+        }
+      });
 
-      // Chamar a RPC - única chamada ao backend
+      // Chamar a RPC
       const { data, error } = await supabase.rpc('importar_stock_excel', {
         _rows: rowsJson as unknown as Record<string, unknown>[],
       });
@@ -400,8 +754,6 @@ export function useExecutarImportacao() {
       if (error) {
         console.error('Erro RPC importar_stock_excel:', error);
 
-        // Postgres: relation does not exist
-        // Ex: 42P01 + message: relation "public.auditoria" does not exist
         const pgCode = (error as unknown as { code?: string }).code;
         const msg = String(error.message || '');
         if (pgCode === '42P01' && msg.toLowerCase().includes('auditoria')) {
@@ -413,7 +765,6 @@ export function useExecutarImportacao() {
         throw new Error(error.message || 'Erro ao executar importação');
       }
 
-      // Verificar resposta da RPC
       if (!data || typeof data !== 'object') {
         throw new Error('Resposta inválida da função de importação');
       }
@@ -433,7 +784,6 @@ export function useExecutarImportacao() {
           throw new Error('A importação falhou, mas o backend não devolveu detalhes de erro.');
         }
 
-        // Mostrar um resumo curto no toast (evitar mensagens gigantes)
         const maxItens = 6;
         const resumo = erros
           .slice(0, maxItens)
