@@ -284,6 +284,17 @@ export default function ProdutoFicha() {
                 </div>
               </div>
 
+              {/* Peso - apenas para blocos */}
+              {produto.forma === 'bloco' && produto.peso_ton && (
+                <>
+                  <Separator />
+                  <div>
+                    <span className="text-sm text-muted-foreground">Peso</span>
+                    <p className="font-medium text-lg">{produto.peso_ton} toneladas</p>
+                  </div>
+                </>
+              )}
+
               {/* Área e Volume */}
               {(produto.area_m2 || produto.volume_m3) && (
                 <>
