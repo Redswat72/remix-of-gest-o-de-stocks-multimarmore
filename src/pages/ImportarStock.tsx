@@ -166,6 +166,37 @@ export default function ImportarStock() {
     return (linha as LinhaExcelBlocos | LinhaExcelLadrilhos).quantidade;
   };
 
+  // Renderizar resumo das pargas para chapas
+  const renderPargasResumo = (linha: LinhaExcelChapas) => {
+    const pargas = linha.pargas
+      .map((p, idx) => {
+        if (p.quantidade && p.quantidade > 0) {
+          return { num: idx + 1, nome: p.nome || `Parga ${idx + 1}`, qtd: p.quantidade };
+        }
+        return null;
+      })
+      .filter(Boolean);
+    
+    if (pargas.length === 0) return '-';
+    
+    return pargas.map(p => `${p!.nome}: ${p!.qtd}`).join(' | ');
+  };
+
+  // Renderizar dimensões das pargas
+  const renderPargasDimensoes = (linha: LinhaExcelChapas) => {
+    const pargas = linha.pargas
+      .map((p, idx) => {
+        if (p.quantidade && p.quantidade > 0) {
+          return `P${idx + 1}: ${p.comprimento || '-'}×${p.altura || '-'}×${p.espessura || '-'}`;
+        }
+        return null;
+      })
+      .filter(Boolean);
+    
+    if (pargas.length === 0) return '-';
+    return pargas.join(' | ');
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -476,10 +507,21 @@ export default function ImportarStock() {
                       <TableHead className="w-[60px]">Linha</TableHead>
                       <TableHead>ID MM</TableHead>
                       <TableHead>Variedade</TableHead>
-                      <TableHead>Forma</TableHead>
-                      <TableHead>Dimensões</TableHead>
-                      <TableHead>Parque MM</TableHead>
-                      <TableHead className="text-center">Qtd</TableHead>
+                      {tipoAtual === 'chapas' ? (
+                        <>
+                          <TableHead>Pargas (Qtd)</TableHead>
+                          <TableHead>Dimensões Pargas</TableHead>
+                          <TableHead>Parque MM</TableHead>
+                          <TableHead className="text-center">Total Chapas</TableHead>
+                        </>
+                      ) : (
+                        <>
+                          <TableHead>Forma</TableHead>
+                          <TableHead>Dimensões</TableHead>
+                          <TableHead>Parque MM</TableHead>
+                          <TableHead className="text-center">Qtd</TableHead>
+                        </>
+                      )}
                       <TableHead>Estado</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -495,22 +537,44 @@ export default function ImportarStock() {
                         <TableCell className="font-mono font-medium">
                           {linha.idmm}
                         </TableCell>
-                        <TableCell>{linha.variedade || '-'}</TableCell>
-                        <TableCell>
-                          <Badge variant="outline">{linha.forma}</Badge>
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {renderDimensoes(linha)}
-                        </TableCell>
-                        <TableCell>
-                          <span className="font-mono text-sm">{linha.parqueMM || '-'}</span>
-                          {linha.linha && (
-                            <span className="text-muted-foreground text-xs ml-1">({linha.linha})</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-center font-medium">
-                          {renderQuantidade(linha)}
-                        </TableCell>
+                        <TableCell>{linha.tipoPedra || '-'}</TableCell>
+                        {tipoAtual === 'chapas' ? (
+                          <>
+                            <TableCell className="text-sm">
+                              {renderPargasResumo(linha as LinhaExcelChapas)}
+                            </TableCell>
+                            <TableCell className="text-xs text-muted-foreground font-mono">
+                              {renderPargasDimensoes(linha as LinhaExcelChapas)}
+                            </TableCell>
+                            <TableCell>
+                              <span className="font-mono text-sm">{linha.parqueMM || '-'}</span>
+                              {linha.linha && (
+                                <span className="text-muted-foreground text-xs ml-1">({linha.linha})</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-center font-bold text-primary">
+                              {(linha as LinhaExcelChapas).quantidadeTotal}
+                            </TableCell>
+                          </>
+                        ) : (
+                          <>
+                            <TableCell>
+                              <Badge variant="outline">{linha.forma}</Badge>
+                            </TableCell>
+                            <TableCell className="text-sm text-muted-foreground">
+                              {renderDimensoes(linha)}
+                            </TableCell>
+                            <TableCell>
+                              <span className="font-mono text-sm">{linha.parqueMM || '-'}</span>
+                              {linha.linha && (
+                                <span className="text-muted-foreground text-xs ml-1">({linha.linha})</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-center font-medium">
+                              {renderQuantidade(linha)}
+                            </TableCell>
+                          </>
+                        )}
                         <TableCell>
                           {linha.erros.length > 0 ? (
                             <div className="space-y-1">
