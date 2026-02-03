@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { generateProductUrl } from '@/lib/qrCodeUtils';
 import type { Produto, ProdutoFormData, FormaProduto } from '@/types/database';
 
 interface UseProdutosOptions {
@@ -77,6 +78,10 @@ export function useCreateProduto() {
 
   return useMutation({
     mutationFn: async (formData: CreateProdutoData) => {
+      // Gerar URL do QR Code automaticamente
+      const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+      const qrCodeUrl = generateProductUrl(formData.idmm, baseUrl);
+
       const { data, error } = await supabase
         .from('produtos')
         .insert({
@@ -96,6 +101,7 @@ export function useCreateProduto() {
           foto4_url: formData.foto4_url || null,
           latitude: formData.latitude || null,
           longitude: formData.longitude || null,
+          qr_code_url: qrCodeUrl,
         })
         .select()
         .single();
