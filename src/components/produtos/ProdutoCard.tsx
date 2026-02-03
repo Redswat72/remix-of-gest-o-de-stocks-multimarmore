@@ -1,4 +1,5 @@
-import { MapPin, Edit, Trash2, Package, Image as ImageIcon } from 'lucide-react';
+import { useState } from 'react';
+import { MapPin, Edit, Trash2, Package, Image as ImageIcon, Sparkles, ZoomIn } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -13,6 +14,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { FotoLightbox, createFotosList } from './FotoLightbox';
 import type { Produto } from '@/types/database';
 
 const FORMA_LABELS: Record<string, string> = {
@@ -35,8 +37,16 @@ interface ProdutoCardProps {
 }
 
 export function ProdutoCard({ produto, onEdit, onDelete, isDeleting }: ProdutoCardProps) {
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+
   const fotos = [produto.foto1_url, produto.foto2_url, produto.foto3_url, produto.foto4_url].filter(Boolean);
+  const fotosHd = [produto.foto1_hd_url, produto.foto2_hd_url, produto.foto3_hd_url, produto.foto4_hd_url].filter(Boolean);
   const mainFoto = fotos[0];
+  const hasHdPhotos = fotosHd.length > 0;
+
+  // Criar lista de fotos para o lightbox
+  const fotosList = createFotosList(produto);
 
   const getDimensoes = () => {
     if (produto.forma === 'bloco') {
@@ -55,119 +65,171 @@ export function ProdutoCard({ produto, onEdit, onDelete, isDeleting }: ProdutoCa
     return null;
   };
 
+  const handleImageClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (fotosList.length > 0) {
+      setLightboxIndex(0);
+      setLightboxOpen(true);
+    }
+  };
+
+  const handleHdClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    // Encontrar o índice da primeira foto HD
+    const hdIndex = fotosList.findIndex(f => f.isHd);
+    if (hdIndex >= 0) {
+      setLightboxIndex(hdIndex);
+      setLightboxOpen(true);
+    }
+  };
+
   return (
-    <Card className="overflow-hidden hover:shadow-md transition-shadow">
-      {/* Imagem Principal */}
-      <div className="relative aspect-video bg-muted">
-        {mainFoto ? (
-          <img
-            src={mainFoto}
-            alt={produto.idmm}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Package className="h-12 w-12 text-muted-foreground/30" />
-          </div>
-        )}
-        
-        {/* Badge da forma */}
-        <Badge className={`absolute top-2 left-2 ${FORMA_COLORS[produto.forma]}`}>
-          {FORMA_LABELS[produto.forma]}
-        </Badge>
-
-        {/* Contador de fotos */}
-        {fotos.length > 1 && (
-          <div className="absolute top-2 right-2 flex items-center gap-1 bg-black/60 text-white text-xs px-2 py-1 rounded">
-            <ImageIcon className="h-3 w-3" />
-            {fotos.length}
-          </div>
-        )}
-
-        {/* GPS indicator */}
-        {produto.latitude && produto.longitude && (
-          <div className="absolute bottom-2 right-2">
-            <Badge variant="secondary" className="bg-white/90 text-foreground">
-              <MapPin className="h-3 w-3 mr-1" />
-              GPS
-            </Badge>
-          </div>
-        )}
-      </div>
-
-      <CardContent className="p-4">
-        {/* Header */}
-        <div className="flex items-start justify-between gap-2 mb-2">
-          <div>
-            <h3 className="font-bold text-lg">{produto.idmm}</h3>
-            <p className="text-sm text-muted-foreground">{produto.tipo_pedra}</p>
-          </div>
-          {!produto.ativo && (
-            <Badge variant="outline" className="text-destructive border-destructive">
-              Inativo
-            </Badge>
+    <>
+      <Card className="overflow-hidden hover:shadow-md transition-shadow">
+        {/* Imagem Principal */}
+        <div 
+          className="relative aspect-video bg-muted cursor-pointer group"
+          onClick={handleImageClick}
+        >
+          {mainFoto ? (
+            <>
+              <img
+                src={mainFoto}
+                alt={produto.idmm}
+                className="w-full h-full object-cover transition-transform group-hover:scale-105"
+              />
+              {/* Overlay de zoom */}
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                <ZoomIn className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            </>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <Package className="h-12 w-12 text-muted-foreground/30" />
+            </div>
           )}
-        </div>
-
-        {/* Detalhes */}
-        <div className="space-y-1 text-sm mb-4">
-          {produto.nome_comercial && (
-            <p><span className="text-muted-foreground">Nome:</span> {produto.nome_comercial}</p>
-          )}
-          {produto.acabamento && (
-            <p><span className="text-muted-foreground">Acabamento:</span> {produto.acabamento}</p>
-          )}
-          {getDimensoes() && (
-            <p><span className="text-muted-foreground">Dimensões:</span> {getDimensoes()}</p>
-          )}
-          {produto.area_m2 && (
-            <p><span className="text-muted-foreground">Área:</span> {produto.area_m2.toFixed(2)} m²</p>
-          )}
-          {produto.volume_m3 && (
-            <p><span className="text-muted-foreground">Volume:</span> {produto.volume_m3.toFixed(3)} m³</p>
-          )}
-        </div>
-
-        {/* Ações */}
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex-1"
-            onClick={() => onEdit(produto)}
-          >
-            <Edit className="h-4 w-4 mr-1" />
-            Editar
-          </Button>
           
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
-                <Trash2 className="h-4 w-4" />
+          {/* Badge da forma */}
+          <Badge className={`absolute top-2 left-2 ${FORMA_COLORS[produto.forma]}`}>
+            {FORMA_LABELS[produto.forma]}
+          </Badge>
+
+          {/* Contador de fotos e indicador HD */}
+          <div className="absolute top-2 right-2 flex items-center gap-1">
+            {hasHdPhotos && (
+              <Button
+                variant="secondary"
+                size="sm"
+                className="h-7 px-2 bg-accent/90 hover:bg-accent text-accent-foreground"
+                onClick={handleHdClick}
+              >
+                <Sparkles className="h-3 w-3 mr-1" />
+                HD
               </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Eliminar Produto</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Tem a certeza que deseja eliminar o produto <strong>{produto.idmm}</strong>?
-                  Esta ação irá desativar o produto e não pode ser revertida facilmente.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={() => onDelete(produto.id)}
-                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  disabled={isDeleting}
-                >
-                  Eliminar
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+            )}
+            {fotosList.length > 1 && (
+              <div className="flex items-center gap-1 bg-black/60 text-white text-xs px-2 py-1 rounded">
+                <ImageIcon className="h-3 w-3" />
+                {fotosList.length}
+              </div>
+            )}
+          </div>
+
+          {/* GPS indicator */}
+          {produto.latitude && produto.longitude && (
+            <div className="absolute bottom-2 right-2">
+              <Badge variant="secondary" className="bg-white/90 text-foreground">
+                <MapPin className="h-3 w-3 mr-1" />
+                GPS
+              </Badge>
+            </div>
+          )}
         </div>
-      </CardContent>
-    </Card>
+
+        <CardContent className="p-4">
+          {/* Header */}
+          <div className="flex items-start justify-between gap-2 mb-2">
+            <div>
+              <h3 className="font-bold text-lg">{produto.idmm}</h3>
+              <p className="text-sm text-muted-foreground">{produto.tipo_pedra}</p>
+            </div>
+            {!produto.ativo && (
+              <Badge variant="outline" className="text-destructive border-destructive">
+                Inativo
+              </Badge>
+            )}
+          </div>
+
+          {/* Detalhes */}
+          <div className="space-y-1 text-sm mb-4">
+            {produto.nome_comercial && (
+              <p><span className="text-muted-foreground">Nome:</span> {produto.nome_comercial}</p>
+            )}
+            {produto.acabamento && (
+              <p><span className="text-muted-foreground">Acabamento:</span> {produto.acabamento}</p>
+            )}
+            {getDimensoes() && (
+              <p><span className="text-muted-foreground">Dimensões:</span> {getDimensoes()}</p>
+            )}
+            {produto.area_m2 && (
+              <p><span className="text-muted-foreground">Área:</span> {produto.area_m2.toFixed(2)} m²</p>
+            )}
+            {produto.volume_m3 && (
+              <p><span className="text-muted-foreground">Volume:</span> {produto.volume_m3.toFixed(3)} m³</p>
+            )}
+          </div>
+
+          {/* Ações */}
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              className="flex-1"
+              onClick={() => onEdit(produto)}
+            >
+              <Edit className="h-4 w-4 mr-1" />
+              Editar
+            </Button>
+            
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Eliminar Produto</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Tem a certeza que deseja eliminar o produto <strong>{produto.idmm}</strong>?
+                    Esta ação irá desativar o produto e não pode ser revertida facilmente.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={() => onDelete(produto.id)}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    disabled={isDeleting}
+                  >
+                    Eliminar
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Lightbox */}
+      <FotoLightbox
+        isOpen={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
+        fotos={fotosList}
+        initialIndex={lightboxIndex}
+        idmm={produto.idmm}
+        tipoPedra={produto.tipo_pedra}
+      />
+    </>
   );
 }
