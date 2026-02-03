@@ -10,7 +10,6 @@ import {
   ArrowDownToLine,
   ArrowUpFromLine,
   MapPin,
-  AlertTriangle,
   BarChart3
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,7 +23,6 @@ import {
   useDashboardStats, 
   useMovimentosSemana, 
   useStockPorLocal, 
-  useProdutosStockBaixo,
   useMovimentosMensais
 } from '@/hooks/useDashboard';
 import {
@@ -64,7 +62,6 @@ export default function Dashboard() {
   const { data: stats, isLoading: statsLoading } = useDashboardStats();
   const { data: movimentosSemana, isLoading: semanaLoading } = useMovimentosSemana();
   const { data: stockPorLocal } = useStockPorLocal();
-  const { data: produtosStockBaixo } = useProdutosStockBaixo(5);
   const { data: movimentosMensais, isLoading: mensalLoading } = useMovimentosMensais();
 
   // Últimos movimentos
@@ -366,7 +363,7 @@ export default function Dashboard() {
       </div>
 
       {/* Segunda linha de gráficos/info */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid gap-6 lg:grid-cols-2">
         {/* Stock por Local - Pie Chart */}
         {(isAdmin || isSuperadmin) && pieData.length > 0 && (
           <Card>
@@ -407,43 +404,6 @@ export default function Dashboard() {
           </Card>
         )}
 
-        {/* Produtos com Stock Baixo */}
-        <Card className={pieData.length > 0 && (isAdmin || isSuperadmin) ? '' : 'lg:col-span-2'}>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-amber-500" />
-              Stock Baixo
-            </CardTitle>
-            <CardDescription>Produtos com menos de 5 unidades</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {produtosStockBaixo && produtosStockBaixo.length > 0 ? (
-              <div className="space-y-3">
-                {produtosStockBaixo.slice(0, 5).map((item) => (
-                  <div key={`${item.produtoId}-${item.localNome}`} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
-                    <div className="min-w-0 flex-1">
-                      <p className="font-medium text-sm truncate">{item.idmm}</p>
-                      <p className="text-xs text-muted-foreground truncate">
-                        {item.tipoPedra} • {item.localNome}
-                      </p>
-                    </div>
-                    <Badge 
-                      variant={item.quantidade <= 2 ? 'destructive' : 'secondary'}
-                      className="ml-2"
-                    >
-                      {item.quantidade} un.
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground">
-                <Package className="w-10 h-10 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">Nenhum produto com stock baixo</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
 
         {/* Atalhos Rápidos */}
         <Card>
