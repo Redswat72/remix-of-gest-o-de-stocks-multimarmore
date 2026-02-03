@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Shield, 
   MapPin, 
@@ -10,7 +11,8 @@ import {
   X,
   Loader2,
   FileDown,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Upload
 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -79,6 +81,22 @@ export default function Superadmin() {
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+// === Botão de Importação ===
+function ImportarButton() {
+  const navigate = useNavigate();
+  return (
+    <Button 
+      variant="outline" 
+      onClick={() => navigate('/importar-inventario')}
+      className="gap-2"
+    >
+      <Upload className="h-4 w-4" />
+      <span className="hidden sm:inline">Importar Inventário</span>
+      <span className="sm:hidden">Importar</span>
+    </Button>
   );
 }
 
@@ -155,9 +173,10 @@ function StockGlobalTab() {
               className="gap-2"
             >
               <FileDown className="h-4 w-4" />
-              <span className="hidden sm:inline">Modelo Importação</span>
+              <span className="hidden sm:inline">Modelo Excel</span>
               <span className="sm:hidden">Modelo</span>
             </Button>
+            <ImportarButton />
             <Button 
               onClick={handleExport} 
               disabled={!stockAgregado?.length}
