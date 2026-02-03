@@ -14,6 +14,7 @@ import Stock from "./pages/Stock";
 import NovoMovimento from "./pages/NovoMovimento";
 import Historico from "./pages/Historico";
 import Superadmin from "./pages/Superadmin";
+import Auditoria from "./pages/Auditoria";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -87,6 +88,17 @@ const App = () => (
                 <ProtectedRoute superadminOnly>
                   <AppLayout>
                     <Superadmin />
+                  </AppLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/auditoria"
+              element={
+                <ProtectedRoute superadminOnly>
+                  <AppLayout>
+                    <Auditoria />
                   </AppLayout>
                 </ProtectedRoute>
               }

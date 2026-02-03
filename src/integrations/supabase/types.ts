@@ -14,6 +14,54 @@ export type Database = {
   }
   public: {
     Tables: {
+      auditoria: {
+        Row: {
+          created_at: string
+          dados_anteriores: Json | null
+          dados_novos: Json | null
+          data_hora: string
+          descricao: string
+          entidade: string
+          entidade_id: string | null
+          id: string
+          tipo_acao: string
+          user_email: string
+          user_id: string
+          user_nome: string
+          user_role: string
+        }
+        Insert: {
+          created_at?: string
+          dados_anteriores?: Json | null
+          dados_novos?: Json | null
+          data_hora?: string
+          descricao: string
+          entidade: string
+          entidade_id?: string | null
+          id?: string
+          tipo_acao: string
+          user_email: string
+          user_id: string
+          user_nome: string
+          user_role: string
+        }
+        Update: {
+          created_at?: string
+          dados_anteriores?: Json | null
+          dados_novos?: Json | null
+          data_hora?: string
+          descricao?: string
+          entidade?: string
+          entidade_id?: string | null
+          id?: string
+          tipo_acao?: string
+          user_email?: string
+          user_id?: string
+          user_nome?: string
+          user_role?: string
+        }
+        Relationships: []
+      }
       clientes: {
         Row: {
           ativo: boolean
