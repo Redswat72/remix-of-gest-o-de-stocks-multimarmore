@@ -60,7 +60,21 @@ export default function ProdutoFicha() {
   const canUploadHd = isAdmin || isSuperadmin;
   const canCreateMovimento = roles.length > 0; // Qualquer utilizador autenticado
 
-  const handleUpdate = async (data: any, fotoUrls: (string | null)[], fotoHdUrls: (string | null)[]) => {
+  const handleUpdate = async (
+    data: any, 
+    fotoUrls: (string | null)[], 
+    fotoHdUrls: (string | null)[],
+    pargaFotos?: {
+      parga1_foto1_url: string | null;
+      parga1_foto2_url: string | null;
+      parga2_foto1_url: string | null;
+      parga2_foto2_url: string | null;
+      parga3_foto1_url: string | null;
+      parga3_foto2_url: string | null;
+      parga4_foto1_url: string | null;
+      parga4_foto2_url: string | null;
+    }
+  ) => {
     if (!produto) return;
 
     setIsSubmitting(true);
@@ -76,6 +90,8 @@ export default function ProdutoFicha() {
         foto2_hd_url: fotoHdUrls[1] || null,
         foto3_hd_url: fotoHdUrls[2] || null,
         foto4_hd_url: fotoHdUrls[3] || null,
+        // Incluir fotos de pargas se fornecidas (para produtos tipo chapa)
+        ...pargaFotos,
       });
 
       toast({
