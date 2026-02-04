@@ -30,6 +30,7 @@ const produtoBaseSchema = z.object({
   tipo_pedra: z.string().min(1, 'Tipo de pedra é obrigatório').max(100, 'Máximo 100 caracteres'),
   nome_comercial: z.string().max(100, 'Máximo 100 caracteres').optional(),
   forma: z.enum(['bloco', 'chapa', 'ladrilho'] as const),
+  origem_bloco: z.string().max(100, 'Máximo 100 caracteres').optional(),
   acabamento: z.string().max(50, 'Máximo 50 caracteres').optional(),
   comprimento_cm: z.number().positive('Deve ser positivo').optional().nullable(),
   largura_cm: z.number().positive('Deve ser positivo').optional().nullable(),
@@ -134,6 +135,7 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading, canUploadH
       tipo_pedra: produto?.tipo_pedra || '',
       nome_comercial: produto?.nome_comercial || '',
       forma: produto?.forma || 'bloco',
+      origem_bloco: produto?.origem_bloco || '',
       acabamento: produto?.acabamento || '',
       comprimento_cm: produto?.comprimento_cm || null,
       largura_cm: produto?.largura_cm || null,
@@ -308,19 +310,37 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading, canUploadH
           />
         </div>
 
+        {/* Origem do Bloco */}
         <FormField
           control={form.control}
-          name="acabamento"
+          name="origem_bloco"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Acabamento</FormLabel>
+              <FormLabel>Origem do Bloco</FormLabel>
               <FormControl>
-                <Input {...field} value={field.value || ''} placeholder="Ex: Polido, Amaciado" className="touch-target" />
+                <Input {...field} value={field.value || ''} placeholder="Ex: Portugal, Brasil, Espanha" className="touch-target" />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
+
+        {/* Acabamento - apenas para chapas e ladrilhos (blocos não têm acabamento) */}
+        {forma !== 'bloco' && (
+          <FormField
+            control={form.control}
+            name="acabamento"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Acabamento</FormLabel>
+                <FormControl>
+                  <Input {...field} value={field.value || ''} placeholder="Ex: Polido, Amaciado" className="touch-target" />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         {/* Conteúdo específico por forma */}
         {forma === 'chapa' ? (
