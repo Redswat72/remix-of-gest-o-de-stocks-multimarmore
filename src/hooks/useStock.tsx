@@ -167,3 +167,38 @@ export function useStockProdutoLocal(produtoId?: string, localId?: string) {
     enabled: !!produtoId && !!localId,
   });
 }
+
+// Hook para obter todos os locais onde um produto tem stock
+export interface StockProdutoItem {
+  quantidade: number;
+  local: { id: string; codigo: string; nome: string };
+}
+
+export function useStockProduto(produtoId?: string) {
+  return useQuery({
+    queryKey: ['stock-produto', produtoId],
+    queryFn: async () => {
+      if (!produtoId) return [];
+
+      const { data, error } = await supabase
+        .from('stock')
+        .select(`
+          quantidade,
+          local:locais(id, codigo, nome)
+        `)
+        .eq('produto_id', produtoId)
+        .gt('quantidade', 0);
+
+      if (error) throw error;
+      
+      // Map para extrair o local do array retornado pelo Supabase
+      return ((data || []) as unknown as { quantidade: number; local: { id: string; codigo: string; nome: string } | { id: string; codigo: string; nome: string }[] }[])
+        .map(item => ({
+          quantidade: item.quantidade,
+          local: Array.isArray(item.local) ? item.local[0] : item.local,
+        }))
+        .filter(item => item.local) as StockProdutoItem[];
+    },
+    enabled: !!produtoId,
+  });
+}

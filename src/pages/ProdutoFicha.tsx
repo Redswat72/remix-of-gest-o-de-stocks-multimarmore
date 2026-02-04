@@ -9,7 +9,8 @@ import {
   Package,
   Ruler,
   Calendar,
-  AlertCircle
+  AlertCircle,
+  Warehouse
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
@@ -24,6 +25,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useProduto, useUpdateProduto } from '@/hooks/useProdutos';
+import { useStockProduto } from '@/hooks/useStock';
 import { useUltimoMovimentoProduto } from '@/hooks/useUltimoMovimentoProduto';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -54,6 +56,7 @@ export default function ProdutoFicha() {
 
   const { data: produto, isLoading, error } = useProduto(id);
   const { data: ultimoMovimento } = useUltimoMovimentoProduto(produto?.id);
+  const { data: stockProduto = [] } = useStockProduto(produto?.id);
   const updateMutation = useUpdateProduto();
 
   const canEdit = isAdmin || isSuperadmin;
@@ -265,6 +268,26 @@ export default function ProdutoFicha() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Parque MM (derivado do stock) */}
+              {stockProduto.length > 0 && (
+                <div>
+                  <span className="text-sm text-muted-foreground flex items-center gap-1">
+                    <Warehouse className="h-3.5 w-3.5" />
+                    Parque MM
+                  </span>
+                  <div className="mt-1 flex flex-wrap gap-2">
+                    {stockProduto.map((item) => (
+                      <Badge key={item.local.id} variant="secondary" className="text-sm">
+                        {item.local.codigo} - {item.local.nome}
+                        {item.quantidade > 1 && (
+                          <span className="ml-1 text-muted-foreground">({item.quantidade})</span>
+                        )}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Linha */}
               {produto.linha && (
                 <div>
