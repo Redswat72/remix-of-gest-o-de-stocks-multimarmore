@@ -251,6 +251,10 @@ export function ProdutoFotos({
     const currentIdmm = idmm || 'sem-id';
 
     const setter = isHd ? setFotosHd : setFotos;
+    
+    // Capturar estado ANTES de marcar como uploading
+    const currentFotos = isHd ? [...fotosHd] : [...fotos];
+    
     setter(prev => {
       const newFotos = [...prev];
       newFotos[index] = { ...newFotos[index], isUploading: true };
@@ -278,8 +282,7 @@ export function ProdutoFotos({
       });
 
       if (result) {
-        // Obter o estado atual antes de atualizar para construir newUrls corretamente
-        const currentFotos = isHd ? fotosHd : fotos;
+        // Construir newUrls usando o estado capturado ANTES do upload
         const newUrls = currentFotos.map((f, i) => 
           i === index ? result.url : f.url
         );
@@ -297,27 +300,33 @@ export function ProdutoFotos({
           return newFotos;
         });
         
-        // Notificar mudança IMEDIATAMENTE com o URL correcto
+        // Notificar mudança com URL correcto
         if (isHd) {
           onFotosHdChange(newUrls);
         } else {
           onFotosChange(newUrls);
         }
+        
+        toast({
+          title: 'Foto carregada',
+          description: 'A imagem foi guardada com sucesso.',
+        });
       } else {
         // Upload falhou (ex: bucket não existe, permissões, etc.)
         toast({
           title: 'Upload falhou',
           description:
-            'Não foi possível guardar a imagem no armazenamento. Verifique se os buckets "produtos" e "produtos_hd" existem e têm permissões.',
+            'Não foi possível guardar a imagem no armazenamento. Verifique se os buckets "produtos" e "produtos_hd" existem no Supabase externo e têm permissões de escrita.',
           variant: 'destructive',
         });
         setter(prev => {
           const newFotos = [...prev];
-          newFotos[index] = { ...newFotos[index], isUploading: false };
+          newFotos[index] = { ...newFotos[index], isUploading: false, file: null, preview: prev[index].url };
           return newFotos;
         });
       }
-    } catch {
+    } catch (err) {
+      console.error('Upload error:', err);
       toast({
         title: 'Upload falhou',
         description:
@@ -326,7 +335,7 @@ export function ProdutoFotos({
       });
       setter(prev => {
         const newFotos = [...prev];
-        newFotos[index] = { ...newFotos[index], isUploading: false };
+        newFotos[index] = { ...newFotos[index], isUploading: false, file: null, preview: prev[index].url };
         return newFotos;
       });
     }
@@ -396,6 +405,7 @@ export function ProdutoFotos({
           const foto = fotoList[index];
           const hasPreview = !!foto?.preview;
           const isPending = foto?.file !== null;
+          const isUploaded = !!foto?.url && !isPending; // Foto já guardada no storage
           const label = isHd 
             ? (slotLabels?.[index] || `HD ${index + 1}`)
             : `Foto ${index + 1}`;
@@ -473,17 +483,26 @@ export function ProdutoFotos({
                       </div>
                     )}
 
-                    {/* Botão remover */}
+                    {/* Botão remover + indicador de sucesso */}
                     {!isPending && !foto.isUploading && (
-                      <Button
-                        type="button"
-                        size="icon"
-                        variant="destructive"
-                        className="absolute top-2 right-2 h-8 w-8"
-                        onClick={() => handleRemoveFoto(index, isHd)}
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
+                      <>
+                        {/* Badge de sucesso verde */}
+                        {isUploaded && (
+                          <div className="absolute bottom-2 right-2 flex items-center gap-1 bg-success text-success-foreground rounded-full px-2 py-0.5 text-xs font-medium shadow-md">
+                            <Check className="w-3 h-3" />
+                            Guardada
+                          </div>
+                        )}
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="destructive"
+                          className="absolute top-2 right-2 h-8 w-8"
+                          onClick={() => handleRemoveFoto(index, isHd)}
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </>
                     )}
                   </>
                 ) : (

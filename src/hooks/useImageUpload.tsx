@@ -208,6 +208,8 @@ export function useImageUpload() {
         });
 
       if (uploadError) {
+        console.error('[useImageUpload] Upload error:', uploadError.message, uploadError);
+        
         // Se já existir, gerar novo nome com sufixo aleatório
         if (uploadError.message.includes('already exists') || uploadError.message.includes('Duplicate')) {
           const newFileName = fileName.replace('.jpg', `_${Math.random().toString(36).substring(2, 6)}.jpg`);
@@ -218,7 +220,10 @@ export function useImageUpload() {
               upsert: false,
             });
           
-          if (retryResult.error) throw retryResult.error;
+          if (retryResult.error) {
+            console.error('[useImageUpload] Retry upload error:', retryResult.error);
+            throw retryResult.error;
+          }
           
           setProgress(90);
           
@@ -250,6 +255,7 @@ export function useImageUpload() {
         path: data.path,
       };
     } catch (err) {
+      console.error('[useImageUpload] Error:', err);
       const message = err instanceof Error ? err.message : 'Erro ao fazer upload';
       setError(message);
       return null;
