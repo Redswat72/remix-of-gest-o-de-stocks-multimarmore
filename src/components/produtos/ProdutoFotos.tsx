@@ -5,6 +5,7 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useImageUpload } from '@/hooks/useImageUpload';
+import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import type { FormaProduto } from '@/types/database';
 
@@ -134,6 +135,7 @@ export function ProdutoFotos({
   canUploadHd,
 }: ProdutoFotosProps) {
   const [activeTab, setActiveTab] = useState<'operacionais' | 'hd'>('operacionais');
+  const { toast } = useToast();
   
   // Configuração baseada na forma
   const hdConfig = HD_SLOTS_CONFIG[forma];
@@ -302,6 +304,13 @@ export function ProdutoFotos({
           onFotosChange(newUrls);
         }
       } else {
+        // Upload falhou (ex: bucket não existe, permissões, etc.)
+        toast({
+          title: 'Upload falhou',
+          description:
+            'Não foi possível guardar a imagem no armazenamento. Verifique se os buckets "produtos" e "produtos_hd" existem e têm permissões.',
+          variant: 'destructive',
+        });
         setter(prev => {
           const newFotos = [...prev];
           newFotos[index] = { ...newFotos[index], isUploading: false };
@@ -309,6 +318,12 @@ export function ProdutoFotos({
         });
       }
     } catch {
+      toast({
+        title: 'Upload falhou',
+        description:
+          'Ocorreu um erro ao enviar a imagem para o armazenamento. Verifique permissões e tente novamente.',
+        variant: 'destructive',
+      });
       setter(prev => {
         const newFotos = [...prev];
         newFotos[index] = { ...newFotos[index], isUploading: false };

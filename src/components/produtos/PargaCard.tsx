@@ -55,6 +55,10 @@ export function PargaCard({
         onFoto2Change(result.url);
       }
       toast.success(`Foto ${photoSlot === 1 ? 'da 1ª chapa' : 'da última chapa'} carregada`);
+    } else {
+      toast.error(
+        'Upload falhou: não foi possível guardar no armazenamento (verifique o bucket "produtos" e permissões).'
+      );
     }
   };
 
