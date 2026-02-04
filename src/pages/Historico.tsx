@@ -38,8 +38,8 @@ export default function Historico() {
   // Filtros
   const [dataInicio, setDataInicio] = useState('');
   const [dataFim, setDataFim] = useState('');
-  const [tipoFilter, setTipoFilter] = useState<string>('');
-  const [localFilter, setLocalFilter] = useState<string>('');
+  const [tipoFilter, setTipoFilter] = useState<string>('__all__');
+  const [localFilter, setLocalFilter] = useState<string>('__all__');
   const [showCancelados, setShowCancelados] = useState<string>('todos');
   
   // UI State
@@ -52,8 +52,8 @@ export default function Historico() {
   const { data: movimentos, isLoading } = useMovimentos({
     dataInicio: dataInicio || undefined,
     dataFim: dataFim || undefined,
-    tipo: tipoFilter || undefined,
-    localId: localFilter || undefined,
+    tipo: tipoFilter === '__all__' ? undefined : tipoFilter,
+    localId: localFilter === '__all__' ? undefined : localFilter,
     cancelados: showCancelados === 'todos' ? undefined : showCancelados === 'sim',
     limit: 200,
   });
@@ -164,12 +164,12 @@ export default function Historico() {
   const clearFilters = () => {
     setDataInicio('');
     setDataFim('');
-    setTipoFilter('');
-    setLocalFilter('');
+    setTipoFilter('__all__');
+    setLocalFilter('__all__');
     setShowCancelados('todos');
   };
 
-  const hasFilters = dataInicio || dataFim || tipoFilter || localFilter || showCancelados !== 'todos';
+  const hasFilters = dataInicio || dataFim || tipoFilter !== '__all__' || localFilter !== '__all__' || showCancelados !== 'todos';
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -229,7 +229,7 @@ export default function Historico() {
                   <SelectValue placeholder="Todos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="__all__">Todos</SelectItem>
                   <SelectItem value="entrada">Entrada</SelectItem>
                   <SelectItem value="transferencia">Transferência</SelectItem>
                   <SelectItem value="saida">Saída</SelectItem>
@@ -245,7 +245,7 @@ export default function Historico() {
                   <SelectValue placeholder="Todos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
+                  <SelectItem value="__all__">Todos</SelectItem>
                   {locais?.map(l => (
                     <SelectItem key={l.id} value={l.id}>{l.nome}</SelectItem>
                   ))}
