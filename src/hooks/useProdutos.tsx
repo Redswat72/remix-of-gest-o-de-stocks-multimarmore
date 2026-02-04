@@ -114,8 +114,8 @@ export function useCreateProduto() {
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
       const qrCodeUrl = generateProductUrl(formData.idmm, baseUrl);
 
-      // Cast para contornar a tipagem do Supabase Cloud (usamos BD externa)
-      const insertData = {
+      // Dados base (comuns a todos os tipos de produto)
+      const insertData: Record<string, unknown> = {
         idmm: formData.idmm,
         tipo_pedra: formData.tipo_pedra,
         variedade: formData.variedade || null,
@@ -136,36 +136,39 @@ export function useCreateProduto() {
         latitude: formData.latitude || null,
         longitude: formData.longitude || null,
         qr_code_url: qrCodeUrl,
-        // Campos de pargas (apenas para chapas)
-        parga1_nome: formData.parga1_nome || null,
-        parga1_quantidade: formData.parga1_quantidade || null,
-        parga1_comprimento_cm: formData.parga1_comprimento_cm || null,
-        parga1_altura_cm: formData.parga1_altura_cm || null,
-        parga1_espessura_cm: formData.parga1_espessura_cm || null,
-        parga1_foto1_url: formData.parga1_foto1_url || null,
-        parga1_foto2_url: formData.parga1_foto2_url || null,
-        parga2_nome: formData.parga2_nome || null,
-        parga2_quantidade: formData.parga2_quantidade || null,
-        parga2_comprimento_cm: formData.parga2_comprimento_cm || null,
-        parga2_altura_cm: formData.parga2_altura_cm || null,
-        parga2_espessura_cm: formData.parga2_espessura_cm || null,
-        parga2_foto1_url: formData.parga2_foto1_url || null,
-        parga2_foto2_url: formData.parga2_foto2_url || null,
-        parga3_nome: formData.parga3_nome || null,
-        parga3_quantidade: formData.parga3_quantidade || null,
-        parga3_comprimento_cm: formData.parga3_comprimento_cm || null,
-        parga3_altura_cm: formData.parga3_altura_cm || null,
-        parga3_espessura_cm: formData.parga3_espessura_cm || null,
-        parga3_foto1_url: formData.parga3_foto1_url || null,
-        parga3_foto2_url: formData.parga3_foto2_url || null,
-        parga4_nome: formData.parga4_nome || null,
-        parga4_quantidade: formData.parga4_quantidade || null,
-        parga4_comprimento_cm: formData.parga4_comprimento_cm || null,
-        parga4_altura_cm: formData.parga4_altura_cm || null,
-        parga4_espessura_cm: formData.parga4_espessura_cm || null,
-        parga4_foto1_url: formData.parga4_foto1_url || null,
-        parga4_foto2_url: formData.parga4_foto2_url || null,
       };
+
+      // Campos de pargas apenas para chapas
+      if (formData.forma === 'chapa') {
+        insertData.parga1_nome = formData.parga1_nome || null;
+        insertData.parga1_quantidade = formData.parga1_quantidade || null;
+        insertData.parga1_comprimento_cm = formData.parga1_comprimento_cm || null;
+        insertData.parga1_altura_cm = formData.parga1_altura_cm || null;
+        insertData.parga1_espessura_cm = formData.parga1_espessura_cm || null;
+        insertData.parga1_foto1_url = formData.parga1_foto1_url || null;
+        insertData.parga1_foto2_url = formData.parga1_foto2_url || null;
+        insertData.parga2_nome = formData.parga2_nome || null;
+        insertData.parga2_quantidade = formData.parga2_quantidade || null;
+        insertData.parga2_comprimento_cm = formData.parga2_comprimento_cm || null;
+        insertData.parga2_altura_cm = formData.parga2_altura_cm || null;
+        insertData.parga2_espessura_cm = formData.parga2_espessura_cm || null;
+        insertData.parga2_foto1_url = formData.parga2_foto1_url || null;
+        insertData.parga2_foto2_url = formData.parga2_foto2_url || null;
+        insertData.parga3_nome = formData.parga3_nome || null;
+        insertData.parga3_quantidade = formData.parga3_quantidade || null;
+        insertData.parga3_comprimento_cm = formData.parga3_comprimento_cm || null;
+        insertData.parga3_altura_cm = formData.parga3_altura_cm || null;
+        insertData.parga3_espessura_cm = formData.parga3_espessura_cm || null;
+        insertData.parga3_foto1_url = formData.parga3_foto1_url || null;
+        insertData.parga3_foto2_url = formData.parga3_foto2_url || null;
+        insertData.parga4_nome = formData.parga4_nome || null;
+        insertData.parga4_quantidade = formData.parga4_quantidade || null;
+        insertData.parga4_comprimento_cm = formData.parga4_comprimento_cm || null;
+        insertData.parga4_altura_cm = formData.parga4_altura_cm || null;
+        insertData.parga4_espessura_cm = formData.parga4_espessura_cm || null;
+        insertData.parga4_foto1_url = formData.parga4_foto1_url || null;
+        insertData.parga4_foto2_url = formData.parga4_foto2_url || null;
+      }
 
       const { data, error } = await supabase
         .from('produtos')
