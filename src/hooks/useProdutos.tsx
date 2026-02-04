@@ -110,10 +110,6 @@ export function useCreateProduto() {
 
   return useMutation({
     mutationFn: async (formData: CreateProdutoData) => {
-      // Gerar URL do QR Code automaticamente
-      const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-      const qrCodeUrl = generateProductUrl(formData.idmm, baseUrl);
-
       // Dados base (comuns a todos os tipos de produto)
       const insertData: Record<string, unknown> = {
         idmm: formData.idmm,
@@ -135,7 +131,6 @@ export function useCreateProduto() {
         foto4_url: formData.foto4_url || null,
         latitude: formData.latitude || null,
         longitude: formData.longitude || null,
-        qr_code_url: qrCodeUrl,
       };
 
       // Campos de pargas apenas para chapas
