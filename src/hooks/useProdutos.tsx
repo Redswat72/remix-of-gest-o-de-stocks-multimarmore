@@ -131,6 +131,47 @@ export function useCreateProduto() {
         .single();
 
       if (error) throw error;
+
+      // Guardar URLs de fotos num segundo passo.
+      // Motivo: a BD externa pode ter divergências de schema (ex: colunas opcionais)
+      // e assim evitamos que a criação falhe por campos não essenciais.
+      const fotosUpdate: Record<string, unknown> = {
+        foto1_url: formData.foto1_url ?? null,
+        foto2_url: formData.foto2_url ?? null,
+        foto3_url: formData.foto3_url ?? null,
+        foto4_url: formData.foto4_url ?? null,
+        // HD (quando aplicável)
+        foto1_hd_url: (formData as any).foto1_hd_url ?? null,
+        foto2_hd_url: (formData as any).foto2_hd_url ?? null,
+        foto3_hd_url: (formData as any).foto3_hd_url ?? null,
+        foto4_hd_url: (formData as any).foto4_hd_url ?? null,
+        // Fotos de pargas (chapas)
+        parga1_foto1_url: formData.parga1_foto1_url ?? null,
+        parga1_foto2_url: formData.parga1_foto2_url ?? null,
+        parga2_foto1_url: formData.parga2_foto1_url ?? null,
+        parga2_foto2_url: formData.parga2_foto2_url ?? null,
+        parga3_foto1_url: formData.parga3_foto1_url ?? null,
+        parga3_foto2_url: formData.parga3_foto2_url ?? null,
+        parga4_foto1_url: formData.parga4_foto1_url ?? null,
+        parga4_foto2_url: formData.parga4_foto2_url ?? null,
+      };
+
+      const hasAnyFoto = Object.values(fotosUpdate).some(
+        (v) => typeof v === 'string' && v.length > 0
+      );
+
+      if (hasAnyFoto) {
+        const { data: updated, error: updateError } = await supabase
+          .from('produtos')
+          .update(fotosUpdate as any)
+          .eq('id', (data as any).id)
+          .select()
+          .single();
+
+        if (updateError) throw updateError;
+        return updated;
+      }
+
       return data;
     },
     onSuccess: () => {
