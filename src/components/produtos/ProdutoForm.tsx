@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Loader2, MapPin } from 'lucide-react';
+import { Loader2, MapPin, Warehouse } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -20,9 +20,11 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from '@/components/ui/form';
 import { ProdutoFotos } from '@/components/produtos/ProdutoFotos';
 import { ChapaFormSection, type PargaFotos } from '@/components/produtos/ChapaFormSection';
+import { useLocaisAtivos } from '@/hooks/useLocais';
 import type { Produto } from '@/types/database';
 
 const produtoBaseSchema = z.object({
@@ -30,6 +32,7 @@ const produtoBaseSchema = z.object({
   tipo_pedra: z.string().min(1, 'Tipo de pedra é obrigatório').max(100, 'Máximo 100 caracteres'),
   nome_comercial: z.string().max(100, 'Máximo 100 caracteres').optional(),
   forma: z.enum(['bloco', 'chapa', 'ladrilho'] as const),
+  local_id: z.string().optional().nullable(),
   origem_bloco: z.string().max(100, 'Máximo 100 caracteres').optional(),
   acabamento: z.string().max(50, 'Máximo 50 caracteres').optional(),
   comprimento_cm: z.number().positive('Deve ser positivo').optional().nullable(),
@@ -125,6 +128,9 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading, canUploadH
   const [pargaFotos, setPargaFotos] = useState<PargaFotos>(emptyPargaFotos);
   const [gettingLocation, setGettingLocation] = useState(false);
 
+  // Carregar lista de parques ativos
+  const { data: locais = [] } = useLocaisAtivos();
+
   // Aceder ao peso_ton do produto com type assertion
   const produtoWithPeso = produto as (Produto & { peso_ton?: number | null }) | null | undefined;
 
@@ -135,6 +141,7 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading, canUploadH
       tipo_pedra: produto?.tipo_pedra || '',
       nome_comercial: produto?.nome_comercial || '',
       forma: produto?.forma || 'bloco',
+      local_id: null, // Parque é só para criação
       origem_bloco: produto?.origem_bloco || '',
       acabamento: produto?.acabamento || '',
       comprimento_cm: produto?.comprimento_cm || null,
@@ -279,6 +286,44 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading, canUploadH
             )}
           />
         </div>
+
+        {/* Parque - apenas para criação de novos produtos */}
+        {!produto && (
+          <FormField
+            control={form.control}
+            name="local_id"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel className="flex items-center gap-2">
+                  <Warehouse className="h-4 w-4" />
+                  Parque MM
+                </FormLabel>
+                <Select
+                  onValueChange={(value) => field.onChange(value === '__none__' ? null : value)}
+                  value={field.value || '__none__'}
+                >
+                  <FormControl>
+                    <SelectTrigger className="touch-target">
+                      <SelectValue placeholder="Selecionar parque..." />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    <SelectItem value="__none__">— Sem parque (definir depois) —</SelectItem>
+                    {locais.map((local) => (
+                      <SelectItem key={local.id} value={local.id}>
+                        {local.codigo} - {local.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormDescription>
+                  Ao selecionar um parque, será criada automaticamente uma entrada de stock.
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
