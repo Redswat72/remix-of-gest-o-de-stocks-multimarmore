@@ -208,7 +208,30 @@ export function useImageUpload() {
         });
 
       if (uploadError) {
-        console.error('[useImageUpload] Upload error:', uploadError.message, uploadError);
+        // Log detalhado para diagnóstico
+        console.error('[useImageUpload] Upload error:', {
+          message: uploadError.message,
+          name: uploadError.name,
+          bucket,
+          filePath,
+          error: uploadError,
+        });
+        
+        // Verificar se o erro é de bucket inexistente ou permissões
+        const isBucketError = 
+          uploadError.message.includes('Bucket not found') ||
+          uploadError.message.includes('bucket') ||
+          uploadError.message.includes('not found') ||
+          uploadError.message.includes('403') ||
+          uploadError.message.includes('permission') ||
+          uploadError.message.includes('policy');
+          
+        if (isBucketError) {
+          throw new Error(
+            `Bucket "${bucket}" não encontrado ou sem permissões. ` +
+            `Verifique se o bucket existe no Supabase Storage externo e tem policies de INSERT para utilizadores autenticados.`
+          );
+        }
         
         // Se já existir, gerar novo nome com sufixo aleatório
         if (uploadError.message.includes('already exists') || uploadError.message.includes('Duplicate')) {

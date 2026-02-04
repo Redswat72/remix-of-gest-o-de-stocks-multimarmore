@@ -308,34 +308,51 @@ export function ProdutoFotos({
         }
         
         toast({
-          title: 'Foto carregada',
-          description: 'A imagem foi guardada com sucesso.',
+          title: '✅ Foto guardada',
+          description: 'A imagem foi carregada com sucesso para o armazenamento.',
         });
       } else {
         // Upload falhou (ex: bucket não existe, permissões, etc.)
+        console.error('[ProdutoFotos] Upload returned null - bucket ou permissões em falta');
         toast({
-          title: 'Upload falhou',
+          title: '❌ Upload falhou',
           description:
-            'Não foi possível guardar a imagem no armazenamento. Verifique se os buckets "produtos" e "produtos_hd" existem no Supabase externo e têm permissões de escrita.',
+            `Não foi possível guardar a imagem. Verifique se o bucket "${isHd ? 'produtos_hd' : 'produtos'}" existe no Supabase externo e tem políticas de INSERT para utilizadores autenticados.`,
           variant: 'destructive',
+          duration: 8000,
         });
+        // Reverter para estado anterior - NÃO manter preview
         setter(prev => {
           const newFotos = [...prev];
-          newFotos[index] = { ...newFotos[index], isUploading: false, file: null, preview: prev[index].url };
+          newFotos[index] = { 
+            ...newFotos[index], 
+            isUploading: false, 
+            file: null, 
+            preview: prev[index].url, // Volta ao URL anterior (ou null)
+            previewWithWatermark: null,
+          };
           return newFotos;
         });
       }
     } catch (err) {
-      console.error('Upload error:', err);
+      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+      console.error('[ProdutoFotos] Upload error:', errorMessage, err);
       toast({
-        title: 'Upload falhou',
-        description:
-          'Ocorreu um erro ao enviar a imagem para o armazenamento. Verifique permissões e tente novamente.',
+        title: '❌ Erro no upload',
+        description: errorMessage,
         variant: 'destructive',
+        duration: 8000,
       });
+      // Reverter para estado anterior
       setter(prev => {
         const newFotos = [...prev];
-        newFotos[index] = { ...newFotos[index], isUploading: false, file: null, preview: prev[index].url };
+        newFotos[index] = { 
+          ...newFotos[index], 
+          isUploading: false, 
+          file: null, 
+          preview: prev[index].url,
+          previewWithWatermark: null,
+        };
         return newFotos;
       });
     }
@@ -460,7 +477,7 @@ export function ProdutoFotos({
                       </div>
                     )}
 
-                    {/* Botões de confirmação */}
+                    {/* Botões de confirmação - AZUL = selecionada (aguarda upload) */}
                     {isPending && !foto.isUploading && (
                       <div className="absolute inset-0 bg-background/60 flex items-center justify-center gap-2">
                         <Button
@@ -468,25 +485,28 @@ export function ProdutoFotos({
                           size="icon"
                           variant="outline"
                           onClick={() => handleCancelPreview(index, isHd)}
-                          className="h-12 w-12"
+                          className="h-12 w-12 border-destructive/50 hover:bg-destructive/10"
+                          title="Cancelar"
                         >
-                          <RotateCcw className="w-5 h-5" />
+                          <RotateCcw className="w-5 h-5 text-destructive" />
                         </Button>
+                        {/* Botão AZUL = foto selecionada, pronta para upload */}
                         <Button
                           type="button"
                           size="icon"
                           onClick={() => handleConfirmUpload(index, isHd)}
-                          className="h-12 w-12"
+                          className="h-12 w-12 bg-primary hover:bg-primary/90"
+                          title="Confirmar upload"
                         >
                           <Check className="w-5 h-5" />
                         </Button>
                       </div>
                     )}
 
-                    {/* Botão remover + indicador de sucesso */}
+                    {/* Botão remover + indicador de sucesso VERDE = guardada */}
                     {!isPending && !foto.isUploading && (
                       <>
-                        {/* Badge de sucesso verde */}
+                        {/* Badge de sucesso VERDE = foto guardada com sucesso no storage */}
                         {isUploaded && (
                           <div className="absolute bottom-2 right-2 flex items-center gap-1 bg-success text-success-foreground rounded-full px-2 py-0.5 text-xs font-medium shadow-md">
                             <Check className="w-3 h-3" />
@@ -499,6 +519,7 @@ export function ProdutoFotos({
                           variant="destructive"
                           className="absolute top-2 right-2 h-8 w-8"
                           onClick={() => handleRemoveFoto(index, isHd)}
+                          title="Remover foto"
                         >
                           <X className="w-4 h-4" />
                         </Button>
