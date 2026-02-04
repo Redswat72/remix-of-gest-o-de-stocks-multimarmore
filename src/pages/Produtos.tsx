@@ -33,6 +33,7 @@ import {
 } from '@/components/ui/table';
 import { useProdutos, useCreateProduto, useUpdateProduto, useDeleteProduto } from '@/hooks/useProdutos';
 import { useCreateMovimento } from '@/hooks/useMovimentos';
+import { useStockProduto } from '@/hooks/useStock';
 import { ProdutoForm } from '@/components/produtos/ProdutoForm';
 import { ProdutoCard } from '@/components/produtos/ProdutoCard';
 import { useAuth } from '@/hooks/useAuth';
@@ -73,6 +74,10 @@ export default function Produtos() {
   const updateMutation = useUpdateProduto();
   const deleteMutation = useDeleteProduto();
   const createMovimentoMutation = useCreateMovimento();
+  
+  // Obter parque atual do produto em edição
+  const { data: stockProdutoEdit = [] } = useStockProduto(editingProduto?.id);
+  const currentLocalId = stockProdutoEdit.length > 0 ? stockProdutoEdit[0].local.id : null;
   
   // Verificar se pode carregar fotos HD (admin ou superadmin)
   const canUploadHd = roles.includes('admin') || roles.includes('superadmin');
@@ -132,10 +137,50 @@ export default function Produtos() {
           foto4_hd_url: fotoHdUrls[3] || null,
           ...pargaFotosData,
         });
+
+        // Verificar se houve mudança de parque e criar movimento de transferência
+        const newLocalId = data.local_id || null;
+        const parqueMudou = currentLocalId !== newLocalId && (currentLocalId || newLocalId);
+        
+        if (parqueMudou && newLocalId) {
+          try {
+            if (currentLocalId) {
+              // Transferência de um parque para outro
+              await createMovimentoMutation.mutateAsync({
+                tipo: 'transferencia' as TipoMovimento,
+                tipo_documento: 'guia_transferencia' as TipoDocumento,
+                produto_id: editingProduto.id,
+                quantidade: 1,
+                local_origem_id: currentLocalId,
+                local_destino_id: newLocalId,
+                observacoes: 'Transferência automática via edição do produto',
+              });
+            } else {
+              // Entrada inicial (produto não tinha parque)
+              await createMovimentoMutation.mutateAsync({
+                tipo: 'entrada' as TipoMovimento,
+                tipo_documento: 'sem_documento' as TipoDocumento,
+                produto_id: editingProduto.id,
+                quantidade: 1,
+                local_destino_id: newLocalId,
+                observacoes: 'Entrada automática via edição do produto',
+              });
+            }
+          } catch (movErr: any) {
+            console.error('Erro ao criar movimento de transferência:', movErr);
+            toast({
+              title: 'Aviso',
+              description: 'Produto atualizado, mas não foi possível registar a transferência de parque. Registe o movimento manualmente.',
+              variant: 'destructive',
+            });
+          }
+        }
         
         toast({
           title: 'Produto atualizado',
-          description: `O produto ${data.idmm} foi atualizado com sucesso.`,
+          description: parqueMudou && newLocalId
+            ? `O produto ${data.idmm} foi atualizado e transferido para o novo parque.`
+            : `O produto ${data.idmm} foi atualizado com sucesso.`,
         });
       } else {
         // Criar produto com URLs das fotos
@@ -443,6 +488,7 @@ export default function Produtos() {
           </DialogHeader>
           <ProdutoForm
             produto={editingProduto}
+            currentLocalId={currentLocalId}
             onSubmit={handleSubmit}
             onCancel={() => { setIsFormOpen(false); setEditingProduto(null); }}
             isLoading={isSubmitting}
