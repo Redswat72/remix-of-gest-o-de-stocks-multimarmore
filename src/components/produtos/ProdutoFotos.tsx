@@ -276,6 +276,12 @@ export function ProdutoFotos({
       });
 
       if (result) {
+        // Obter o estado atual antes de atualizar para construir newUrls corretamente
+        const currentFotos = isHd ? fotosHd : fotos;
+        const newUrls = currentFotos.map((f, i) => 
+          i === index ? result.url : f.url
+        );
+        
         setter(prev => {
           const newFotos = [...prev];
           newFotos[index] = {
@@ -289,10 +295,7 @@ export function ProdutoFotos({
           return newFotos;
         });
         
-        // Notificar mudança
-        const newUrls = (isHd ? fotosHd : fotos).map((f, i) => 
-          i === index ? result.url : f.url
-        );
+        // Notificar mudança IMEDIATAMENTE com o URL correcto
         if (isHd) {
           onFotosHdChange(newUrls);
         } else {
