@@ -32,11 +32,12 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { useProdutos, useCreateProduto, useUpdateProduto, useDeleteProduto } from '@/hooks/useProdutos';
+import { useCreateMovimento } from '@/hooks/useMovimentos';
 import { ProdutoForm } from '@/components/produtos/ProdutoForm';
 import { ProdutoCard } from '@/components/produtos/ProdutoCard';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import type { Produto } from '@/types/database';
+import type { Produto, TipoMovimento, TipoDocumento } from '@/types/database';
 import type { PargaFotos } from '@/components/produtos/ChapaFormSection';
 
 interface Filters {
@@ -71,6 +72,7 @@ export default function Produtos() {
   const createMutation = useCreateProduto();
   const updateMutation = useUpdateProduto();
   const deleteMutation = useDeleteProduto();
+  const createMovimentoMutation = useCreateMovimento();
   
   // Verificar se pode carregar fotos HD (admin ou superadmin)
   const canUploadHd = roles.includes('admin') || roles.includes('superadmin');
@@ -137,7 +139,7 @@ export default function Produtos() {
         });
       } else {
         // Criar produto com URLs das fotos
-        await createMutation.mutateAsync({
+        const novoProduto = await createMutation.mutateAsync({
           ...data,
           foto1_url: fotoUrls[0] || null,
           foto2_url: fotoUrls[1] || null,
@@ -149,10 +151,34 @@ export default function Produtos() {
           foto4_hd_url: fotoHdUrls[3] || null,
           ...pargaFotosData,
         });
+
+        // Se foi selecionado um parque, criar movimento de entrada automático
+        if (data.local_id && novoProduto?.id) {
+          try {
+            await createMovimentoMutation.mutateAsync({
+              tipo: 'entrada' as TipoMovimento,
+              tipo_documento: 'sem_documento' as TipoDocumento,
+              produto_id: novoProduto.id,
+              quantidade: 1,
+              local_destino_id: data.local_id,
+              observacoes: 'Entrada automática na criação do produto',
+            });
+          } catch (movErr: any) {
+            console.error('Erro ao criar movimento de entrada:', movErr);
+            // Não impedir criação do produto se movimento falhar
+            toast({
+              title: 'Aviso',
+              description: 'Produto criado, mas não foi possível registar a entrada no parque. Registe o movimento manualmente.',
+              variant: 'destructive',
+            });
+          }
+        }
         
         toast({
           title: 'Produto criado',
-          description: `O produto ${data.idmm} foi criado com sucesso.`,
+          description: data.local_id 
+            ? `O produto ${data.idmm} foi criado e adicionado ao stock do parque.`
+            : `O produto ${data.idmm} foi criado com sucesso.`,
         });
       }
       
