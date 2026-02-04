@@ -101,6 +101,7 @@ type ProdutoFormData = z.infer<typeof produtoSchema>;
 
 interface ProdutoFormProps {
   produto?: Produto | null;
+  currentLocalId?: string | null; // ID do parque atual (derivado do stock)
   onSubmit: (
     data: ProdutoFormData, 
     fotoUrls: (string | null)[], 
@@ -123,7 +124,7 @@ const emptyPargaFotos: PargaFotos = {
   parga4_foto2_url: null,
 };
 
-export function ProdutoForm({ produto, onSubmit, onCancel, isLoading, canUploadHd = false }: ProdutoFormProps) {
+export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoading, canUploadHd = false }: ProdutoFormProps) {
   const [fotoUrls, setFotoUrls] = useState<(string | null)[]>([null, null, null, null]);
   const [fotoHdUrls, setFotoHdUrls] = useState<(string | null)[]>([null, null, null, null]);
   const [pargaFotos, setPargaFotos] = useState<PargaFotos>(emptyPargaFotos);
@@ -191,7 +192,7 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading, canUploadH
         tipo_pedra: produto.tipo_pedra || '',
         nome_comercial: produto.nome_comercial || '',
         forma: produto.forma || 'bloco',
-        local_id: null,
+        local_id: currentLocalId || null,
         linha: produto.linha || '',
         origem_bloco: produto.origem_bloco || '',
         acabamento: produto.acabamento || '',
@@ -255,7 +256,7 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading, canUploadH
         parga4_foto2_url: produto.parga4_foto2_url || null,
       });
     }
-  }, [produto, form]);
+  }, [produto, currentLocalId, form]);
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
@@ -329,43 +330,43 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading, canUploadH
           />
         </div>
 
-        {/* Parque - apenas para criação de novos produtos */}
-        {!produto && (
-          <FormField
-            control={form.control}
-            name="local_id"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className="flex items-center gap-2">
-                  <Warehouse className="h-4 w-4" />
-                  Parque MM
-                </FormLabel>
-                <Select
-                  onValueChange={(value) => field.onChange(value === '__none__' ? null : value)}
-                  value={field.value || '__none__'}
-                >
-                  <FormControl>
-                    <SelectTrigger className="touch-target">
-                      <SelectValue placeholder="Selecionar parque..." />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="__none__">— Sem parque (definir depois) —</SelectItem>
-                    {locais.map((local) => (
-                      <SelectItem key={local.id} value={local.id}>
-                        {local.codigo} - {local.nome}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <FormDescription>
-                  Ao selecionar um parque, será criada automaticamente uma entrada de stock.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
+        {/* Parque MM */}
+        <FormField
+          control={form.control}
+          name="local_id"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="flex items-center gap-2">
+                <Warehouse className="h-4 w-4" />
+                Parque MM
+              </FormLabel>
+              <Select
+                onValueChange={(value) => field.onChange(value === '__none__' ? null : value)}
+                value={field.value || '__none__'}
+              >
+                <FormControl>
+                  <SelectTrigger className="touch-target">
+                    <SelectValue placeholder="Selecionar parque..." />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="__none__">— Sem parque —</SelectItem>
+                  {locais.map((local) => (
+                    <SelectItem key={local.id} value={local.id}>
+                      {local.codigo} - {local.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <FormDescription>
+                {produto 
+                  ? 'Alterar o parque criará um movimento de transferência automático.'
+                  : 'Ao selecionar um parque, será criada automaticamente uma entrada de stock.'}
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         {/* Linha - posição interna no parque */}
         <FormField
