@@ -260,8 +260,13 @@ export function useUpdateProduto() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (_data, variables) => {
+      // Listagens
       queryClient.invalidateQueries({ queryKey: ['produtos'] });
+      // Ficha individual (ProdutoFicha usa queryKey ['produto', id])
+      if (variables?.id) {
+        queryClient.invalidateQueries({ queryKey: ['produto', variables.id] });
+      }
     },
   });
 }
