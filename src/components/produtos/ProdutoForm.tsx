@@ -181,16 +181,57 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading, canUploadH
   const forma = form.watch('forma');
   const idmm = form.watch('idmm');
 
-  // Carregar fotos existentes do produto
+  // Carregar dados existentes do produto quando disponível
   useEffect(() => {
     if (produto) {
+      // Reset do formulário com os valores do produto
+      const produtoWithPesoInner = produto as Produto & { peso_ton?: number | null };
+      form.reset({
+        idmm: produto.idmm || '',
+        tipo_pedra: produto.tipo_pedra || '',
+        nome_comercial: produto.nome_comercial || '',
+        forma: produto.forma || 'bloco',
+        local_id: null,
+        linha: produto.linha || '',
+        origem_bloco: produto.origem_bloco || '',
+        acabamento: produto.acabamento || '',
+        comprimento_cm: produto.comprimento_cm || null,
+        largura_cm: produto.largura_cm || null,
+        altura_cm: produto.altura_cm || null,
+        espessura_cm: produto.espessura_cm || null,
+        peso_ton: produtoWithPesoInner?.peso_ton || null,
+        latitude: produto.latitude || null,
+        longitude: produto.longitude || null,
+        observacoes: produto.observacoes || '',
+        parga1_nome: produto.parga1_nome || '',
+        parga1_quantidade: produto.parga1_quantidade || null,
+        parga1_comprimento_cm: produto.parga1_comprimento_cm || null,
+        parga1_altura_cm: produto.parga1_altura_cm || null,
+        parga1_espessura_cm: produto.parga1_espessura_cm || null,
+        parga2_nome: produto.parga2_nome || '',
+        parga2_quantidade: produto.parga2_quantidade || null,
+        parga2_comprimento_cm: produto.parga2_comprimento_cm || null,
+        parga2_altura_cm: produto.parga2_altura_cm || null,
+        parga2_espessura_cm: produto.parga2_espessura_cm || null,
+        parga3_nome: produto.parga3_nome || '',
+        parga3_quantidade: produto.parga3_quantidade || null,
+        parga3_comprimento_cm: produto.parga3_comprimento_cm || null,
+        parga3_altura_cm: produto.parga3_altura_cm || null,
+        parga3_espessura_cm: produto.parga3_espessura_cm || null,
+        parga4_nome: produto.parga4_nome || '',
+        parga4_quantidade: produto.parga4_quantidade || null,
+        parga4_comprimento_cm: produto.parga4_comprimento_cm || null,
+        parga4_altura_cm: produto.parga4_altura_cm || null,
+        parga4_espessura_cm: produto.parga4_espessura_cm || null,
+      });
+
+      // Carregar fotos
       setFotoUrls([
         produto.foto1_url || null,
         produto.foto2_url || null,
         produto.foto3_url || null,
         produto.foto4_url || null,
       ]);
-      // Carregar fotos HD se existirem
       const produtoWithHd = produto as Produto & {
         foto1_hd_url?: string | null;
         foto2_hd_url?: string | null;
@@ -203,7 +244,6 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading, canUploadH
         produtoWithHd.foto3_hd_url || null,
         produtoWithHd.foto4_hd_url || null,
       ]);
-      // Carregar fotos de pargas
       setPargaFotos({
         parga1_foto1_url: produto.parga1_foto1_url || null,
         parga1_foto2_url: produto.parga1_foto2_url || null,
@@ -215,7 +255,7 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading, canUploadH
         parga4_foto2_url: produto.parga4_foto2_url || null,
       });
     }
-  }, [produto]);
+  }, [produto, form]);
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
