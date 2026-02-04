@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { Loader2, MapPin, Warehouse } from 'lucide-react';
+import { Loader2, MapPin, Warehouse, Rows3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -33,6 +33,7 @@ const produtoBaseSchema = z.object({
   nome_comercial: z.string().max(100, 'Máximo 100 caracteres').optional(),
   forma: z.enum(['bloco', 'chapa', 'ladrilho'] as const),
   local_id: z.string().optional().nullable(),
+  linha: z.string().max(50, 'Máximo 50 caracteres').optional().nullable(),
   origem_bloco: z.string().max(100, 'Máximo 100 caracteres').optional(),
   acabamento: z.string().max(50, 'Máximo 50 caracteres').optional(),
   comprimento_cm: z.number().positive('Deve ser positivo').optional().nullable(),
@@ -142,6 +143,7 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading, canUploadH
       nome_comercial: produto?.nome_comercial || '',
       forma: produto?.forma || 'bloco',
       local_id: null, // Parque é só para criação
+      linha: produto?.linha || '',
       origem_bloco: produto?.origem_bloco || '',
       acabamento: produto?.acabamento || '',
       comprimento_cm: produto?.comprimento_cm || null,
@@ -324,6 +326,32 @@ export function ProdutoForm({ produto, onSubmit, onCancel, isLoading, canUploadH
             )}
           />
         )}
+
+        {/* Linha - posição interna no parque */}
+        <FormField
+          control={form.control}
+          name="linha"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel className="flex items-center gap-2">
+                <Rows3 className="h-4 w-4" />
+                Linha
+              </FormLabel>
+              <FormControl>
+                <Input
+                  {...field}
+                  value={field.value || ''}
+                  placeholder="Ex: A1, B2, C3"
+                  className="touch-target"
+                />
+              </FormControl>
+              <FormDescription>
+                Posição interna do produto no parque (opcional)
+              </FormDescription>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
