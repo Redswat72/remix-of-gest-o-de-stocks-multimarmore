@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { generateProductUrl } from '@/lib/qrCodeUtils';
+import { withSchemaSafeRetry } from '@/lib/postgrestSafeWrite';
 import type { Produto, ProdutoFormData, FormaProduto } from '@/types/database';
 
 interface UseProdutosOptions {
@@ -161,12 +161,18 @@ export function useCreateProduto() {
       );
 
       if (hasAnyFoto) {
-        const { data: updated, error: updateError } = await supabase
-          .from('produtos')
-          .update(fotosUpdate as any)
-          .eq('id', (data as any).id)
-          .select()
-          .single();
+        const { data: updated, error: updateError } = await withSchemaSafeRetry(
+          fotosUpdate,
+          async (safeData) => {
+            return await supabase
+              .from('produtos')
+              .update(safeData as any)
+              .eq('id', (data as any).id)
+              .select()
+              .single();
+          },
+          { maxRetries: 20 }
+        );
 
         if (updateError) throw updateError;
         return updated;
@@ -238,12 +244,18 @@ export function useUpdateProduto() {
   return useMutation({
     mutationFn: async ({ id, ...updateData }: UpdateProdutoData) => {
       // Cast para contornar a tipagem do Supabase Cloud (usamos BD externa)
-      const { data, error } = await supabase
-        .from('produtos')
-        .update(updateData as any)
-        .eq('id', id)
-        .select()
-        .single();
+      const { data, error } = await withSchemaSafeRetry(
+        updateData as Record<string, unknown>,
+        async (safeData) => {
+          return await supabase
+            .from('produtos')
+            .update(safeData as any)
+            .eq('id', id)
+            .select()
+            .single();
+        },
+        { maxRetries: 20 }
+      );
 
       if (error) throw error;
       return data;
