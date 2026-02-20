@@ -35,7 +35,7 @@ export interface ProdutoStockBaixo {
 }
 
 export function useDashboardStats() {
-  const { client: supabase } = useSupabaseEmpresa();
+  const supabase = useSupabaseEmpresa();
 
   return useQuery({
     queryKey: ['dashboard-stats-extended'],
@@ -113,7 +113,7 @@ export function useDashboardStats() {
 
 // Movimentos por dia (últimos 7 dias)
 export function useMovimentosSemana() {
-  const { client: supabase } = useSupabaseEmpresa();
+  const supabase = useSupabaseEmpresa();
 
   return useQuery({
     queryKey: ['movimentos-semana'],
@@ -154,7 +154,7 @@ export function useMovimentosSemana() {
 
 // Stock por local/parque
 export function useStockPorLocal() {
-  const { client: supabase } = useSupabaseEmpresa();
+  const supabase = useSupabaseEmpresa();
 
   return useQuery({
     queryKey: ['stock-por-local'],
@@ -198,7 +198,7 @@ export function useStockPorLocal() {
 
 // Produtos com stock baixo (menos de 5 unidades)
 export function useProdutosStockBaixo(limite: number = 5) {
-  const { client: supabase } = useSupabaseEmpresa();
+  const supabase = useSupabaseEmpresa();
 
   return useQuery({
     queryKey: ['produtos-stock-baixo', limite],
@@ -239,7 +239,7 @@ export function useProdutosStockBaixo(limite: number = 5) {
 
 // Movimentos por mês (últimos 6 meses)
 export function useMovimentosMensais() {
-  const { client: supabase } = useSupabaseEmpresa();
+  const supabase = useSupabaseEmpresa();
 
   return useQuery({
     queryKey: ['movimentos-mensais'],

@@ -11,7 +11,7 @@ interface UseProdutosOptions {
 }
 
 export function useProdutos(options: UseProdutosOptions = {}) {
-  const { client: supabase } = useSupabaseEmpresa();
+  const supabase = useSupabaseEmpresa();
   const { tipoPedra, forma, idmm, ativo = true } = options;
 
   return useQuery({
@@ -47,7 +47,7 @@ export function useProdutos(options: UseProdutosOptions = {}) {
 }
 
 export function useProduto(id?: string) {
-  const { client: supabase } = useSupabaseEmpresa();
+  const supabase = useSupabaseEmpresa();
 
   return useQuery({
     queryKey: ['produto', id],
@@ -108,7 +108,7 @@ interface CreateProdutoData extends ProdutoFormData {
 }
 
 export function useCreateProduto() {
-  const { client: supabase } = useSupabaseEmpresa();
+  const supabase = useSupabaseEmpresa();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -235,7 +235,7 @@ interface UpdateProdutoData {
 }
 
 export function useUpdateProduto() {
-  const { client: supabase } = useSupabaseEmpresa();
+  const supabase = useSupabaseEmpresa();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -266,7 +266,7 @@ export function useUpdateProduto() {
 }
 
 export function useDeleteProduto() {
-  const { client: supabase } = useSupabaseEmpresa();
+  const supabase = useSupabaseEmpresa();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -285,7 +285,7 @@ export function useDeleteProduto() {
 }
 
 export function useTiposPedra() {
-  const { client: supabase } = useSupabaseEmpresa();
+  const supabase = useSupabaseEmpresa();
 
   return useQuery({
     queryKey: ['tipos-pedra'],

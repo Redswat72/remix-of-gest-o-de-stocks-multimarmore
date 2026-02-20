@@ -26,7 +26,7 @@ export interface AuditoriaFilters {
 }
 
 export function useAuditoria(filters: AuditoriaFilters = {}) {
-  const { client: supabase } = useSupabaseEmpresa();
+  const supabase = useSupabaseEmpresa();
 
   return useQuery({
     queryKey: ['auditoria', filters],
@@ -61,7 +61,7 @@ export function useAuditoria(filters: AuditoriaFilters = {}) {
 }
 
 export function useAuditoriaTiposAcao() {
-  const { client: supabase } = useSupabaseEmpresa();
+  const supabase = useSupabaseEmpresa();
 
   return useQuery({
     queryKey: ['auditoria-tipos-acao'],
@@ -80,7 +80,7 @@ export function useAuditoriaTiposAcao() {
 }
 
 export function useAuditoriaUsers() {
-  const { client: supabase } = useSupabaseEmpresa();
+  const supabase = useSupabaseEmpresa();
 
   return useQuery({
     queryKey: ['auditoria-users'],

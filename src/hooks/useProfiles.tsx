@@ -11,7 +11,7 @@ interface UseProfilesOptions {
 }
 
 export function useProfiles(options: UseProfilesOptions = {}) {
-  const { client: supabase } = useSupabaseEmpresa();
+  const supabase = useSupabaseEmpresa();
   const { ativo } = options;
 
   return useQuery({
@@ -39,7 +39,7 @@ export function useProfiles(options: UseProfilesOptions = {}) {
 }
 
 export function useUpdateProfile() {
-  const { client: supabase } = useSupabaseEmpresa();
+  const supabase = useSupabaseEmpresa();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -71,7 +71,7 @@ export function useUpdateProfile() {
 }
 
 export function useUpdateUserRole() {
-  const { client: supabase } = useSupabaseEmpresa();
+  const supabase = useSupabaseEmpresa();
   const queryClient = useQueryClient();
 
   return useMutation({

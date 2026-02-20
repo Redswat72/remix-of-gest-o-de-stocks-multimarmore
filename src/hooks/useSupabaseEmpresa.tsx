@@ -11,9 +11,5 @@ export function useSupabaseEmpresa() {
     throw new Error('Nenhuma empresa selecionada. Selecione uma empresa primeiro.');
   }
 
-  return {
-    client: supabaseEmpresa,
-    empresa,
-    empresaConfig,
-  };
+  return supabaseEmpresa;
 }

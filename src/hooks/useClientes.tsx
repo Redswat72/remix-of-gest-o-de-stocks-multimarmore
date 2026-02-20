@@ -8,7 +8,7 @@ interface UseClientesOptions {
 }
 
 export function useClientes(options: UseClientesOptions = {}) {
-  const { client: supabase } = useSupabaseEmpresa();
+  const supabase = useSupabaseEmpresa();
   const { nome, ativo = true } = options;
 
   return useQuery({
@@ -36,7 +36,7 @@ export function useClientes(options: UseClientesOptions = {}) {
 }
 
 export function useCliente(id?: string) {
-  const { client: supabase } = useSupabaseEmpresa();
+  const supabase = useSupabaseEmpresa();
 
   return useQuery({
     queryKey: ['cliente', id],
@@ -57,7 +57,7 @@ export function useCliente(id?: string) {
 }
 
 export function useCreateCliente() {
-  const { client: supabase } = useSupabaseEmpresa();
+  const supabase = useSupabaseEmpresa();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -86,7 +86,7 @@ export function useCreateCliente() {
 }
 
 export function useUpdateCliente() {
-  const { client: supabase } = useSupabaseEmpresa();
+  const supabase = useSupabaseEmpresa();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -116,7 +116,7 @@ export function useUpdateCliente() {
 }
 
 export function useDeleteCliente() {
-  const { client: supabase } = useSupabaseEmpresa();
+  const supabase = useSupabaseEmpresa();
   const queryClient = useQueryClient();
 
   return useMutation({

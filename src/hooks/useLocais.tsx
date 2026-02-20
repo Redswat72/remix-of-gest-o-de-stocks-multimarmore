@@ -7,7 +7,7 @@ interface UseLocaisOptions {
 }
 
 export function useLocais(options: UseLocaisOptions = {}) {
-  const { client: supabase } = useSupabaseEmpresa();
+  const supabase = useSupabaseEmpresa();
   const { ativo } = options;
 
   return useQuery({
@@ -35,7 +35,7 @@ export function useLocaisAtivos() {
 }
 
 export function useLocal(id?: string) {
-  const { client: supabase } = useSupabaseEmpresa();
+  const supabase = useSupabaseEmpresa();
 
   return useQuery({
     queryKey: ['local', id],
@@ -56,7 +56,7 @@ export function useLocal(id?: string) {
 }
 
 export function useCreateLocal() {
-  const { client: supabase } = useSupabaseEmpresa();
+  const supabase = useSupabaseEmpresa();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -81,7 +81,7 @@ export function useCreateLocal() {
 }
 
 export function useUpdateLocal() {
-  const { client: supabase } = useSupabaseEmpresa();
+  const supabase = useSupabaseEmpresa();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -108,7 +108,7 @@ export function useUpdateLocal() {
 }
 
 export function useDeleteLocal() {
-  const { client: supabase } = useSupabaseEmpresa();
+  const supabase = useSupabaseEmpresa();
   const queryClient = useQueryClient();
 
   return useMutation({
