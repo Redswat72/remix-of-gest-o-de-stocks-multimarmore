@@ -111,6 +111,7 @@ export interface Produto {
   parga4_foto1_url: string | null;
   parga4_foto2_url: string | null;
   quantidade_total_chapas: number | null;
+  valorizacao: number | null;
 }
 
 export interface Stock {

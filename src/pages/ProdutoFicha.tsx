@@ -372,6 +372,36 @@ export default function ProdutoFicha() {
                 </>
               )}
 
+              {/* Valorização e Valor de Inventário - apenas para admin */}
+              {isAdmin && (produto as any).valorizacao && (
+                <>
+                  <Separator />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <span className="text-xs text-muted-foreground">Valorização</span>
+                      <p className="font-medium">
+                        {Number((produto as any).valorizacao).toFixed(2)} {produto.forma === 'bloco' ? '€/ton' : '€/m²'}
+                      </p>
+                    </div>
+                    <div>
+                      <span className="text-xs text-muted-foreground">Valor de Inventário</span>
+                      <p className="font-medium text-primary">
+                        {(() => {
+                          const val = Number((produto as any).valorizacao);
+                          if (produto.forma === 'bloco' && produto.peso_ton) {
+                            return (val * Number(produto.peso_ton)).toFixed(2) + ' €';
+                          }
+                          if (produto.area_m2) {
+                            return (val * Number(produto.area_m2)).toFixed(2) + ' €';
+                          }
+                          return '—';
+                        })()}
+                      </p>
+                    </div>
+                  </div>
+                </>
+              )}
+
               {/* Área e Volume */}
               {(produto.area_m2 || produto.volume_m3) && (
                 <>
