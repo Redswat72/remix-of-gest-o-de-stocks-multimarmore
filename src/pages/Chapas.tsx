@@ -9,10 +9,10 @@ import { useChapas } from "@/hooks/useChapas";
 import { Search } from "lucide-react";
 
 export default function Chapas() {
-  const [parqueFiltro, setParqueFiltro] = useState("");
+  const [parqueFiltro, setParqueFiltro] = useState("__all__");
   const [busca, setBusca] = useState("");
 
-  const { data: chapas, isLoading } = useChapas(parqueFiltro || undefined);
+  const { data: chapas, isLoading } = useChapas(parqueFiltro === "__all__" ? undefined : parqueFiltro);
 
   const chapasFiltradas = chapas?.filter((chapa) => {
     const searchLower = busca.toLowerCase();
@@ -69,7 +69,7 @@ export default function Chapas() {
                 <SelectValue placeholder="Filtrar por parque" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os parques</SelectItem>
+                <SelectItem value="__all__">Todos os parques</SelectItem>
                 <SelectItem value="MM Orlando Grey">MM Orlando Grey</SelectItem>
                 <SelectItem value="Plurirochas">Plurirochas</SelectItem>
                 <SelectItem value="MTX">MTX</SelectItem>

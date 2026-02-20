@@ -9,10 +9,10 @@ import { useBlocos } from "@/hooks/useBlocos";
 import { Search } from "lucide-react";
 
 export default function Blocos() {
-  const [parqueFiltro, setParqueFiltro] = useState("");
+  const [parqueFiltro, setParqueFiltro] = useState("__all__");
   const [busca, setBusca] = useState("");
 
-  const { data: blocos, isLoading } = useBlocos(parqueFiltro || undefined);
+  const { data: blocos, isLoading } = useBlocos(parqueFiltro === "__all__" ? undefined : parqueFiltro);
 
   const blocosFiltrados = blocos?.filter((bloco) => {
     const searchLower = busca.toLowerCase();
@@ -74,7 +74,7 @@ export default function Blocos() {
                 <SelectValue placeholder="Filtrar por parque" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Todos os parques</SelectItem>
+                <SelectItem value="__all__">Todos os parques</SelectItem>
                 <SelectItem value="MM">MM</SelectItem>
                 <SelectItem value="MOL">MOL</SelectItem>
                 <SelectItem value="Olival do Pires">Olival do Pires</SelectItem>
