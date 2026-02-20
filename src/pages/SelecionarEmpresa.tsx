@@ -49,16 +49,16 @@ export default function SelecionarEmpresa() {
               e.currentTarget.style.boxShadow = 'none';
             }}
           >
-            <div className="bg-white rounded-2xl p-4 flex items-center justify-center w-44 h-24 shrink-0">
+            <div className="bg-white rounded-2xl p-4 flex items-center justify-center w-36 h-20 shrink-0">
               <img
                 src={config.logo}
                 alt={config.nome}
-                className="max-h-16 max-w-[144px] w-auto h-auto object-contain"
+                className="max-h-12 max-w-[128px] w-auto h-auto object-contain"
               />
             </div>
             <div className="flex-1 min-w-0">
               <h2 className="text-white font-semibold text-xl">{config.nome}</h2>
-              <p className="text-gray-500 text-sm mt-1">Gestão de Stocks</p>
+              <p className="text-gray-500 text-sm mt-1 whitespace-nowrap">Gestão de Stocks</p>
             </div>
             <span className="text-gray-600 group-hover:text-white text-xl ml-auto transition-colors duration-300">
               →
