@@ -297,6 +297,7 @@ export type Database = {
           quantidade_total_chapas: number | null
           tipo_pedra: string
           updated_at: string
+          valorizacao: number | null
           variedade: string | null
           volume_m3: number | null
         }
@@ -360,6 +361,7 @@ export type Database = {
           quantidade_total_chapas?: number | null
           tipo_pedra: string
           updated_at?: string
+          valorizacao?: number | null
           variedade?: string | null
           volume_m3?: number | null
         }
@@ -423,6 +425,7 @@ export type Database = {
           quantidade_total_chapas?: number | null
           tipo_pedra?: string
           updated_at?: string
+          valorizacao?: number | null
           variedade?: string | null
           volume_m3?: number | null
         }

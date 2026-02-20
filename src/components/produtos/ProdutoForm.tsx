@@ -42,6 +42,7 @@ const produtoBaseSchema = z.object({
   altura_cm: z.number().positive('Deve ser positivo').optional().nullable(),
   espessura_cm: z.number().positive('Deve ser positivo').optional().nullable(),
   peso_ton: z.number().positive('Deve ser positivo').optional().nullable(),
+  valorizacao: z.number().positive('Deve ser positivo').optional().nullable(),
   latitude: z.number().min(-90).max(90).optional().nullable(),
   longitude: z.number().min(-180).max(180).optional().nullable(),
   observacoes: z.string().max(500, 'Máximo 500 caracteres').optional(),
@@ -76,6 +77,17 @@ const produtoSchema = produtoBaseSchema.superRefine((data, ctx) => {
         code: z.ZodIssueCode.custom,
         message: 'Peso em toneladas é obrigatório para blocos',
         path: ['peso_ton'],
+      });
+    }
+  }
+  
+  // Valorização obrigatória para blocos, chapas e ladrilhos
+  if (['bloco', 'chapa', 'ladrilho'].includes(data.forma)) {
+    if (data.valorizacao === null || data.valorizacao === undefined || data.valorizacao <= 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Valorização é obrigatória',
+        path: ['valorizacao'],
       });
     }
   }
@@ -154,6 +166,7 @@ export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoa
       altura_cm: produto?.altura_cm || null,
       espessura_cm: produto?.espessura_cm || null,
       peso_ton: produtoWithPeso?.peso_ton || null,
+      valorizacao: (produto as any)?.valorizacao || null,
       latitude: produto?.latitude || null,
       longitude: produto?.longitude || null,
       observacoes: produto?.observacoes || '',
@@ -203,6 +216,7 @@ export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoa
         altura_cm: produto.altura_cm || null,
         espessura_cm: produto.espessura_cm || null,
         peso_ton: produtoWithPesoInner?.peso_ton || null,
+        valorizacao: (produto as any)?.valorizacao || null,
         latitude: produto.latitude || null,
         longitude: produto.longitude || null,
         observacoes: produto.observacoes || '',
@@ -590,6 +604,34 @@ export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoa
             </div>
           </>
         )}
+
+        {/* Valorização - para blocos, chapas e ladrilhos */}
+        <div>
+          <FormField
+            control={form.control}
+            name="valorizacao"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>
+                  Valorização ({forma === 'bloco' ? '€/ton' : '€/m²'}) *
+                </FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    inputMode="decimal"
+                    {...field}
+                    value={field.value ?? ''}
+                    onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
+                    placeholder="0.00"
+                    className="touch-target max-w-[200px]"
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         {/* GPS */}
         <div className="space-y-4">

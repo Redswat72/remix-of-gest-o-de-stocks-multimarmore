@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
+import { useAuth } from '@/hooks/useAuth';
 import { 
   MapPin, 
   Package, 
@@ -69,6 +70,7 @@ export function ProdutoDetalhe({
 }: ProdutoDetalheProps) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const { isAdmin } = useAuth();
   const [partilhaOpen, setPartilhaOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [signedUrls, setSignedUrls] = useState<FotoHdMetadata[]>([]);
@@ -317,6 +319,33 @@ export function ProdutoDetalhe({
               </div>
             )}
           </div>
+
+          {/* Valorização e Valor de Inventário - admin only */}
+          {isAdmin && (produto as any).valorizacao && (
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="text-muted-foreground">Valorização</span>
+                <p className="font-medium">
+                  {Number((produto as any).valorizacao).toFixed(2)} {produto.forma === 'bloco' ? '€/ton' : '€/m²'}
+                </p>
+              </div>
+              <div>
+                <span className="text-muted-foreground">Valor Inventário</span>
+                <p className="font-medium text-primary">
+                  {(() => {
+                    const val = Number((produto as any).valorizacao);
+                    if (produto.forma === 'bloco' && produto.peso_ton) {
+                      return (val * Number(produto.peso_ton)).toFixed(2) + ' €';
+                    }
+                    if (produto.area_m2) {
+                      return (val * Number(produto.area_m2)).toFixed(2) + ' €';
+                    }
+                    return '—';
+                  })()}
+                </p>
+              </div>
+            </div>
+          )}
 
           {produto.observacoes && (
             <>

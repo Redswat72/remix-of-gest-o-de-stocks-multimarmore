@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Search, Filter, Download, Package, AlertTriangle, XCircle, ChevronDown, ChevronUp, Weight } from 'lucide-react';
 import { useEmpresa } from '@/context/EmpresaContext';
+import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -21,6 +22,7 @@ type SortOrder = 'asc' | 'desc';
 
 export default function Stock() {
   const { empresaConfig } = useEmpresa();
+  const { isAdmin } = useAuth();
   const [searchIdmm, setSearchIdmm] = useState('');
   const [tipoPedraFilter, setTipoPedraFilter] = useState<string>('');
   const [formaFilter, setFormaFilter] = useState<string>('');
@@ -118,31 +120,44 @@ export default function Stock() {
     if (!stockFiltrado) return;
 
     const exportData = stockFiltrado.flatMap(item => {
-      if (item.stockPorLocal.length === 0) {
-        return [{
+      const baseRow = (s: { local: { codigo: string; nome: string }; quantidade: number } | null) => {
+        const row: Record<string, unknown> = {
           [empresaConfig?.idPrefix ?? 'IDMM']: item.produto.idmm,
           'Tipo de Pedra': item.produto.tipo_pedra,
           'Nome Comercial': item.produto.nome_comercial || '-',
-          [`Parque ${empresaConfig?.idPrefix ?? 'MM'}`]: '-',
+          [`Parque ${empresaConfig?.idPrefix ?? 'MM'}`]: s?.local.codigo ?? '-',
           Forma: item.produto.forma,
           'Peso (ton)': item.produto.forma === 'bloco' ? (item.produto.peso_ton || '-') : '-',
-          Parque: '-',
-          Quantidade: 0,
+          Parque: s?.local.nome ?? '-',
+          Quantidade: s?.quantidade ?? 0,
           'Stock Total': item.stockTotal,
-        }];
+        };
+
+        if (isAdmin) {
+          const valorizacao = (item.produto as any).valorizacao;
+          row['Valorização'] = valorizacao ? Number(valorizacao).toFixed(2) : '-';
+          if (valorizacao) {
+            const val = Number(valorizacao);
+            if (item.produto.forma === 'bloco' && item.produto.peso_ton) {
+              row['Valor Inventário (€)'] = (val * Number(item.produto.peso_ton)).toFixed(2);
+            } else if (item.produto.area_m2) {
+              row['Valor Inventário (€)'] = (val * Number(item.produto.area_m2)).toFixed(2);
+            } else {
+              row['Valor Inventário (€)'] = '-';
+            }
+          } else {
+            row['Valor Inventário (€)'] = '-';
+          }
+        }
+
+        return row;
+      };
+
+      if (item.stockPorLocal.length === 0) {
+        return [baseRow(null)];
       }
 
-      return item.stockPorLocal.map(s => ({
-        [empresaConfig?.idPrefix ?? 'IDMM']: item.produto.idmm,
-        'Tipo de Pedra': item.produto.tipo_pedra,
-        'Nome Comercial': item.produto.nome_comercial || '-',
-        [`Parque ${empresaConfig?.idPrefix ?? 'MM'}`]: s.local.codigo,
-        Forma: item.produto.forma,
-        'Peso (ton)': item.produto.forma === 'bloco' ? (item.produto.peso_ton || '-') : '-',
-        Parque: s.local.nome,
-        Quantidade: s.quantidade,
-        'Stock Total': item.stockTotal,
-      }));
+      return item.stockPorLocal.map(s => baseRow(s));
     });
 
     exportToExcel(exportData, `stock-${empresaConfig?.id ?? 'empresa'}`);
