@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
 
 // Tipo de nomeação automática
 type NamingType = 
@@ -30,20 +30,16 @@ function generateFileName(naming: NamingType): string {
   const timestamp = Date.now();
   
   if (naming.type === 'avatar') {
-    // avatar_{userId}_{timestamp}.jpg
     return `avatar_${naming.userId}_${timestamp}.jpg`;
   } else if (naming.type === 'produto') {
-    // produto_{idmm}_{slot}_{timestamp}.jpg
     const cleanIdmm = naming.idmm.replace(/[^a-zA-Z0-9-_]/g, '_');
     return `produto_${cleanIdmm}_${naming.slot}_${timestamp}.jpg`;
   } else {
-    // produto_hd_{idmm}_{slot}_{timestamp}.jpg
     const cleanIdmm = naming.idmm.replace(/[^a-zA-Z0-9-_]/g, '_');
     return `produto_hd_${cleanIdmm}_${naming.slot}_${timestamp}.jpg`;
   }
 }
 
-// Corrigir orientação da imagem (EXIF)
 async function fixImageOrientation(file: File): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -55,23 +51,13 @@ async function fixImageOrientation(file: File): Promise<Blob> {
         const canvas = document.createElement('canvas');
         canvas.width = img.width;
         canvas.height = img.height;
-        
         const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          reject(new Error('Erro ao criar contexto do canvas'));
-          return;
-        }
-        
+        if (!ctx) { reject(new Error('Erro ao criar contexto do canvas')); return; }
         ctx.drawImage(img, 0, 0);
-        
-        // Converter para blob original (PNG para máxima qualidade)
         canvas.toBlob(
-          (blob) => {
-            if (blob) resolve(blob);
-            else reject(new Error('Erro ao processar imagem'));
-          },
+          (blob) => { if (blob) resolve(blob); else reject(new Error('Erro ao processar imagem')); },
           'image/jpeg',
-          1.0 // Máxima qualidade para HD
+          1.0
         );
       };
       img.onerror = () => reject(new Error('Erro ao carregar imagem'));
@@ -80,13 +66,7 @@ async function fixImageOrientation(file: File): Promise<Blob> {
   });
 }
 
-// Compressão de imagem usando canvas (para fotos operacionais)
-async function compressImage(
-  file: File,
-  maxWidth: number,
-  maxHeight: number,
-  quality: number
-): Promise<Blob> {
+async function compressImage(file: File, maxWidth: number, maxHeight: number, quality: number): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(file);
@@ -97,35 +77,17 @@ async function compressImage(
         const canvas = document.createElement('canvas');
         let width = img.width;
         let height = img.height;
-
-        // Calcular novas dimensões mantendo proporção (lado maior até maxWidth/maxHeight)
         const ratio = Math.min(maxWidth / width, maxHeight / height);
-        if (ratio < 1) {
-          width = Math.round(width * ratio);
-          height = Math.round(height * ratio);
-        }
-
+        if (ratio < 1) { width = Math.round(width * ratio); height = Math.round(height * ratio); }
         canvas.width = width;
         canvas.height = height;
-
         const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          reject(new Error('Erro ao criar contexto do canvas'));
-          return;
-        }
-
-        // Melhorar qualidade de renderização
+        if (!ctx) { reject(new Error('Erro ao criar contexto do canvas')); return; }
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
-        
         ctx.drawImage(img, 0, 0, width, height);
-        
-        // Converter para JPEG com qualidade especificada
         canvas.toBlob(
-          (blob) => {
-            if (blob) resolve(blob);
-            else reject(new Error('Erro ao comprimir imagem'));
-          },
+          (blob) => { if (blob) resolve(blob); else reject(new Error('Erro ao comprimir imagem')); },
           'image/jpeg',
           quality
         );
@@ -137,6 +99,7 @@ async function compressImage(
 }
 
 export function useImageUpload() {
+  const supabase = useSupabaseEmpresa();
   const [isUploading, setIsUploading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
@@ -160,7 +123,6 @@ export function useImageUpload() {
     setError(null);
 
     try {
-      // Validar tipo de ficheiro
       if (!file.type.startsWith('image/')) {
         throw new Error('Por favor, selecione um ficheiro de imagem');
       }
@@ -170,20 +132,13 @@ export function useImageUpload() {
       let imageBlob: Blob;
 
       if (imageMode === 'hd') {
-        // HD: Apenas corrigir orientação, sem compressão destrutiva
         imageBlob = await fixImageOrientation(file);
-        
-        // Verificar tamanho máximo para HD (20MB)
         if (imageBlob.size > 20 * 1024 * 1024) {
           throw new Error('Imagem HD demasiado grande. Máximo permitido: 20MB');
         }
       } else {
-        // Operacional: Comprimir e redimensionar
         imageBlob = await compressImage(file, maxWidth, maxHeight, jpegQuality);
-
-        // Verificar tamanho após compressão
         if (imageBlob.size > maxSizeKB * 1024 * 2) {
-          // Tentar novamente com qualidade menor
           imageBlob = await compressImage(file, maxWidth, maxHeight, jpegQuality * 0.7);
           if (imageBlob.size > maxSizeKB * 1024 * 3) {
             throw new Error(`Imagem demasiado grande após compressão`);
@@ -193,13 +148,11 @@ export function useImageUpload() {
 
       setProgress(50);
 
-      // Gerar nome único conforme regras
       const fileName = generateFileName(naming);
       const filePath = fileName;
 
       setProgress(70);
 
-      // Fazer upload SEM upsert para não sobrescrever
       const { data, error: uploadError } = await supabase.storage
         .from(bucket)
         .upload(filePath, imageBlob, {
@@ -208,7 +161,6 @@ export function useImageUpload() {
         });
 
       if (uploadError) {
-        // Log detalhado para diagnóstico
         console.error('[useImageUpload] Upload error:', {
           message: uploadError.message,
           name: uploadError.name,
@@ -217,7 +169,6 @@ export function useImageUpload() {
           error: uploadError,
         });
         
-        // Verificar se o erro é de bucket inexistente ou permissões
         const isBucketError = 
           uploadError.message.includes('Bucket not found') ||
           uploadError.message.includes('bucket') ||
@@ -233,7 +184,6 @@ export function useImageUpload() {
           );
         }
         
-        // Se já existir, gerar novo nome com sufixo aleatório
         if (uploadError.message.includes('already exists') || uploadError.message.includes('Duplicate')) {
           const newFileName = fileName.replace('.jpg', `_${Math.random().toString(36).substring(2, 6)}.jpg`);
           const retryResult = await supabase.storage
@@ -266,7 +216,6 @@ export function useImageUpload() {
 
       setProgress(90);
 
-      // Obter URL pública
       const { data: urlData } = supabase.storage
         .from(bucket)
         .getPublicUrl(data.path);

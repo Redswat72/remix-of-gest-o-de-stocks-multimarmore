@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase-external';
+import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
 import { useAuth } from './useAuth';
 import * as XLSX from 'xlsx';
 import type { FormaProduto, OrigemMaterial } from '@/types/database';
@@ -609,6 +609,7 @@ function parseLadrilhos(
 
 // ===================== HOOK PARSE EXCEL =====================
 export function useParseExcel() {
+  const supabase = useSupabaseEmpresa();
   const [linhas, setLinhas] = useState<LinhaExcel[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
@@ -630,7 +631,7 @@ export function useParseExcel() {
       if (produtosRes.error) throw new Error('Erro ao carregar produtos');
 
       const locais = locaisRes.data as Local[];
-      const produtosExistentes = new Map(produtosRes.data.map(p => [p.idmm.toLowerCase(), p.id]));
+      const produtosExistentes = new Map<string, string>(produtosRes.data.map((p: any) => [p.idmm.toLowerCase(), p.id]));
 
       const buffer = await file.arrayBuffer();
       const workbook = XLSX.read(buffer, { type: 'array' });
@@ -684,6 +685,7 @@ export function useParseExcel() {
 
 // ===================== HOOK EXECUTAR IMPORTAÇÃO =====================
 export function useExecutarImportacao() {
+  const supabase = useSupabaseEmpresa();
   const queryClient = useQueryClient();
   const { user, isSuperadmin } = useAuth();
 
