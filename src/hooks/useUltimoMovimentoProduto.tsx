@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
 import type { MovimentoComDetalhes } from '@/hooks/useMovimentos';
 
 /**
@@ -7,6 +7,8 @@ import type { MovimentoComDetalhes } from '@/hooks/useMovimentos';
  * Usado para preencher campos na ficha: Data, Parque_MM, Origem_material.
  */
 export function useUltimoMovimentoProduto(produtoId?: string) {
+  const supabase = useSupabaseEmpresa();
+
   return useQuery({
     queryKey: ['ultimo-movimento-produto', produtoId],
     enabled: !!produtoId,

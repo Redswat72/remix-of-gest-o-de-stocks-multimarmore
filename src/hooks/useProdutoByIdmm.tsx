@@ -1,8 +1,10 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
 import type { Produto } from '@/types/database';
 
 export function useProdutoByIdmm(idmm?: string) {
+  const supabase = useSupabaseEmpresa();
+
   return useQuery({
     queryKey: ['produto-idmm', idmm],
     queryFn: async () => {
@@ -16,7 +18,6 @@ export function useProdutoByIdmm(idmm?: string) {
 
       if (error) {
         if (error.code === 'PGRST116') {
-          // Produto não encontrado
           return null;
         }
         throw error;
