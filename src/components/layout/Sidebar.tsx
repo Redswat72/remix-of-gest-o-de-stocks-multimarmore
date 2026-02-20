@@ -66,13 +66,13 @@ export function Sidebar() {
         {!collapsed && (
           <button
             onClick={() => navigate('/selecionar-empresa')}
-            className="flex items-center gap-2 hover:opacity-80 transition-opacity overflow-hidden"
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity min-w-0"
             title="Trocar empresa"
           >
             <img
               src={empresaConfig?.logo}
-              alt={empresaConfig?.nome ?? 'Empresa'}
-              className="h-8 w-auto object-contain brightness-0 invert"
+              alt={empresaConfig?.nome}
+              className="h-8 w-auto object-contain max-w-[140px]"
             />
           </button>
         )}
