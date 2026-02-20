@@ -4,11 +4,17 @@ import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLadrilho } from "@/hooks/useLadrilho";
+import { useSupabaseEmpresa } from "@/hooks/useSupabaseEmpresa";
+import { useEmpresa } from "@/context/EmpresaContext";
+import { ExportExcelButton } from "@/components/ExportExcelButton";
+import { exportLadrilhos } from "@/utils/exportExcel";
 import { Search } from "lucide-react";
 
 export default function Ladrilho() {
   const [busca, setBusca] = useState("");
   const { data: ladrilhos, isLoading } = useLadrilho();
+  const supabase = useSupabaseEmpresa();
+  const { empresaConfig } = useEmpresa();
 
   const ladrilhosFiltrados = ladrilhos?.filter((ladrilho) => {
     const searchLower = busca.toLowerCase();
@@ -42,9 +48,12 @@ export default function Ladrilho() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Ladrilho</h1>
-        <p className="text-muted-foreground">Gestão de ladrilho</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Ladrilho</h1>
+          <p className="text-muted-foreground">Gestão de ladrilho</p>
+        </div>
+        <ExportExcelButton onExport={() => exportLadrilhos(supabase, { empresaNome: empresaConfig!.nome, corHeader: empresaConfig!.cor })} />
       </div>
 
       {/* FILTROS */}
