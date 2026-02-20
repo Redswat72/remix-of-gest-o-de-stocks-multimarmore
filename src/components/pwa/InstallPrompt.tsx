@@ -3,9 +3,11 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { usePWA } from '@/hooks/usePWA';
+import { useEmpresa } from '@/context/EmpresaContext';
 
 export function InstallPrompt() {
   const { isInstallable, isInstalled, installApp, isIOS } = usePWA();
+  const { empresaConfig } = useEmpresa();
   const [dismissed, setDismissed] = useState(false);
   const [showIOSInstructions, setShowIOSInstructions] = useState(false);
 
@@ -47,7 +49,7 @@ export function InstallPrompt() {
                 <Download className="h-5 w-5 text-primary" />
               </div>
               <div className="flex-1 min-w-0">
-                <h4 className="font-semibold text-sm">Instalar Multimármore</h4>
+                <h4 className="font-semibold text-sm">Instalar {empresaConfig?.nome ?? 'App'}</h4>
                 <p className="text-xs text-muted-foreground mt-1">
                   Adicione à tela inicial para acesso rápido
                 </p>
@@ -134,7 +136,7 @@ export function InstallPrompt() {
             <Download className="h-5 w-5 text-primary" />
           </div>
           <div className="flex-1 min-w-0">
-            <h4 className="font-semibold text-sm">Instalar Multimármore</h4>
+            <h4 className="font-semibold text-sm">Instalar {empresaConfig?.nome ?? 'App'}</h4>
             <p className="text-xs text-muted-foreground mt-1">
               Acesso rápido e funciona offline
             </p>

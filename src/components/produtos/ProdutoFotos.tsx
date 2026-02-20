@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Camera, ImagePlus, X, Check, RotateCcw, Loader2, Image, Sparkles } from 'lucide-react';
+import { useEmpresa } from '@/context/EmpresaContext';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
@@ -48,7 +49,9 @@ const HD_SLOTS_CONFIG: Record<FormaProduto, { count: number; labels: string[] }>
 async function applyWatermark(
   imageDataUrl: string,
   idmm: string,
-  lado: string
+  lado: string,
+  empresaNome: string,
+  idPrefix: string
 ): Promise<string> {
   return new Promise((resolve, reject) => {
     const img = new window.Image();
@@ -67,7 +70,7 @@ async function applyWatermark(
       ctx.drawImage(img, 0, 0);
       
       // Configurar watermark
-      const watermarkText = `MULTIMÁRMORE • IDMM: ${idmm} • ${lado}`;
+      const watermarkText = `${empresaNome} • ${idPrefix}: ${idmm} • ${lado}`;
       const fontSize = Math.max(16, Math.min(img.width * 0.02, 48));
       
       ctx.font = `bold ${fontSize}px system-ui, -apple-system, sans-serif`;
@@ -135,6 +138,9 @@ export function ProdutoFotos({
   canUploadHd,
 }: ProdutoFotosProps) {
   const [activeTab, setActiveTab] = useState<'operacionais' | 'hd'>('operacionais');
+  const { empresaConfig } = useEmpresa();
+  const empresaNome = empresaConfig?.nome?.toUpperCase() ?? 'EMPRESA';
+  const idPrefix = empresaConfig?.idPrefix ?? 'ID';
   const { toast } = useToast();
   
   // Configuração baseada na forma
@@ -202,7 +208,7 @@ export function ProdutoFotos({
       const currentIdmm = idmm || 'NOVO';
       
       try {
-        const previewWithWatermark = await applyWatermark(originalPreview, currentIdmm, lado);
+        const previewWithWatermark = await applyWatermark(originalPreview, currentIdmm, lado, empresaNome, idPrefix);
         setter(prev => {
           const newFotos = [...prev];
           newFotos[index] = {
@@ -628,7 +634,7 @@ export function ProdutoFotos({
                   Sem compressão, preserva cores e detalhes da pedra.
                 </p>
                 <p className="text-xs text-muted-foreground/70">
-                  💧 Watermark discreto aplicado automaticamente (MULTIMÁRMORE • IDMM • Lado)
+                  💧 Watermark discreto aplicado automaticamente ({empresaNome} • {idPrefix} • Lado)
                 </p>
               </div>
               {renderFotoGrid(fotosHd, true, maxFotosHd, hdConfig.labels)}
