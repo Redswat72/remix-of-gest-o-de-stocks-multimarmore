@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
+import { useEmpresa } from '@/context/EmpresaContext';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,12 +14,12 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import logoMultimarmore from '@/assets/logo-multimarmore.png';
 import { Link } from 'react-router-dom';
 
 export function Header() {
   const { profile, roles, signOut, userLocal } = useAuth();
   const { theme, setTheme, resolvedTheme } = useTheme();
+  const { empresaConfig } = useEmpresa();
 
   const getInitials = (nome: string) => {
     return nome
@@ -47,8 +48,8 @@ export function Header() {
       <div className="flex items-center gap-2 lg:hidden">
         <Link to="/">
           <img 
-            src={logoMultimarmore} 
-            alt="Multimármore" 
+            src={empresaConfig?.logo} 
+            alt={empresaConfig?.nome ?? 'Empresa'} 
             className="h-9 w-auto object-contain"
           />
         </Link>
