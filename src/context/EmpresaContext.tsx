@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { SupabaseClient, Session, User } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabase-external';
 import { supabaseMagratex } from '@/lib/supabase-magratex';
 import logoMultimarmore from '@/assets/logo-multimarmore.png';
 import logoMagratex from '@/assets/logo-magratex.png';
