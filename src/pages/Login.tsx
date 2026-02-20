@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Navigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useEmpresa } from '@/context/EmpresaContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -12,6 +13,8 @@ import logoMultimarmore from '@/assets/logo-multimarmore.png';
 
 export default function Login() {
   const { user, loading, signIn, signUp } = useAuth();
+  const { empresaConfig } = useEmpresa();
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -97,6 +100,23 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
         {/* Logo */}
+        <div className="flex items-center justify-center mb-4">
+          <div
+            className="w-8 h-8 rounded-md flex items-center justify-center text-white font-bold text-sm mr-2"
+            style={{ backgroundColor: empresaConfig?.cor ?? '#888' }}
+          >
+            {empresaConfig?.nome?.substring(0, 2).toUpperCase() ?? '??'}
+          </div>
+          <span className="font-semibold text-foreground">{empresaConfig?.nome ?? 'Empresa'}</span>
+          <button
+            type="button"
+            onClick={() => navigate('/selecionar-empresa')}
+            className="ml-2 text-muted-foreground hover:text-foreground underline text-xs"
+          >
+            Trocar
+          </button>
+        </div>
+
         <div className="flex flex-col items-center mb-8">
           <img 
             src={logoMultimarmore} 
