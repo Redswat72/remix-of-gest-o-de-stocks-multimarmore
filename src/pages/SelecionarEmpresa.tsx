@@ -10,73 +10,74 @@ export default function SelecionarEmpresa() {
     navigate('/login');
   }
 
-  return (
-    <div className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden"
-      style={{ background: 'radial-gradient(ellipse at 50% 40%, #111827 0%, #000000 70%)' }}
-    >
-      {/* Background blobs */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute w-[500px] h-[500px] rounded-full opacity-[0.07]"
-          style={{ background: '#1a56db', filter: 'blur(120px)', top: '-10%', left: '-10%' }} />
-        <div className="absolute w-[400px] h-[400px] rounded-full opacity-[0.06]"
-          style={{ background: '#057a55', filter: 'blur(100px)', bottom: '-5%', right: '-8%' }} />
-        <div className="absolute w-[300px] h-[300px] rounded-full opacity-[0.05]"
-          style={{ background: '#1e40af', filter: 'blur(90px)', top: '60%', left: '50%' }} />
-        <div className="absolute w-[250px] h-[250px] rounded-full opacity-[0.04]"
-          style={{ background: '#065f46', filter: 'blur(80px)', top: '10%', right: '20%' }} />
-      </div>
+  const configs = Object.values(EMPRESAS_CONFIG);
 
-      {/* Content */}
-      <div className="relative z-10 flex flex-col items-center w-[90%] max-w-[480px] animate-fade-in">
-        <h1 className="text-xs font-light tracking-[0.35em] uppercase mb-2"
-          style={{ color: '#9ca3af' }}>
+  return (
+    <div
+      className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden px-4"
+      style={{ background: 'radial-gradient(ellipse 80% 50% at 50% 40%, rgba(30,40,60,0.8) 0%, #030712 100%)' }}
+    >
+      {/* Header */}
+      <div className="text-center mb-16">
+        <h1 className="tracking-[0.3em] text-xs text-gray-400 uppercase font-light">
           Grupo Empresarial
         </h1>
-        <p className="text-sm mb-12" style={{ color: '#4b5563' }}>
+        <p className="text-gray-600 text-sm mt-2">
           Seleciona a tua empresa para continuar
         </p>
+      </div>
 
-        <div className="flex flex-col gap-4 w-full">
-          {Object.values(EMPRESAS_CONFIG).map((config) => (
-            <button
-              key={config.id}
-              onClick={() => handleSelect(config.id)}
-              className="group w-full h-[120px] flex items-center rounded-2xl transition-all duration-[250ms] ease-out"
-              style={{
-                background: '#0f1117',
-                border: '1px solid #1f2937',
-              }}
-              onMouseEnter={e => {
-                e.currentTarget.style.borderColor = config.cor;
-                e.currentTarget.style.boxShadow = `0 0 24px ${config.cor}66`;
-              }}
-              onMouseLeave={e => {
-                e.currentTarget.style.borderColor = '#1f2937';
-                e.currentTarget.style.boxShadow = 'none';
-              }}
-            >
-              <div className="flex items-center justify-center px-6 shrink-0" style={{ width: '200px' }}>
-                <img
-                  src={config.logo}
-                  alt={config.nome}
-                  className="object-contain"
-                  style={{ maxHeight: '52px', maxWidth: '180px', height: '52px' }}
-                />
-              </div>
-              <div className="h-12 w-px shrink-0" style={{ background: '#1f2937' }} />
-              <div className="flex flex-col justify-center px-6 text-left">
-                <span className="text-white font-semibold text-base">{config.nome}</span>
-                <span className="text-sm mt-0.5" style={{ color: '#6b7280' }}>Gestão de Stocks</span>
-              </div>
-            </button>
-          ))}
-        </div>
+      {/* Cards */}
+      <div className="flex flex-col md:flex-row gap-5 w-full max-w-3xl">
+        {configs.map((config, i) => (
+          <button
+            key={config.id}
+            onClick={() => handleSelect(config.id)}
+            className="group flex-1 p-8 rounded-2xl cursor-pointer flex items-center gap-6 text-left transition-all duration-300"
+            style={{
+              background: '#0a0f1a',
+              border: '1px solid #1a2235',
+              opacity: 0,
+              animation: `slideUp 0.5s ease-out ${i * 0.12}s forwards`,
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.borderColor = config.cor;
+              e.currentTarget.style.boxShadow = `0 0 30px ${config.cor}26`;
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.borderColor = '#1a2235';
+              e.currentTarget.style.boxShadow = 'none';
+            }}
+          >
+            <div className="bg-white rounded-2xl p-4 flex items-center justify-center w-44 h-24 shrink-0">
+              <img
+                src={config.logo}
+                alt={config.nome}
+                className="max-h-16 max-w-[144px] w-auto h-auto object-contain"
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-white font-semibold text-xl">{config.nome}</h2>
+              <p className="text-gray-500 text-sm mt-1">Gestão de Stocks</p>
+            </div>
+            <span className="text-gray-600 group-hover:text-white text-xl ml-auto transition-colors duration-300">
+              →
+            </span>
+          </button>
+        ))}
       </div>
 
       {/* Footer */}
-      <p className="absolute bottom-6 text-center text-xs" style={{ color: '#1f2937' }}>
+      <p className="absolute bottom-6 text-gray-800 text-xs">
         © 2025 Grupo Empresarial · Plataforma de Gestão de Stocks
       </p>
+
+      <style>{`
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
     </div>
   );
 }
