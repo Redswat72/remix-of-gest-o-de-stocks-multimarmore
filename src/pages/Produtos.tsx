@@ -38,6 +38,7 @@ import { ProdutoForm } from '@/components/produtos/ProdutoForm';
 import { ProdutoCard } from '@/components/produtos/ProdutoCard';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useEmpresa } from '@/context/EmpresaContext';
 import type { Produto, TipoMovimento, TipoDocumento } from '@/types/database';
 import type { PargaFotos } from '@/components/produtos/ChapaFormSection';
 
@@ -68,6 +69,7 @@ export default function Produtos() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { toast } = useToast();
+  const { empresaConfig } = useEmpresa();
   const { roles } = useAuth();
   const { data: produtos, isLoading, error } = useProdutos();
   const createMutation = useCreateProduto();
@@ -313,7 +315,7 @@ export default function Produtos() {
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="IDMM, tipo de pedra..."
+                    placeholder={`${empresaConfig?.idPrefix ?? 'IDMM'}, tipo de pedra...`}
                     value={filters.search}
                     onChange={(e) => setFilters({ ...filters, search: e.target.value })}
                     className="pl-9"

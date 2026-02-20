@@ -25,6 +25,7 @@ import {
 import { ProdutoFotos } from '@/components/produtos/ProdutoFotos';
 import { ChapaFormSection, type PargaFotos } from '@/components/produtos/ChapaFormSection';
 import { useLocaisAtivos } from '@/hooks/useLocais';
+import { useEmpresa } from '@/context/EmpresaContext';
 import type { Produto } from '@/types/database';
 
 const produtoBaseSchema = z.object({
@@ -125,6 +126,7 @@ const emptyPargaFotos: PargaFotos = {
 };
 
 export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoading, canUploadHd = false }: ProdutoFormProps) {
+  const { empresaConfig } = useEmpresa();
   const [fotoUrls, setFotoUrls] = useState<(string | null)[]>([null, null, null, null]);
   const [fotoHdUrls, setFotoHdUrls] = useState<(string | null)[]>([null, null, null, null]);
   const [pargaFotos, setPargaFotos] = useState<PargaFotos>(emptyPargaFotos);
@@ -297,7 +299,7 @@ export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoa
             name="idmm"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>IDMM *</FormLabel>
+                <FormLabel>{empresaConfig?.idPrefix ?? 'IDMM'} *</FormLabel>
                 <FormControl>
                   <Input {...field} placeholder="Ex: BL-001" className="touch-target" />
                 </FormControl>

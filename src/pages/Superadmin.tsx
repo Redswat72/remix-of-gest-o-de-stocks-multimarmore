@@ -31,6 +31,7 @@ import { useProfiles, useUpdateProfile, useUpdateUserRole } from '@/hooks/usePro
 import { useStockAgregado } from '@/hooks/useStock';
 import { exportToExcel } from '@/lib/exportExcel';
 import { gerarModeloExcel } from '@/lib/excelTemplateGenerator';
+import { useEmpresa } from '@/context/EmpresaContext';
 import type { AppRole, LocalFormData } from '@/types/database';
 
 export default function Superadmin() {
@@ -103,6 +104,7 @@ function ImportarButton() {
 // === Stock Global Tab ===
 function StockGlobalTab() {
   const { toast } = useToast();
+  const { empresaConfig } = useEmpresa();
   const { data: stockAgregado, isLoading } = useStockAgregado();
   const { data: locais } = useLocais({ ativo: true });
 
@@ -111,7 +113,7 @@ function StockGlobalTab() {
 
     const exportData = stockAgregado.map(item => {
       const row: Record<string, string | number> = {
-        'IDMM': item.produto.idmm,
+        [empresaConfig?.idPrefix ?? 'IDMM']: item.produto.idmm,
         'Tipo de Pedra': item.produto.tipo_pedra,
         'Nome Comercial': item.produto.nome_comercial || '-',
         'Forma': item.produto.forma,
@@ -127,7 +129,7 @@ function StockGlobalTab() {
       return row;
     });
 
-    exportToExcel(exportData, 'stock-global-multimarmore');
+    exportToExcel(exportData, `stock-global-${empresaConfig?.id ?? 'empresa'}`);
   };
 
   const handleDownloadTemplate = () => {
@@ -195,7 +197,7 @@ function StockGlobalTab() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>IDMM</TableHead>
+                  <TableHead>{empresaConfig?.idPrefix ?? 'IDMM'}</TableHead>
                   <TableHead>Tipo de Pedra</TableHead>
                   <TableHead>Forma</TableHead>
                   {locais?.map(local => (

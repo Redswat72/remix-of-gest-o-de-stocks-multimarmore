@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Search, Filter, Download, Package, AlertTriangle, XCircle, ChevronDown, ChevronUp, Weight } from 'lucide-react';
+import { useEmpresa } from '@/context/EmpresaContext';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ type SortField = 'idmm' | 'tipo_pedra' | 'stockTotal';
 type SortOrder = 'asc' | 'desc';
 
 export default function Stock() {
+  const { empresaConfig } = useEmpresa();
   const [searchIdmm, setSearchIdmm] = useState('');
   const [tipoPedraFilter, setTipoPedraFilter] = useState<string>('');
   const [formaFilter, setFormaFilter] = useState<string>('');
@@ -118,10 +120,10 @@ export default function Stock() {
     const exportData = stockFiltrado.flatMap(item => {
       if (item.stockPorLocal.length === 0) {
         return [{
-          IDMM: item.produto.idmm,
+          [empresaConfig?.idPrefix ?? 'IDMM']: item.produto.idmm,
           'Tipo de Pedra': item.produto.tipo_pedra,
           'Nome Comercial': item.produto.nome_comercial || '-',
-          'Parque MM': '-',
+          [`Parque ${empresaConfig?.idPrefix ?? 'MM'}`]: '-',
           Forma: item.produto.forma,
           'Peso (ton)': item.produto.forma === 'bloco' ? (item.produto.peso_ton || '-') : '-',
           Parque: '-',
@@ -131,10 +133,10 @@ export default function Stock() {
       }
 
       return item.stockPorLocal.map(s => ({
-        IDMM: item.produto.idmm,
+        [empresaConfig?.idPrefix ?? 'IDMM']: item.produto.idmm,
         'Tipo de Pedra': item.produto.tipo_pedra,
         'Nome Comercial': item.produto.nome_comercial || '-',
-        'Parque MM': s.local.codigo,
+        [`Parque ${empresaConfig?.idPrefix ?? 'MM'}`]: s.local.codigo,
         Forma: item.produto.forma,
         'Peso (ton)': item.produto.forma === 'bloco' ? (item.produto.peso_ton || '-') : '-',
         Parque: s.local.nome,
@@ -143,7 +145,7 @@ export default function Stock() {
       }));
     });
 
-    exportToExcel(exportData, 'stock-multimarmore');
+    exportToExcel(exportData, `stock-${empresaConfig?.id ?? 'empresa'}`);
   };
 
   const clearFilters = () => {
@@ -195,7 +197,7 @@ export default function Stock() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Pesquisar por IDMM..."
+                placeholder={`Pesquisar por ${empresaConfig?.idPrefix ?? 'IDMM'}...`}
                 value={searchIdmm}
                 onChange={(e) => setSearchIdmm(e.target.value)}
                 className="pl-10"
@@ -268,7 +270,7 @@ export default function Stock() {
                       onClick={() => toggleSort('idmm')}
                     >
                       <div className="flex items-center gap-1">
-                        IDMM
+                        {empresaConfig?.idPrefix ?? 'IDMM'}
                         <SortIcon field="idmm" />
                       </div>
                     </TableHead>

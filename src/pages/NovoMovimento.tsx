@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useEmpresa } from '@/context/EmpresaContext';
 import { ArrowLeft, ArrowRight, Check, ArrowDownToLine, ArrowRightLeft, Package, AlertCircle, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -38,6 +39,7 @@ const TIPOS_DOCUMENTO: { value: TipoDocumento; label: string }[] = [
 export default function NovoMovimento() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { empresaConfig } = useEmpresa();
   const { user, userLocal, isAdmin } = useAuth();
   const createMovimento = useCreateMovimento();
 
@@ -302,7 +304,7 @@ export default function NovoMovimento() {
                     <div className={`flex items-center space-x-2 border rounded-lg p-4 cursor-pointer hover:bg-muted/50 ${origemMaterial === 'producao_propria' ? 'ring-2 ring-primary' : ''}`}>
                       <RadioGroupItem value="producao_propria" id="producao_propria" />
                       <Label htmlFor="producao_propria" className="cursor-pointer flex-1">
-                        <span className="font-medium">Produção Própria (MM)</span>
+                        <span className="font-medium">Produção Própria ({empresaConfig?.idPrefix ?? 'MM'})</span>
                         <p className="text-sm text-muted-foreground">Material produzido internamente</p>
                       </Label>
                     </div>
@@ -378,9 +380,9 @@ export default function NovoMovimento() {
           {step === 3 && (
             <div className="space-y-6">
               <div className="space-y-2">
-                <Label>Pesquisar Produto (IDMM)</Label>
+                <Label>Pesquisar Produto ({empresaConfig?.idPrefix ?? 'IDMM'})</Label>
                 <Input 
-                  placeholder="Digite o IDMM para pesquisar..."
+                  placeholder={`Digite o ${empresaConfig?.idPrefix ?? 'IDMM'} para pesquisar...`}
                   value={searchProduto}
                   onChange={(e) => setSearchProduto(e.target.value)}
                 />
