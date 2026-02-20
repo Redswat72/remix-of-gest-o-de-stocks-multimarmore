@@ -2,6 +2,8 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { SupabaseClient, Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { supabaseMagratex } from '@/lib/supabase-magratex';
+import logoMultimarmore from '@/assets/logo-multimarmore.png';
+import logoMagratex from '@/assets/logo-magratex.png';
 
 export type Empresa = 'multimarmore' | 'magratex';
 
@@ -11,6 +13,7 @@ export const EMPRESAS_CONFIG = {
     nome: 'Multimarmore',
     cor: '#1a56db',
     idPrefix: 'IDMM',
+    logo: logoMultimarmore,
     client: supabase,
   },
   magratex: {
@@ -18,6 +21,7 @@ export const EMPRESAS_CONFIG = {
     nome: 'Magratex',
     cor: '#057a55',
     idPrefix: 'IDMTX',
+    logo: logoMagratex,
     client: supabaseMagratex,
   },
 } as const;
