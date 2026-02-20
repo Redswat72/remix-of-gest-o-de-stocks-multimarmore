@@ -6,11 +6,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useChapas } from "@/hooks/useChapas";
+import { useSupabaseEmpresa } from "@/hooks/useSupabaseEmpresa";
+import { useEmpresa } from "@/context/EmpresaContext";
+import { ExportExcelButton } from "@/components/ExportExcelButton";
+import { exportChapas } from "@/utils/exportExcel";
 import { Search } from "lucide-react";
 
 export default function Chapas() {
   const [parqueFiltro, setParqueFiltro] = useState("__all__");
   const [busca, setBusca] = useState("");
+  const supabase = useSupabaseEmpresa();
+  const { empresaConfig } = useEmpresa();
 
   const { data: chapas, isLoading } = useChapas(parqueFiltro === "__all__" ? undefined : parqueFiltro);
 
@@ -46,9 +52,12 @@ export default function Chapas() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Chapas</h1>
-        <p className="text-muted-foreground">Gestão de chapas de pedra</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Chapas</h1>
+          <p className="text-muted-foreground">Gestão de chapas de pedra</p>
+        </div>
+        <ExportExcelButton onExport={() => exportChapas(supabase, { empresaNome: empresaConfig!.nome, corHeader: empresaConfig!.cor })} />
       </div>
 
       {/* FILTROS */}

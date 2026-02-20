@@ -6,11 +6,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useBlocos } from "@/hooks/useBlocos";
+import { useSupabaseEmpresa } from "@/hooks/useSupabaseEmpresa";
+import { useEmpresa } from "@/context/EmpresaContext";
+import { ExportExcelButton } from "@/components/ExportExcelButton";
+import { exportBlocos } from "@/utils/exportExcel";
 import { Search } from "lucide-react";
 
 export default function Blocos() {
   const [parqueFiltro, setParqueFiltro] = useState("__all__");
   const [busca, setBusca] = useState("");
+  const supabase = useSupabaseEmpresa();
+  const { empresaConfig } = useEmpresa();
 
   const { data: blocos, isLoading } = useBlocos(parqueFiltro === "__all__" ? undefined : parqueFiltro);
 
@@ -51,9 +57,12 @@ export default function Blocos() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Blocos</h1>
-        <p className="text-muted-foreground">Gestão de blocos de pedra</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Blocos</h1>
+          <p className="text-muted-foreground">Gestão de blocos de pedra</p>
+        </div>
+        <ExportExcelButton onExport={() => exportBlocos(supabase, { empresaNome: empresaConfig!.nome, corHeader: empresaConfig!.cor })} />
       </div>
 
       {/* FILTROS */}
