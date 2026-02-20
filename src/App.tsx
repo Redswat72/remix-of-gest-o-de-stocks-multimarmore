@@ -15,6 +15,9 @@ import { UpdatePrompt } from "@/components/pwa/UpdatePrompt";
 import SelecionarEmpresa from "./pages/SelecionarEmpresa";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
+import Blocos from "./pages/Blocos";
+import Chapas from "./pages/Chapas";
+import LadrilhoPage from "./pages/Ladrilho";
 import Stock from "./pages/Stock";
 import NovoMovimento from "./pages/NovoMovimento";
 import Historico from "./pages/Historico";
@@ -61,6 +64,9 @@ const App = () => (
 
                 {/* Rotas protegidas */}
                 <Route path="/" element={<ProtectedRoute><AppLayout><Dashboard /></AppLayout></ProtectedRoute>} />
+                <Route path="/blocos" element={<ProtectedRoute><AppLayout><Blocos /></AppLayout></ProtectedRoute>} />
+                <Route path="/chapas" element={<ProtectedRoute><AppLayout><Chapas /></AppLayout></ProtectedRoute>} />
+                <Route path="/ladrilho" element={<ProtectedRoute><AppLayout><LadrilhoPage /></AppLayout></ProtectedRoute>} />
                 <Route path="/stock" element={<ProtectedRoute><AppLayout><Stock /></AppLayout></ProtectedRoute>} />
                 <Route path="/movimento/novo" element={<ProtectedRoute><AppLayout><NovoMovimento /></AppLayout></ProtectedRoute>} />
                 <Route path="/historico" element={<ProtectedRoute><AppLayout><Historico /></AppLayout></ProtectedRoute>} />

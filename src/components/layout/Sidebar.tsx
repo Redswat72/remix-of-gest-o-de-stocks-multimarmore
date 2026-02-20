@@ -2,6 +2,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Home, 
   Package, 
+  Grid3x3,
+  Square,
   History, 
   PlusCircle, 
   Users, 
@@ -12,7 +14,8 @@ import {
   ChevronLeft,
   ChevronRight,
   ClipboardList,
-  FileSpreadsheet
+  FileSpreadsheet,
+  LayoutDashboard
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -29,8 +32,11 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { href: '/', label: 'Dashboard', icon: Home },
-  { href: '/stock', label: 'Consultar Stock', icon: Package },
+  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/blocos', label: 'Blocos', icon: Package },
+  { href: '/chapas', label: 'Chapas', icon: Grid3x3 },
+  { href: '/ladrilho', label: 'Ladrilho', icon: Square },
+  { href: '/stock', label: 'Consultar Stock', icon: Boxes },
   { href: '/movimento/novo', label: 'Registar Movimento', icon: PlusCircle },
   { href: '/historico', label: 'Histórico', icon: History },
   { href: '/produtos', label: 'Produtos', icon: Boxes, adminOnly: true },
