@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Home, 
   Package, 
@@ -17,8 +17,8 @@ import {
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
+import { useEmpresa } from '@/context/EmpresaContext';
 import { useState } from 'react';
-import logoMultimarmore from '@/assets/logo-multimarmore.png';
 
 interface NavItem {
   href: string;
@@ -43,7 +43,9 @@ const navItems: NavItem[] = [
 
 export function Sidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { profile, isAdmin, isSuperadmin, signOut } = useAuth();
+  const { empresaConfig } = useEmpresa();
   const [collapsed, setCollapsed] = useState(false);
 
   const filteredItems = navItems.filter((item) => {
@@ -62,19 +64,32 @@ export function Sidebar() {
       {/* Header com Logo */}
       <div className="flex items-center justify-between h-16 px-3 border-b border-border">
         {!collapsed && (
-          <Link to="/" className="flex items-center gap-2">
-            <img 
-              src={logoMultimarmore} 
-              alt="Multimármore" 
-              className="h-10 w-auto object-contain"
-            />
-          </Link>
+          <button
+            onClick={() => navigate('/selecionar-empresa')}
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+            title="Trocar empresa"
+          >
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
+              style={{ backgroundColor: empresaConfig?.cor ?? '#1a56db' }}
+            >
+              {empresaConfig?.nome?.substring(0, 2).toUpperCase() ?? 'MM'}
+            </div>
+            <span className="font-semibold text-sm text-foreground">
+              {empresaConfig?.nome ?? 'Multimarmore'}
+            </span>
+          </button>
         )}
         {collapsed && (
           <div className="w-full flex justify-center">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">MM</span>
-            </div>
+            <button
+              onClick={() => navigate('/selecionar-empresa')}
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm hover:opacity-80 transition-opacity"
+              style={{ backgroundColor: empresaConfig?.cor ?? '#1a56db' }}
+              title={empresaConfig?.nome ?? 'Trocar empresa'}
+            >
+              {empresaConfig?.nome?.substring(0, 2).toUpperCase() ?? 'MM'}
+            </button>
           </div>
         )}
         <Button
@@ -83,11 +98,7 @@ export function Sidebar() {
           onClick={() => setCollapsed(!collapsed)}
           className={cn("h-8 w-8 shrink-0", collapsed && "absolute right-[-12px] bg-card border shadow-sm")}
         >
-          {collapsed ? (
-            <ChevronRight className="w-4 h-4" />
-          ) : (
-            <ChevronLeft className="w-4 h-4" />
-          )}
+          {collapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
         </Button>
       </div>
 
