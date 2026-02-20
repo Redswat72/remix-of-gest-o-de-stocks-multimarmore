@@ -1,6 +1,13 @@
 import { useEmpresa, EMPRESAS_CONFIG, Empresa } from '@/context/EmpresaContext';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
+import logoMultimarmore from '@/assets/logo-multimarmore.png';
+import logoMagratex from '@/assets/logo-magratex.png';
+
+const LOGOS: Record<Empresa, string> = {
+  multimarmore: logoMultimarmore,
+  magratex: logoMagratex,
+};
 
 export default function SelecionarEmpresa() {
   const { selectEmpresa, empresa, session } = useEmpresa();
@@ -36,12 +43,11 @@ export default function SelecionarEmpresa() {
               className="w-full p-6 rounded-xl border-2 border-border hover:border-primary bg-card hover:bg-muted transition-all duration-200 text-left group"
             >
               <div className="flex items-center gap-4">
-                <div
-                  className="w-12 h-12 rounded-lg flex items-center justify-center text-white font-bold text-lg"
-                  style={{ backgroundColor: config.cor }}
-                >
-                  {config.nome.substring(0, 2).toUpperCase()}
-                </div>
+                <img
+                  src={LOGOS[config.id]}
+                  alt={config.nome}
+                  className="h-12 w-auto object-contain"
+                />
                 <div>
                   <h2 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
                     {config.nome}

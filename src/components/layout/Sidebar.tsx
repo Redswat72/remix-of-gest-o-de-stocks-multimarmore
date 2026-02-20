@@ -17,8 +17,15 @@ import {
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
-import { useEmpresa } from '@/context/EmpresaContext';
+import { useEmpresa, Empresa } from '@/context/EmpresaContext';
 import { useState } from 'react';
+import logoMultimarmore from '@/assets/logo-multimarmore.png';
+import logoMagratex from '@/assets/logo-magratex.png';
+
+const LOGOS: Record<Empresa, string> = {
+  multimarmore: logoMultimarmore,
+  magratex: logoMagratex,
+};
 
 interface NavItem {
   href: string;
@@ -66,18 +73,14 @@ export function Sidebar() {
         {!collapsed && (
           <button
             onClick={() => navigate('/selecionar-empresa')}
-            className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+            className="flex items-center gap-2 hover:opacity-80 transition-opacity overflow-hidden"
             title="Trocar empresa"
           >
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
-              style={{ backgroundColor: empresaConfig?.cor ?? '#1a56db' }}
-            >
-              {empresaConfig?.nome?.substring(0, 2).toUpperCase() ?? 'MM'}
-            </div>
-            <span className="font-semibold text-sm text-foreground">
-              {empresaConfig?.nome ?? 'Multimarmore'}
-            </span>
+            <img
+              src={empresaConfig ? LOGOS[empresaConfig.id] : logoMultimarmore}
+              alt={empresaConfig?.nome ?? 'Empresa'}
+              className="h-8 w-auto object-contain"
+            />
           </button>
         )}
         {collapsed && (
