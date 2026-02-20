@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { useEmpresa } from '@/context/EmpresaContext';
 import { Loader2 } from 'lucide-react';
 import type { AppRole } from '@/types/database';
 
@@ -17,6 +18,7 @@ export function ProtectedRoute({
   superadminOnly = false 
 }: ProtectedRouteProps) {
   const { user, loading, hasRole, isAdmin, isSuperadmin } = useAuth();
+  const { empresa } = useEmpresa();
   const location = useLocation();
 
   if (loading) {
@@ -30,11 +32,14 @@ export function ProtectedRoute({
     );
   }
 
+  if (!empresa) {
+    return <Navigate to="/selecionar-empresa" replace />;
+  }
+
   if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // Verificar permissões específicas
   if (superadminOnly && !isSuperadmin) {
     return <Navigate to="/" replace />;
   }
