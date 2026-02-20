@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
 
 export interface AuditoriaRecord {
   id: string;
@@ -26,6 +26,8 @@ export interface AuditoriaFilters {
 }
 
 export function useAuditoria(filters: AuditoriaFilters = {}) {
+  const { client: supabase } = useSupabaseEmpresa();
+
   return useQuery({
     queryKey: ['auditoria', filters],
     queryFn: async () => {
@@ -59,6 +61,8 @@ export function useAuditoria(filters: AuditoriaFilters = {}) {
 }
 
 export function useAuditoriaTiposAcao() {
+  const { client: supabase } = useSupabaseEmpresa();
+
   return useQuery({
     queryKey: ['auditoria-tipos-acao'],
     queryFn: async () => {
@@ -76,6 +80,8 @@ export function useAuditoriaTiposAcao() {
 }
 
 export function useAuditoriaUsers() {
+  const { client: supabase } = useSupabaseEmpresa();
+
   return useQuery({
     queryKey: ['auditoria-users'],
     queryFn: async () => {

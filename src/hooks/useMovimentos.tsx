@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
 import type { MovimentoFormData, TipoMovimento, TipoDocumento, OrigemMaterial } from '@/types/database';
 import { useAuth } from './useAuth';
 
@@ -49,6 +49,7 @@ interface UseMovimentosOptions {
 }
 
 export function useMovimentos(options: UseMovimentosOptions = {}) {
+  const { client: supabase } = useSupabaseEmpresa();
   const { dataInicio, dataFim, tipo, localId, produtoId, operadorId, cancelados, limit = 100 } = options;
 
   return useQuery({
@@ -70,27 +71,21 @@ export function useMovimentos(options: UseMovimentosOptions = {}) {
       if (dataInicio) {
         query = query.gte('data_movimento', dataInicio);
       }
-
       if (dataFim) {
         query = query.lte('data_movimento', dataFim + 'T23:59:59');
       }
-
       if (tipo) {
         query = query.eq('tipo', tipo as TipoMovimento);
       }
-
       if (localId) {
         query = query.or(`local_origem_id.eq.${localId},local_destino_id.eq.${localId}`);
       }
-
       if (produtoId) {
         query = query.eq('produto_id', produtoId);
       }
-
       if (operadorId) {
         query = query.eq('operador_id', operadorId);
       }
-
       if (cancelados !== undefined) {
         query = query.eq('cancelado', cancelados);
       }
@@ -104,6 +99,7 @@ export function useMovimentos(options: UseMovimentosOptions = {}) {
 }
 
 export function useCreateMovimento() {
+  const { client: supabase } = useSupabaseEmpresa();
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
@@ -144,6 +140,7 @@ export function useCreateMovimento() {
 }
 
 export function useCancelMovimento() {
+  const { client: supabase } = useSupabaseEmpresa();
   const queryClient = useQueryClient();
   const { user } = useAuth();
 

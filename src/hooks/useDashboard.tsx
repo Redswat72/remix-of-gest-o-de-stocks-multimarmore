@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
 import { startOfMonth, endOfMonth, subMonths, format, eachDayOfInterval, startOfWeek, endOfWeek } from 'date-fns';
 import { pt } from 'date-fns/locale';
 
@@ -34,8 +34,9 @@ export interface ProdutoStockBaixo {
   quantidade: number;
 }
 
-// Estatísticas gerais do dashboard
 export function useDashboardStats() {
+  const { client: supabase } = useSupabaseEmpresa();
+
   return useQuery({
     queryKey: ['dashboard-stats-extended'],
     queryFn: async () => {
@@ -45,7 +46,6 @@ export function useDashboardStats() {
       const mesAnteriorInicio = startOfMonth(subMonths(hoje, 1));
       const mesAnteriorFim = endOfMonth(subMonths(hoje, 1));
 
-      // Movimentos do mês atual
       const { data: movimentosMes } = await supabase
         .from('movimentos')
         .select('tipo, quantidade')
@@ -53,7 +53,6 @@ export function useDashboardStats() {
         .lte('data_movimento', fimMes.toISOString())
         .eq('cancelado', false);
 
-      // Movimentos do mês anterior para comparação
       const { data: movimentosMesAnterior } = await supabase
         .from('movimentos')
         .select('tipo, quantidade')
@@ -61,19 +60,16 @@ export function useDashboardStats() {
         .lte('data_movimento', mesAnteriorFim.toISOString())
         .eq('cancelado', false);
 
-      // Total de stock
       const { data: stockTotal } = await supabase
         .from('stock')
         .select('quantidade')
         .gt('quantidade', 0);
 
-      // Produtos únicos com stock
       const { count: produtosComStock } = await supabase
         .from('stock')
         .select('produto_id', { count: 'exact', head: true })
         .gt('quantidade', 0);
 
-      // Locais ativos
       const { count: locaisAtivos } = await supabase
         .from('locais')
         .select('*', { count: 'exact', head: true })
@@ -96,7 +92,6 @@ export function useDashboardStats() {
 
       const totalStock = stockTotal?.reduce((acc, s) => acc + s.quantidade, 0) || 0;
 
-      // Calcular variação percentual
       const calcVariacao = (atual: number, anterior: number) => {
         if (anterior === 0) return atual > 0 ? 100 : 0;
         return Math.round(((atual - anterior) / anterior) * 100);
@@ -112,12 +107,14 @@ export function useDashboardStats() {
         locaisAtivos: locaisAtivos || 0,
       };
     },
-    staleTime: 1000 * 60 * 5, // 5 minutos
+    staleTime: 1000 * 60 * 5,
   });
 }
 
 // Movimentos por dia (últimos 7 dias)
 export function useMovimentosSemana() {
+  const { client: supabase } = useSupabaseEmpresa();
+
   return useQuery({
     queryKey: ['movimentos-semana'],
     queryFn: async () => {
@@ -157,6 +154,8 @@ export function useMovimentosSemana() {
 
 // Stock por local/parque
 export function useStockPorLocal() {
+  const { client: supabase } = useSupabaseEmpresa();
+
   return useQuery({
     queryKey: ['stock-por-local'],
     queryFn: async () => {
@@ -199,6 +198,8 @@ export function useStockPorLocal() {
 
 // Produtos com stock baixo (menos de 5 unidades)
 export function useProdutosStockBaixo(limite: number = 5) {
+  const { client: supabase } = useSupabaseEmpresa();
+
   return useQuery({
     queryKey: ['produtos-stock-baixo', limite],
     queryFn: async () => {
@@ -238,6 +239,8 @@ export function useProdutosStockBaixo(limite: number = 5) {
 
 // Movimentos por mês (últimos 6 meses)
 export function useMovimentosMensais() {
+  const { client: supabase } = useSupabaseEmpresa();
+
   return useQuery({
     queryKey: ['movimentos-mensais'],
     queryFn: async () => {

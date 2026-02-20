@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
 import { withSchemaSafeRetry } from '@/lib/postgrestSafeWrite';
 import type { Produto, ProdutoFormData, FormaProduto } from '@/types/database';
 
@@ -11,6 +11,7 @@ interface UseProdutosOptions {
 }
 
 export function useProdutos(options: UseProdutosOptions = {}) {
+  const { client: supabase } = useSupabaseEmpresa();
   const { tipoPedra, forma, idmm, ativo = true } = options;
 
   return useQuery({
@@ -46,6 +47,8 @@ export function useProdutos(options: UseProdutosOptions = {}) {
 }
 
 export function useProduto(id?: string) {
+  const { client: supabase } = useSupabaseEmpresa();
+
   return useQuery({
     queryKey: ['produto', id],
     queryFn: async () => {
@@ -74,7 +77,6 @@ interface CreateProdutoData extends ProdutoFormData {
   latitude?: number | null;
   longitude?: number | null;
   peso_ton?: number | null;
-  // Campos de pargas
   parga1_nome?: string | null;
   parga1_quantidade?: number | null;
   parga1_comprimento_cm?: number | null;
@@ -106,11 +108,11 @@ interface CreateProdutoData extends ProdutoFormData {
 }
 
 export function useCreateProduto() {
+  const { client: supabase } = useSupabaseEmpresa();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (formData: CreateProdutoData) => {
-      // Dados base mínimos (campos garantidos na BD externa)
       const insertData: Record<string, unknown> = {
         idmm: formData.idmm,
         tipo_pedra: formData.tipo_pedra,
@@ -132,20 +134,15 @@ export function useCreateProduto() {
 
       if (error) throw error;
 
-      // Guardar URLs de fotos num segundo passo.
-      // Motivo: a BD externa pode ter divergências de schema (ex: colunas opcionais)
-      // e assim evitamos que a criação falhe por campos não essenciais.
       const fotosUpdate: Record<string, unknown> = {
         foto1_url: formData.foto1_url ?? null,
         foto2_url: formData.foto2_url ?? null,
         foto3_url: formData.foto3_url ?? null,
         foto4_url: formData.foto4_url ?? null,
-        // HD (quando aplicável)
         foto1_hd_url: (formData as any).foto1_hd_url ?? null,
         foto2_hd_url: (formData as any).foto2_hd_url ?? null,
         foto3_hd_url: (formData as any).foto3_hd_url ?? null,
         foto4_hd_url: (formData as any).foto4_hd_url ?? null,
-        // Fotos de pargas (chapas)
         parga1_foto1_url: formData.parga1_foto1_url ?? null,
         parga1_foto2_url: formData.parga1_foto2_url ?? null,
         parga2_foto1_url: formData.parga2_foto1_url ?? null,
@@ -207,7 +204,6 @@ interface UpdateProdutoData {
   foto4_url?: string | null;
   latitude?: number | null;
   longitude?: number | null;
-  // Campos de pargas
   parga1_nome?: string | null;
   parga1_quantidade?: number | null;
   parga1_comprimento_cm?: number | null;
@@ -239,11 +235,11 @@ interface UpdateProdutoData {
 }
 
 export function useUpdateProduto() {
+  const { client: supabase } = useSupabaseEmpresa();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({ id, ...updateData }: UpdateProdutoData) => {
-      // Cast para contornar a tipagem do Supabase Cloud (usamos BD externa)
       const { data, error } = await withSchemaSafeRetry(
         updateData as Record<string, unknown>,
         async (safeData) => {
@@ -261,9 +257,7 @@ export function useUpdateProduto() {
       return data;
     },
     onSuccess: (_data, variables) => {
-      // Listagens
       queryClient.invalidateQueries({ queryKey: ['produtos'] });
-      // Ficha individual (ProdutoFicha usa queryKey ['produto', id])
       if (variables?.id) {
         queryClient.invalidateQueries({ queryKey: ['produto', variables.id] });
       }
@@ -272,11 +266,11 @@ export function useUpdateProduto() {
 }
 
 export function useDeleteProduto() {
+  const { client: supabase } = useSupabaseEmpresa();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (id: string) => {
-      // Soft delete - desativar o produto
       const { error } = await supabase
         .from('produtos')
         .update({ ativo: false })
@@ -291,6 +285,8 @@ export function useDeleteProduto() {
 }
 
 export function useTiposPedra() {
+  const { client: supabase } = useSupabaseEmpresa();
+
   return useQuery({
     queryKey: ['tipos-pedra'],
     queryFn: async () => {
@@ -301,7 +297,6 @@ export function useTiposPedra() {
 
       if (error) throw error;
 
-      // Remover duplicados
       const tipos = [...new Set(data.map(p => p.tipo_pedra))].sort();
       return tipos;
     },

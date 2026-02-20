@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
 import type { Profile, AppRole } from '@/types/database';
 
 interface ProfileComRoles extends Profile {
@@ -11,6 +11,7 @@ interface UseProfilesOptions {
 }
 
 export function useProfiles(options: UseProfilesOptions = {}) {
+  const { client: supabase } = useSupabaseEmpresa();
   const { ativo } = options;
 
   return useQuery({
@@ -38,6 +39,7 @@ export function useProfiles(options: UseProfilesOptions = {}) {
 }
 
 export function useUpdateProfile() {
+  const { client: supabase } = useSupabaseEmpresa();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -69,11 +71,11 @@ export function useUpdateProfile() {
 }
 
 export function useUpdateUserRole() {
+  const { client: supabase } = useSupabaseEmpresa();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: AppRole }) => {
-      // Primeiro, remover roles existentes
       const { error: deleteError } = await supabase
         .from('user_roles')
         .delete()
@@ -81,7 +83,6 @@ export function useUpdateUserRole() {
 
       if (deleteError) throw deleteError;
 
-      // Depois, adicionar a nova role
       const { error: insertError } = await supabase
         .from('user_roles')
         .insert({ user_id: userId, role });

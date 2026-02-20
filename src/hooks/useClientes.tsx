@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
 import type { Cliente, ClienteFormData } from '@/types/database';
 
 interface UseClientesOptions {
@@ -8,6 +8,7 @@ interface UseClientesOptions {
 }
 
 export function useClientes(options: UseClientesOptions = {}) {
+  const { client: supabase } = useSupabaseEmpresa();
   const { nome, ativo = true } = options;
 
   return useQuery({
@@ -35,6 +36,8 @@ export function useClientes(options: UseClientesOptions = {}) {
 }
 
 export function useCliente(id?: string) {
+  const { client: supabase } = useSupabaseEmpresa();
+
   return useQuery({
     queryKey: ['cliente', id],
     queryFn: async () => {
@@ -54,6 +57,7 @@ export function useCliente(id?: string) {
 }
 
 export function useCreateCliente() {
+  const { client: supabase } = useSupabaseEmpresa();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -82,6 +86,7 @@ export function useCreateCliente() {
 }
 
 export function useUpdateCliente() {
+  const { client: supabase } = useSupabaseEmpresa();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -111,11 +116,11 @@ export function useUpdateCliente() {
 }
 
 export function useDeleteCliente() {
+  const { client: supabase } = useSupabaseEmpresa();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (id: string) => {
-      // Soft delete - desativar o cliente
       const { error } = await supabase
         .from('clientes')
         .update({ ativo: false })

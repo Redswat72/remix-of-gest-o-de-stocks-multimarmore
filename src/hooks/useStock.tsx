@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
 import type { Stock, Produto, Local } from '@/types/database';
 
 export interface StockComDetalhes extends Stock {
@@ -23,6 +23,7 @@ interface UseStockOptions {
 }
 
 export function useStock(options: UseStockOptions = {}) {
+  const { client: supabase } = useSupabaseEmpresa();
   const { tipoPedra, forma, localId, nomeComercial, idmm, enabled = true } = options;
 
   return useQuery({
@@ -41,7 +42,6 @@ export function useStock(options: UseStockOptions = {}) {
 
       if (error) throw error;
 
-      // Filtrar no cliente (para evitar complexidade de joins)
       let filtered = (data as unknown as StockComDetalhes[]) || [];
 
       if (tipoPedra) {
@@ -77,6 +77,7 @@ export function useStock(options: UseStockOptions = {}) {
 }
 
 export function useStockAgregado(options: UseStockOptions = {}) {
+  const { client: supabase } = useSupabaseEmpresa();
   const { tipoPedra, forma, nomeComercial, idmm, enabled = true } = options;
 
   return useQuery({
@@ -95,7 +96,6 @@ export function useStockAgregado(options: UseStockOptions = {}) {
 
       const typedData = (stockData as unknown as StockComDetalhes[]) || [];
 
-      // Filtrar por produto
       let filtered = typedData;
 
       if (tipoPedra) {
@@ -120,7 +120,6 @@ export function useStockAgregado(options: UseStockOptions = {}) {
         );
       }
 
-      // Agregar por produto
       const agregadoMap = new Map<string, StockAgregado>();
 
       for (const item of filtered) {
@@ -149,6 +148,8 @@ export function useStockAgregado(options: UseStockOptions = {}) {
 }
 
 export function useStockProdutoLocal(produtoId?: string, localId?: string) {
+  const { client: supabase } = useSupabaseEmpresa();
+
   return useQuery({
     queryKey: ['stock-produto-local', produtoId, localId],
     queryFn: async () => {
@@ -168,13 +169,14 @@ export function useStockProdutoLocal(produtoId?: string, localId?: string) {
   });
 }
 
-// Hook para obter todos os locais onde um produto tem stock
 export interface StockProdutoItem {
   quantidade: number;
   local: { id: string; codigo: string; nome: string };
 }
 
 export function useStockProduto(produtoId?: string) {
+  const { client: supabase } = useSupabaseEmpresa();
+
   return useQuery({
     queryKey: ['stock-produto', produtoId],
     queryFn: async () => {
@@ -191,7 +193,6 @@ export function useStockProduto(produtoId?: string) {
 
       if (error) throw error;
       
-      // Map para extrair o local do array retornado pelo Supabase
       return ((data || []) as unknown as { quantidade: number; local: { id: string; codigo: string; nome: string } | { id: string; codigo: string; nome: string }[] }[])
         .map(item => ({
           quantidade: item.quantidade,
