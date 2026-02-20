@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
 import type { Local, LocalFormData } from '@/types/database';
 
 interface UseLocaisOptions {
@@ -7,6 +7,7 @@ interface UseLocaisOptions {
 }
 
 export function useLocais(options: UseLocaisOptions = {}) {
+  const { client: supabase } = useSupabaseEmpresa();
   const { ativo } = options;
 
   return useQuery({
@@ -34,6 +35,8 @@ export function useLocaisAtivos() {
 }
 
 export function useLocal(id?: string) {
+  const { client: supabase } = useSupabaseEmpresa();
+
   return useQuery({
     queryKey: ['local', id],
     queryFn: async () => {
@@ -53,6 +56,7 @@ export function useLocal(id?: string) {
 }
 
 export function useCreateLocal() {
+  const { client: supabase } = useSupabaseEmpresa();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -77,6 +81,7 @@ export function useCreateLocal() {
 }
 
 export function useUpdateLocal() {
+  const { client: supabase } = useSupabaseEmpresa();
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -103,11 +108,11 @@ export function useUpdateLocal() {
 }
 
 export function useDeleteLocal() {
+  const { client: supabase } = useSupabaseEmpresa();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (id: string) => {
-      // Soft delete - desativar o local
       const { error } = await supabase
         .from('locais')
         .update({ ativo: false })
