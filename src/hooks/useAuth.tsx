@@ -1,6 +1,6 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+import { useEmpresa } from '@/context/EmpresaContext';
 import type { Profile, UserRole, AppRole, Local } from '@/types/database';
 
 interface AuthContextType {
@@ -22,110 +22,76 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const { supabaseEmpresa, session: empresaSession, user: empresaUser, signIn: empresaSignIn, signOut: empresaSignOut, loading: empresaLoading } = useEmpresa();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [roles, setRoles] = useState<AppRole[]>([]);
   const [userLocal, setUserLocal] = useState<Local | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(false);
+
+  const loading = empresaLoading || profileLoading;
+  const user = empresaUser;
+  const session = empresaSession;
 
   const fetchProfile = async (userId: string) => {
+    if (!supabaseEmpresa) return;
+    setProfileLoading(true);
     try {
-      // Buscar profile
-      const { data: profileData, error: profileError } = await supabase
+      const { data: profileData, error: profileError } = await supabaseEmpresa
         .from('profiles')
         .select('*, local:locais(*)')
         .eq('user_id', userId)
         .maybeSingle();
 
-      if (profileError) {
-        console.error('Erro ao buscar profile:', profileError);
-        return;
-      }
-
+      if (profileError) { console.error('Erro ao buscar profile:', profileError); return; }
       if (profileData) {
         setProfile(profileData as unknown as Profile);
         setUserLocal(profileData.local as unknown as Local);
       }
 
-      // Buscar roles
-      const { data: rolesData, error: rolesError } = await supabase
+      const { data: rolesData, error: rolesError } = await supabaseEmpresa
         .from('user_roles')
         .select('role')
         .eq('user_id', userId);
 
-      if (rolesError) {
-        console.error('Erro ao buscar roles:', rolesError);
-        return;
-      }
-
-      if (rolesData) {
-        setRoles(rolesData.map(r => r.role as AppRole));
-      }
+      if (rolesError) { console.error('Erro ao buscar roles:', rolesError); return; }
+      if (rolesData) setRoles(rolesData.map(r => r.role as AppRole));
     } catch (error) {
       console.error('Erro ao buscar dados do utilizador:', error);
+    } finally {
+      setProfileLoading(false);
     }
   };
 
   const refreshProfile = async () => {
-    if (user) {
-      await fetchProfile(user.id);
-    }
+    if (user) await fetchProfile(user.id);
   };
 
   useEffect(() => {
-    // Configurar listener de auth
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-
-        if (session?.user) {
-          // Usar setTimeout para evitar deadlock
-          setTimeout(() => fetchProfile(session.user.id), 0);
-        } else {
-          setProfile(null);
-          setRoles([]);
-          setUserLocal(null);
-        }
-        setLoading(false);
-      }
-    );
-
-    // Verificar sessão inicial
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchProfile(session.user.id);
-      }
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
+    if (user) {
+      fetchProfile(user.id);
+    } else {
+      setProfile(null);
+      setRoles([]);
+      setUserLocal(null);
+    }
+  }, [user?.id, supabaseEmpresa]);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    return { error: error as Error | null };
+    return empresaSignIn(email, password);
   };
 
   const signUp = async (email: string, password: string, nome: string) => {
-    const { error } = await supabase.auth.signUp({
+    if (!supabaseEmpresa) return { error: new Error('Nenhuma empresa selecionada') };
+    const { error } = await supabaseEmpresa.auth.signUp({
       email,
       password,
-      options: {
-        data: { nome },
-      },
+      options: { data: { nome } },
     });
     return { error: error as Error | null };
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    await empresaSignOut();
     setProfile(null);
     setRoles([]);
     setUserLocal(null);
@@ -136,23 +102,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isSuperadmin = hasRole('superadmin');
 
   return (
-    <AuthContext.Provider
-      value={{
-        user,
-        session,
-        profile,
-        roles,
-        userLocal,
-        loading,
-        signIn,
-        signUp,
-        signOut,
-        hasRole,
-        isAdmin,
-        isSuperadmin,
-        refreshProfile,
-      }}
-    >
+    <AuthContext.Provider value={{
+      user, session, profile, roles, userLocal, loading,
+      signIn, signUp, signOut, hasRole, isAdmin, isSuperadmin, refreshProfile,
+    }}>
       {children}
     </AuthContext.Provider>
   );
@@ -160,8 +113,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth deve ser usado dentro de AuthProvider');
-  }
+  if (context === undefined) throw new Error('useAuth deve ser usado dentro de AuthProvider');
   return context;
 }
