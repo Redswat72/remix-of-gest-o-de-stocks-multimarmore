@@ -19,13 +19,6 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useEmpresa, Empresa } from '@/context/EmpresaContext';
 import { useState } from 'react';
-import logoMultimarmore from '@/assets/logo-multimarmore.png';
-import logoMagratex from '@/assets/logo-magratex.png';
-
-const LOGOS: Record<Empresa, string> = {
-  multimarmore: logoMultimarmore,
-  magratex: logoMagratex,
-};
 
 interface NavItem {
   href: string;
@@ -77,9 +70,9 @@ export function Sidebar() {
             title="Trocar empresa"
           >
             <img
-              src={empresaConfig ? LOGOS[empresaConfig.id] : logoMultimarmore}
+              src={empresaConfig?.logo}
               alt={empresaConfig?.nome ?? 'Empresa'}
-              className="h-8 w-auto object-contain"
+              className="h-8 w-auto object-contain brightness-0 invert"
             />
           </button>
         )}
