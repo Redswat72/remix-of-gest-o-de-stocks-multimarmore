@@ -1,15 +1,9 @@
 import { useEmpresa, EMPRESAS_CONFIG, Empresa } from '@/context/EmpresaContext';
 import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
 
 export default function SelecionarEmpresa() {
-  const { selectEmpresa, empresa, session } = useEmpresa();
+  const { selectEmpresa } = useEmpresa();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (empresa && session) navigate('/');
-    else if (empresa && !session) navigate('/login');
-  }, [empresa, session]);
 
   function handleSelect(id: Empresa) {
     selectEmpresa(id);
