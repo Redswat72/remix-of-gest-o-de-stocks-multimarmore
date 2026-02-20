@@ -49,7 +49,7 @@ interface UseMovimentosOptions {
 }
 
 export function useMovimentos(options: UseMovimentosOptions = {}) {
-  const { client: supabase } = useSupabaseEmpresa();
+  const supabase = useSupabaseEmpresa();
   const { dataInicio, dataFim, tipo, localId, produtoId, operadorId, cancelados, limit = 100 } = options;
 
   return useQuery({
@@ -99,7 +99,7 @@ export function useMovimentos(options: UseMovimentosOptions = {}) {
 }
 
 export function useCreateMovimento() {
-  const { client: supabase } = useSupabaseEmpresa();
+  const supabase = useSupabaseEmpresa();
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
@@ -140,7 +140,7 @@ export function useCreateMovimento() {
 }
 
 export function useCancelMovimento() {
-  const { client: supabase } = useSupabaseEmpresa();
+  const supabase = useSupabaseEmpresa();
   const queryClient = useQueryClient();
   const { user } = useAuth();
 

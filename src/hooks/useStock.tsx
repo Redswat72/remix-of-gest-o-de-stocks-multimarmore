@@ -23,7 +23,7 @@ interface UseStockOptions {
 }
 
 export function useStock(options: UseStockOptions = {}) {
-  const { client: supabase } = useSupabaseEmpresa();
+  const supabase = useSupabaseEmpresa();
   const { tipoPedra, forma, localId, nomeComercial, idmm, enabled = true } = options;
 
   return useQuery({
@@ -77,7 +77,7 @@ export function useStock(options: UseStockOptions = {}) {
 }
 
 export function useStockAgregado(options: UseStockOptions = {}) {
-  const { client: supabase } = useSupabaseEmpresa();
+  const supabase = useSupabaseEmpresa();
   const { tipoPedra, forma, nomeComercial, idmm, enabled = true } = options;
 
   return useQuery({
@@ -148,7 +148,7 @@ export function useStockAgregado(options: UseStockOptions = {}) {
 }
 
 export function useStockProdutoLocal(produtoId?: string, localId?: string) {
-  const { client: supabase } = useSupabaseEmpresa();
+  const supabase = useSupabaseEmpresa();
 
   return useQuery({
     queryKey: ['stock-produto-local', produtoId, localId],
@@ -175,7 +175,7 @@ export interface StockProdutoItem {
 }
 
 export function useStockProduto(produtoId?: string) {
-  const { client: supabase } = useSupabaseEmpresa();
+  const supabase = useSupabaseEmpresa();
 
   return useQuery({
     queryKey: ['stock-produto', produtoId],
