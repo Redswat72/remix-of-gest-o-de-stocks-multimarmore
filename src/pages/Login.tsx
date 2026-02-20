@@ -10,6 +10,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import logoMultimarmore from '@/assets/logo-multimarmore.png';
+import logoMagratex from '@/assets/logo-magratex.png';
+import type { Empresa } from '@/context/EmpresaContext';
+
+const LOGOS: Record<Empresa, string> = {
+  multimarmore: logoMultimarmore,
+  magratex: logoMagratex,
+};
 
 export default function Login() {
   const { user, loading, signIn, signUp } = useAuth();
@@ -119,8 +126,8 @@ export default function Login() {
 
         <div className="flex flex-col items-center mb-8">
           <img 
-            src={logoMultimarmore} 
-            alt="Multimármore" 
+            src={empresaConfig ? LOGOS[empresaConfig.id] : logoMultimarmore} 
+            alt={empresaConfig?.nome ?? 'Empresa'} 
             className="h-40 w-auto object-contain mb-4"
           />
           <p className="text-muted-foreground text-center">
