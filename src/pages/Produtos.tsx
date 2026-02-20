@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Plus, Search, Filter, Grid, List, ChevronDown, ChevronUp, Loader2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Search, Filter, Grid, List, ChevronDown, ChevronUp, Loader2, Package } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,12 +14,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
@@ -31,23 +26,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { useProdutos, useCreateProduto, useUpdateProduto, useDeleteProduto } from '@/hooks/useProdutos';
-import { useCreateMovimento } from '@/hooks/useMovimentos';
-import { useStockProduto } from '@/hooks/useStock';
-import { ProdutoForm } from '@/components/produtos/ProdutoForm';
-import { ProdutoCard } from '@/components/produtos/ProdutoCard';
-import { useAuth } from '@/hooks/useAuth';
-import { useToast } from '@/hooks/use-toast';
+import { useStockUnificado, type FormaInventario, type ItemUnificado } from '@/hooks/useStockUnificado';
 import { useEmpresa } from '@/context/EmpresaContext';
-import type { Produto, TipoMovimento, TipoDocumento } from '@/types/database';
-import type { PargaFotos } from '@/components/produtos/ChapaFormSection';
-
-interface Filters {
-  search: string;
-  forma: string;
-  tipoPedra: string;
-  ativo: string;
-}
 
 const FORMA_LABELS: Record<string, string> = {
   bloco: 'Bloco',
@@ -55,230 +35,39 @@ const FORMA_LABELS: Record<string, string> = {
   ladrilho: 'Ladrilho',
 };
 
+const FORMA_COLORS: Record<string, string> = {
+  bloco: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+  chapa: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+  ladrilho: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
+};
+
+const formatCurrency = (value: number | null) => {
+  if (!value) return '—';
+  return new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(value);
+};
+
+const formatNumber = (value: number | null, decimals = 2) => {
+  if (value == null) return '—';
+  return new Intl.NumberFormat('pt-PT', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(value);
+};
+
 export default function Produtos() {
-  const [filters, setFilters] = useState<Filters>({
-    search: '',
-    forma: 'all',
-    tipoPedra: '',
-    ativo: 'all',
-  });
+  const navigate = useNavigate();
+  const { empresaConfig } = useEmpresa();
+  const [search, setSearch] = useState('');
+  const [formaFilter, setFormaFilter] = useState('all');
   const [showFilters, setShowFilters] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [editingProduto, setEditingProduto] = useState<Produto | null>(null);
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const { toast } = useToast();
-  const { empresaConfig } = useEmpresa();
-  const { roles } = useAuth();
-  const { data: produtos, isLoading, error } = useProdutos();
-  const createMutation = useCreateProduto();
-  const updateMutation = useUpdateProduto();
-  const deleteMutation = useDeleteProduto();
-  const createMovimentoMutation = useCreateMovimento();
-  
-  // Obter parque atual do produto em edição
-  const { data: stockProdutoEdit = [] } = useStockProduto(editingProduto?.id);
-  const currentLocalId = stockProdutoEdit.length > 0 ? stockProdutoEdit[0].local.id : null;
-  
-  // Verificar se pode carregar fotos HD (admin ou superadmin)
-  const canUploadHd = roles.includes('admin') || roles.includes('superadmin');
-
-  // Filtrar produtos
-  const filteredProdutos = produtos?.filter((p) => {
-    if (filters.search) {
-      const search = filters.search.toLowerCase();
-      if (
-        !p.idmm.toLowerCase().includes(search) &&
-        !p.tipo_pedra.toLowerCase().includes(search) &&
-        !(p.nome_comercial?.toLowerCase().includes(search))
-      ) {
-        return false;
-      }
-    }
-    if (filters.forma !== 'all' && p.forma !== filters.forma) return false;
-    if (filters.tipoPedra && !p.tipo_pedra.toLowerCase().includes(filters.tipoPedra.toLowerCase())) return false;
-    if (filters.ativo === 'ativo' && !p.ativo) return false;
-    if (filters.ativo === 'inativo' && p.ativo) return false;
-    return true;
+  const { data: items, isLoading } = useStockUnificado({
+    forma: formaFilter === 'all' ? undefined : formaFilter as FormaInventario,
+    busca: search || undefined,
   });
 
-  const handleSubmit = async (
-    data: any, 
-    fotoUrls: (string | null)[], 
-    fotoHdUrls: (string | null)[],
-    pargaFotos?: PargaFotos
-  ) => {
-    setIsSubmitting(true);
-    
-    try {
-      // Build parga fotos data if provided
-      const pargaFotosData = pargaFotos ? {
-        parga1_foto1_url: pargaFotos.parga1_foto1_url,
-        parga1_foto2_url: pargaFotos.parga1_foto2_url,
-        parga2_foto1_url: pargaFotos.parga2_foto1_url,
-        parga2_foto2_url: pargaFotos.parga2_foto2_url,
-        parga3_foto1_url: pargaFotos.parga3_foto1_url,
-        parga3_foto2_url: pargaFotos.parga3_foto2_url,
-        parga4_foto1_url: pargaFotos.parga4_foto1_url,
-        parga4_foto2_url: pargaFotos.parga4_foto2_url,
-      } : {};
-
-      if (editingProduto) {
-        // Atualizar produto com URLs das fotos operacionais e HD
-        await updateMutation.mutateAsync({
-          id: editingProduto.id,
-          ...data,
-          foto1_url: fotoUrls[0] || null,
-          foto2_url: fotoUrls[1] || null,
-          foto3_url: fotoUrls[2] || null,
-          foto4_url: fotoUrls[3] || null,
-          foto1_hd_url: fotoHdUrls[0] || null,
-          foto2_hd_url: fotoHdUrls[1] || null,
-          foto3_hd_url: fotoHdUrls[2] || null,
-          foto4_hd_url: fotoHdUrls[3] || null,
-          ...pargaFotosData,
-        });
-
-        // Verificar se houve mudança de parque e criar movimento de transferência
-        const newLocalId = data.local_id || null;
-        const parqueMudou = currentLocalId !== newLocalId && (currentLocalId || newLocalId);
-        
-        if (parqueMudou && newLocalId) {
-          try {
-            if (currentLocalId) {
-              // Transferência de um parque para outro
-              await createMovimentoMutation.mutateAsync({
-                tipo: 'transferencia' as TipoMovimento,
-                tipo_documento: 'guia_transferencia' as TipoDocumento,
-                produto_id: editingProduto.id,
-                quantidade: 1,
-                local_origem_id: currentLocalId,
-                local_destino_id: newLocalId,
-                observacoes: 'Transferência automática via edição do produto',
-              });
-            } else {
-              // Entrada inicial (produto não tinha parque)
-              await createMovimentoMutation.mutateAsync({
-                tipo: 'entrada' as TipoMovimento,
-                tipo_documento: 'sem_documento' as TipoDocumento,
-                produto_id: editingProduto.id,
-                quantidade: 1,
-                local_destino_id: newLocalId,
-                observacoes: 'Entrada automática via edição do produto',
-              });
-            }
-          } catch (movErr: any) {
-            console.error('Erro ao criar movimento de transferência:', movErr);
-            toast({
-              title: 'Aviso',
-              description: 'Produto atualizado, mas não foi possível registar a transferência de parque. Registe o movimento manualmente.',
-              variant: 'destructive',
-            });
-          }
-        }
-        
-        toast({
-          title: 'Produto atualizado',
-          description: parqueMudou && newLocalId
-            ? `O produto ${data.idmm} foi atualizado e transferido para o novo parque.`
-            : `O produto ${data.idmm} foi atualizado com sucesso.`,
-        });
-      } else {
-        // Criar produto com URLs das fotos
-        const novoProduto = await createMutation.mutateAsync({
-          ...data,
-          foto1_url: fotoUrls[0] || null,
-          foto2_url: fotoUrls[1] || null,
-          foto3_url: fotoUrls[2] || null,
-          foto4_url: fotoUrls[3] || null,
-          foto1_hd_url: fotoHdUrls[0] || null,
-          foto2_hd_url: fotoHdUrls[1] || null,
-          foto3_hd_url: fotoHdUrls[2] || null,
-          foto4_hd_url: fotoHdUrls[3] || null,
-          ...pargaFotosData,
-        });
-
-        // Se foi selecionado um parque, criar movimento de entrada automático
-        if (data.local_id && novoProduto?.id) {
-          try {
-            await createMovimentoMutation.mutateAsync({
-              tipo: 'entrada' as TipoMovimento,
-              tipo_documento: 'sem_documento' as TipoDocumento,
-              produto_id: novoProduto.id,
-              quantidade: 1,
-              local_destino_id: data.local_id,
-              observacoes: 'Entrada automática na criação do produto',
-            });
-          } catch (movErr: any) {
-            console.error('Erro ao criar movimento de entrada:', movErr);
-            // Não impedir criação do produto se movimento falhar
-            toast({
-              title: 'Aviso',
-              description: 'Produto criado, mas não foi possível registar a entrada no parque. Registe o movimento manualmente.',
-              variant: 'destructive',
-            });
-          }
-        }
-        
-        toast({
-          title: 'Produto criado',
-          description: data.local_id 
-            ? `O produto ${data.idmm} foi criado e adicionado ao stock do parque.`
-            : `O produto ${data.idmm} foi criado com sucesso.`,
-        });
-      }
-      
-      setIsFormOpen(false);
-      setEditingProduto(null);
-    } catch (err: any) {
-      toast({
-        title: 'Erro',
-        description: err.message || 'Ocorreu um erro ao guardar o produto.',
-        variant: 'destructive',
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleEdit = (produto: Produto) => {
-    setEditingProduto(produto);
-    setIsFormOpen(true);
-  };
-
-  const handleDelete = async (id: string) => {
-    try {
-      await deleteMutation.mutateAsync(id);
-      toast({
-        title: 'Produto eliminado',
-        description: 'O produto foi desativado com sucesso.',
-      });
-    } catch (err: any) {
-      toast({
-        title: 'Erro',
-        description: err.message || 'Ocorreu um erro ao eliminar o produto.',
-        variant: 'destructive',
-      });
-    }
-  };
-
   const clearFilters = () => {
-    setFilters({
-      search: '',
-      forma: 'all',
-      tipoPedra: '',
-      ativo: 'all',
-    });
+    setSearch('');
+    setFormaFilter('all');
   };
-
-  if (error) {
-    return (
-      <div className="p-6 text-center">
-        <p className="text-destructive">Erro ao carregar produtos: {error.message}</p>
-      </div>
-    );
-  }
 
   return (
     <div className="space-y-6">
@@ -286,12 +75,8 @@ export default function Produtos() {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold">Gestão de Produtos</h1>
-          <p className="text-muted-foreground">Gerir produtos de pedra natural</p>
+          <p className="text-muted-foreground">Todos os blocos, chapas e ladrilhos</p>
         </div>
-        <Button onClick={() => { setEditingProduto(null); setIsFormOpen(true); }}>
-          <Plus className="w-4 h-4 mr-2" />
-          Novo Produto
-        </Button>
       </div>
 
       {/* Filtros */}
@@ -309,15 +94,15 @@ export default function Produtos() {
             </CardHeader>
           </CollapsibleTrigger>
           <CollapsibleContent>
-            <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="space-y-2 lg:col-span-2">
                 <Label>Pesquisar</Label>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder={`${empresaConfig?.idPrefix ?? 'IDMM'}, tipo de pedra...`}
-                    value={filters.search}
-                    onChange={(e) => setFilters({ ...filters, search: e.target.value })}
+                    placeholder="ID, variedade, parque..."
+                    value={search}
+                    onChange={e => setSearch(e.target.value)}
                     className="pl-9"
                   />
                 </div>
@@ -325,10 +110,7 @@ export default function Produtos() {
 
               <div className="space-y-2">
                 <Label>Forma</Label>
-                <Select
-                  value={filters.forma}
-                  onValueChange={(value) => setFilters({ ...filters, forma: value })}
-                >
+                <Select value={formaFilter} onValueChange={setFormaFilter}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -341,34 +123,8 @@ export default function Produtos() {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label>Tipo de Pedra</Label>
-                <Input
-                  placeholder="Filtrar por tipo..."
-                  value={filters.tipoPedra}
-                  onChange={(e) => setFilters({ ...filters, tipoPedra: e.target.value })}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Estado</Label>
-                <Select
-                  value={filters.ativo}
-                  onValueChange={(value) => setFilters({ ...filters, ativo: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    <SelectItem value="ativo">Ativos</SelectItem>
-                    <SelectItem value="inativo">Inativos</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="lg:col-span-5 flex justify-between items-center">
-                <div className="flex gap-2">
+              <div className="space-y-2 flex flex-col justify-end">
+                <div className="flex gap-2 items-end">
                   <Button
                     variant={viewMode === 'grid' ? 'default' : 'outline'}
                     size="icon"
@@ -383,37 +139,32 @@ export default function Produtos() {
                   >
                     <List className="h-4 w-4" />
                   </Button>
+                  <Button variant="outline" onClick={clearFilters} className="ml-auto">
+                    Limpar
+                  </Button>
                 </div>
-                <Button variant="outline" onClick={clearFilters}>
-                  Limpar Filtros
-                </Button>
               </div>
             </CardContent>
           </CollapsibleContent>
         </Card>
       </Collapsible>
 
-      {/* Lista de Produtos */}
+      {/* Content */}
       {isLoading ? (
         <div className="flex items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
-      ) : !filteredProdutos?.length ? (
+      ) : !items?.length ? (
         <Card>
           <CardContent className="py-12 text-center text-muted-foreground">
+            <Package className="w-12 h-12 mx-auto mb-4 opacity-50" />
             Nenhum produto encontrado
           </CardContent>
         </Card>
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {filteredProdutos.map((produto) => (
-            <ProdutoCard
-              key={produto.id}
-              produto={produto}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              isDeleting={deleteMutation.isPending}
-            />
+          {items.map(item => (
+            <InventarioCard key={`${item.forma}-${item.id}`} item={item} onClick={() => navigate(`/inventario/${item.forma}/${item.id}`)} />
           ))}
         </div>
       ) : (
@@ -423,46 +174,30 @@ export default function Produtos() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>IDMM</TableHead>
-                    <TableHead>Tipo de Pedra</TableHead>
                     <TableHead>Forma</TableHead>
-                    <TableHead>Nome Comercial</TableHead>
-                    <TableHead>Dimensões</TableHead>
-                    <TableHead>Estado</TableHead>
-                    <TableHead className="w-[100px]">Ações</TableHead>
+                    <TableHead>ID / Referência</TableHead>
+                    <TableHead>Variedade</TableHead>
+                    <TableHead>Parque</TableHead>
+                    <TableHead className="text-right">Quantidade</TableHead>
+                    <TableHead className="text-right">Valor (€)</TableHead>
+                    <TableHead className="w-[80px]"></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredProdutos.map((produto) => (
-                    <TableRow key={produto.id}>
-                      <TableCell className="font-medium">{produto.idmm}</TableCell>
-                      <TableCell>{produto.tipo_pedra}</TableCell>
+                  {items.map(item => (
+                    <TableRow key={`${item.forma}-${item.id}`}>
                       <TableCell>
-                        <Badge variant="outline">{FORMA_LABELS[produto.forma]}</Badge>
+                        <Badge className={FORMA_COLORS[item.forma]}>{FORMA_LABELS[item.forma]}</Badge>
                       </TableCell>
-                      <TableCell>{produto.nome_comercial || '-'}</TableCell>
-                      <TableCell className="text-sm">
-                        {produto.forma === 'bloco'
-                          ? produto.comprimento_cm && produto.largura_cm && produto.altura_cm
-                            ? `${produto.comprimento_cm}×${produto.largura_cm}×${produto.altura_cm} cm`
-                            : '-'
-                          : produto.comprimento_cm && produto.largura_cm
-                          ? `${produto.comprimento_cm}×${produto.largura_cm}${produto.espessura_cm ? `×${produto.espessura_cm}` : ''} cm`
-                          : '-'}
-                      </TableCell>
+                      <TableCell className="font-mono font-medium">{item.referencia}</TableCell>
+                      <TableCell>{item.variedade || '—'}</TableCell>
+                      <TableCell>{item.parque}</TableCell>
+                      <TableCell className="text-right">{formatNumber(item.quantidade)} {item.unidade}</TableCell>
+                      <TableCell className="text-right font-medium">{formatCurrency(item.valor)}</TableCell>
                       <TableCell>
-                        {produto.ativo ? (
-                          <Badge variant="secondary">Ativo</Badge>
-                        ) : (
-                          <Badge variant="outline" className="text-destructive">Inativo</Badge>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-1">
-                          <Button variant="ghost" size="sm" onClick={() => handleEdit(produto)}>
-                            Editar
-                          </Button>
-                        </div>
+                        <Button variant="ghost" size="sm" onClick={() => navigate(`/inventario/${item.forma}/${item.id}`)}>
+                          Ver
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -473,31 +208,40 @@ export default function Produtos() {
         </Card>
       )}
 
-      {/* Contador */}
-      {filteredProdutos && (
-        <div className="text-center text-sm text-muted-foreground">
-          {filteredProdutos.length} {filteredProdutos.length === 1 ? 'produto' : 'produtos'} encontrados
+      {items && items.length > 0 && (
+        <div className="text-sm text-muted-foreground text-center">
+          A mostrar {items.length} produto{items.length !== 1 ? 's' : ''}
         </div>
       )}
-
-      {/* Dialog do Formulário */}
-      <Dialog open={isFormOpen} onOpenChange={(open) => { if (!open) { setIsFormOpen(false); setEditingProduto(null); } }}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {editingProduto ? 'Editar Produto' : 'Novo Produto'}
-            </DialogTitle>
-          </DialogHeader>
-          <ProdutoForm
-            produto={editingProduto}
-            currentLocalId={currentLocalId}
-            onSubmit={handleSubmit}
-            onCancel={() => { setIsFormOpen(false); setEditingProduto(null); }}
-            isLoading={isSubmitting}
-            canUploadHd={canUploadHd}
-          />
-        </DialogContent>
-      </Dialog>
     </div>
+  );
+}
+
+function InventarioCard({ item, onClick }: { item: ItemUnificado; onClick: () => void }) {
+  return (
+    <Card className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer" onClick={onClick}>
+      <div className="relative aspect-video bg-muted flex items-center justify-center">
+        <Package className="h-12 w-12 text-muted-foreground/30" />
+        <Badge className={`absolute top-2 left-2 ${FORMA_COLORS[item.forma]}`}>
+          {FORMA_LABELS[item.forma]}
+        </Badge>
+      </div>
+      <CardContent className="p-4">
+        <div className="mb-2">
+          <h3 className="font-bold text-lg">{item.referencia}</h3>
+          <p className="text-sm text-muted-foreground">{item.variedade || '—'}</p>
+        </div>
+        <div className="space-y-1 text-sm mb-4">
+          <p><span className="text-muted-foreground">Parque:</span> {item.parque}</p>
+          <p><span className="text-muted-foreground">Quantidade:</span> {formatNumber(item.quantidade)} {item.unidade}</p>
+          {item.valor != null && (
+            <p><span className="text-muted-foreground">Valor:</span> {formatCurrency(item.valor)}</p>
+          )}
+        </div>
+        <Button variant="outline" size="sm" className="w-full" onClick={e => { e.stopPropagation(); onClick(); }}>
+          Ver Ficha
+        </Button>
+      </CardContent>
+    </Card>
   );
 }

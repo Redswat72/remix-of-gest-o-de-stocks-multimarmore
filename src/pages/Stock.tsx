@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
-import { Search, Filter, Download, Package, AlertTriangle, XCircle, ChevronDown, ChevronUp, Weight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Search, Filter, Download, Package, ChevronDown, ChevronUp } from 'lucide-react';
 import { useEmpresa } from '@/context/EmpresaContext';
-import { useAuth } from '@/hooks/useAuth';
+import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -9,173 +10,82 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { useStockAgregado, type StockAgregado } from '@/hooks/useStock';
-import { useLocaisAtivos } from '@/hooks/useLocais';
-import { useTiposPedra } from '@/hooks/useProdutos';
-import { exportToExcel } from '@/lib/exportExcel';
+import { useStockUnificado, type FormaInventario, type ItemUnificado } from '@/hooks/useStockUnificado';
+import { ExportExcelButton } from '@/components/ExportExcelButton';
+import { exportStockCompleto } from '@/utils/exportStockCompleto';
 
-const STOCK_BAIXO_THRESHOLD = 5;
-
-type SortField = 'idmm' | 'tipo_pedra' | 'stockTotal';
+type SortField = 'referencia' | 'variedade' | 'quantidade' | 'valor';
 type SortOrder = 'asc' | 'desc';
 
-export default function Stock() {
-  const { empresaConfig } = useEmpresa();
-  const { isAdmin } = useAuth();
-  const [searchIdmm, setSearchIdmm] = useState('');
-  const [tipoPedraFilter, setTipoPedraFilter] = useState<string>('');
-  const [formaFilter, setFormaFilter] = useState<string>('');
-  const [localFilter, setLocalFilter] = useState<string>('');
-  const [sortField, setSortField] = useState<SortField>('idmm');
-  const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
-  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
+const FORMA_BADGE: Record<FormaInventario, { label: string; className: string }> = {
+  bloco: { label: '🟦 Bloco', className: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' },
+  chapa: { label: '🟩 Chapa', className: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
+  ladrilho: { label: '🟨 Ladrilho', className: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200' },
+};
 
-  const { data: stock, isLoading: stockLoading } = useStockAgregado({
-    tipoPedra: tipoPedraFilter || undefined,
-    forma: formaFilter || undefined,
-    idmm: searchIdmm || undefined,
+const formatCurrency = (value: number | null) => {
+  if (!value) return '—';
+  return new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(value);
+};
+
+const formatNumber = (value: number | null, decimals = 2) => {
+  if (value == null) return '—';
+  return new Intl.NumberFormat('pt-PT', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(value);
+};
+
+export default function Stock() {
+  const navigate = useNavigate();
+  const { empresaConfig } = useEmpresa();
+  const supabase = useSupabaseEmpresa();
+  const [busca, setBusca] = useState('');
+  const [formaFilter, setFormaFilter] = useState<string>('');
+  const [sortField, setSortField] = useState<SortField>('referencia');
+  const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
+
+  const { data: items, isLoading } = useStockUnificado({
+    forma: (formaFilter || undefined) as FormaInventario | undefined,
+    busca: busca || undefined,
   });
 
-  const { data: locais } = useLocaisAtivos();
-  const { data: tiposPedra } = useTiposPedra();
-
-  // Filtrar por local (filtro adicional no cliente)
-  const stockFiltrado = useMemo(() => {
-    if (!stock) return [];
-    
-    let filtered = stock;
-
-    if (localFilter) {
-      filtered = filtered.filter(item => 
-        item.stockPorLocal.some(s => s.local.id === localFilter)
-      );
-    }
-
-    // Ordenação
-    return [...filtered].sort((a, b) => {
-      let comparison = 0;
-      
+  const sortedItems = useMemo(() => {
+    if (!items) return [];
+    return [...items].sort((a, b) => {
+      let cmp = 0;
       switch (sortField) {
-        case 'idmm':
-          comparison = a.produto.idmm.localeCompare(b.produto.idmm);
-          break;
-        case 'tipo_pedra':
-          comparison = a.produto.tipo_pedra.localeCompare(b.produto.tipo_pedra);
-          break;
-        case 'stockTotal':
-          comparison = a.stockTotal - b.stockTotal;
-          break;
+        case 'referencia': cmp = a.referencia.localeCompare(b.referencia); break;
+        case 'variedade': cmp = (a.variedade || '').localeCompare(b.variedade || ''); break;
+        case 'quantidade': cmp = a.quantidade - b.quantidade; break;
+        case 'valor': cmp = (a.valor || 0) - (b.valor || 0); break;
       }
-
-      return sortOrder === 'asc' ? comparison : -comparison;
+      return sortOrder === 'asc' ? cmp : -cmp;
     });
-  }, [stock, localFilter, sortField, sortOrder]);
+  }, [items, sortField, sortOrder]);
 
   const toggleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortOrder('asc');
-    }
+    if (sortField === field) setSortOrder(p => p === 'asc' ? 'desc' : 'asc');
+    else { setSortField(field); setSortOrder('asc'); }
   };
 
-  const toggleRow = (produtoId: string) => {
-    setExpandedRows(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(produtoId)) {
-        newSet.delete(produtoId);
-      } else {
-        newSet.add(produtoId);
-      }
-      return newSet;
-    });
-  };
-
-  const getStockBadge = (quantidade: number) => {
-    if (quantidade === 0) {
-      return <Badge variant="destructive" className="gap-1"><XCircle className="w-3 h-3" /> Sem stock</Badge>;
-    }
-    if (quantidade <= STOCK_BAIXO_THRESHOLD) {
-      return <Badge variant="outline" className="border-caution text-caution gap-1"><AlertTriangle className="w-3 h-3" /> Stock baixo</Badge>;
-    }
-    return null;
-  };
-
-  const getFormaBadge = (forma: string) => {
-    const classes: Record<string, string> = {
-      bloco: 'badge-operador',
-      chapa: 'badge-admin',
-      ladrilho: 'badge-superadmin',
-    };
-    return (
-      <Badge variant="outline" className={classes[forma] || ''}>
-        {forma.charAt(0).toUpperCase() + forma.slice(1)}
-      </Badge>
-    );
-  };
-
-  const handleExport = () => {
-    if (!stockFiltrado) return;
-
-    const exportData = stockFiltrado.flatMap(item => {
-      const baseRow = (s: { local: { codigo: string; nome: string }; quantidade: number } | null) => {
-        const row: Record<string, unknown> = {
-          [empresaConfig?.idPrefix ?? 'IDMM']: item.produto.idmm,
-          'Tipo de Pedra': item.produto.tipo_pedra,
-          'Nome Comercial': item.produto.nome_comercial || '-',
-          [`Parque ${empresaConfig?.idPrefix ?? 'MM'}`]: s?.local.codigo ?? '-',
-          Forma: item.produto.forma,
-          'Peso (ton)': item.produto.forma === 'bloco' ? (item.produto.peso_ton || '-') : '-',
-          Parque: s?.local.nome ?? '-',
-          Quantidade: s?.quantidade ?? 0,
-          'Stock Total': item.stockTotal,
-        };
-
-        if (isAdmin) {
-          const valorizacao = (item.produto as any).valorizacao;
-          row['Valorização'] = valorizacao ? Number(valorizacao).toFixed(2) : '-';
-          if (valorizacao) {
-            const val = Number(valorizacao);
-            if (item.produto.forma === 'bloco' && item.produto.peso_ton) {
-              row['Valor Inventário (€)'] = (val * Number(item.produto.peso_ton)).toFixed(2);
-            } else if (item.produto.area_m2) {
-              row['Valor Inventário (€)'] = (val * Number(item.produto.area_m2)).toFixed(2);
-            } else {
-              row['Valor Inventário (€)'] = '-';
-            }
-          } else {
-            row['Valor Inventário (€)'] = '-';
-          }
-        }
-
-        return row;
-      };
-
-      if (item.stockPorLocal.length === 0) {
-        return [baseRow(null)];
-      }
-
-      return item.stockPorLocal.map(s => baseRow(s));
-    });
-
-    exportToExcel(exportData, `stock-${empresaConfig?.id ?? 'empresa'}`);
-  };
-
-  const clearFilters = () => {
-    setSearchIdmm('');
-    setTipoPedraFilter('');
-    setFormaFilter('');
-    setLocalFilter('');
-  };
-
-  const hasFilters = searchIdmm || tipoPedraFilter || formaFilter || localFilter;
+  const clearFilters = () => { setBusca(''); setFormaFilter(''); };
+  const hasFilters = busca || formaFilter;
 
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) return null;
     return sortOrder === 'asc' ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />;
   };
+
+  // Totals
+  const totals = useMemo(() => {
+    const blocos = sortedItems.filter(i => i.forma === 'bloco');
+    const chapas = sortedItems.filter(i => i.forma === 'chapa');
+    const ladrilho = sortedItems.filter(i => i.forma === 'ladrilho');
+    return {
+      blocos: blocos.length,
+      chapas: chapas.length,
+      ladrilho: ladrilho.length,
+      valorTotal: sortedItems.reduce((s, i) => s + (i.valor || 0), 0),
+    };
+  }, [sortedItems]);
 
   return (
     <div className="space-y-6">
@@ -183,12 +93,43 @@ export default function Stock() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">Consulta de Stock</h1>
-          <p className="text-muted-foreground">Visualize o stock de todos os parques</p>
+          <p className="text-muted-foreground">Blocos, Chapas e Ladrilhos de todas as tabelas</p>
         </div>
-        <Button onClick={handleExport} disabled={!stockFiltrado?.length} className="gap-2">
-          <Download className="w-4 h-4" />
-          Exportar Excel
-        </Button>
+        <ExportExcelButton
+          onExport={() => exportStockCompleto(supabase, {
+            empresaNome: empresaConfig!.nome,
+            corHeader: empresaConfig!.cor,
+          })}
+          label="Exportar Excel"
+        />
+      </div>
+
+      {/* Resumo */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <Card>
+          <CardContent className="pt-4 pb-4">
+            <p className="text-sm text-muted-foreground">Blocos</p>
+            <p className="text-2xl font-bold">{totals.blocos}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4 pb-4">
+            <p className="text-sm text-muted-foreground">Chapas</p>
+            <p className="text-2xl font-bold">{totals.chapas}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4 pb-4">
+            <p className="text-sm text-muted-foreground">Ladrilhos</p>
+            <p className="text-2xl font-bold">{totals.ladrilho}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4 pb-4">
+            <p className="text-sm text-muted-foreground">Valor Total</p>
+            <p className="text-2xl font-bold">{formatCurrency(totals.valorTotal)}</p>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Filtros */}
@@ -200,71 +141,40 @@ export default function Stock() {
               Filtros
             </CardTitle>
             {hasFilters && (
-              <Button variant="ghost" size="sm" onClick={clearFilters}>
-                Limpar filtros
-              </Button>
+              <Button variant="ghost" size="sm" onClick={clearFilters}>Limpar filtros</Button>
             )}
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-            {/* Pesquisa IDMM */}
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder={`Pesquisar por ${empresaConfig?.idPrefix ?? 'IDMM'}...`}
-                value={searchIdmm}
-                onChange={(e) => setSearchIdmm(e.target.value)}
+                placeholder="Pesquisar por ID, variedade, parque..."
+                value={busca}
+                onChange={e => setBusca(e.target.value)}
                 className="pl-10"
               />
             </div>
-
-            {/* Tipo de Pedra */}
-            <Select value={tipoPedraFilter || "all"} onValueChange={(v) => setTipoPedraFilter(v === "all" ? "" : v)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Tipo de Pedra" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                {tiposPedra?.map(tipo => (
-                  <SelectItem key={tipo} value={tipo}>{tipo}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {/* Forma */}
-            <Select value={formaFilter || "all"} onValueChange={(v) => setFormaFilter(v === "all" ? "" : v)}>
+            <Select value={formaFilter || 'all'} onValueChange={v => setFormaFilter(v === 'all' ? '' : v)}>
               <SelectTrigger>
                 <SelectValue placeholder="Forma" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todas</SelectItem>
+                <SelectItem value="all">Todas as formas</SelectItem>
                 <SelectItem value="bloco">Bloco</SelectItem>
                 <SelectItem value="chapa">Chapa</SelectItem>
                 <SelectItem value="ladrilho">Ladrilho</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {/* Parque */}
-            <Select value={localFilter || "all"} onValueChange={(v) => setLocalFilter(v === "all" ? "" : v)}>
-              <SelectTrigger>
-                <SelectValue placeholder="Parque" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os parques</SelectItem>
-                {locais?.map(local => (
-                  <SelectItem key={local.id} value={local.id}>{local.nome}</SelectItem>
-                ))}
               </SelectContent>
             </Select>
           </div>
         </CardContent>
       </Card>
 
-      {/* Tabela de Stock */}
+      {/* Tabela */}
       <Card>
         <CardContent className="p-0">
-          {stockLoading ? (
+          {isLoading ? (
             <div className="p-6 space-y-4">
               {[...Array(5)].map((_, i) => (
                 <div key={i} className="flex items-center gap-4">
@@ -274,115 +184,51 @@ export default function Stock() {
                 </div>
               ))}
             </div>
-          ) : stockFiltrado && stockFiltrado.length > 0 ? (
+          ) : sortedItems.length > 0 ? (
             <div className="overflow-x-auto">
-              <Table className="table-zebra">
+              <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[50px]"></TableHead>
-                    <TableHead 
-                      className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => toggleSort('idmm')}
-                    >
-                      <div className="flex items-center gap-1">
-                        {empresaConfig?.idPrefix ?? 'IDMM'}
-                        <SortIcon field="idmm" />
-                      </div>
-                    </TableHead>
-                    <TableHead 
-                      className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => toggleSort('tipo_pedra')}
-                    >
-                      <div className="flex items-center gap-1">
-                        Tipo de Pedra
-                        <SortIcon field="tipo_pedra" />
-                      </div>
-                    </TableHead>
-                    <TableHead>Nome Comercial</TableHead>
-                    <TableHead>Parque MM</TableHead>
                     <TableHead>Forma</TableHead>
-                    <TableHead className="text-right">Peso (ton)</TableHead>
-                    <TableHead 
-                      className="text-right cursor-pointer hover:bg-muted/50"
-                      onClick={() => toggleSort('stockTotal')}
-                    >
-                      <div className="flex items-center justify-end gap-1">
-                        Stock Total
-                        <SortIcon field="stockTotal" />
-                      </div>
+                    <TableHead className="cursor-pointer hover:bg-muted/50" onClick={() => toggleSort('referencia')}>
+                      <div className="flex items-center gap-1">ID / Referência <SortIcon field="referencia" /></div>
                     </TableHead>
-                    <TableHead>Estado</TableHead>
+                    <TableHead className="cursor-pointer hover:bg-muted/50" onClick={() => toggleSort('variedade')}>
+                      <div className="flex items-center gap-1">Variedade <SortIcon field="variedade" /></div>
+                    </TableHead>
+                    <TableHead>Parque</TableHead>
+                    <TableHead className="text-right cursor-pointer hover:bg-muted/50" onClick={() => toggleSort('quantidade')}>
+                      <div className="flex items-center justify-end gap-1">Quantidade <SortIcon field="quantidade" /></div>
+                    </TableHead>
+                    <TableHead className="text-right cursor-pointer hover:bg-muted/50" onClick={() => toggleSort('valor')}>
+                      <div className="flex items-center justify-end gap-1">Valor (€) <SortIcon field="valor" /></div>
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {stockFiltrado.map((item) => (
-                    <Collapsible key={item.produto.id} asChild>
-                      <>
-                        <TableRow className="cursor-pointer hover:bg-muted/50">
-                          <TableCell>
-                            <CollapsibleTrigger asChild>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="h-8 w-8 p-0"
-                                onClick={() => toggleRow(item.produto.id)}
-                              >
-                                {expandedRows.has(item.produto.id) ? (
-                                  <ChevronUp className="w-4 h-4" />
-                                ) : (
-                                  <ChevronDown className="w-4 h-4" />
-                                )}
-                              </Button>
-                            </CollapsibleTrigger>
-                          </TableCell>
-                          <TableCell className="font-mono font-medium">
-                            {item.produto.idmm}
-                          </TableCell>
-                          <TableCell>{item.produto.tipo_pedra}</TableCell>
-                          <TableCell className="text-muted-foreground">
-                            {item.produto.nome_comercial || '-'}
-                          </TableCell>
-                          <TableCell className="font-mono text-sm text-muted-foreground">
-                            {item.stockPorLocal.map(s => s.local.codigo).join(', ') || '-'}
-                          </TableCell>
-                          <TableCell>{getFormaBadge(item.produto.forma)}</TableCell>
-                          <TableCell className="text-right">
-                            {item.produto.forma === 'bloco' && item.produto.peso_ton ? (
-                              <span className="flex items-center justify-end gap-1 font-medium">
-                                <Weight className="w-3 h-3 text-muted-foreground" />
-                                {item.produto.peso_ton}
-                              </span>
-                            ) : (
-                              <span className="text-muted-foreground">-</span>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-right font-semibold">
-                            {item.stockTotal}
-                          </TableCell>
-                          <TableCell>{getStockBadge(item.stockTotal)}</TableCell>
-                        </TableRow>
-                        <CollapsibleContent asChild>
-                          <TableRow className="bg-muted/30">
-                            <TableCell colSpan={9} className="py-3">
-                              <div className="pl-12">
-                                <p className="text-sm font-medium mb-2">Stock por Parque:</p>
-                                <div className="flex flex-wrap gap-2">
-                                  {item.stockPorLocal.map(s => (
-                                    <Badge 
-                                      key={s.local.id} 
-                                      variant="secondary"
-                                      className="text-sm"
-                                    >
-                                      {s.local.nome}: <span className="font-semibold ml-1">{s.quantidade}</span>
-                                    </Badge>
-                                  ))}
-                                </div>
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        </CollapsibleContent>
-                      </>
-                    </Collapsible>
+                  {sortedItems.map(item => (
+                    <TableRow
+                      key={`${item.forma}-${item.id}`}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => navigate(`/inventario/${item.forma}/${item.id}`)}
+                    >
+                      <TableCell>
+                        <Badge className={FORMA_BADGE[item.forma].className}>
+                          {FORMA_BADGE[item.forma].label}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="font-mono font-medium">{item.referencia}</TableCell>
+                      <TableCell className="text-muted-foreground">{item.variedade || '—'}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{item.parque}</Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {formatNumber(item.quantidade)} {item.unidade}
+                      </TableCell>
+                      <TableCell className="text-right font-medium">
+                        {formatCurrency(item.valor)}
+                      </TableCell>
+                    </TableRow>
                   ))}
                 </TableBody>
               </Table>
@@ -390,17 +236,16 @@ export default function Stock() {
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <Package className="w-16 h-16 mb-4 opacity-50" />
-              <p className="text-lg font-medium">Nenhum produto em stock</p>
-              <p className="text-sm">Ajuste os filtros ou registe novos movimentos de entrada</p>
+              <p className="text-lg font-medium">Nenhum item em stock</p>
+              <p className="text-sm">Ajuste os filtros ou importe dados</p>
             </div>
           )}
         </CardContent>
       </Card>
 
-      {/* Resumo */}
-      {stockFiltrado && stockFiltrado.length > 0 && (
+      {sortedItems.length > 0 && (
         <div className="text-sm text-muted-foreground text-center">
-          A mostrar {stockFiltrado.length} produto{stockFiltrado.length !== 1 ? 's' : ''} em stock
+          A mostrar {sortedItems.length} item{sortedItems.length !== 1 ? 'ns' : ''}
         </div>
       )}
     </div>
