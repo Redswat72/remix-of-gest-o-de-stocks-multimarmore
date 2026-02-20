@@ -9,14 +9,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
-import logoMultimarmore from '@/assets/logo-multimarmore.png';
-import logoMagratex from '@/assets/logo-magratex.png';
-import type { Empresa } from '@/context/EmpresaContext';
-
-const LOGOS: Record<Empresa, string> = {
-  multimarmore: logoMultimarmore,
-  magratex: logoMagratex,
-};
 
 export default function Login() {
   const { user, loading, signIn, signUp } = useAuth();
@@ -106,27 +98,9 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="flex items-center justify-center mb-4">
-          <div
-            className="w-8 h-8 rounded-md flex items-center justify-center text-white font-bold text-sm mr-2"
-            style={{ backgroundColor: empresaConfig?.cor ?? '#888' }}
-          >
-            {empresaConfig?.nome?.substring(0, 2).toUpperCase() ?? '??'}
-          </div>
-          <span className="font-semibold text-foreground">{empresaConfig?.nome ?? 'Empresa'}</span>
-          <button
-            type="button"
-            onClick={() => navigate('/selecionar-empresa')}
-            className="ml-2 text-muted-foreground hover:text-foreground underline text-xs"
-          >
-            Trocar
-          </button>
-        </div>
-
         <div className="flex flex-col items-center mb-8">
           <img 
-            src={empresaConfig ? LOGOS[empresaConfig.id] : logoMultimarmore} 
+            src={empresaConfig?.logo} 
             alt={empresaConfig?.nome ?? 'Empresa'} 
             className="h-40 w-auto object-contain mb-4"
           />
@@ -195,6 +169,9 @@ export default function Login() {
                       'Entrar'
                     )}
                   </Button>
+                  <button type="button" onClick={() => navigate('/selecionar-empresa')} className="w-full text-center text-xs text-muted-foreground hover:text-foreground mt-4 transition-colors">
+                    ← Escolher outra empresa
+                  </button>
                 </form>
               </TabsContent>
 

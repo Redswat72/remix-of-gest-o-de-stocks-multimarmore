@@ -1,13 +1,6 @@
 import { useEmpresa, EMPRESAS_CONFIG, Empresa } from '@/context/EmpresaContext';
 import { useNavigate } from 'react-router-dom';
 import { useEffect } from 'react';
-import logoMultimarmore from '@/assets/logo-multimarmore.png';
-import logoMagratex from '@/assets/logo-magratex.png';
-
-const LOGOS: Record<Empresa, string> = {
-  multimarmore: logoMultimarmore,
-  magratex: logoMagratex,
-};
 
 export default function SelecionarEmpresa() {
   const { selectEmpresa, empresa, session } = useEmpresa();
@@ -24,40 +17,28 @@ export default function SelecionarEmpresa() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
-      <div className="w-full max-w-md space-y-8">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold tracking-tight text-foreground">
-            Grupo Empresarial
-          </h1>
-          <p className="mt-2 text-muted-foreground">
-            Seleciona a empresa para continuar
-          </p>
-        </div>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-black p-6">
+      <h1 className="text-white text-2xl font-light tracking-widest mb-10 uppercase">
+        Grupo Empresarial
+      </h1>
 
-        <div className="space-y-4">
-          {Object.values(EMPRESAS_CONFIG).map((config) => (
-            <button
-              key={config.id}
-              onClick={() => handleSelect(config.id)}
-              className="w-full p-6 rounded-xl border-2 border-border hover:border-primary bg-card hover:bg-muted transition-all duration-200 text-left group"
-            >
-              <div className="flex items-center gap-4">
-                <img
-                  src={LOGOS[config.id]}
-                  alt={config.nome}
-                  className="h-12 w-auto object-contain"
-                />
-                <div>
-                  <h2 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
-                    {config.nome}
-                  </h2>
-                  <p className="text-sm text-muted-foreground">Gestão de Stocks</p>
-                </div>
-              </div>
-            </button>
-          ))}
-        </div>
+      <div className="flex flex-col md:flex-row gap-6 w-full max-w-3xl">
+        {Object.values(EMPRESAS_CONFIG).map((config) => (
+          <button
+            key={config.id}
+            onClick={() => handleSelect(config.id)}
+            className="group flex-1 flex flex-col items-center justify-center gap-6 p-10 rounded-2xl bg-gray-900 border-2 border-gray-800 hover:border-opacity-100 transition-all duration-300 hover:scale-105 hover:shadow-2xl"
+            style={{ '--hover-color': config.cor } as React.CSSProperties}
+            onMouseEnter={e => (e.currentTarget.style.borderColor = config.cor)}
+            onMouseLeave={e => (e.currentTarget.style.borderColor = '')}
+          >
+            <img src={config.logo} alt={config.nome} className="h-20 w-auto object-contain" />
+            <div className="text-center">
+              <h2 className="text-white text-xl font-semibold">{config.nome}</h2>
+              <p className="text-gray-400 text-sm mt-1">Gestão de Stocks</p>
+            </div>
+          </button>
+        ))}
       </div>
     </div>
   );
