@@ -1,161 +1,182 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useSupabaseEmpresa } from './useSupabaseEmpresa';
-import { useEmpresa } from '@/context/EmpresaContext';
-import { toast } from 'sonner';
-import type { AppRole } from '@/types/database';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSupabaseEmpresa } from "./useSupabaseEmpresa";
+import { useEmpresa } from "@/context/EmpresaContext";
+import { toast } from "sonner";
 
-export interface UserComRole {
+export interface User {
   id: string;
   user_id: string;
   nome: string;
   email: string;
-  telefone: string | null;
-  avatar_url: string | null;
-  local_id: string | null;
+  role: "superadmin" | "admin" | "user";
+  empresa_id: string | null;
+  aprovado: boolean;
+  aprovado_por: string | null;
+  aprovado_em: string | null;
   ativo: boolean;
   created_at: string;
-  updated_at: string;
-  local: { id: string; nome: string; codigo: string } | null;
-  user_roles: { role: AppRole }[];
 }
 
 export function useUsers() {
   const supabase = useSupabaseEmpresa();
-  const { empresa } = useEmpresa();
+  const { empresaAtiva } = useEmpresa();
   const queryClient = useQueryClient();
 
   const { data: users, isLoading } = useQuery({
-    queryKey: ['users', empresa],
+    queryKey: ["users", empresaAtiva?.id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select(`
-          *,
-          local:locais(*),
-          user_roles(role)
-        `)
-        .order('nome', { ascending: true });
+      const { data, error } = await supabase.from("profiles").select("*").order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data as unknown as UserComRole[];
+      return data as User[];
     },
-    enabled: !!empresa,
+    enabled: !!empresaAtiva,
   });
 
-  // Atualizar role (delete + insert na tabela user_roles)
-  const atualizarRole = useMutation({
-    mutationFn: async ({ userId, role }: { userId: string; role: AppRole }) => {
-      const { error: deleteError } = await supabase
-        .from('user_roles')
-        .delete()
-        .eq('user_id', userId);
+  const aprovarUser = useMutation({
+    mutationFn: async ({ userId, role, empresaId }: { userId: string; role: string; empresaId: string }) => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-      if (deleteError) throw deleteError;
+      const { data, error } = await supabase
+        .from("profiles")
+        .update({
+          aprovado: true,
+          aprovado_por: user?.id,
+          aprovado_em: new Date().toISOString(),
+          role: role,
+          empresa_id: empresaId,
+        })
+        .eq("id", userId)
+        .select()
+        .single();
 
-      const { error: insertError } = await supabase
-        .from('user_roles')
-        .insert({ user_id: userId, role });
-
-      if (insertError) throw insertError;
+      if (error) throw error;
+      return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      queryClient.invalidateQueries({ queryKey: ['profiles'] });
-      toast.success('Permissão atualizada!');
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.success("Utilizador aprovado com sucesso!");
     },
-    onError: (error: Error) => {
-      toast.error('Erro ao atualizar permissão: ' + error.message);
+    onError: (error: any) => {
+      toast.error("Erro ao aprovar: " + error.message);
     },
   });
 
-  // Desativar/Ativar user
+  const rejeitarUser = useMutation({
+    mutationFn: async (userId: string) => {
+      const { data: profile } = await supabase.from("profiles").select("user_id").eq("id", userId).single();
+
+      if (!profile) throw new Error("Profile não encontrado");
+
+      const { error: authError } = await supabase.auth.admin.deleteUser(profile.user_id);
+      if (authError) throw authError;
+
+      const { error } = await supabase.from("profiles").delete().eq("id", userId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.success("Utilizador rejeitado!");
+    },
+    onError: (error: any) => {
+      toast.error("Erro ao rejeitar: " + error.message);
+    },
+  });
+
+  const atualizarRole = useMutation({
+    mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
+      const { data, error } = await supabase.from("profiles").update({ role }).eq("id", userId).select().single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.success("Permissão atualizada!");
+    },
+    onError: (error: any) => {
+      toast.error("Erro: " + error.message);
+    },
+  });
+
   const toggleAtivo = useMutation({
     mutationFn: async ({ userId, ativo }: { userId: string; ativo: boolean }) => {
-      const { error } = await supabase
-        .from('profiles')
-        .update({ ativo })
-        .eq('user_id', userId);
+      const { data, error } = await supabase.from("profiles").update({ ativo }).eq("id", userId).select().single();
 
       if (error) throw error;
+      return data;
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      queryClient.invalidateQueries({ queryKey: ['profiles'] });
-      toast.success(variables.ativo ? 'Utilizador ativado!' : 'Utilizador desativado!');
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.success(variables.ativo ? "Utilizador ativado!" : "Utilizador desativado!");
     },
-    onError: (error: Error) => {
-      toast.error('Erro ao atualizar estado: ' + error.message);
-    },
-  });
-
-  // Atualizar perfil (local, nome, telefone, etc.)
-  const atualizarPerfil = useMutation({
-    mutationFn: async ({ userId, data }: { 
-      userId: string; 
-      data: { 
-        nome?: string; 
-        local_id?: string | null; 
-        telefone?: string | null;
-        avatar_url?: string | null;
-      } 
-    }) => {
-      const { error } = await supabase
-        .from('profiles')
-        .update(data)
-        .eq('user_id', userId);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      queryClient.invalidateQueries({ queryKey: ['profiles'] });
-      toast.success('Perfil atualizado!');
-    },
-    onError: (error: Error) => {
-      toast.error('Erro ao atualizar perfil: ' + error.message);
+    onError: (error: any) => {
+      toast.error("Erro: " + error.message);
     },
   });
 
-  // Convidar novo user (cria conta via signUp + profile é criado por trigger)
   const convidarUser = useMutation({
-    mutationFn: async ({ nome, email, role }: { 
-      nome: string; 
-      email: string; 
-      role: AppRole;
+    mutationFn: async ({
+      email,
+      nome,
+      role,
+      empresaId,
+    }: {
+      email: string;
+      nome: string;
+      role: string;
+      empresaId: string;
     }) => {
-      // Criar conta — o trigger handle_new_user cria o profile automaticamente
+      const tempPassword = Math.random().toString(36).slice(-12) + "A1!";
+
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
-        password: crypto.randomUUID(), // password temporária
-        options: { data: { nome } },
+        password: tempPassword,
+        options: {
+          data: { nome },
+          emailRedirectTo: window.location.origin,
+        },
       });
 
       if (authError) throw authError;
-      if (!authData.user) throw new Error('Falha ao criar utilizador');
+      if (!authData.user) throw new Error("Erro ao criar utilizador");
 
-      // Atribuir role
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert({ user_id: authData.user.id, role });
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .insert({
+          user_id: authData.user.id,
+          nome,
+          email,
+          role,
+          empresa_id: empresaId,
+          aprovado: true,
+          ativo: true,
+        })
+        .select()
+        .single();
 
-      if (roleError) throw roleError;
+      if (profileError) throw profileError;
+      return profileData;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['users'] });
-      queryClient.invalidateQueries({ queryKey: ['profiles'] });
-      toast.success('Convite enviado com sucesso!');
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.success("Convite enviado! O utilizador receberá um email de confirmação.");
     },
-    onError: (error: Error) => {
-      toast.error('Erro ao convidar utilizador: ' + error.message);
+    onError: (error: any) => {
+      toast.error("Erro ao enviar convite: " + error.message);
     },
   });
 
   return {
     users,
     isLoading,
+    aprovarUser,
+    rejeitarUser,
     atualizarRole,
     toggleAtivo,
-    atualizarPerfil,
     convidarUser,
   };
 }
