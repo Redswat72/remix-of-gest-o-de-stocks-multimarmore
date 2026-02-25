@@ -1,205 +1,182 @@
-import { useQuery } from '@tanstack/react-query';
-import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
-import type { Stock, Produto, Local } from '@/types/database';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSupabaseEmpresa } from "./useSupabaseEmpresa";
+import { useEmpresa } from "@/context/EmpresaContext";
+import { toast } from "sonner";
 
-export interface StockComDetalhes extends Stock {
-  produto: Produto;
-  local: Local;
+export interface User {
+  id: string;
+  user_id: string;
+  nome: string;
+  email: string;
+  role: "superadmin" | "admin" | "user";
+  empresa_id: string | null;
+  aprovado: boolean;
+  aprovado_por: string | null;
+  aprovado_em: string | null;
+  ativo: boolean;
+  created_at: string;
 }
 
-export interface StockAgregado {
-  produto: Produto;
-  stockPorLocal: { local: Local; quantidade: number }[];
-  stockTotal: number;
-}
-
-interface UseStockOptions {
-  tipoPedra?: string;
-  forma?: string;
-  localId?: string;
-  nomeComercial?: string;
-  idmm?: string;
-  enabled?: boolean;
-}
-
-export function useStock(options: UseStockOptions = {}) {
+export function useUsers() {
   const supabase = useSupabaseEmpresa();
-  const { tipoPedra, forma, localId, nomeComercial, idmm, enabled = true } = options;
+  const { empresaAtiva } = useEmpresa();
+  const queryClient = useQueryClient();
 
-  return useQuery({
-    queryKey: ['stock', { tipoPedra, forma, localId, nomeComercial, idmm }],
+  const { data: users, isLoading } = useQuery({
+    queryKey: ["users", empresaAtiva?.id],
     queryFn: async () => {
-      let query = supabase
-        .from('stock')
-        .select(`
-          *,
-          produto:produtos(*),
-          local:locais(*)
-        `)
-        .gt('quantidade', 0);
-
-      const { data, error } = await query;
+      const { data, error } = await supabase.from("profiles").select("*").order("created_at", { ascending: false });
 
       if (error) throw error;
-
-      let filtered = (data as unknown as StockComDetalhes[]) || [];
-
-      if (tipoPedra) {
-        filtered = filtered.filter(s => 
-          s.produto?.tipo_pedra?.toLowerCase().includes(tipoPedra.toLowerCase())
-        );
-      }
-
-      if (forma) {
-        filtered = filtered.filter(s => s.produto?.forma === forma);
-      }
-
-      if (localId) {
-        filtered = filtered.filter(s => s.local_id === localId);
-      }
-
-      if (nomeComercial) {
-        filtered = filtered.filter(s => 
-          s.produto?.nome_comercial?.toLowerCase().includes(nomeComercial.toLowerCase())
-        );
-      }
-
-      if (idmm) {
-        filtered = filtered.filter(s => 
-          s.produto?.idmm?.toLowerCase().includes(idmm.toLowerCase())
-        );
-      }
-
-      return filtered;
+      return data as User[];
     },
-    enabled,
+    enabled: !!empresaAtiva,
   });
-}
 
-export function useStockAgregado(options: UseStockOptions = {}) {
-  const supabase = useSupabaseEmpresa();
-  const { tipoPedra, forma, nomeComercial, idmm, enabled = true } = options;
-
-  return useQuery({
-    queryKey: ['stock-agregado', { tipoPedra, forma, nomeComercial, idmm }],
-    queryFn: async () => {
-      const { data: stockData, error: stockError } = await supabase
-        .from('stock')
-        .select(`
-          *,
-          produto:produtos(*),
-          local:locais(*)
-        `)
-        .gt('quantidade', 0);
-
-      if (stockError) throw stockError;
-
-      const typedData = (stockData as unknown as StockComDetalhes[]) || [];
-
-      let filtered = typedData;
-
-      if (tipoPedra) {
-        filtered = filtered.filter(s => 
-          s.produto?.tipo_pedra?.toLowerCase().includes(tipoPedra.toLowerCase())
-        );
-      }
-
-      if (forma) {
-        filtered = filtered.filter(s => s.produto?.forma === forma);
-      }
-
-      if (nomeComercial) {
-        filtered = filtered.filter(s => 
-          s.produto?.nome_comercial?.toLowerCase().includes(nomeComercial.toLowerCase())
-        );
-      }
-
-      if (idmm) {
-        filtered = filtered.filter(s => 
-          s.produto?.idmm?.toLowerCase().includes(idmm.toLowerCase())
-        );
-      }
-
-      const agregadoMap = new Map<string, StockAgregado>();
-
-      for (const item of filtered) {
-        const produtoId = item.produto_id;
-        
-        if (!agregadoMap.has(produtoId)) {
-          agregadoMap.set(produtoId, {
-            produto: item.produto,
-            stockPorLocal: [],
-            stockTotal: 0,
-          });
-        }
-
-        const agregado = agregadoMap.get(produtoId)!;
-        agregado.stockPorLocal.push({
-          local: item.local,
-          quantidade: item.quantidade,
-        });
-        agregado.stockTotal += item.quantidade;
-      }
-
-      return Array.from(agregadoMap.values());
-    },
-    enabled,
-  });
-}
-
-export function useStockProdutoLocal(produtoId?: string, localId?: string) {
-  const supabase = useSupabaseEmpresa();
-
-  return useQuery({
-    queryKey: ['stock-produto-local', produtoId, localId],
-    queryFn: async () => {
-      if (!produtoId || !localId) return 0;
+  const aprovarUser = useMutation({
+    mutationFn: async ({ userId, role, empresaId }: { userId: string; role: string; empresaId: string }) => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
       const { data, error } = await supabase
-        .from('stock')
-        .select('quantidade')
-        .eq('produto_id', produtoId)
-        .eq('local_id', localId)
-        .maybeSingle();
+        .from("profiles")
+        .update({
+          aprovado: true,
+          aprovado_por: user?.id,
+          aprovado_em: new Date().toISOString(),
+          role: role,
+          empresa_id: empresaId,
+        })
+        .eq("id", userId)
+        .select()
+        .single();
 
       if (error) throw error;
-      return data?.quantidade || 0;
+      return data;
     },
-    enabled: !!produtoId && !!localId,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.success("Utilizador aprovado com sucesso!");
+    },
+    onError: (error: any) => {
+      toast.error("Erro ao aprovar: " + error.message);
+    },
   });
-}
 
-export interface StockProdutoItem {
-  quantidade: number;
-  local: { id: string; codigo: string; nome: string };
-}
+  const rejeitarUser = useMutation({
+    mutationFn: async (userId: string) => {
+      const { data: profile } = await supabase.from("profiles").select("user_id").eq("id", userId).single();
 
-export function useStockProduto(produtoId?: string) {
-  const supabase = useSupabaseEmpresa();
+      if (!profile) throw new Error("Profile não encontrado");
 
-  return useQuery({
-    queryKey: ['stock-produto', produtoId],
-    queryFn: async () => {
-      if (!produtoId) return [];
+      const { error: authError } = await supabase.auth.admin.deleteUser(profile.user_id);
+      if (authError) throw authError;
 
-      const { data, error } = await supabase
-        .from('stock')
-        .select(`
-          quantidade,
-          local:locais(id, codigo, nome)
-        `)
-        .eq('produto_id', produtoId)
-        .gt('quantidade', 0);
+      const { error } = await supabase.from("profiles").delete().eq("id", userId);
 
       if (error) throw error;
-      
-      return ((data || []) as unknown as { quantidade: number; local: { id: string; codigo: string; nome: string } | { id: string; codigo: string; nome: string }[] }[])
-        .map(item => ({
-          quantidade: item.quantidade,
-          local: Array.isArray(item.local) ? item.local[0] : item.local,
-        }))
-        .filter(item => item.local) as StockProdutoItem[];
     },
-    enabled: !!produtoId,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.success("Utilizador rejeitado!");
+    },
+    onError: (error: any) => {
+      toast.error("Erro ao rejeitar: " + error.message);
+    },
   });
+
+  const atualizarRole = useMutation({
+    mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
+      const { data, error } = await supabase.from("profiles").update({ role }).eq("id", userId).select().single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.success("Permissão atualizada!");
+    },
+    onError: (error: any) => {
+      toast.error("Erro: " + error.message);
+    },
+  });
+
+  const toggleAtivo = useMutation({
+    mutationFn: async ({ userId, ativo }: { userId: string; ativo: boolean }) => {
+      const { data, error } = await supabase.from("profiles").update({ ativo }).eq("id", userId).select().single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.success(variables.ativo ? "Utilizador ativado!" : "Utilizador desativado!");
+    },
+    onError: (error: any) => {
+      toast.error("Erro: " + error.message);
+    },
+  });
+
+  const convidarUser = useMutation({
+    mutationFn: async ({
+      email,
+      nome,
+      role,
+      empresaId,
+    }: {
+      email: string;
+      nome: string;
+      role: string;
+      empresaId: string;
+    }) => {
+      const tempPassword = Math.random().toString(36).slice(-12) + "A1!";
+
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password: tempPassword,
+        options: {
+          data: { nome },
+          emailRedirectTo: window.location.origin,
+        },
+      });
+
+      if (authError) throw authError;
+      if (!authData.user) throw new Error("Erro ao criar utilizador");
+
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .insert({
+          user_id: authData.user.id,
+          nome,
+          email,
+          role,
+          empresa_id: empresaId,
+          aprovado: true,
+          ativo: true,
+        })
+        .select()
+        .single();
+
+      if (profileError) throw profileError;
+      return profileData;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["users"] });
+      toast.success("Convite enviado! O utilizador receberá um email de confirmação.");
+    },
+    onError: (error: any) => {
+      toast.error("Erro ao enviar convite: " + error.message);
+    },
+  });
+
+  return {
+    users,
+    isLoading,
+    aprovarUser,
+    rejeitarUser,
+    atualizarRole,
+    toggleAtivo,
+    convidarUser,
+  };
 }
