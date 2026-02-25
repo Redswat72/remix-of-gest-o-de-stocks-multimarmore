@@ -42,10 +42,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .eq('user_id', userId)
         .maybeSingle();
 
-      if (profileError) { console.error('Erro ao buscar profile:', profileError); return; }
-      if (profileData) {
+      if (profileError) {
+        console.error('Erro ao buscar profile:', profileError);
+      } else if (profileData) {
         setProfile(profileData as unknown as Profile);
         setUserLocal(profileData.local as unknown as Local);
+      } else {
+        setProfile(null);
+        setUserLocal(null);
       }
 
       const { data: rolesData, error: rolesError } = await supabaseEmpresa
@@ -53,8 +57,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .select('role')
         .eq('user_id', userId);
 
-      if (rolesError) { console.error('Erro ao buscar roles:', rolesError); return; }
-      if (rolesData) setRoles(rolesData.map(r => r.role as AppRole));
+      if (rolesError) {
+        console.error('Erro ao buscar roles:', rolesError);
+      } else {
+        setRoles((rolesData ?? []).map(r => r.role as AppRole));
+      }
     } catch (error) {
       console.error('Erro ao buscar dados do utilizador:', error);
     } finally {
