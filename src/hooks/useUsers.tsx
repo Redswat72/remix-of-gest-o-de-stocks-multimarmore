@@ -2,96 +2,61 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSupabaseEmpresa } from "./useSupabaseEmpresa";
 import { useEmpresa } from "@/context/EmpresaContext";
 import { toast } from "sonner";
+import type { AppRole } from "@/types/database";
 
 export interface User {
   id: string;
   user_id: string;
   nome: string;
   email: string;
-  role: "superadmin" | "admin" | "user";
-  empresa_id: string | null;
-  aprovado: boolean;
-  aprovado_por: string | null;
-  aprovado_em: string | null;
+  local_id: string | null;
   ativo: boolean;
   created_at: string;
+  // Joined data
+  local?: { id: string; nome: string } | null;
+  user_roles?: { role: AppRole }[];
 }
 
 export function useUsers() {
   const supabase = useSupabaseEmpresa();
-  const { empresaAtiva } = useEmpresa();
+  const { empresa } = useEmpresa();
   const queryClient = useQueryClient();
 
   const { data: users, isLoading } = useQuery({
-    queryKey: ["users", empresaAtiva?.id],
+    queryKey: ["users", empresa],
     queryFn: async () => {
-      const { data, error } = await supabase.from("profiles").select("*").order("created_at", { ascending: false });
-
-      if (error) throw error;
-      return data as User[];
-    },
-    enabled: !!empresaAtiva,
-  });
-
-  const aprovarUser = useMutation({
-    mutationFn: async ({ userId, role, empresaId }: { userId: string; role: string; empresaId: string }) => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
       const { data, error } = await supabase
         .from("profiles")
-        .update({
-          aprovado: true,
-          aprovado_por: user?.id,
-          aprovado_em: new Date().toISOString(),
-          role: role,
-          empresa_id: empresaId,
-        })
-        .eq("id", userId)
-        .select()
-        .single();
+        .select("*, local:locais(id, nome), user_roles(role)")
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
-      return data;
+      return data as unknown as User[];
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["users"] });
-      toast.success("Utilizador aprovado com sucesso!");
-    },
-    onError: (error: any) => {
-      toast.error("Erro ao aprovar: " + error.message);
-    },
-  });
-
-  const rejeitarUser = useMutation({
-    mutationFn: async (userId: string) => {
-      const { data: profile } = await supabase.from("profiles").select("user_id").eq("id", userId).single();
-
-      if (!profile) throw new Error("Profile não encontrado");
-
-      const { error: authError } = await supabase.auth.admin.deleteUser(profile.user_id);
-      if (authError) throw authError;
-
-      const { error } = await supabase.from("profiles").delete().eq("id", userId);
-
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["users"] });
-      toast.success("Utilizador rejeitado!");
-    },
-    onError: (error: any) => {
-      toast.error("Erro ao rejeitar: " + error.message);
-    },
+    enabled: !!empresa,
   });
 
   const atualizarRole = useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
-      const { data, error } = await supabase.from("profiles").update({ role }).eq("id", userId).select().single();
+      // Upsert into user_roles
+      const { data: existing } = await supabase
+        .from("user_roles")
+        .select("id")
+        .eq("user_id", userId)
+        .maybeSingle();
 
-      if (error) throw error;
-      return data;
+      if (existing) {
+        const { error } = await supabase
+          .from("user_roles")
+          .update({ role })
+          .eq("user_id", userId);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("user_roles")
+          .insert({ user_id: userId, role });
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
@@ -104,8 +69,7 @@ export function useUsers() {
 
   const toggleAtivo = useMutation({
     mutationFn: async ({ userId, ativo }: { userId: string; ativo: boolean }) => {
-      const { data, error } = await supabase.from("profiles").update({ ativo }).eq("id", userId).select().single();
-
+      const { data, error } = await supabase.from("profiles").update({ ativo }).eq("user_id", userId).select().single();
       if (error) throw error;
       return data;
     },
@@ -123,12 +87,10 @@ export function useUsers() {
       email,
       nome,
       role,
-      empresaId,
     }: {
       email: string;
       nome: string;
       role: string;
-      empresaId: string;
     }) => {
       const tempPassword = Math.random().toString(36).slice(-12) + "A1!";
 
@@ -144,22 +106,26 @@ export function useUsers() {
       if (authError) throw authError;
       if (!authData.user) throw new Error("Erro ao criar utilizador");
 
-      const { data: profileData, error: profileError } = await supabase
+      const { error: profileError } = await supabase
         .from("profiles")
         .insert({
           user_id: authData.user.id,
           nome,
           email,
-          role,
-          empresa_id: empresaId,
-          aprovado: true,
           ativo: true,
-        })
-        .select()
-        .single();
+        });
 
       if (profileError) throw profileError;
-      return profileData;
+
+      // Create role
+      const { error: roleError } = await supabase
+        .from("user_roles")
+        .insert({
+          user_id: authData.user.id,
+          role,
+        });
+
+      if (roleError) throw roleError;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["users"] });
@@ -173,8 +139,6 @@ export function useUsers() {
   return {
     users,
     isLoading,
-    aprovarUser,
-    rejeitarUser,
     atualizarRole,
     toggleAtivo,
     convidarUser,

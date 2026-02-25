@@ -26,7 +26,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [roles, setRoles] = useState<AppRole[]>([]);
   const [userLocal, setUserLocal] = useState<Local | null>(null);
-  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileLoading, setProfileLoading] = useState(true);
 
   const loading = empresaLoading || profileLoading;
   const user = empresaUser;
@@ -73,6 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setProfile(null);
       setRoles([]);
       setUserLocal(null);
+      setProfileLoading(false);
     }
   }, [user?.id, supabaseEmpresa]);
 
