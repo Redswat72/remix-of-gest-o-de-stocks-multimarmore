@@ -50,6 +50,23 @@ export interface Ladrilho {
   created_at: string;
 }
 
+export interface Banda {
+  id: string;
+  idmm: string;
+  parque: string;
+  linha: string | null;
+  largura: number | null;
+  altura: number | null;
+  espessura: number | null;
+  variedade: string | null;
+  quantidade_m2: number;
+  fornecedor: string | null;
+  preco_unitario: number | null;
+  valor_inventario: number | null;
+  entrada_stock: string | null;
+  created_at: string;
+}
+
 export interface ResumoInventario {
   total_blocos: number;
   total_tons: number;

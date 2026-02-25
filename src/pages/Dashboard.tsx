@@ -2,7 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useResumoBlocos } from "@/hooks/useBlocos";
 import { useResumoChapas } from "@/hooks/useChapas";
 import { useResumoLadrilho } from "@/hooks/useLadrilho";
-import { Package, Grid3x3, Square } from "lucide-react";
+import { useResumoBandas } from "@/hooks/useBandas";
+import { Package, Grid3x3, Square, Layers } from "lucide-react";
 import { useEmpresa } from "@/context/EmpresaContext";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -11,13 +12,15 @@ export default function Dashboard() {
   const { data: resumoBlocos, isLoading: loadingBlocos } = useResumoBlocos();
   const { data: resumoChapas, isLoading: loadingChapas } = useResumoChapas();
   const { data: resumoLadrilho, isLoading: loadingLadrilho } = useResumoLadrilho();
+  const { data: resumoBandas, isLoading: loadingBandas } = useResumoBandas();
 
-  const isLoading = loadingBlocos || loadingChapas || loadingLadrilho;
+  const isLoading = loadingBlocos || loadingChapas || loadingLadrilho || loadingBandas;
 
   const valorTotal =
     (resumoBlocos?.valor_total || 0) +
     (resumoChapas?.valor_total || 0) +
-    (resumoLadrilho?.valor_total || 0);
+    (resumoLadrilho?.valor_total || 0) +
+    (resumoBandas?.valor_total || 0);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-PT', {
@@ -67,7 +70,7 @@ export default function Dashboard() {
       </Card>
 
       {/* CARDS DE RESUMO */}
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         {/* BLOCOS */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -115,6 +118,23 @@ export default function Dashboard() {
             </p>
             <p className="text-sm font-medium text-primary mt-1">
               {formatCurrency(resumoLadrilho?.valor_total || 0)}
+            </p>
+          </CardContent>
+        </Card>
+
+        {/* BANDAS */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Bandas</CardTitle>
+            <Layers className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold">{resumoBandas?.total_bandas || 0}</p>
+            <p className="text-xs text-muted-foreground">
+              {formatNumber(resumoBandas?.total_m2 || 0, 2)} m²
+            </p>
+            <p className="text-sm font-medium text-primary mt-1">
+              {formatCurrency(resumoBandas?.valor_total || 0)}
             </p>
           </CardContent>
         </Card>

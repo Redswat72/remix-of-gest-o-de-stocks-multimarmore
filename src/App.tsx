@@ -18,6 +18,7 @@ import Dashboard from "./pages/Dashboard";
 import Blocos from "./pages/Blocos";
 import Chapas from "./pages/Chapas";
 import LadrilhoPage from "./pages/Ladrilho";
+import Bandas from "./pages/Bandas";
 import Stock from "./pages/Stock";
 import NovoMovimento from "./pages/NovoMovimento";
 import Historico from "./pages/Historico";
@@ -68,6 +69,7 @@ const App = () => (
                 <Route path="/blocos" element={<ProtectedRoute><AppLayout><Blocos /></AppLayout></ProtectedRoute>} />
                 <Route path="/chapas" element={<ProtectedRoute><AppLayout><Chapas /></AppLayout></ProtectedRoute>} />
                 <Route path="/ladrilho" element={<ProtectedRoute><AppLayout><LadrilhoPage /></AppLayout></ProtectedRoute>} />
+                <Route path="/bandas" element={<ProtectedRoute><AppLayout><Bandas /></AppLayout></ProtectedRoute>} />
                 <Route path="/stock" element={<ProtectedRoute><AppLayout><Stock /></AppLayout></ProtectedRoute>} />
                 <Route path="/movimento/novo" element={<ProtectedRoute><AppLayout><NovoMovimento /></AppLayout></ProtectedRoute>} />
                 <Route path="/historico" element={<ProtectedRoute><AppLayout><Historico /></AppLayout></ProtectedRoute>} />
