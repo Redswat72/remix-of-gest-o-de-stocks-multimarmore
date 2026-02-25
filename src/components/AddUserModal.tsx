@@ -26,7 +26,7 @@ export default function AddUserModal({ open, onClose }: AddUserModalProps) {
       return;
     }
 
-    await convidarUser.mutateAsync({ nome, email, role });
+    await convidarUser.mutateAsync({ nome, email, role: role as string });
 
     setNome("");
     setEmail("");

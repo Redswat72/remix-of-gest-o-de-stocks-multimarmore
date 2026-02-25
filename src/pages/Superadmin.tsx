@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
-import { useUsers } from "@/hooks/useUsers";
+import { useUsers, type User } from "@/hooks/useUsers";
 import { useLocais, useCreateLocal, useUpdateLocal } from "@/hooks/useLocais";
 import { useStockAgregado } from "@/hooks/useStock";
 import { exportToExcel } from "@/lib/exportExcel";
@@ -322,7 +322,7 @@ function GestaoUtilizadoresTab() {
   const [modalOpen, setModalOpen] = useState(false);
   const { users, isLoading, atualizarRole, toggleAtivo } = useUsers();
 
-  const getUserRole = (user: typeof users extends (infer U)[] | undefined ? U : never): AppRole => {
+  const getUserRole = (user: User): AppRole => {
     return user.user_roles?.[0]?.role ?? "operador";
   };
 
@@ -388,7 +388,7 @@ function GestaoUtilizadoresTab() {
                   <TableRow key={user.id}>
                     <TableCell className="font-medium">{user.nome}</TableCell>
                     <TableCell className="text-muted-foreground">{user.email}</TableCell>
-                    <TableCell>{user.local?.nome || "—"}</TableCell>
+                    <TableCell>{(user as any).local?.nome || "—"}</TableCell>
                     <TableCell>{getRoleBadge(role)}</TableCell>
                     <TableCell>
                       {role !== "superadmin" && (
