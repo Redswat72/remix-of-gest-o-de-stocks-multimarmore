@@ -1,12 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { useSupabaseEmpresa } from './useSupabaseEmpresa';
+import { useEmpresa } from '@/context/EmpresaContext';
 import type { Ladrilho } from '@/types/inventario';
 
 export function useLadrilho(parque?: string) {
   const supabase = useSupabaseEmpresa();
+  const { empresa } = useEmpresa();
 
   return useQuery({
-    queryKey: ['ladrilho', parque],
+    queryKey: ['ladrilho', empresa, parque],
     queryFn: async () => {
       let query = supabase
         .from('ladrilho')
@@ -21,14 +23,16 @@ export function useLadrilho(parque?: string) {
       if (error) throw error;
       return data as Ladrilho[];
     },
+    enabled: !!empresa,
   });
 }
 
 export function useResumoLadrilho() {
   const supabase = useSupabaseEmpresa();
+  const { empresa } = useEmpresa();
 
   return useQuery({
-    queryKey: ['resumo-ladrilho'],
+    queryKey: ['resumo-ladrilho', empresa],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('ladrilho')
@@ -43,5 +47,6 @@ export function useResumoLadrilho() {
 
       return { total_registos, total_m2, total_pecas, valor_total };
     },
+    enabled: !!empresa,
   });
 }
