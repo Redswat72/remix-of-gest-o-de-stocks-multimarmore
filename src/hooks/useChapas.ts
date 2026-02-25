@@ -1,12 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { useSupabaseEmpresa } from './useSupabaseEmpresa';
+import { useEmpresa } from '@/context/EmpresaContext';
 import type { Chapa } from '@/types/inventario';
 
 export function useChapas(parque?: string, bundleId?: string) {
   const supabase = useSupabaseEmpresa();
+  const { empresa } = useEmpresa();
 
   return useQuery({
-    queryKey: ['chapas', parque, bundleId],
+    queryKey: ['chapas', empresa, parque, bundleId],
     queryFn: async () => {
       let query = supabase
         .from('chapas')
@@ -25,14 +27,16 @@ export function useChapas(parque?: string, bundleId?: string) {
       if (error) throw error;
       return data as Chapa[];
     },
+    enabled: !!empresa,
   });
 }
 
 export function useResumoChapas() {
   const supabase = useSupabaseEmpresa();
+  const { empresa } = useEmpresa();
 
   return useQuery({
-    queryKey: ['resumo-chapas'],
+    queryKey: ['resumo-chapas', empresa],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('chapas')
@@ -46,5 +50,6 @@ export function useResumoChapas() {
 
       return { total_chapas, total_m2, valor_total };
     },
+    enabled: !!empresa,
   });
 }
