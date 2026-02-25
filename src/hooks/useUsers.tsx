@@ -116,11 +116,46 @@ export function useUsers() {
     },
   });
 
+  // Convidar novo user (cria conta via signUp + profile é criado por trigger)
+  const convidarUser = useMutation({
+    mutationFn: async ({ nome, email, role }: { 
+      nome: string; 
+      email: string; 
+      role: AppRole;
+    }) => {
+      // Criar conta — o trigger handle_new_user cria o profile automaticamente
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email,
+        password: crypto.randomUUID(), // password temporária
+        options: { data: { nome } },
+      });
+
+      if (authError) throw authError;
+      if (!authData.user) throw new Error('Falha ao criar utilizador');
+
+      // Atribuir role
+      const { error: roleError } = await supabase
+        .from('user_roles')
+        .insert({ user_id: authData.user.id, role });
+
+      if (roleError) throw roleError;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['users'] });
+      queryClient.invalidateQueries({ queryKey: ['profiles'] });
+      toast.success('Convite enviado com sucesso!');
+    },
+    onError: (error: Error) => {
+      toast.error('Erro ao convidar utilizador: ' + error.message);
+    },
+  });
+
   return {
     users,
     isLoading,
     atualizarRole,
     toggleAtivo,
     atualizarPerfil,
+    convidarUser,
   };
 }
