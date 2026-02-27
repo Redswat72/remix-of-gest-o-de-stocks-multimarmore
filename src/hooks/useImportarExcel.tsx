@@ -628,10 +628,16 @@ export function useParseExcel() {
       ]);
 
       if (locaisRes.error) throw new Error('Erro ao carregar locais');
-      if (produtosRes.error) throw new Error('Erro ao carregar produtos');
+      
+      // Se a query de produtos falhar (ex: recursão RLS na DB externa), continuar sem verificação
+      let produtosExistentes = new Map<string, string>();
+      if (produtosRes.error) {
+        console.warn('Aviso: Não foi possível carregar produtos existentes, todos serão tratados como novos:', produtosRes.error.message);
+      } else {
+        produtosExistentes = new Map<string, string>(produtosRes.data.map((p: any) => [p.idmm.toLowerCase(), p.id]));
+      }
 
       const locais = locaisRes.data as Local[];
-      const produtosExistentes = new Map<string, string>(produtosRes.data.map((p: any) => [p.idmm.toLowerCase(), p.id]));
 
       const buffer = await file.arrayBuffer();
       const workbook = XLSX.read(buffer, { type: 'array' });
