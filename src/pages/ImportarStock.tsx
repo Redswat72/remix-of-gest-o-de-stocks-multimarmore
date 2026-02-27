@@ -129,11 +129,21 @@ export default function ImportarStock() {
   };
 
   const handleDownloadModelo = (tipo: TipoImportacao) => {
-    gerarModeloExcel({ incluirExemplos: true, tipo });
-    toast({
-      title: 'Modelo transferido',
-      description: `Modelo Excel para ${tipo} transferido com sucesso`,
-    });
+    try {
+      gerarModeloExcel({ incluirExemplos: true, tipo });
+      toast({
+        title: 'Modelo transferido',
+        description: `Modelo Excel para ${tipo} transferido com sucesso`,
+      });
+    } catch (err) {
+      console.error('Erro ao gerar modelo Excel:', err);
+      const msg = err instanceof Error ? err.message : 'Erro desconhecido';
+      toast({
+        title: 'Erro',
+        description: `Não foi possível gerar o modelo: ${msg}`,
+        variant: 'destructive',
+      });
+    }
   };
 
   const tiposImportacao: Array<{ id: TipoImportacao; nome: string; descricao: string; icon: React.ElementType }> = [

@@ -31,7 +31,17 @@ export function exportToExcel<T extends Record<string, unknown>>(
 
   worksheet['!cols'] = maxWidths.map(w => ({ wch: w + 2 }));
 
-  // Gerar ficheiro
+  // Gerar ficheiro via Blob (compatível com iframes)
   const dateStr = new Date().toISOString().split('T')[0];
-  XLSX.writeFile(workbook, `${filename}-${dateStr}.xlsx`);
+  const fname = `${filename}-${dateStr}.xlsx`;
+  const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+  const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fname;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }

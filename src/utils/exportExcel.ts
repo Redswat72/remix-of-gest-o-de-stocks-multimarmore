@@ -51,7 +51,17 @@ function addTotalsRow(ws: XLSX.WorkSheet, rowIndex: number, totals: Record<numbe
 
 function downloadWorkbook(wb: XLSX.WorkBook, tipo: string, empresaNome: string) {
   const dateStr = new Date().toISOString().split('T')[0];
-  XLSX.writeFile(wb, `${tipo}_${empresaNome.toLowerCase()}_${dateStr}.xlsx`);
+  const filename = `${tipo}_${empresaNome.toLowerCase()}_${dateStr}.xlsx`;
+  const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 // ─── BLOCOS ──────────────────────────────────────────────
