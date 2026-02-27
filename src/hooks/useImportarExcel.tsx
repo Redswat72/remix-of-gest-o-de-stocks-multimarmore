@@ -502,6 +502,7 @@ function parseLadrilhos(
     largura: findColumnIndex(headers, ['largura_cm', 'largura', 'larg', 'largura (cm)']),
     espessura: findColumnIndex(headers, ['espessura_cm', 'espessura', 'esp', 'espessura (cm)']),
     quantidade: findColumnIndex(headers, ['quantidade', 'qtd', 'qty', 'un', 'unidades', 'quantidade de chapas', 'num_pecas']),
+    totalM2: findColumnIndex(headers, ['total mt2', 'total m2', 'total_m2', 'mt2', 'm2', 'area_m2', 'area']),
     acabamento: findColumnIndex(headers, ['acabamento', 'acabam', 'finish']),
     nomeComercial: findColumnIndex(headers, ['nome_comercial', 'nome comercial', 'nome', 'comercial']),
     observacoes: findColumnIndex(headers, ['notas', 'observacoes', 'observações', 'obs', 'nota']),
@@ -560,10 +561,17 @@ function parseLadrilhos(
     const comprimento = colMap.comprimento !== -1 ? Number(row[colMap.comprimento]) || 0 : 0;
     const largura = colMap.largura !== -1 ? Number(row[colMap.largura]) || 0 : 0;
     const espessura = colMap.espessura !== -1 ? Number(row[colMap.espessura]) || 0 : 0;
-    const quantidade = colMap.quantidade !== -1 ? Number(row[colMap.quantidade]) || 0 : 0;
+    const totalM2 = colMap.totalM2 !== -1 ? Number(row[colMap.totalM2]) || 0 : 0;
+    const quantidadeRaw = colMap.quantidade !== -1 ? Number(row[colMap.quantidade]) || 0 : 0;
 
-    // Quantidade é o único campo realmente obrigatório
-    if (quantidade <= 0) erros.push('Quantidade deve ser maior que 0');
+    // Calcular quantidade automaticamente: total m2 / área de cada peça
+    let quantidade = quantidadeRaw;
+    if (quantidade <= 0 && totalM2 > 0 && comprimento > 0 && largura > 0) {
+      const areaPecaM2 = (comprimento * largura) / 10000; // cm² → m²
+      quantidade = Math.round(totalM2 / areaPecaM2);
+    }
+
+    if (quantidade <= 0) erros.push('Não foi possível calcular a quantidade (verifique Total mt2 e dimensões)');
 
     const acabamento = colMap.acabamento !== -1 ? String(row[colMap.acabamento] || '').trim() : undefined;
     const nomeComercial = colMap.nomeComercial !== -1 ? String(row[colMap.nomeComercial] || '').trim() : undefined;
