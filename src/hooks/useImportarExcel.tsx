@@ -498,21 +498,26 @@ function parseLadrilhos(
     origem: findColumnIndex(headers, ['origem_material', 'origem material', 'origem']),
     parqueMM: findColumnIndex(headers, ['parque_mm', 'parque mm', 'parquemm', 'parque', 'local']),
     linha: findColumnIndex(headers, ['linha', 'corredor', 'fila', 'posicao']),
-    comprimento: findColumnIndex(headers, ['comprimento_cm', 'comprimento', 'comp']),
-    largura: findColumnIndex(headers, ['largura_cm', 'largura', 'larg']),
-    espessura: findColumnIndex(headers, ['espessura_cm', 'espessura', 'esp']),
-    quantidade: findColumnIndex(headers, ['quantidade', 'qtd', 'qty', 'un', 'unidades']),
+    comprimento: findColumnIndex(headers, ['comprimento_cm', 'comprimento', 'comp', 'comprimento (cm)']),
+    largura: findColumnIndex(headers, ['largura_cm', 'largura', 'larg', 'largura (cm)']),
+    espessura: findColumnIndex(headers, ['espessura_cm', 'espessura', 'esp', 'espessura (cm)']),
+    quantidade: findColumnIndex(headers, ['quantidade', 'qtd', 'qty', 'un', 'unidades', 'quantidade de chapas', 'num_pecas']),
     acabamento: findColumnIndex(headers, ['acabamento', 'acabam', 'finish']),
     nomeComercial: findColumnIndex(headers, ['nome_comercial', 'nome comercial', 'nome', 'comercial']),
-    observacoes: findColumnIndex(headers, ['notas', 'observacoes', 'observações', 'obs']),
+    observacoes: findColumnIndex(headers, ['notas', 'observacoes', 'observações', 'obs', 'nota']),
     foto1: findColumnIndex(headers, ['foto1_url', 'foto1', 'foto']),
     foto2: findColumnIndex(headers, ['foto2_url', 'foto2']),
   };
 
-  if (colMap.idmm === -1) colMap.idmm = 0;
+  // ID_MM pode não existir no ficheiro — gerar automaticamente MML01, MML02, ...
+  const hasIdmmColumn = colMap.idmm !== -1;
+  if (!hasIdmmColumn) {
+    // Não forçar coluna 0 como idmm
+  }
   if (colMap.tipoPedra === -1) colMap.tipoPedra = 1;
 
   const linhasParsed: LinhaExcelLadrilhos[] = [];
+  let autoIdCounter = 1;
 
   for (let i = 1; i < jsonData.length; i++) {
     const row = jsonData[i] as (string | number | undefined)[];
@@ -521,40 +526,43 @@ function parseLadrilhos(
       continue;
     }
 
-    const idmm = String(row[colMap.idmm] || '').trim();
-    if (!idmm) continue;
+    // Gerar IDMM automaticamente se a coluna não existir
+    let idmm: string;
+    if (hasIdmmColumn) {
+      idmm = String(row[colMap.idmm] || '').trim();
+      if (!idmm) continue;
+    } else {
+      idmm = `MML${String(autoIdCounter).padStart(2, '0')}`;
+      autoIdCounter++;
+    }
 
     const erros: string[] = [];
     const avisos: string[] = [];
 
     // MAPEAMENTO CORRIGIDO: Excel "Variedade" → DB "tipo_pedra"
     const variedadeRaw = colMap.variedade !== -1 ? String(row[colMap.variedade] || '').trim() : '';
-    const tipoPedra = variedadeRaw || 'Não Informada';
+    const tipoPedra = variedadeRaw || 'Não confirmada';
 
-    const parqueMMRaw = String(row[colMap.parqueMM] || '').trim();
+    // Parque padrão MM001 se não existir no ficheiro
+    const parqueMMRaw = colMap.parqueMM !== -1 ? String(row[colMap.parqueMM] || '').trim() : '';
+    const parqueMM = parqueMMRaw || 'MM001';
     const linhaRaw = colMap.linha !== -1 ? String(row[colMap.linha] || '').trim() : '';
     
-    if (!parqueMMRaw) {
-      erros.push('Parque MM é obrigatório');
-    }
-    
-    const local = encontrarLocal(locais, parqueMMRaw);
-    if (parqueMMRaw && !local) {
-      erros.push(`Parque MM "${parqueMMRaw}" não encontrado na tabela de locais`);
+    const local = encontrarLocal(locais, parqueMM);
+    if (!local) {
+      erros.push(`Parque MM "${parqueMM}" não encontrado na tabela de locais`);
     }
 
     const origemRaw = colMap.origem !== -1 ? String(row[colMap.origem] || '') : '';
     const origemMaterial = mapOrigemMaterial(origemRaw);
 
+    // Dimensões: default 0 se vazio ou inválido
     const comprimento = colMap.comprimento !== -1 ? Number(row[colMap.comprimento]) || 0 : 0;
     const largura = colMap.largura !== -1 ? Number(row[colMap.largura]) || 0 : 0;
     const espessura = colMap.espessura !== -1 ? Number(row[colMap.espessura]) || 0 : 0;
     const quantidade = colMap.quantidade !== -1 ? Number(row[colMap.quantidade]) || 0 : 0;
 
-    // Validar campos obrigatórios para ladrilhos
-    if (!comprimento) erros.push('Comprimento é obrigatório');
-    if (!largura) erros.push('Largura é obrigatória');
-    if (!espessura) erros.push('Espessura é obrigatória');
+    // Quantidade é o único campo realmente obrigatório
     if (quantidade <= 0) erros.push('Quantidade deve ser maior que 0');
 
     const acabamento = colMap.acabamento !== -1 ? String(row[colMap.acabamento] || '').trim() : undefined;
@@ -583,7 +591,7 @@ function parseLadrilhos(
       tipoPedra,
       variedade: '',
       forma: 'ladrilho',
-      parqueMM: parqueMMRaw,
+      parqueMM: parqueMM,
       linha: linhaRaw || undefined,
       origemMaterial,
       comprimento,
