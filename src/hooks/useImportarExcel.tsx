@@ -500,6 +500,7 @@ function parseLadrilhos(
     linha: findColumnIndex(headers, ['linha', 'corredor', 'fila', 'posicao']),
     comprimento: findColumnIndex(headers, ['comprimento_cm', 'comprimento', 'comp', 'comprimento (cm)']),
     largura: findColumnIndex(headers, ['largura_cm', 'largura', 'larg', 'largura (cm)']),
+    altura: findColumnIndex(headers, ['altura_cm', 'altura', 'alt', 'altura (cm)']),
     espessura: findColumnIndex(headers, ['espessura_cm', 'espessura', 'esp', 'espessura (cm)']),
     quantidade: findColumnIndex(headers, ['quantidade', 'qtd', 'qty', 'un', 'unidades', 'quantidade de chapas', 'num_pecas']),
     totalM2: findColumnIndex(headers, ['total mt2', 'total m2', 'total_m2', 'mt2', 'm2', 'area_m2', 'area']),
@@ -508,6 +509,23 @@ function parseLadrilhos(
     observacoes: findColumnIndex(headers, ['notas', 'observacoes', 'observações', 'obs', 'nota']),
     foto1: findColumnIndex(headers, ['foto1_url', 'foto1', 'foto']),
     foto2: findColumnIndex(headers, ['foto2_url', 'foto2']),
+  };
+
+  // Helper para parsing de números com formato europeu (vírgula decimal)
+  const parseNum = (val: string | number | undefined): number => {
+    if (val === undefined || val === null || val === '') return 0;
+    if (typeof val === 'number') return isNaN(val) ? 0 : val;
+    let str = String(val).trim();
+    // Auto-detect: se tem vírgula depois do último ponto, é formato europeu
+    const lastComma = str.lastIndexOf(',');
+    const lastDot = str.lastIndexOf('.');
+    if (lastComma > lastDot) {
+      str = str.replace(/\./g, '').replace(',', '.');
+    } else {
+      str = str.replace(/,/g, '');
+    }
+    const n = parseFloat(str);
+    return isNaN(n) ? 0 : n;
   };
 
   // ID_MM pode não existir no ficheiro — gerar automaticamente MML01, MML02, ...
@@ -557,14 +575,16 @@ function parseLadrilhos(
     const origemRaw = colMap.origem !== -1 ? String(row[colMap.origem] || '') : '';
     const origemMaterial = mapOrigemMaterial(origemRaw);
 
-    // Dimensões: default 0 se vazio ou inválido
-    const comprimento = colMap.comprimento !== -1 ? Number(row[colMap.comprimento]) || 0 : 0;
-    const largura = colMap.largura !== -1 ? Number(row[colMap.largura]) || 0 : 0;
-    const espessura = colMap.espessura !== -1 ? Number(row[colMap.espessura]) || 0 : 0;
-    const totalM2 = colMap.totalM2 !== -1 ? Number(row[colMap.totalM2]) || 0 : 0;
-    const quantidadeRaw = colMap.quantidade !== -1 ? Number(row[colMap.quantidade]) || 0 : 0;
+    // Dimensões com parsing europeu — altura serve como fallback para largura
+    const comprimento = colMap.comprimento !== -1 ? parseNum(row[colMap.comprimento]) : 0;
+    const alturaRaw = colMap.altura !== -1 ? parseNum(row[colMap.altura]) : 0;
+    const larguraRaw = colMap.largura !== -1 ? parseNum(row[colMap.largura]) : 0;
+    const largura = larguraRaw > 0 ? larguraRaw : alturaRaw; // Altura como fallback
+    const espessura = colMap.espessura !== -1 ? parseNum(row[colMap.espessura]) : 0;
+    const totalM2 = colMap.totalM2 !== -1 ? parseNum(row[colMap.totalM2]) : 0;
+    const quantidadeRaw = colMap.quantidade !== -1 ? parseNum(row[colMap.quantidade]) : 0;
 
-    // Calcular quantidade automaticamente: total m2 / área de cada peça
+    // Usar quantidade do ficheiro se existir; senão calcular a partir do total m2
     let quantidade = quantidadeRaw;
     if (quantidade <= 0 && totalM2 > 0 && comprimento > 0 && largura > 0) {
       const areaPecaM2 = (comprimento * largura) / 10000; // cm² → m²
