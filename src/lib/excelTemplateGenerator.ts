@@ -388,11 +388,20 @@ export function gerarModeloExcel(config: ModeloInventarioConfig = { incluirExemp
     XLSX.utils.book_append_sheet(workbook, wsExemplo, 'EXEMPLO');
   }
 
-  // Gerar e descarregar ficheiro
+  // Gerar e descarregar ficheiro via Blob (compatível com iframes)
   const dataAtual = new Date().toISOString().split('T')[0];
   const filename = `modelo-importacao-${tipo}-${dataAtual}.xlsx`;
   
-  XLSX.writeFile(workbook, filename);
+  const wbout = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+  const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 /**
