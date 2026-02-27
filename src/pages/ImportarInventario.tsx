@@ -98,10 +98,12 @@ export default function ImportarInventario() {
         title: 'Modelo descarregado',
         description: 'O modelo de importação foi guardado com sucesso.',
       });
-    } catch {
+    } catch (err) {
+      console.error('Erro ao gerar modelo Excel:', err);
+      const msg = err instanceof Error ? err.message : 'Erro desconhecido';
       toast({
         title: 'Erro',
-        description: 'Não foi possível gerar o modelo de importação.',
+        description: `Não foi possível gerar o modelo: ${msg}`,
         variant: 'destructive',
       });
     }
