@@ -575,25 +575,21 @@ function parseLadrilhos(
     const origemRaw = colMap.origem !== -1 ? String(row[colMap.origem] || '') : '';
     const origemMaterial = mapOrigemMaterial(origemRaw);
 
-    // Dimensões com parsing europeu — altura serve como fallback para largura
-    let comprimento = colMap.comprimento !== -1 ? parseNum(row[colMap.comprimento]) : 0;
+    // Dimensões com parsing europeu — valores já em metros (ex: 0.3)
+    // Altura serve como fallback para largura
+    const comprimento = colMap.comprimento !== -1 ? parseNum(row[colMap.comprimento]) : 0;
     const alturaRaw = colMap.altura !== -1 ? parseNum(row[colMap.altura]) : 0;
     const larguraRaw = colMap.largura !== -1 ? parseNum(row[colMap.largura]) : 0;
-    let largura = larguraRaw > 0 ? larguraRaw : alturaRaw; // Altura como fallback
-    let espessura = colMap.espessura !== -1 ? parseNum(row[colMap.espessura]) : 0;
+    const largura = larguraRaw > 0 ? larguraRaw : alturaRaw;
+    const espessura = colMap.espessura !== -1 ? parseNum(row[colMap.espessura]) : 0;
     const totalM2 = colMap.totalM2 !== -1 ? parseNum(row[colMap.totalM2]) : 0;
     const quantidadeRaw = colMap.quantidade !== -1 ? parseNum(row[colMap.quantidade]) : 0;
 
-    // Auto-detectar unidade: se comprimento ou largura < 10, provavelmente estão em metros → converter para cm
-    // Espessura NÃO se converte (valores 1-3cm são normais para ladrilho)
-    if (comprimento > 0 && comprimento < 10) comprimento = Math.round(comprimento * 100);
-    if (largura > 0 && largura < 10) largura = Math.round(largura * 100);
-
-    // Usar quantidade do ficheiro se existir; senão calcular a partir do total m2
+    // Quantidade: usar valor do ficheiro; só calcular se não existir valor válido
+    // Cálculo: totalM2 / (comprimento * largura) — dimensões já em metros, espessura não entra
     let quantidade = quantidadeRaw;
     if (quantidade <= 0 && totalM2 > 0 && comprimento > 0 && largura > 0) {
-      const areaPecaM2 = (comprimento * largura) / 10000; // cm² → m²
-      quantidade = Math.round(totalM2 / areaPecaM2);
+      quantidade = Math.round(totalM2 / (comprimento * largura));
     }
 
     if (quantidade <= 0) avisos.push('Quantidade não encontrada no ficheiro nem calculável');
