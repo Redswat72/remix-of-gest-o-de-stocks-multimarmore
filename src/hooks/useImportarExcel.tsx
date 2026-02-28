@@ -495,40 +495,25 @@ function parseLadrilhos(
   locais: Local[],
   produtosExistentes: Map<string, string>
 ): LinhaExcelLadrilhos[] {
-  // Normalizar headers com trim + lowercase para mapeamento robusto
-  const normalizedHeaders = headers.map(h => h.trim().toLowerCase());
-
-  // Mapeamento explícito para ladrilho
-  const findCol = (names: string[]): number => {
-    for (const name of names) {
-      const idx = normalizedHeaders.indexOf(name.trim().toLowerCase());
-      if (idx !== -1) return idx;
-    }
-    // Fallback: usar findColumnIndex para match parcial
-    return findColumnIndex(headers, names);
-  };
-
-  const colMap = {
-    idmm: findCol(['id_mm', 'idmm', 'id mm', 'id-mm', 'codigo', 'ref']),
-    tipoPedra: findCol(['tipo']),
-    variedade: findCol(['variedade', 'variety']),
-    origem: findCol(['origem_material', 'origem material', 'origem']),
-    parqueMM: findCol(['parque', 'parque_mm', 'parque mm', 'local']),
-    linha: findCol(['linha', 'corredor', 'fila', 'posicao']),
-    comprimento: findCol(['comprimento (cm)', 'comprimento_cm', 'comprimento', 'comp']),
-    largura: findCol(['largura (cm)', 'largura_cm', 'largura', 'larg']),
-    altura: findCol(['altura (cm)', 'altura_cm', 'altura', 'alt']),
-    espessura: findCol(['espessura (cm)', 'espessura_cm', 'espessura', 'esp']),
-    quantidade: findCol(['quantidade', 'qtd', 'qty', 'un', 'unidades', 'num_pecas']),
-    totalM2: findCol(['total mt2', 'total m2', 'total_m2', 'mt2', 'm2', 'area_m2', 'area']),
-    acabamento: findCol(['acabamento', 'acabam', 'finish']),
-    nomeComercial: findCol(['nome_comercial', 'nome comercial', 'nome', 'comercial']),
-    observacoes: findCol(['nota', 'notas', 'observacoes', 'observações', 'obs']),
-    valorizacao: findCol(['valorização', 'valorizacao', 'valoriz']),
-    valorInventario: findCol(['valor de inventário', 'valor de inventario', 'valor_inventario', 'valor inventario']),
-    entradaStock: findCol(['entrada em stock', 'entrada_stock', 'entrada stock', 'data entrada']),
-    foto1: findCol(['foto1_url', 'foto1', 'foto']),
-    foto2: findCol(['foto2_url', 'foto2']),
+  // ── Mapeamento por índice fixo (0-based) ──
+  // O ficheiro Excel de ladrilho tem exactamente 13 colunas nesta ordem:
+  // 0: Entrada em stock | 1: Tipo | 2: parque | 3: Quantidade | 4: Comprimento (CM)
+  // 5: Largura (CM) | 6: Espessura (CM) | 7: Total mt2 | 8: Variedade
+  // 9: Acabamento | 10: Nota | 11: Valorização | 12: Valor de Inventário
+  const COL = {
+    entradaStock: 0,
+    tipo: 1,
+    parque: 2,
+    quantidade: 3,
+    comprimento: 4,
+    largura: 5,
+    espessura: 6,
+    totalM2: 7,
+    variedade: 8,
+    acabamento: 9,
+    nota: 10,
+    valorizacao: 11,
+    valorInventario: 12,
   };
 
   // Helper para parsing de números com formato europeu (vírgula decimal)
@@ -536,7 +521,6 @@ function parseLadrilhos(
     if (val === undefined || val === null || val === '') return 0;
     if (typeof val === 'number') return isNaN(val) ? 0 : val;
     let str = String(val).trim();
-    // Auto-detect: se tem vírgula depois do último ponto, é formato europeu
     const lastComma = str.lastIndexOf(',');
     const lastDot = str.lastIndexOf('.');
     if (lastComma > lastDot) {
@@ -548,64 +532,44 @@ function parseLadrilhos(
     return isNaN(n) ? 0 : n;
   };
 
-  // ID_MM pode não existir no ficheiro — gerar automaticamente MML01, MML02, ...
-  const hasIdmmColumn = colMap.idmm !== -1;
-  if (!hasIdmmColumn) {
-    // Não forçar coluna 0 como idmm
-  }
-  if (colMap.tipoPedra === -1) colMap.tipoPedra = 1;
-
   const linhasParsed: LinhaExcelLadrilhos[] = [];
   let autoIdCounter = 1;
 
   for (let i = 1; i < jsonData.length; i++) {
     const row = jsonData[i] as (string | number | undefined)[];
-    
+
     if (!row || row.every(cell => cell === undefined || cell === null || cell === '')) {
       continue;
     }
 
-    // Gerar IDMM automaticamente se a coluna não existir
-    let idmm: string;
-    if (hasIdmmColumn) {
-      idmm = String(row[colMap.idmm] || '').trim();
-      if (!idmm) continue;
-    } else {
-      idmm = `MML${String(autoIdCounter).padStart(2, '0')}`;
-      autoIdCounter++;
-    }
+    // Gerar IDMM automaticamente: MML01, MML02, ...
+    const idmm = `MML${String(autoIdCounter).padStart(2, '0')}`;
+    autoIdCounter++;
 
     const erros: string[] = [];
     const avisos: string[] = [];
 
-    // MAPEAMENTO CORRIGIDO: Excel "Variedade" → DB "tipo_pedra"
-    const variedadeRaw = colMap.variedade !== -1 ? String(row[colMap.variedade] || '').trim() : '';
+    // Variedade → usado como tipo_pedra
+    const variedadeRaw = String(row[COL.variedade] || '').trim();
     const tipoPedra = variedadeRaw || 'Não confirmada';
 
-    // Parque padrão MM001 se não existir no ficheiro
-    const parqueMMRaw = colMap.parqueMM !== -1 ? String(row[colMap.parqueMM] || '').trim() : '';
+    // Parque (padrão MM001)
+    const parqueMMRaw = String(row[COL.parque] || '').trim();
     const parqueMM = parqueMMRaw || 'MM001';
-    const linhaRaw = colMap.linha !== -1 ? String(row[colMap.linha] || '').trim() : '';
-    
+
     const local = encontrarLocal(locais, parqueMM);
     if (!local) {
       erros.push(`Parque MM "${parqueMM}" não encontrado na tabela de locais`);
     }
 
-    const origemRaw = colMap.origem !== -1 ? String(row[colMap.origem] || '') : '';
-    const origemMaterial = mapOrigemMaterial(origemRaw);
+    // Dimensões — valores já em metros no ficheiro (ex: 0.3 = 30cm)
+    const comprimento = parseNum(row[COL.comprimento]);
+    const largura = parseNum(row[COL.largura]);
+    const espessura = parseNum(row[COL.espessura]);
+    const totalM2 = parseNum(row[COL.totalM2]);
+    const quantidadeRaw = parseNum(row[COL.quantidade]);
 
-    // Dimensões com parsing europeu — valores já em metros (ex: 0.3)
-    // Altura serve como fallback para largura
-    const comprimento = colMap.comprimento !== -1 ? parseNum(row[colMap.comprimento]) : 0;
-    const alturaRaw = colMap.altura !== -1 ? parseNum(row[colMap.altura]) : 0;
-    const larguraRaw = colMap.largura !== -1 ? parseNum(row[colMap.largura]) : 0;
-    const largura = larguraRaw > 0 ? larguraRaw : alturaRaw;
-    const espessura = colMap.espessura !== -1 ? parseNum(row[colMap.espessura]) : 0;
-    const totalM2 = colMap.totalM2 !== -1 ? parseNum(row[colMap.totalM2]) : 0;
-    const quantidadeRaw = colMap.quantidade !== -1 ? parseNum(row[colMap.quantidade]) : 0;
-
-    // Quantidade: usar valor do ficheiro; só calcular se não existir valor válido
+    // Quantidade: usar valor do ficheiro; só calcular se 0 ou vazio
     // Cálculo: totalM2 / (comprimento * largura) — dimensões já em metros, espessura não entra
     let quantidade = quantidadeRaw;
     if (quantidade <= 0 && totalM2 > 0 && comprimento > 0 && largura > 0) {
@@ -614,27 +578,15 @@ function parseLadrilhos(
 
     if (quantidade <= 0) avisos.push('Quantidade não encontrada no ficheiro nem calculável');
 
-    const acabamento = colMap.acabamento !== -1 ? String(row[colMap.acabamento] || '').trim() : undefined;
-    const nomeComercial = colMap.nomeComercial !== -1 ? String(row[colMap.nomeComercial] || '').trim() : undefined;
-    const observacoes = colMap.observacoes !== -1 ? String(row[colMap.observacoes] || '').trim() : '';
-    const valorizacao = colMap.valorizacao !== -1 ? parseNum(row[colMap.valorizacao]) : undefined;
-    const valorInventario = colMap.valorInventario !== -1 ? parseNum(row[colMap.valorInventario]) : undefined;
-    const entradaStock = colMap.entradaStock !== -1 ? String(row[colMap.entradaStock] || '').trim() : undefined;
+    const acabamento = String(row[COL.acabamento] || '').trim() || undefined;
+    const observacoes = String(row[COL.nota] || '').trim();
+    const valorizacao = parseNum(row[COL.valorizacao]);
+    const valorInventario = parseNum(row[COL.valorInventario]);
+    const entradaStock = String(row[COL.entradaStock] || '').trim() || undefined;
 
     const produtoExiste = produtosExistentes.has(idmm.toLowerCase());
     if (produtoExiste) {
       avisos.push('Produto já existe - será criado apenas o movimento');
-    }
-
-    const fotos: string[] = [];
-    const fotoColumns = [colMap.foto1, colMap.foto2];
-    for (const fotoIdx of fotoColumns) {
-      if (fotoIdx !== -1 && row[fotoIdx]) {
-        const fotoUrl = String(row[fotoIdx]).trim();
-        if (fotoUrl.startsWith('http://') || fotoUrl.startsWith('https://')) {
-          fotos.push(fotoUrl);
-        }
-      }
     }
 
     linhasParsed.push({
@@ -644,19 +596,15 @@ function parseLadrilhos(
       variedade: '',
       forma: 'ladrilho',
       parqueMM: parqueMM,
-      linha: linhaRaw || undefined,
-      origemMaterial,
       comprimento,
       largura,
       espessura,
       quantidade,
       totalM2,
       acabamento: acabamento || undefined,
-      nomeComercial: nomeComercial || undefined,
       observacoes: observacoes || undefined,
-      fotos: fotos.length > 0 ? fotos : undefined,
-      valorizacao: valorizacao && valorizacao > 0 ? valorizacao : undefined,
-      valorInventario: valorInventario && valorInventario > 0 ? valorInventario : undefined,
+      valorizacao: valorizacao > 0 ? valorizacao : undefined,
+      valorInventario: valorInventario > 0 ? valorInventario : undefined,
       entradaStock: entradaStock || undefined,
       erros,
       avisos,
