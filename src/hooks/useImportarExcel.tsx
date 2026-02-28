@@ -773,6 +773,7 @@ export function useExecutarImportacao() {
           };
         } else if (tipo === 'ladrilhos') {
           const ladrilhoLinha = linha as LinhaExcelLadrilhos;
+          const localDestinoId = ladrilhoLinha.localId || "e3e718f2-e55a-4e66-832c-96d0fa764f51";
           return {
             tipo: 'ladrilho',
             idmm: ladrilhoLinha.idmm,
@@ -780,7 +781,7 @@ export function useExecutarImportacao() {
             variedade: ladrilhoLinha.variedade || undefined,
             forma: 'ladrilho',
             parque: ladrilhoLinha.parqueMM,
-            local_destino_id: ladrilhoLinha.localId || "e3e718f2-e55a-4e66-832c-96d0fa764f51",
+            local_destino_id: localDestinoId,
             linha: ladrilhoLinha.linha || undefined,
             comprimento_cm: ladrilhoLinha.comprimento,
             largura_cm: ladrilhoLinha.largura,
@@ -789,12 +790,19 @@ export function useExecutarImportacao() {
             total_m2: ladrilhoLinha.totalM2 || undefined,
             acabamento: ladrilhoLinha.acabamento || undefined,
             nome_comercial: ladrilhoLinha.nomeComercial || undefined,
-            observacoes: ladrilhoLinha.observacoes || undefined,
+            observacoes: `Importação inventário inicial - ${ladrilhoLinha.variedade || ladrilhoLinha.tipoPedra}`,
             valorizacao: ladrilhoLinha.valorizacao || undefined,
             valor_inventario: ladrilhoLinha.valorInventario || undefined,
-            entrada_stock: ladrilhoLinha.entradaStock || undefined,
+            entrada_stock: ladrilhoLinha.entradaStock || new Date().toISOString(),
             foto1_url: ladrilhoLinha.fotos?.[0] || undefined,
             foto2_url: ladrilhoLinha.fotos?.[1] || undefined,
+            // Campos para o movimento
+            tipo_movimento: 'entrada',
+            tipo_documento: 'sem_documento',
+            origem_material: 'adquirido',
+            operador_id: user?.id,
+            cancelado: false,
+            data_movimento: ladrilhoLinha.entradaStock || new Date().toISOString(),
           };
         } else {
           // Blocos
