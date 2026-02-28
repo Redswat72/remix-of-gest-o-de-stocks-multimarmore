@@ -775,6 +775,7 @@ export function useExecutarImportacao() {
             variedade: ladrilhoLinha.variedade || undefined,
             forma: 'ladrilho',
             parque: ladrilhoLinha.parqueMM,
+            local_destino_id: ladrilhoLinha.localId || undefined,
             linha: ladrilhoLinha.linha || undefined,
             comprimento_cm: ladrilhoLinha.comprimento,
             largura_cm: ladrilhoLinha.largura,
