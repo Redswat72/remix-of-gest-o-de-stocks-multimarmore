@@ -62,10 +62,14 @@ export interface LinhaExcelLadrilhos extends LinhaExcelBase {
   largura: number;
   espessura: number;
   quantidade: number;
+  totalM2: number;
   acabamento?: string;
   nomeComercial?: string;
   observacoes?: string;
   fotos?: string[];
+  valorizacao?: number;
+  valorInventario?: number;
+  entradaStock?: string;
 }
 
 // União de todos os tipos
@@ -491,24 +495,40 @@ function parseLadrilhos(
   locais: Local[],
   produtosExistentes: Map<string, string>
 ): LinhaExcelLadrilhos[] {
+  // Normalizar headers com trim + lowercase para mapeamento robusto
+  const normalizedHeaders = headers.map(h => h.trim().toLowerCase());
+
+  // Mapeamento explícito para ladrilho
+  const findCol = (names: string[]): number => {
+    for (const name of names) {
+      const idx = normalizedHeaders.indexOf(name.trim().toLowerCase());
+      if (idx !== -1) return idx;
+    }
+    // Fallback: usar findColumnIndex para match parcial
+    return findColumnIndex(headers, names);
+  };
+
   const colMap = {
-    idmm: findColumnIndex(headers, ['id_mm', 'idmm', 'id mm', 'id-mm', 'codigo', 'ref']),
-    tipoPedra: findColumnIndex(headers, ['tipo_pedra', 'tipo pedra', 'tipo', 'material', 'pedra']),
-    variedade: findColumnIndex(headers, ['variedade', 'variety']),
-    origem: findColumnIndex(headers, ['origem_material', 'origem material', 'origem']),
-    parqueMM: findColumnIndex(headers, ['parque_mm', 'parque mm', 'parquemm', 'parque', 'local']),
-    linha: findColumnIndex(headers, ['linha', 'corredor', 'fila', 'posicao']),
-    comprimento: findColumnIndex(headers, ['comprimento_cm', 'comprimento', 'comp', 'comprimento (cm)']),
-    largura: findColumnIndex(headers, ['largura_cm', 'largura', 'larg', 'largura (cm)']),
-    altura: findColumnIndex(headers, ['altura_cm', 'altura', 'alt', 'altura (cm)']),
-    espessura: findColumnIndex(headers, ['espessura_cm', 'espessura', 'esp', 'espessura (cm)']),
-    quantidade: findColumnIndex(headers, ['quantidade', 'qtd', 'qty', 'un', 'unidades', 'quantidade de chapas', 'num_pecas']),
-    totalM2: findColumnIndex(headers, ['total mt2', 'total m2', 'total_m2', 'mt2', 'm2', 'area_m2', 'area']),
-    acabamento: findColumnIndex(headers, ['acabamento', 'acabam', 'finish']),
-    nomeComercial: findColumnIndex(headers, ['nome_comercial', 'nome comercial', 'nome', 'comercial']),
-    observacoes: findColumnIndex(headers, ['notas', 'observacoes', 'observações', 'obs', 'nota']),
-    foto1: findColumnIndex(headers, ['foto1_url', 'foto1', 'foto']),
-    foto2: findColumnIndex(headers, ['foto2_url', 'foto2']),
+    idmm: findCol(['id_mm', 'idmm', 'id mm', 'id-mm', 'codigo', 'ref']),
+    tipoPedra: findCol(['tipo']),
+    variedade: findCol(['variedade', 'variety']),
+    origem: findCol(['origem_material', 'origem material', 'origem']),
+    parqueMM: findCol(['parque', 'parque_mm', 'parque mm', 'local']),
+    linha: findCol(['linha', 'corredor', 'fila', 'posicao']),
+    comprimento: findCol(['comprimento (cm)', 'comprimento_cm', 'comprimento', 'comp']),
+    largura: findCol(['largura (cm)', 'largura_cm', 'largura', 'larg']),
+    altura: findCol(['altura (cm)', 'altura_cm', 'altura', 'alt']),
+    espessura: findCol(['espessura (cm)', 'espessura_cm', 'espessura', 'esp']),
+    quantidade: findCol(['quantidade', 'qtd', 'qty', 'un', 'unidades', 'num_pecas']),
+    totalM2: findCol(['total mt2', 'total m2', 'total_m2', 'mt2', 'm2', 'area_m2', 'area']),
+    acabamento: findCol(['acabamento', 'acabam', 'finish']),
+    nomeComercial: findCol(['nome_comercial', 'nome comercial', 'nome', 'comercial']),
+    observacoes: findCol(['nota', 'notas', 'observacoes', 'observações', 'obs']),
+    valorizacao: findCol(['valorização', 'valorizacao', 'valoriz']),
+    valorInventario: findCol(['valor de inventário', 'valor de inventario', 'valor_inventario', 'valor inventario']),
+    entradaStock: findCol(['entrada em stock', 'entrada_stock', 'entrada stock', 'data entrada']),
+    foto1: findCol(['foto1_url', 'foto1', 'foto']),
+    foto2: findCol(['foto2_url', 'foto2']),
   };
 
   // Helper para parsing de números com formato europeu (vírgula decimal)
@@ -597,6 +617,9 @@ function parseLadrilhos(
     const acabamento = colMap.acabamento !== -1 ? String(row[colMap.acabamento] || '').trim() : undefined;
     const nomeComercial = colMap.nomeComercial !== -1 ? String(row[colMap.nomeComercial] || '').trim() : undefined;
     const observacoes = colMap.observacoes !== -1 ? String(row[colMap.observacoes] || '').trim() : '';
+    const valorizacao = colMap.valorizacao !== -1 ? parseNum(row[colMap.valorizacao]) : undefined;
+    const valorInventario = colMap.valorInventario !== -1 ? parseNum(row[colMap.valorInventario]) : undefined;
+    const entradaStock = colMap.entradaStock !== -1 ? String(row[colMap.entradaStock] || '').trim() : undefined;
 
     const produtoExiste = produtosExistentes.has(idmm.toLowerCase());
     if (produtoExiste) {
@@ -627,10 +650,14 @@ function parseLadrilhos(
       largura,
       espessura,
       quantidade,
+      totalM2,
       acabamento: acabamento || undefined,
       nomeComercial: nomeComercial || undefined,
       observacoes: observacoes || undefined,
       fotos: fotos.length > 0 ? fotos : undefined,
+      valorizacao: valorizacao && valorizacao > 0 ? valorizacao : undefined,
+      valorInventario: valorInventario && valorInventario > 0 ? valorInventario : undefined,
+      entradaStock: entradaStock || undefined,
       erros,
       avisos,
       produtoExiste,
@@ -800,9 +827,13 @@ export function useExecutarImportacao() {
             largura_cm: ladrilhoLinha.largura,
             espessura_cm: ladrilhoLinha.espessura,
             quantidade: ladrilhoLinha.quantidade,
+            total_m2: ladrilhoLinha.totalM2 || undefined,
             acabamento: ladrilhoLinha.acabamento || undefined,
             nome_comercial: ladrilhoLinha.nomeComercial || undefined,
             observacoes: ladrilhoLinha.observacoes || undefined,
+            valorizacao: ladrilhoLinha.valorizacao || undefined,
+            valor_inventario: ladrilhoLinha.valorInventario || undefined,
+            entrada_stock: ladrilhoLinha.entradaStock || undefined,
             foto1_url: ladrilhoLinha.fotos?.[0] || undefined,
             foto2_url: ladrilhoLinha.fotos?.[1] || undefined,
           };
