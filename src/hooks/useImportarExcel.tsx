@@ -826,17 +826,25 @@ export function useExecutarImportacao() {
       });
 
       if (error) {
-        console.error('Erro RPC importar_stock_excel:', error);
+        const err = error as any;
+        console.error('Erro RPC importar_stock_excel:', JSON.stringify(err, null, 2));
+        console.error('Erro message:', err.message);
+        console.error('Erro code:', err.code);
+        console.error('Erro details:', err.details);
+        console.error('Erro hint:', err.hint);
 
-        const pgCode = (error as unknown as { code?: string }).code;
-        const msg = String(error.message || '');
+        const pgCode = err.code || '';
+        const msg = String(err.message || '');
+        const details = String(err.details || '');
+        const fullMsg = `${msg} | code: ${pgCode} | details: ${details}`;
+
         if (pgCode === '42P01' && msg.toLowerCase().includes('auditoria')) {
           throw new Error(
             'Falha no backend: a tabela "auditoria" não existe. Crie a tabela e as respetivas políticas no backend antes de voltar a importar.'
           );
         }
 
-        throw new Error(error.message || 'Erro ao executar importação');
+        throw new Error(fullMsg);
       }
 
       if (!data || typeof data !== 'object') {
