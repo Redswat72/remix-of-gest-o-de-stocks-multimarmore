@@ -557,8 +557,13 @@ function parseLadrilhos(
     const parqueMMRaw = String(row[COL.parque] || '').trim();
     const parqueMM = parqueMMRaw || 'MM001';
 
-    const local = encontrarLocal(locais, parqueMM);
-    if (!local) {
+    // Lookup direto por código
+    const getLocalId = (codigo: string): string | null => {
+      const local = locais.find(l => l.codigo === codigo);
+      return local?.id ?? null;
+    };
+    const localId = getLocalId(parqueMM);
+    if (!localId) {
       erros.push(`Parque MM "${parqueMM}" não encontrado na tabela de locais`);
     }
 
@@ -609,7 +614,7 @@ function parseLadrilhos(
       erros,
       avisos,
       produtoExiste,
-      localId: local?.id,
+      localId: localId ?? undefined,
     });
   }
 
