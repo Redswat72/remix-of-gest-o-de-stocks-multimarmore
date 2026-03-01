@@ -11,6 +11,7 @@ import { useEmpresa } from "@/context/EmpresaContext";
 import { ExportExcelButton } from "@/components/ExportExcelButton";
 import { exportBlocos } from "@/utils/exportExcel";
 import { Search } from "lucide-react";
+import { PARQUES_OPTIONS } from "@/lib/parques";
 
 export default function Blocos() {
   const [parqueFiltro, setParqueFiltro] = useState("__all__");
@@ -84,11 +85,9 @@ export default function Blocos() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="__all__">Todos os parques</SelectItem>
-                <SelectItem value="MM">MM</SelectItem>
-                <SelectItem value="MOL">MOL</SelectItem>
-                <SelectItem value="Olival do Pires">Olival do Pires</SelectItem>
-                <SelectItem value="Plurirochas">Plurirochas</SelectItem>
-                <SelectItem value="Estremoz">Estremoz</SelectItem>
+                {PARQUES_OPTIONS.map(({ value, label }) => (
+                  <SelectItem key={value} value={value}>{label}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

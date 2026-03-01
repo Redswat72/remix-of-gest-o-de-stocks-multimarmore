@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLadrilho } from "@/hooks/useLadrilho";
 import { useSupabaseEmpresa } from "@/hooks/useSupabaseEmpresa";
@@ -9,10 +11,12 @@ import { useEmpresa } from "@/context/EmpresaContext";
 import { ExportExcelButton } from "@/components/ExportExcelButton";
 import { exportLadrilhos } from "@/utils/exportExcel";
 import { Search } from "lucide-react";
+import { PARQUES_OPTIONS } from "@/lib/parques";
 
 export default function Ladrilho() {
+  const [parqueFiltro, setParqueFiltro] = useState("__all__");
   const [busca, setBusca] = useState("");
-  const { data: ladrilhos, isLoading } = useLadrilho();
+  const { data: ladrilhos, isLoading } = useLadrilho(parqueFiltro === "__all__" ? undefined : parqueFiltro);
   const supabase = useSupabaseEmpresa();
   const { empresaConfig } = useEmpresa();
 
@@ -23,6 +27,8 @@ export default function Ladrilho() {
       ladrilho.variedade?.toLowerCase().includes(searchLower) ||
       ladrilho.dimensoes?.toLowerCase().includes(searchLower) ||
       ladrilho.butch_no?.toLowerCase().includes(searchLower) ||
+      ladrilho.id_mm?.toLowerCase().includes(searchLower) ||
+      ladrilho.tipo?.toLowerCase().includes(searchLower) ||
       false
     );
   });
@@ -59,14 +65,27 @@ export default function Ladrilho() {
       {/* FILTROS */}
       <Card>
         <CardContent className="pt-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Pesquisar por variedade, dimensões ou butch..."
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
-              className="pl-10"
-            />
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Pesquisar por ID, variedade, tipo, dimensões ou butch..."
+                value={busca}
+                onChange={(e) => setBusca(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <Select value={parqueFiltro} onValueChange={setParqueFiltro}>
+              <SelectTrigger className="w-full sm:w-[200px]">
+                <SelectValue placeholder="Filtrar por parque" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="__all__">Todos os parques</SelectItem>
+                {PARQUES_OPTIONS.map(({ value, label }) => (
+                  <SelectItem key={value} value={value}>{label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>
@@ -76,26 +95,32 @@ export default function Ladrilho() {
         <Table>
           <TableHeader>
             <TableRow>
+              <TableHead>ID MM</TableHead>
+              <TableHead>Tipo</TableHead>
               <TableHead>Variedade</TableHead>
-              <TableHead>Dimensões</TableHead>
-              <TableHead>Butch No</TableHead>
+              <TableHead>Acabamento</TableHead>
+              <TableHead className="text-right">Comp</TableHead>
+              <TableHead className="text-right">Larg</TableHead>
+              <TableHead className="text-right">Esp (cm)</TableHead>
               <TableHead className="text-right">Peças</TableHead>
               <TableHead className="text-right">m²</TableHead>
-              <TableHead className="text-right">Peso (kg)</TableHead>
-              <TableHead className="text-right">Preço/m²</TableHead>
+              <TableHead>Nota</TableHead>
               <TableHead className="text-right">Valor</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {ladrilhosFiltrados?.map((ladrilho) => (
               <TableRow key={ladrilho.id}>
-                <TableCell className="font-medium">{ladrilho.variedade || "—"}</TableCell>
-                <TableCell>{ladrilho.dimensoes || "—"}</TableCell>
-                <TableCell>{ladrilho.butch_no || "—"}</TableCell>
+                <TableCell className="font-medium">{ladrilho.id_mm || "—"}</TableCell>
+                <TableCell>{ladrilho.tipo || "—"}</TableCell>
+                <TableCell>{ladrilho.variedade || "—"}</TableCell>
+                <TableCell>{ladrilho.acabamento || "—"}</TableCell>
+                <TableCell className="text-right">{formatNumber(ladrilho.comprimento, 0)}</TableCell>
+                <TableCell className="text-right">{formatNumber(ladrilho.largura, 0)}</TableCell>
+                <TableCell className="text-right">{formatNumber(ladrilho.espessura, 1)}</TableCell>
                 <TableCell className="text-right">{ladrilho.num_pecas || "—"}</TableCell>
                 <TableCell className="text-right">{formatNumber(ladrilho.quantidade_m2)}</TableCell>
-                <TableCell className="text-right">{formatNumber(ladrilho.peso, 0)}</TableCell>
-                <TableCell className="text-right">{formatCurrency(ladrilho.preco_unitario)}</TableCell>
+                <TableCell className="max-w-[150px] truncate">{ladrilho.nota || "—"}</TableCell>
                 <TableCell className="text-right font-medium">{formatCurrency(ladrilho.valor_inventario)}</TableCell>
               </TableRow>
             ))}
