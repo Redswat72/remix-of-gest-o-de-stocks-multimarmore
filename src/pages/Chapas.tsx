@@ -28,6 +28,7 @@ export default function Chapas() {
       chapa.parque.toLowerCase().includes(searchLower) ||
       chapa.bundle_id?.toLowerCase().includes(searchLower) ||
       chapa.variedade?.toLowerCase().includes(searchLower) ||
+      chapa.acabamento?.toLowerCase().includes(searchLower) ||
       false
     );
   });
