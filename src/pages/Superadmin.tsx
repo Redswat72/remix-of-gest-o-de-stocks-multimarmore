@@ -22,8 +22,10 @@ import AddUserModal from "@/components/AddUserModal";
 import type { AppRole, LocalFormData } from "@/types/database";
 import {
   Shield, MapPin, Users, Package, Plus, Pencil, Check, Loader2,
-  FileDown, FileSpreadsheet, Upload, UserPlus, Power, PowerOff,
+  FileDown, FileSpreadsheet, Upload, UserPlus, Power, PowerOff, RefreshCw,
 } from "lucide-react";
+import { useSupabaseEmpresa } from "@/hooks/useSupabaseEmpresa";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function Superadmin() {
   return (
@@ -84,8 +86,109 @@ function ImportarButton() {
 function StockGlobalTab() {
   const { toast } = useToast();
   const { empresaConfig } = useEmpresa();
+  const supabase = useSupabaseEmpresa();
+  const queryClient = useQueryClient();
   const { data: stockAgregado, isLoading } = useStockAgregado();
   const { data: locais } = useLocais({ ativo: true });
+  const [recalculating, setRecalculating] = useState(false);
+
+  const handleRecalcularStock = async () => {
+    setRecalculating(true);
+    try {
+      // 1. Fetch all non-cancelled movements
+      const { data: movimentos, error: movError } = await supabase
+        .from('movimentos')
+        .select('produto_id, tipo, quantidade, local_origem_id, local_destino_id')
+        .eq('cancelado', false);
+
+      if (movError) throw movError;
+
+      // 2. Calculate stock per produto_id + local_id
+      const stockMap = new Map<string, number>();
+      const key = (prodId: string, localId: string) => `${prodId}|${localId}`;
+
+      for (const m of movimentos || []) {
+        if (m.tipo === 'entrada' && m.local_destino_id) {
+          const k = key(m.produto_id, m.local_destino_id);
+          stockMap.set(k, (stockMap.get(k) || 0) + m.quantidade);
+        } else if (m.tipo === 'transferencia') {
+          if (m.local_origem_id) {
+            const k = key(m.produto_id, m.local_origem_id);
+            stockMap.set(k, (stockMap.get(k) || 0) - m.quantidade);
+          }
+          if (m.local_destino_id) {
+            const k = key(m.produto_id, m.local_destino_id);
+            stockMap.set(k, (stockMap.get(k) || 0) + m.quantidade);
+          }
+        } else if (m.tipo === 'saida' && m.local_origem_id) {
+          const k = key(m.produto_id, m.local_origem_id);
+          stockMap.set(k, (stockMap.get(k) || 0) - m.quantidade);
+        }
+      }
+
+      // 3. Get existing stock rows
+      const { data: existingStock, error: stockError } = await supabase
+        .from('stock')
+        .select('id, produto_id, local_id, quantidade');
+      if (stockError) throw stockError;
+
+      const existingMap = new Map<string, { id: string; quantidade: number }>();
+      for (const s of existingStock || []) {
+        existingMap.set(key(s.produto_id, s.local_id), { id: s.id, quantidade: s.quantidade });
+      }
+
+      // 4. Update/insert stock rows
+      let updated = 0;
+      let inserted = 0;
+      for (const [k, qty] of stockMap.entries()) {
+        const [prodId, localId] = k.split('|');
+        const existing = existingMap.get(k);
+        if (existing) {
+          if (existing.quantidade !== qty) {
+            const { error } = await supabase
+              .from('stock')
+              .update({ quantidade: qty })
+              .eq('id', existing.id);
+            if (error) console.error('Update error:', error);
+            else updated++;
+          }
+          existingMap.delete(k);
+        } else if (qty !== 0) {
+          const { error } = await supabase
+            .from('stock')
+            .insert({ produto_id: prodId, local_id: localId, quantidade: qty });
+          if (error) console.error('Insert error:', error);
+          else inserted++;
+        }
+      }
+
+      // 5. Zero out stock rows that have no movements
+      let zeroed = 0;
+      for (const [, { id, quantidade }] of existingMap.entries()) {
+        if (quantidade !== 0) {
+          await supabase.from('stock').update({ quantidade: 0 }).eq('id', id);
+          zeroed++;
+        }
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['stock-agregado'] });
+      queryClient.invalidateQueries({ queryKey: ['stock-produto'] });
+
+      toast({
+        title: 'Stock recalculado',
+        description: `${movimentos?.length || 0} movimentos processados. ${updated} actualizados, ${inserted} inseridos, ${zeroed} zerados.`,
+      });
+    } catch (error) {
+      console.error('Erro ao recalcular stock:', error);
+      toast({
+        title: 'Erro',
+        description: error instanceof Error ? error.message : 'Erro ao recalcular stock',
+        variant: 'destructive',
+      });
+    } finally {
+      setRecalculating(false);
+    }
+  };
 
   const handleExport = () => {
     if (!stockAgregado || !locais) return;
@@ -136,6 +239,16 @@ function StockGlobalTab() {
             <CardDescription>Visão agregada de todos os parques</CardDescription>
           </div>
           <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              onClick={handleRecalcularStock}
+              disabled={recalculating}
+              className="gap-2"
+            >
+              <RefreshCw className={`h-4 w-4 ${recalculating ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">{recalculating ? 'Recalculando...' : 'Recalcular Stock'}</span>
+              <span className="sm:hidden">{recalculating ? '...' : 'Recalcular'}</span>
+            </Button>
             <Button variant="outline" onClick={handleDownloadTemplate} className="gap-2">
               <FileDown className="h-4 w-4" />
               <span className="hidden sm:inline">Modelo Excel</span>
