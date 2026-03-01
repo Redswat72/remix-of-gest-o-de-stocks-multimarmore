@@ -193,6 +193,7 @@ function ChapaDetails({ data }: { data: Chapa }) {
       <DetailRow label="Bundle/Parga" value={data.bundle_id} />
       <DetailRow label="Parque" value={data.parque} />
       <DetailRow label="Variedade" value={data.variedade} />
+      <DetailRow label="Acabamento" value={data.acabamento} />
       <Separator />
       <DetailRow label="Nº Chapas" value={data.num_chapas} />
       <DetailRow label="Área (m²)" value={formatNumber(data.quantidade_m2)} />
