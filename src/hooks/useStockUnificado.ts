@@ -20,6 +20,7 @@ export interface ItemUnificado {
   numChapas?: number | null;
   dimensoes?: string | null;
   butchNo?: string | null;
+  acabamento?: string | null;
   numPecas?: number | null;
   peso?: number | null;
   // Raw data
@@ -114,6 +115,7 @@ export function useStockUnificado(options: UseStockUnificadoOptions = {}) {
         precoUnitario: c.preco_unitario,
         bundleId: c.bundle_id,
         numChapas: c.num_chapas,
+        acabamento: c.acabamento,
         raw: c,
       });
     }
@@ -136,6 +138,7 @@ export function useStockUnificado(options: UseStockUnificadoOptions = {}) {
         precoUnitario: l.preco_unitario,
         dimensoes: l.dimensoes,
         butchNo: l.butch_no,
+        acabamento: l.acabamento,
         numPecas: l.num_pecas,
         peso: l.peso,
         raw: l,
@@ -162,6 +165,7 @@ export function useStockUnificado(options: UseStockUnificadoOptions = {}) {
       i.referencia.toLowerCase().includes(search) ||
       i.variedade?.toLowerCase().includes(search) ||
       i.parque.toLowerCase().includes(search) ||
+      i.acabamento?.toLowerCase().includes(search) ||
       (i.bundleId?.toLowerCase().includes(search)) ||
       (i.butchNo?.toLowerCase().includes(search))
     );
