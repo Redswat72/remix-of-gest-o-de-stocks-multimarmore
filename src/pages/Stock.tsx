@@ -197,6 +197,7 @@ export default function Stock() {
                       <div className="flex items-center gap-1">Variedade <SortIcon field="variedade" /></div>
                     </TableHead>
                     <TableHead>Parque</TableHead>
+                    <TableHead>Acabamento</TableHead>
                     <TableHead className="text-right cursor-pointer hover:bg-muted/50" onClick={() => toggleSort('quantidade')}>
                       <div className="flex items-center justify-end gap-1">Quantidade <SortIcon field="quantidade" /></div>
                     </TableHead>
@@ -222,6 +223,7 @@ export default function Stock() {
                       <TableCell>
                         <Badge variant="outline">{item.parque}</Badge>
                       </TableCell>
+                      <TableCell className="text-muted-foreground">{item.acabamento || '—'}</TableCell>
                       <TableCell className="text-right">
                         {formatNumber(item.quantidade)} {item.unidade}
                       </TableCell>
