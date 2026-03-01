@@ -62,6 +62,195 @@ export type Database = {
         }
         Relationships: []
       }
+      blocos: {
+        Row: {
+          altura: number | null
+          bloco_origem: string | null
+          comprimento: number | null
+          created_at: string
+          entrada_stock: string | null
+          fornecedor: string | null
+          foto1_url: string | null
+          foto2_url: string | null
+          id: string
+          id_mm: string
+          largura: number | null
+          linha: string | null
+          parque: string
+          preco_unitario: number | null
+          quantidade_kg: number | null
+          quantidade_tons: number
+          valor_inventario: number | null
+          variedade: string | null
+        }
+        Insert: {
+          altura?: number | null
+          bloco_origem?: string | null
+          comprimento?: number | null
+          created_at?: string
+          entrada_stock?: string | null
+          fornecedor?: string | null
+          foto1_url?: string | null
+          foto2_url?: string | null
+          id?: string
+          id_mm: string
+          largura?: number | null
+          linha?: string | null
+          parque: string
+          preco_unitario?: number | null
+          quantidade_kg?: number | null
+          quantidade_tons?: number
+          valor_inventario?: number | null
+          variedade?: string | null
+        }
+        Update: {
+          altura?: number | null
+          bloco_origem?: string | null
+          comprimento?: number | null
+          created_at?: string
+          entrada_stock?: string | null
+          fornecedor?: string | null
+          foto1_url?: string | null
+          foto2_url?: string | null
+          id?: string
+          id_mm?: string
+          largura?: number | null
+          linha?: string | null
+          parque?: string
+          preco_unitario?: number | null
+          quantidade_kg?: number | null
+          quantidade_tons?: number
+          valor_inventario?: number | null
+          variedade?: string | null
+        }
+        Relationships: []
+      }
+      chapas: {
+        Row: {
+          altura: number | null
+          bundle_id: string | null
+          created_at: string
+          entrada_stock: string | null
+          fornecedor: string | null
+          id: string
+          id_mm: string
+          largura: number | null
+          linha: string | null
+          num_chapas: number | null
+          parga1_altura: number | null
+          parga1_comprimento: number | null
+          parga1_foto_primeira: string | null
+          parga1_foto_ultima: string | null
+          parga1_nome: string | null
+          parga1_quantidade: number | null
+          parga2_altura: number | null
+          parga2_comprimento: number | null
+          parga2_foto_primeira: string | null
+          parga2_foto_ultima: string | null
+          parga2_nome: string | null
+          parga2_quantidade: number | null
+          parga3_altura: number | null
+          parga3_comprimento: number | null
+          parga3_foto_primeira: string | null
+          parga3_foto_ultima: string | null
+          parga3_nome: string | null
+          parga3_quantidade: number | null
+          parga4_altura: number | null
+          parga4_comprimento: number | null
+          parga4_foto_primeira: string | null
+          parga4_foto_ultima: string | null
+          parga4_nome: string | null
+          parga4_quantidade: number | null
+          parque: string
+          preco_unitario: number | null
+          quantidade_m2: number
+          valor_inventario: number | null
+          variedade: string | null
+        }
+        Insert: {
+          altura?: number | null
+          bundle_id?: string | null
+          created_at?: string
+          entrada_stock?: string | null
+          fornecedor?: string | null
+          id?: string
+          id_mm: string
+          largura?: number | null
+          linha?: string | null
+          num_chapas?: number | null
+          parga1_altura?: number | null
+          parga1_comprimento?: number | null
+          parga1_foto_primeira?: string | null
+          parga1_foto_ultima?: string | null
+          parga1_nome?: string | null
+          parga1_quantidade?: number | null
+          parga2_altura?: number | null
+          parga2_comprimento?: number | null
+          parga2_foto_primeira?: string | null
+          parga2_foto_ultima?: string | null
+          parga2_nome?: string | null
+          parga2_quantidade?: number | null
+          parga3_altura?: number | null
+          parga3_comprimento?: number | null
+          parga3_foto_primeira?: string | null
+          parga3_foto_ultima?: string | null
+          parga3_nome?: string | null
+          parga3_quantidade?: number | null
+          parga4_altura?: number | null
+          parga4_comprimento?: number | null
+          parga4_foto_primeira?: string | null
+          parga4_foto_ultima?: string | null
+          parga4_nome?: string | null
+          parga4_quantidade?: number | null
+          parque: string
+          preco_unitario?: number | null
+          quantidade_m2?: number
+          valor_inventario?: number | null
+          variedade?: string | null
+        }
+        Update: {
+          altura?: number | null
+          bundle_id?: string | null
+          created_at?: string
+          entrada_stock?: string | null
+          fornecedor?: string | null
+          id?: string
+          id_mm?: string
+          largura?: number | null
+          linha?: string | null
+          num_chapas?: number | null
+          parga1_altura?: number | null
+          parga1_comprimento?: number | null
+          parga1_foto_primeira?: string | null
+          parga1_foto_ultima?: string | null
+          parga1_nome?: string | null
+          parga1_quantidade?: number | null
+          parga2_altura?: number | null
+          parga2_comprimento?: number | null
+          parga2_foto_primeira?: string | null
+          parga2_foto_ultima?: string | null
+          parga2_nome?: string | null
+          parga2_quantidade?: number | null
+          parga3_altura?: number | null
+          parga3_comprimento?: number | null
+          parga3_foto_primeira?: string | null
+          parga3_foto_ultima?: string | null
+          parga3_nome?: string | null
+          parga3_quantidade?: number | null
+          parga4_altura?: number | null
+          parga4_comprimento?: number | null
+          parga4_foto_primeira?: string | null
+          parga4_foto_ultima?: string | null
+          parga4_nome?: string | null
+          parga4_quantidade?: number | null
+          parque?: string
+          preco_unitario?: number | null
+          quantidade_m2?: number
+          valor_inventario?: number | null
+          variedade?: string | null
+        }
+        Relationships: []
+      }
       clientes: {
         Row: {
           ativo: boolean
@@ -101,6 +290,81 @@ export type Database = {
           nome?: string
           telefone?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      ladrilho: {
+        Row: {
+          acabamento: string | null
+          altura: number | null
+          butch_no: string | null
+          comprimento: number | null
+          created_at: string
+          dimensoes: string | null
+          entrada_stock: string | null
+          espessura: number | null
+          foto_amostra_url: string | null
+          id: string
+          id_mm: string | null
+          largura: number | null
+          nota: string | null
+          num_pecas: number | null
+          parque: string
+          peso: number | null
+          preco_unitario: number | null
+          quantidade_m2: number
+          tipo: string | null
+          valor_inventario: number | null
+          valorizacao: number | null
+          variedade: string | null
+        }
+        Insert: {
+          acabamento?: string | null
+          altura?: number | null
+          butch_no?: string | null
+          comprimento?: number | null
+          created_at?: string
+          dimensoes?: string | null
+          entrada_stock?: string | null
+          espessura?: number | null
+          foto_amostra_url?: string | null
+          id?: string
+          id_mm?: string | null
+          largura?: number | null
+          nota?: string | null
+          num_pecas?: number | null
+          parque: string
+          peso?: number | null
+          preco_unitario?: number | null
+          quantidade_m2?: number
+          tipo?: string | null
+          valor_inventario?: number | null
+          valorizacao?: number | null
+          variedade?: string | null
+        }
+        Update: {
+          acabamento?: string | null
+          altura?: number | null
+          butch_no?: string | null
+          comprimento?: number | null
+          created_at?: string
+          dimensoes?: string | null
+          entrada_stock?: string | null
+          espessura?: number | null
+          foto_amostra_url?: string | null
+          id?: string
+          id_mm?: string | null
+          largura?: number | null
+          nota?: string | null
+          num_pecas?: number | null
+          parque?: string
+          peso?: number | null
+          preco_unitario?: number | null
+          quantidade_m2?: number
+          tipo?: string | null
+          valor_inventario?: number | null
+          valorizacao?: number | null
+          variedade?: string | null
         }
         Relationships: []
       }
