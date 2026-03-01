@@ -98,6 +98,7 @@ export default function Chapas() {
               <TableHead>Bundle/Parga</TableHead>
               <TableHead>Parque</TableHead>
               <TableHead>Variedade</TableHead>
+              <TableHead>Acabamento</TableHead>
               <TableHead className="text-right">Chapas</TableHead>
               <TableHead className="text-right">m²</TableHead>
               <TableHead className="text-right">Preço/m²</TableHead>
@@ -113,6 +114,7 @@ export default function Chapas() {
                   <Badge variant="outline">{chapa.parque}</Badge>
                 </TableCell>
                 <TableCell>{chapa.variedade || "—"}</TableCell>
+                <TableCell>{chapa.acabamento || "—"}</TableCell>
                 <TableCell className="text-right">{chapa.num_chapas || "—"}</TableCell>
                 <TableCell className="text-right">{formatNumber(chapa.quantidade_m2)}</TableCell>
                 <TableCell className="text-right">{formatCurrency(chapa.preco_unitario)}</TableCell>
