@@ -11,6 +11,7 @@ import { useEmpresa } from "@/context/EmpresaContext";
 import { ExportExcelButton } from "@/components/ExportExcelButton";
 import { exportChapas } from "@/utils/exportExcel";
 import { Search } from "lucide-react";
+import { PARQUES_OPTIONS } from "@/lib/parques";
 
 export default function Chapas() {
   const [parqueFiltro, setParqueFiltro] = useState("__all__");
@@ -79,10 +80,9 @@ export default function Chapas() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="__all__">Todos os parques</SelectItem>
-                <SelectItem value="MM Orlando Grey">MM Orlando Grey</SelectItem>
-                <SelectItem value="Plurirochas">Plurirochas</SelectItem>
-                <SelectItem value="MTX">MTX</SelectItem>
-                <SelectItem value="MTX Calcário">MTX Calcário</SelectItem>
+                {PARQUES_OPTIONS.map(({ value, label }) => (
+                  <SelectItem key={value} value={value}>{label}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
