@@ -27,7 +27,8 @@ export default function Dashboard() {
   const totalRegistos =
     (resumoBlocos?.total_blocos || 0) +
     (resumoChapas?.total_chapas || 0) +
-    (resumoLadrilho?.total_registos || 0);
+    (resumoLadrilho?.total_registos || 0) +
+    (resumoBandas?.total_bandas || 0);
 
   const valorTotal =
     (resumoBlocos?.valor_total || 0) +
@@ -126,7 +127,7 @@ export default function Dashboard() {
         <CardContent>
           <p className="text-3xl font-bold">{formatCurrency(valorTotal)}</p>
           <p className="text-sm text-muted-foreground mt-1">
-            {formatNumber(totalRegistos)} registos — {formatNumber(resumoBlocos?.total_blocos || 0)} blocos · {formatNumber(resumoChapas?.total_chapas || 0)} chapas · {formatNumber(resumoLadrilho?.total_registos || 0)} ladrilhos
+            {formatNumber(totalRegistos)} registos — {formatNumber(resumoBlocos?.total_blocos || 0)} blocos · {formatNumber(resumoChapas?.total_chapas || 0)} chapas · {formatNumber(resumoLadrilho?.total_registos || 0)} ladrilhos · {formatNumber(resumoBandas?.total_bandas || 0)} bandas
           </p>
         </CardContent>
       </Card>
