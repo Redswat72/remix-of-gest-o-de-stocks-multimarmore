@@ -20,6 +20,52 @@ function buildBandasQuery(supabase: any, empresa: string | null, selectCols: str
   return supabase.from('produtos').select(selectCols).eq('forma', 'banda');
 }
 
+function buildBandasFallbackQuery(supabase: any, _empresa: string | null, selectCols: string) {
+  return supabase.from('produtos').select(selectCols).eq('forma', 'banda');
+}
+
+async function fetchBandasPage(
+  supabase: any,
+  empresa: string | null,
+  from: number,
+  parque?: string,
+): Promise<Banda[]> {
+  const runPage = async (
+    queryBuilder: (supabase: any, empresa: string | null, selectCols: string) => any,
+    orderCol: 'id' | 'created_at',
+  ) => {
+    let query = queryBuilder(supabase, empresa, '*')
+      .order(orderCol, { ascending: false })
+      .range(from, from + PAGE_SIZE - 1);
+
+    if (parque) query = query.eq('parque', parque);
+    return query;
+  };
+
+  let { data, error } = await runPage(buildBandasQuery, 'id');
+
+  if (error) {
+    const retry = await runPage(buildBandasQuery, 'created_at');
+    data = retry.data;
+    error = retry.error;
+  }
+
+  if (error && empresa === 'magratex') {
+    let fallback = await runPage(buildBandasFallbackQuery, 'id');
+    data = fallback.data;
+    error = fallback.error;
+
+    if (error) {
+      fallback = await runPage(buildBandasFallbackQuery, 'created_at');
+      data = fallback.data;
+      error = fallback.error;
+    }
+  }
+
+  if (error) throw error;
+  return (data ?? []) as Banda[];
+}
+
 async function fetchAllBandas(
   supabase: any,
   empresa: string | null,
@@ -29,17 +75,10 @@ async function fetchAllBandas(
   const all: Banda[] = [];
 
   while (true) {
-    let query = buildBandasQuery(supabase, empresa, '*')
-      .order('created_at', { ascending: false })
-      .range(from, from + PAGE_SIZE - 1);
+    const data = await fetchBandasPage(supabase, empresa, from, parque);
+    if (data.length === 0) break;
 
-    if (parque) query = query.eq('parque', parque);
-
-    const { data, error } = await query;
-    if (error) throw error;
-    if (!data || data.length === 0) break;
-
-    all.push(...(data as Banda[]));
+    all.push(...data);
     if (data.length < PAGE_SIZE) break;
 
     from += PAGE_SIZE;

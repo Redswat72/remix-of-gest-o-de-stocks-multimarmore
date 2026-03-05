@@ -1,29 +1,39 @@
 import { useQuery } from '@tanstack/react-query';
 import { useSupabaseEmpresa } from './useSupabaseEmpresa';
+import { useEmpresa } from '@/context/EmpresaContext';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Bloco, Chapa, Ladrilho } from '@/types/inventario';
 
 /** Fetch all rows from a table, paginating in chunks of 1000 to bypass the default limit */
-async function fetchAll<T>(
-  supabase: SupabaseClient,
-  table: string,
-  orderCol = 'created_at',
-): Promise<T[]> {
+async function fetchAll<T>(supabase: SupabaseClient, table: string): Promise<T[]> {
   const PAGE = 1000;
   let from = 0;
   const all: T[] = [];
+
   while (true) {
-    const { data, error } = await supabase
-      .from(table)
-      .select('*')
-      .order(orderCol, { ascending: false })
-      .range(from, from + PAGE - 1);
+    const runPage = async (orderCol: 'id' | 'created_at') =>
+      supabase
+        .from(table)
+        .select('*')
+        .order(orderCol, { ascending: false })
+        .range(from, from + PAGE - 1);
+
+    let { data, error } = await runPage('id');
+
+    if (error) {
+      const retry = await runPage('created_at');
+      data = retry.data;
+      error = retry.error;
+    }
+
     if (error) throw error;
     if (!data || data.length === 0) break;
+
     all.push(...(data as T[]));
     if (data.length < PAGE) break;
     from += PAGE;
   }
+
   return all;
 }
 
@@ -60,24 +70,25 @@ interface UseStockUnificadoOptions {
 
 export function useStockUnificado(options: UseStockUnificadoOptions = {}) {
   const supabase = useSupabaseEmpresa();
+  const { empresa } = useEmpresa();
   const { forma, busca, parque } = options;
 
   const blocosQuery = useQuery({
-    queryKey: ['blocos-unificado'],
+    queryKey: ['blocos-unificado', empresa],
     queryFn: () => fetchAll<Bloco>(supabase, 'blocos'),
-    enabled: !forma || forma === 'bloco',
+    enabled: !!empresa && (!forma || forma === 'bloco'),
   });
 
   const chapasQuery = useQuery({
-    queryKey: ['chapas-unificado'],
+    queryKey: ['chapas-unificado', empresa],
     queryFn: () => fetchAll<Chapa>(supabase, 'chapas'),
-    enabled: !forma || forma === 'chapa',
+    enabled: !!empresa && (!forma || forma === 'chapa'),
   });
 
   const ladrilhoQuery = useQuery({
-    queryKey: ['ladrilho-unificado'],
+    queryKey: ['ladrilho-unificado', empresa],
     queryFn: () => fetchAll<Ladrilho>(supabase, 'ladrilho'),
-    enabled: !forma || forma === 'ladrilho',
+    enabled: !!empresa && (!forma || forma === 'ladrilho'),
   });
 
   const isLoading = blocosQuery.isLoading || chapasQuery.isLoading || ladrilhoQuery.isLoading;
