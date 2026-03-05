@@ -7,20 +7,36 @@ async function fetchAllLadrilho(supabase: any, parque?: string): Promise<Ladrilh
   const PAGE = 1000;
   let from = 0;
   const all: Ladrilho[] = [];
+
   while (true) {
-    let query = supabase
-      .from('ladrilho')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .range(from, from + PAGE - 1);
-    if (parque) query = query.eq('parque', parque);
-    const { data, error } = await query;
+    const runPage = async (orderCol: 'id' | 'created_at') => {
+      let query = supabase
+        .from('ladrilho')
+        .select('*')
+        .order(orderCol, { ascending: false })
+        .range(from, from + PAGE - 1);
+
+      if (parque) query = query.eq('parque', parque);
+      return query;
+    };
+
+    let { data, error } = await runPage('id');
+
+    if (error) {
+      const retry = await runPage('created_at');
+      data = retry.data;
+      error = retry.error;
+    }
+
     if (error) throw error;
     if (!data || data.length === 0) break;
+
     all.push(...(data as Ladrilho[]));
     if (data.length < PAGE) break;
+
     from += PAGE;
   }
+
   return all;
 }
 
