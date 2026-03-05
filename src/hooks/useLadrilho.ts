@@ -3,26 +3,34 @@ import { useSupabaseEmpresa } from './useSupabaseEmpresa';
 import { useEmpresa } from '@/context/EmpresaContext';
 import type { Ladrilho } from '@/types/inventario';
 
+async function fetchAllLadrilho(supabase: any, parque?: string): Promise<Ladrilho[]> {
+  const PAGE = 1000;
+  let from = 0;
+  const all: Ladrilho[] = [];
+  while (true) {
+    let query = supabase
+      .from('ladrilho')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .range(from, from + PAGE - 1);
+    if (parque) query = query.eq('parque', parque);
+    const { data, error } = await query;
+    if (error) throw error;
+    if (!data || data.length === 0) break;
+    all.push(...(data as Ladrilho[]));
+    if (data.length < PAGE) break;
+    from += PAGE;
+  }
+  return all;
+}
+
 export function useLadrilho(parque?: string) {
   const supabase = useSupabaseEmpresa();
   const { empresa } = useEmpresa();
 
   return useQuery({
     queryKey: ['ladrilho', empresa, parque],
-    queryFn: async () => {
-      let query = supabase
-        .from('ladrilho')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (parque) {
-        query = query.eq('parque', parque);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as Ladrilho[];
-    },
+    queryFn: () => fetchAllLadrilho(supabase, parque),
     enabled: !!empresa,
   });
 }
@@ -34,11 +42,7 @@ export function useResumoLadrilho() {
   return useQuery({
     queryKey: ['resumo-ladrilho', empresa],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('ladrilho')
-        .select('quantidade_m2, valor_inventario, num_pecas');
-
-      if (error) throw error;
+      const data = await fetchAllLadrilho(supabase);
 
       const total_registos = data.length;
       const total_m2 = data.reduce((sum, l) => sum + (l.quantidade_m2 || 0), 0);

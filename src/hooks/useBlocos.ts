@@ -3,26 +3,34 @@ import { useSupabaseEmpresa } from './useSupabaseEmpresa';
 import { useEmpresa } from '@/context/EmpresaContext';
 import type { Bloco } from '@/types/inventario';
 
+async function fetchAllBlocos(supabase: any, parque?: string): Promise<Bloco[]> {
+  const PAGE = 1000;
+  let from = 0;
+  const all: Bloco[] = [];
+  while (true) {
+    let query = supabase
+      .from('blocos')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .range(from, from + PAGE - 1);
+    if (parque) query = query.eq('parque', parque);
+    const { data, error } = await query;
+    if (error) throw error;
+    if (!data || data.length === 0) break;
+    all.push(...(data as Bloco[]));
+    if (data.length < PAGE) break;
+    from += PAGE;
+  }
+  return all;
+}
+
 export function useBlocos(parque?: string) {
   const supabase = useSupabaseEmpresa();
   const { empresa } = useEmpresa();
 
   return useQuery({
     queryKey: ['blocos', empresa, parque],
-    queryFn: async () => {
-      let query = supabase
-        .from('blocos')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (parque) {
-        query = query.eq('parque', parque);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as Bloco[];
-    },
+    queryFn: () => fetchAllBlocos(supabase, parque),
     enabled: !!empresa,
   });
 }

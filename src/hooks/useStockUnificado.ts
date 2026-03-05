@@ -1,6 +1,31 @@
 import { useQuery } from '@tanstack/react-query';
 import { useSupabaseEmpresa } from './useSupabaseEmpresa';
+import type { SupabaseClient } from '@supabase/supabase-js';
 import type { Bloco, Chapa, Ladrilho } from '@/types/inventario';
+
+/** Fetch all rows from a table, paginating in chunks of 1000 to bypass the default limit */
+async function fetchAll<T>(
+  supabase: SupabaseClient,
+  table: string,
+  orderCol = 'created_at',
+): Promise<T[]> {
+  const PAGE = 1000;
+  let from = 0;
+  const all: T[] = [];
+  while (true) {
+    const { data, error } = await supabase
+      .from(table)
+      .select('*')
+      .order(orderCol, { ascending: false })
+      .range(from, from + PAGE - 1);
+    if (error) throw error;
+    if (!data || data.length === 0) break;
+    all.push(...(data as T[]));
+    if (data.length < PAGE) break;
+    from += PAGE;
+  }
+  return all;
+}
 
 export type FormaInventario = 'bloco' | 'chapa' | 'ladrilho';
 
@@ -39,40 +64,19 @@ export function useStockUnificado(options: UseStockUnificadoOptions = {}) {
 
   const blocosQuery = useQuery({
     queryKey: ['blocos-unificado'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('blocos')
-        .select('*')
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      return data as Bloco[];
-    },
+    queryFn: () => fetchAll<Bloco>(supabase, 'blocos'),
     enabled: !forma || forma === 'bloco',
   });
 
   const chapasQuery = useQuery({
     queryKey: ['chapas-unificado'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('chapas')
-        .select('*')
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      return data as Chapa[];
-    },
+    queryFn: () => fetchAll<Chapa>(supabase, 'chapas'),
     enabled: !forma || forma === 'chapa',
   });
 
   const ladrilhoQuery = useQuery({
     queryKey: ['ladrilho-unificado'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('ladrilho')
-        .select('*')
-        .order('created_at', { ascending: false });
-      if (error) throw error;
-      return data as Ladrilho[];
-    },
+    queryFn: () => fetchAll<Ladrilho>(supabase, 'ladrilho'),
     enabled: !forma || forma === 'ladrilho',
   });
 
