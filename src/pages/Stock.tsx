@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useStockUnificado, type FormaInventario, type ItemUnificado } from '@/hooks/useStockUnificado';
+import { useResumoBandas } from '@/hooks/useBandas';
 import { ExportExcelButton } from '@/components/ExportExcelButton';
 import { exportStockCompleto } from '@/utils/exportStockCompleto';
 
@@ -46,6 +47,7 @@ export default function Stock() {
     forma: (formaFilter || undefined) as FormaInventario | undefined,
     busca: busca || undefined,
   });
+  const { data: resumoBandas } = useResumoBandas();
 
   const sortedItems = useMemo(() => {
     if (!items) return [];
@@ -79,13 +81,18 @@ export default function Stock() {
     const blocos = sortedItems.filter(i => i.forma === 'bloco');
     const chapas = sortedItems.filter(i => i.forma === 'chapa');
     const ladrilho = sortedItems.filter(i => i.forma === 'ladrilho');
+    const valorBase = sortedItems.reduce((s, i) => s + (i.valor || 0), 0);
+    const bandas = resumoBandas?.total_bandas || 0;
+    const valorBandas = resumoBandas?.valor_total || 0;
+
     return {
       blocos: blocos.length,
       chapas: chapas.length,
       ladrilho: ladrilho.length,
-      valorTotal: sortedItems.reduce((s, i) => s + (i.valor || 0), 0),
+      bandas,
+      valorTotal: valorBase + valorBandas,
     };
-  }, [sortedItems]);
+  }, [sortedItems, resumoBandas]);
 
   return (
     <div className="space-y-6">
@@ -93,7 +100,7 @@ export default function Stock() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold">Consulta de Stock</h1>
-          <p className="text-muted-foreground">Blocos, Chapas e Ladrilhos de todas as tabelas</p>
+          <p className="text-muted-foreground">Blocos, Chapas, Ladrilhos e Bandas de todas as tabelas</p>
         </div>
         <ExportExcelButton
           onExport={() => exportStockCompleto(supabase, {
@@ -105,7 +112,7 @@ export default function Stock() {
       </div>
 
       {/* Resumo */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         <Card>
           <CardContent className="pt-4 pb-4">
             <p className="text-sm text-muted-foreground">Blocos</p>
@@ -122,6 +129,12 @@ export default function Stock() {
           <CardContent className="pt-4 pb-4">
             <p className="text-sm text-muted-foreground">Ladrilhos</p>
             <p className="text-2xl font-bold">{totals.ladrilho}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-4 pb-4">
+            <p className="text-sm text-muted-foreground">Bandas</p>
+            <p className="text-2xl font-bold">{totals.bandas}</p>
           </CardContent>
         </Card>
         <Card>
