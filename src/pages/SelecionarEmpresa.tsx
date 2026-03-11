@@ -1,5 +1,6 @@
 import { useEmpresa, EMPRESAS_CONFIG, Empresa } from '@/context/EmpresaContext';
 import { useNavigate } from 'react-router-dom';
+import logoStockflow from '@/assets/logo-stockflow.png';
 
 export default function SelecionarEmpresa() {
   const { selectEmpresa } = useEmpresa();
@@ -17,6 +18,15 @@ export default function SelecionarEmpresa() {
       className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden px-4"
       style={{ background: 'radial-gradient(ellipse 80% 50% at 50% 40%, rgba(30,40,60,0.8) 0%, #030712 100%)' }}
     >
+      {/* Logo da Plataforma */}
+      <div className="mb-8">
+        <img
+          src={logoStockflow}
+          alt="StockFlow Global Management"
+          className="h-24 w-auto object-contain"
+        />
+      </div>
+
       {/* Header */}
       <div className="text-center mb-16">
         <h1 className="tracking-[0.3em] text-xs text-gray-400 uppercase font-light">
