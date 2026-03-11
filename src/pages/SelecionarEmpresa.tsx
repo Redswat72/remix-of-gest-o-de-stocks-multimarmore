@@ -18,8 +18,9 @@ export default function SelecionarEmpresa() {
       className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden px-4 bg-[#030712]"
     >
       {/* Logo da Plataforma */}
-      <div className="mb-12 relative">
-        <div className="w-56 h-56 rounded-full bg-[#0a0f1a] border border-[#1a2235] flex items-center justify-center shadow-2xl">
+      {/* Logo da Plataforma */}
+      <div className="mb-12">
+        <div className="bg-[#030712] p-4 rounded-3xl">
           <img
             src={logoStockflow}
             alt="StockFlow Global Management"
