@@ -3,10 +3,12 @@ import { ArrowLeft, Loader2, AlertCircle, QrCode } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
 import { useEmpresa } from '@/context/EmpresaContext';
+import { useAuth } from '@/hooks/useAuth';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import InventarioEditModal from '@/components/inventario/InventarioEditModal';
 import type { Bloco, Chapa, Ladrilho } from '@/types/inventario';
 import type { FormaInventario } from '@/hooks/useStockUnificado';
 
