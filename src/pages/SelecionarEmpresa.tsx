@@ -19,13 +19,14 @@ export default function SelecionarEmpresa() {
     >
       {/* Logo da Plataforma */}
       {/* Logo da Plataforma */}
-      <div className="mb-12">
-        <img
-          src={logoStockflow}
-          alt="StockFlow Global Management"
-          className="h-48 w-auto object-contain"
-          style={{ clipPath: 'circle(42% at 50% 48%)' }}
-        />
+      <div className="mb-12 flex items-center justify-center">
+        <div className="w-52 h-52 rounded-full overflow-hidden flex items-center justify-center" style={{ backgroundColor: '#030712', boxShadow: '0 0 0 4px #030712' }}>
+          <img
+            src={logoStockflow}
+            alt="StockFlow Global Management"
+            className="w-full h-full object-cover"
+          />
+        </div>
       </div>
 
       {/* Header */}
