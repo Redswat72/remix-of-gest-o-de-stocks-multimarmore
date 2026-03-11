@@ -39,6 +39,8 @@ export default function InventarioFicha() {
   const navigate = useNavigate();
   const supabase = useSupabaseEmpresa();
   const { empresaConfig } = useEmpresa();
+  const { isSuperadmin, isAdmin } = useAuth();
+  const canEdit = isSuperadmin || isAdmin;
 
   const tableName = forma === 'bloco' ? 'blocos' : forma === 'chapa' ? 'chapas' : 'ladrilho';
 
