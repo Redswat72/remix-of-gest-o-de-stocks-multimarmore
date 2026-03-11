@@ -20,11 +20,14 @@ export default function SelecionarEmpresa() {
       {/* Logo da Plataforma */}
       {/* Logo da Plataforma */}
       <div className="mb-12">
-        <img
-          src={logoStockflow}
-          alt="StockFlow Global Management"
-          className="h-44 w-auto object-contain rounded-full"
-        />
+        <div className="bg-[#030712] rounded-full p-2 overflow-hidden">
+          <img
+            src={logoStockflow}
+            alt="StockFlow Global Management"
+            className="h-44 w-auto object-contain rounded-full mix-blend-multiply"
+            style={{ backgroundColor: '#030712' }}
+          />
+        </div>
       </div>
 
       {/* Header */}
