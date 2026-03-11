@@ -162,6 +162,42 @@ export default function InventarioFicha() {
   );
 }
 
+function PhotoGallery({ forma, data }: { forma: string; data: unknown }) {
+  const photos: { label: string; url: string }[] = [];
+
+  if (forma === 'bloco') {
+    const d = data as Bloco;
+    if (d.foto1_url) photos.push({ label: 'Foto 1', url: d.foto1_url });
+    if (d.foto2_url) photos.push({ label: 'Foto 2', url: d.foto2_url });
+  } else if (forma === 'chapa') {
+    const d = data as Chapa;
+    for (let i = 1; i <= 4; i++) {
+      const primeira = d[`parga${i}_foto_primeira` as keyof Chapa] as string | null;
+      const ultima = d[`parga${i}_foto_ultima` as keyof Chapa] as string | null;
+      if (primeira) photos.push({ label: `Parga ${i} - Primeira`, url: primeira });
+      if (ultima) photos.push({ label: `Parga ${i} - Última`, url: ultima });
+    }
+  } else if (forma === 'ladrilho') {
+    const d = data as Ladrilho;
+    if (d.foto_amostra_url) photos.push({ label: 'Foto Amostra', url: d.foto_amostra_url });
+  }
+
+  if (photos.length === 0) {
+    return <p className="text-sm text-muted-foreground">Sem fotografias</p>;
+  }
+
+  return (
+    <div className="grid grid-cols-2 gap-2">
+      {photos.map((p, i) => (
+        <div key={i} className="space-y-1">
+          <span className="text-xs text-muted-foreground">{p.label}</span>
+          <img src={p.url} alt={p.label} className="w-full h-24 object-cover rounded-md border" />
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function DetailRow({ label, value }: { label: string; value: string | number | null | undefined }) {
   return (
     <div>
