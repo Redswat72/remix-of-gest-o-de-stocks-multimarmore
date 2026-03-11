@@ -15,20 +15,19 @@ export default function SelecionarEmpresa() {
 
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden px-4"
-      style={{ background: 'radial-gradient(ellipse 80% 50% at 50% 40%, rgba(30,40,60,0.8) 0%, #030712 100%)' }}
+      className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden px-4 bg-[#030712]"
     >
       {/* Logo da Plataforma */}
-      <div className="mb-8">
+      <div className="mb-12">
         <img
           src={logoStockflow}
           alt="StockFlow Global Management"
-          className="h-24 w-auto object-contain"
+          className="h-40 w-auto object-contain"
         />
       </div>
 
       {/* Header */}
-      <div className="text-center mb-16">
+      <div className="text-center mb-12">
         <h1 className="tracking-[0.3em] text-xs text-gray-400 uppercase font-light">
           Grupo Empresarial
         </h1>
