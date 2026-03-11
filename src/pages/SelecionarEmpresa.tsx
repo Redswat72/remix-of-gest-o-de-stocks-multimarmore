@@ -18,13 +18,19 @@ export default function SelecionarEmpresa() {
       className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden px-4 bg-[#030712]"
     >
       {/* Logo da Plataforma */}
-      {/* Logo da Plataforma */}
       <div className="mb-12 flex items-center justify-center">
-        <div className="w-52 h-52 rounded-full overflow-hidden flex items-center justify-center" style={{ backgroundColor: '#030712', boxShadow: '0 0 0 4px #030712' }}>
+        <div
+          className="flex items-center justify-center rounded-3xl border px-8 py-5 shadow-2xl"
+          style={{
+            backgroundColor: '#030712',
+            borderColor: 'rgba(255,255,255,0.08)',
+            boxShadow: '0 18px 50px rgba(0,0,0,0.35)',
+          }}
+        >
           <img
             src={logoStockflow}
             alt="StockFlow Global Management"
-            className="w-full h-full object-cover"
+            className="h-auto w-[240px] max-w-full object-contain"
           />
         </div>
       </div>
