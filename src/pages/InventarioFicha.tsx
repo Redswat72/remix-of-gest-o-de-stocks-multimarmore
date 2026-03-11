@@ -94,23 +94,32 @@ export default function InventarioFicha() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <div>
-          <div className="flex items-center gap-2 flex-wrap">
-            <h1 className="text-2xl font-bold">
-              {forma === 'bloco' ? (data as Bloco).id_mm
-                : forma === 'chapa' ? (data as Chapa).id_mm
-                : (data as Ladrilho).variedade || 'Ladrilho'}
-            </h1>
-            <Badge className={FORMA_COLORS[forma || '']}>
-              {FORMA_LABELS[forma || '']}
-            </Badge>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-2xl font-bold">
+                {forma === 'bloco' ? (data as Bloco).id_mm
+                  : forma === 'chapa' ? (data as Chapa).id_mm
+                  : (data as Ladrilho).variedade || 'Ladrilho'}
+              </h1>
+              <Badge className={FORMA_COLORS[forma || '']}>
+                {FORMA_LABELS[forma || '']}
+              </Badge>
+            </div>
+            <p className="text-muted-foreground">{empresaConfig?.nome}</p>
           </div>
-          <p className="text-muted-foreground">{empresaConfig?.nome}</p>
         </div>
+        {canEdit && data && forma && (
+          <InventarioEditModal
+            forma={forma as 'bloco' | 'chapa' | 'ladrilho'}
+            data={data as Bloco | Chapa | Ladrilho}
+            itemId={id!}
+          />
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
