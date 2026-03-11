@@ -135,12 +135,12 @@ export default function InventarioFicha() {
           </CardContent>
         </Card>
 
-        {/* QR Code */}
+        {/* Fotos */}
         <Card>
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <QrCode className="h-5 w-5" />
-              Identificação
+              Identificação & Fotos
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -152,12 +152,9 @@ export default function InventarioFicha() {
               <span className="text-sm text-muted-foreground">ID interno</span>
               <p className="font-mono text-sm">{id}</p>
             </div>
-            <div>
-              <span className="text-sm text-muted-foreground">URL da ficha</span>
-              <p className="font-mono text-xs break-all text-muted-foreground">
-                {window.location.origin}/inventario/{forma}/{id}
-              </p>
-            </div>
+            
+            {/* Display photos */}
+            <PhotoGallery forma={forma as string} data={data} />
           </CardContent>
         </Card>
       </div>
