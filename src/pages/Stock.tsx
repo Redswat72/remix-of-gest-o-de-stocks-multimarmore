@@ -73,6 +73,7 @@ export default function Stock() {
 
   const clearFilters = () => { setBusca(''); setFormaFilter(''); };
   const hasFilters = busca || formaFilter;
+  const mostrarIdMm = formaFilter === 'bloco' || (sortedItems.length > 0 && sortedItems.every(i => i.forma === 'bloco'));
 
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) return null;
@@ -211,7 +212,7 @@ export default function Stock() {
                   <TableRow>
                     <TableHead>Forma</TableHead>
                     <TableHead className="cursor-pointer hover:bg-muted/50" onClick={() => toggleSort('referencia')}>
-                      <div className="flex items-center gap-1">{formaFilter === 'bloco' ? 'ID MM' : 'ID / Referência'} <SortIcon field="referencia" /></div>
+                      <div className="flex items-center gap-1">{mostrarIdMm ? 'ID MM' : 'ID / Referência'} <SortIcon field="referencia" /></div>
                     </TableHead>
                     <TableHead className="cursor-pointer hover:bg-muted/50" onClick={() => toggleSort('variedade')}>
                       <div className="flex items-center gap-1">Variedade <SortIcon field="variedade" /></div>
