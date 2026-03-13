@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useChapas } from "@/hooks/useChapas";
 import { useSupabaseEmpresa } from "@/hooks/useSupabaseEmpresa";
 import { useEmpresa } from "@/context/EmpresaContext";
+import { usePermissoes } from "@/hooks/usePermissoes";
 import { ExportExcelButton } from "@/components/ExportExcelButton";
 import { exportChapas } from "@/utils/exportExcel";
 import { Search } from "lucide-react";
@@ -18,6 +19,7 @@ export default function Chapas() {
   const [busca, setBusca] = useState("");
   const supabase = useSupabaseEmpresa();
   const { empresaConfig } = useEmpresa();
+  const { podeVerValores } = usePermissoes();
 
   const { data: chapas, isLoading } = useChapas(parqueFiltro === "__all__" ? undefined : parqueFiltro);
 
@@ -59,7 +61,9 @@ export default function Chapas() {
           <h1 className="text-2xl font-bold">Chapas</h1>
           <p className="text-muted-foreground">Gestão de chapas de pedra</p>
         </div>
-        <ExportExcelButton onExport={() => exportChapas(supabase, { empresaNome: empresaConfig!.nome, corHeader: empresaConfig!.cor })} />
+        {podeVerValores && (
+          <ExportExcelButton onExport={() => exportChapas(supabase, { empresaNome: empresaConfig!.nome, corHeader: empresaConfig!.cor })} />
+        )}
       </div>
 
       {/* FILTROS */}
@@ -68,12 +72,7 @@ export default function Chapas() {
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Pesquisar por ID, bundle, parque ou variedade..."
-                value={busca}
-                onChange={(e) => setBusca(e.target.value)}
-                className="pl-10"
-              />
+              <Input placeholder="Pesquisar por ID, bundle, parque ou variedade..." value={busca} onChange={(e) => setBusca(e.target.value)} className="pl-10" />
             </div>
             <Select value={parqueFiltro} onValueChange={setParqueFiltro}>
               <SelectTrigger className="w-full sm:w-[200px]">
@@ -102,8 +101,8 @@ export default function Chapas() {
               <TableHead>Acabamento</TableHead>
               <TableHead className="text-right">Chapas</TableHead>
               <TableHead className="text-right">m²</TableHead>
-              <TableHead className="text-right">Preço/m²</TableHead>
-              <TableHead className="text-right">Valor</TableHead>
+              {podeVerValores && <TableHead className="text-right">Preço/m²</TableHead>}
+              {podeVerValores && <TableHead className="text-right">Valor</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -111,15 +110,13 @@ export default function Chapas() {
               <TableRow key={chapa.id}>
                 <TableCell className="font-medium">{chapa.id_mm}</TableCell>
                 <TableCell>{chapa.bundle_id || "—"}</TableCell>
-                <TableCell>
-                  <Badge variant="outline">{chapa.parque}</Badge>
-                </TableCell>
+                <TableCell><Badge variant="outline">{chapa.parque}</Badge></TableCell>
                 <TableCell>{chapa.variedade || "—"}</TableCell>
                 <TableCell>{chapa.acabamento || "—"}</TableCell>
                 <TableCell className="text-right">{chapa.num_chapas || "—"}</TableCell>
                 <TableCell className="text-right">{formatNumber(chapa.quantidade_m2)}</TableCell>
-                <TableCell className="text-right">{formatCurrency(chapa.preco_unitario)}</TableCell>
-                <TableCell className="text-right font-medium">{formatCurrency(chapa.valor_inventario)}</TableCell>
+                {podeVerValores && <TableCell className="text-right">{formatCurrency(chapa.preco_unitario)}</TableCell>}
+                {podeVerValores && <TableCell className="text-right font-medium">{formatCurrency(chapa.valor_inventario)}</TableCell>}
               </TableRow>
             ))}
           </TableBody>
@@ -134,17 +131,13 @@ export default function Chapas() {
               Total de chapas: <strong>{chapasFiltradas?.length || 0}</strong>
             </span>
             <span className="text-muted-foreground">
-              Total:{" "}
-              <strong>
-                {formatNumber(chapasFiltradas?.reduce((sum, c) => sum + c.quantidade_m2, 0) || 0)} m²
-              </strong>
+              Total: <strong>{formatNumber(chapasFiltradas?.reduce((sum, c) => sum + c.quantidade_m2, 0) || 0)} m²</strong>
             </span>
-            <span className="text-muted-foreground">
-              Valor:{" "}
-              <strong>
-                {formatCurrency(chapasFiltradas?.reduce((sum, c) => sum + (c.valor_inventario || 0), 0) || 0)}
-              </strong>
-            </span>
+            {podeVerValores && (
+              <span className="text-muted-foreground">
+                Valor: <strong>{formatCurrency(chapasFiltradas?.reduce((sum, c) => sum + (c.valor_inventario || 0), 0) || 0)}</strong>
+              </span>
+            )}
           </div>
         </CardContent>
       </Card>
