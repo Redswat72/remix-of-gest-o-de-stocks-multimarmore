@@ -16,6 +16,8 @@ export interface Bloco {
   entrada_stock: string | null;
   foto1_url: string | null;
   foto2_url: string | null;
+  foto3_url: string | null;
+  foto4_url: string | null;
   created_at: string;
 }
 

@@ -25,6 +25,8 @@ function getPhotoSlots(forma: FormaInventario, data: Bloco | Chapa | Ladrilho): 
     return [
       { label: 'Foto 1', field: 'foto1_url', currentUrl: d.foto1_url },
       { label: 'Foto 2', field: 'foto2_url', currentUrl: d.foto2_url },
+      { label: 'Foto 3', field: 'foto3_url', currentUrl: d.foto3_url },
+      { label: 'Foto 4', field: 'foto4_url', currentUrl: d.foto4_url },
     ];
   }
   if (forma === 'chapa') {
