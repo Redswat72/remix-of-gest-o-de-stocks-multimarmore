@@ -297,7 +297,7 @@ export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoa
   };
 
   const handleSubmit = async (data: ProdutoFormData) => {
-    const maxFotos = data.forma === 'bloco' ? 4 : 2;
+    const maxFotos = 4;
     const urlsToSubmit = fotoUrls.slice(0, maxFotos);
     const hdUrlsToSubmit = fotoHdUrls.slice(0, maxFotos);
     await onSubmit(data, urlsToSubmit, hdUrlsToSubmit, data.forma === 'chapa' ? pargaFotos : undefined);
