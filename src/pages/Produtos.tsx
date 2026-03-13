@@ -55,6 +55,7 @@ const formatNumber = (value: number | null, decimals = 2) => {
 export default function Produtos() {
   const navigate = useNavigate();
   const { empresaConfig } = useEmpresa();
+  const { podeVerValores } = usePermissoes();
   const [search, setSearch] = useState('');
   const [formaFilter, setFormaFilter] = useState('all');
   const [showFilters, setShowFilters] = useState(true);
