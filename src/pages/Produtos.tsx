@@ -191,7 +191,7 @@ export default function Produtos() {
                       <TableCell>
                         <Badge className={FORMA_COLORS[item.forma]}>{FORMA_LABELS[item.forma]}</Badge>
                       </TableCell>
-                      <TableCell className="font-mono font-medium">{item.referencia}</TableCell>
+                      <TableCell className="font-mono font-medium">{item.forma === 'bloco' ? (item.idMm || item.referencia) : item.referencia}</TableCell>
                       <TableCell>{item.variedade || '—'}</TableCell>
                       <TableCell>{item.parque}</TableCell>
                       <TableCell className="text-right">{formatNumber(item.quantidade)} {item.unidade}</TableCell>
