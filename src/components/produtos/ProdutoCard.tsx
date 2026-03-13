@@ -172,7 +172,10 @@ export function ProdutoCard({ produto, onEdit, onDelete, isDeleting }: ProdutoCa
               <p><span className="text-muted-foreground">Acabamento:</span> {produto.acabamento}</p>
             )}
             {getDimensoes() && (
-              <p><span className="text-muted-foreground">Dimensões:</span> {getDimensoes()}</p>
+              <p>📐 {getDimensoes()}</p>
+            )}
+            {produto.forma === 'bloco' && produto.peso_ton != null && produto.peso_ton > 0 && (
+              <p>⚖️ {new Intl.NumberFormat('pt-PT', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(produto.peso_ton)} ton</p>
             )}
             {produto.area_m2 && (
               <p><span className="text-muted-foreground">Área:</span> {produto.area_m2.toFixed(2)} m²</p>

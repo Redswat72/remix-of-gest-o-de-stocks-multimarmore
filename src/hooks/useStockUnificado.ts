@@ -51,6 +51,10 @@ export interface ItemUnificado {
   precoUnitario: number | null;
   // Campos extras por forma
   blocoOrigem?: string | null;
+  comprimento?: number | null;
+  largura?: number | null;
+  altura?: number | null;
+  toneladas?: number | null;
   bundleId?: string | null;
   numChapas?: number | null;
   dimensoes?: string | null;
@@ -110,6 +114,10 @@ export function useStockUnificado(options: UseStockUnificadoOptions = {}) {
         valor: b.valor_inventario,
         precoUnitario: b.preco_unitario,
         blocoOrigem: b.bloco_origem,
+        comprimento: b.comprimento,
+        largura: b.largura,
+        altura: b.altura,
+        toneladas: b.quantidade_tons,
         raw: b,
       });
     }
