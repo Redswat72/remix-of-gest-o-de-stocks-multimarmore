@@ -217,11 +217,37 @@ export default function Produtos() {
   );
 }
 
+function getItemPhoto(item: ItemUnificado): string | null {
+  if (item.forma === 'bloco') {
+    const raw = item.raw as import('@/types/inventario').Bloco;
+    return raw.foto1_url || null;
+  }
+  if (item.forma === 'chapa') {
+    const raw = item.raw as import('@/types/inventario').Chapa;
+    return raw.parga1_foto_primeira || null;
+  }
+  if (item.forma === 'ladrilho') {
+    const raw = item.raw as import('@/types/inventario').Ladrilho;
+    return raw.foto_amostra_url || null;
+  }
+  return null;
+}
+
 function InventarioCard({ item, onClick }: { item: ItemUnificado; onClick: () => void }) {
+  const foto = getItemPhoto(item);
+
   return (
     <Card className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer" onClick={onClick}>
-      <div className="relative aspect-video bg-muted flex items-center justify-center">
-        <Package className="h-12 w-12 text-muted-foreground/30" />
+      <div className="relative aspect-video bg-muted flex items-center justify-center overflow-hidden group">
+        {foto ? (
+          <img
+            src={foto}
+            alt={item.referencia}
+            className="w-full h-full object-cover transition-transform group-hover:scale-105"
+          />
+        ) : (
+          <Package className="h-12 w-12 text-muted-foreground/30" />
+        )}
         <Badge className={`absolute top-2 left-2 ${FORMA_COLORS[item.forma]}`}>
           {FORMA_LABELS[item.forma]}
         </Badge>
