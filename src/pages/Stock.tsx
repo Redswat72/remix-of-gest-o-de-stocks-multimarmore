@@ -44,6 +44,8 @@ export default function Stock() {
   const [sortField, setSortField] = useState<SortField>('referencia');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
 
+  const { podeVerValores } = usePermissoes();
+
   const { data: items, isLoading } = useStockUnificado({
     forma: (formaFilter || undefined) as FormaInventario | undefined,
     busca: busca || undefined,
