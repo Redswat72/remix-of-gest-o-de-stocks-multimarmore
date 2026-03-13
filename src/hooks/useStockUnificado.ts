@@ -42,7 +42,8 @@ export type FormaInventario = 'bloco' | 'chapa' | 'ladrilho';
 export interface ItemUnificado {
   id: string;
   forma: FormaInventario;
-  referencia: string;       // id_mm or variedade+dimensoes
+  referencia: string;       // referência principal para listagens
+  idMm?: string | null;     // id_mm direto da BD (quando existir)
   variedade: string | null;
   parque: string;
   quantidade: number;       // tons for blocos, m² for chapas/ladrilho
