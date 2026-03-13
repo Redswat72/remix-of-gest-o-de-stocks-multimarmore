@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useStockUnificado, type FormaInventario, type ItemUnificado } from '@/hooks/useStockUnificado';
+import type { Bloco } from '@/types/inventario';
 import { useResumoBandas } from '@/hooks/useBandas';
 import { usePermissoes } from '@/hooks/usePermissoes';
 import { ExportExcelButton } from '@/components/ExportExcelButton';
