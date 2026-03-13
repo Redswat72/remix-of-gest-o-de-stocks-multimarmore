@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useStockUnificado, type FormaInventario, type ItemUnificado } from '@/hooks/useStockUnificado';
+import type { Bloco } from '@/types/inventario';
 import { useResumoBandas } from '@/hooks/useBandas';
 import { usePermissoes } from '@/hooks/usePermissoes';
 import { ExportExcelButton } from '@/components/ExportExcelButton';
@@ -52,12 +53,19 @@ export default function Stock() {
   });
   const { data: resumoBandas } = useResumoBandas();
 
+  const getDisplayReferencia = (item: ItemUnificado) => {
+    if (item.forma === 'bloco') {
+      return (item.raw as Bloco).id_mm || item.idMm || item.referencia;
+    }
+    return item.referencia;
+  };
+
   const sortedItems = useMemo(() => {
     if (!items) return [];
     return [...items].sort((a, b) => {
       let cmp = 0;
       switch (sortField) {
-        case 'referencia': cmp = a.referencia.localeCompare(b.referencia); break;
+        case 'referencia': cmp = getDisplayReferencia(a).localeCompare(getDisplayReferencia(b)); break;
         case 'variedade': cmp = (a.variedade || '').localeCompare(b.variedade || ''); break;
         case 'quantidade': cmp = a.quantidade - b.quantidade; break;
         case 'valor': cmp = (a.valor || 0) - (b.valor || 0); break;
@@ -243,7 +251,7 @@ export default function Stock() {
                           {FORMA_BADGE[item.forma].label}
                         </Badge>
                       </TableCell>
-                      <TableCell className="font-mono font-medium">{item.forma === 'bloco' ? (item.idMm || item.referencia) : item.referencia}</TableCell>
+                      <TableCell className="font-mono font-medium">{getDisplayReferencia(item)}</TableCell>
                       <TableCell className="text-muted-foreground">{item.variedade || '—'}</TableCell>
                       <TableCell>
                         <Badge variant="outline">{item.parque}</Badge>
