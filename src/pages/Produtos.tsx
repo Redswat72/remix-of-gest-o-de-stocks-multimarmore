@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/table';
 import { useStockUnificado, type FormaInventario, type ItemUnificado } from '@/hooks/useStockUnificado';
 import { useEmpresa } from '@/context/EmpresaContext';
+import { usePermissoes } from '@/hooks/usePermissoes';
 
 const FORMA_LABELS: Record<string, string> = {
   bloco: 'Bloco',
