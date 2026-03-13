@@ -114,6 +114,10 @@ export function useStockUnificado(options: UseStockUnificadoOptions = {}) {
         valor: b.valor_inventario,
         precoUnitario: b.preco_unitario,
         blocoOrigem: b.bloco_origem,
+        comprimento: b.comprimento,
+        largura: b.largura,
+        altura: b.altura,
+        toneladas: b.quantidade_tons,
         raw: b,
       });
     }

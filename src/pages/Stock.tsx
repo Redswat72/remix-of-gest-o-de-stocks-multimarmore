@@ -239,6 +239,14 @@ export default function Stock() {
                         <Badge variant="outline">{item.parque}</Badge>
                       </TableCell>
                       <TableCell className="text-muted-foreground">{item.acabamento || '—'}</TableCell>
+                      <TableCell className="text-muted-foreground text-sm whitespace-nowrap">
+                        {item.comprimento && item.largura && item.altura
+                          ? `${formatNumber(item.comprimento, 0)} × ${formatNumber(item.largura, 0)} × ${formatNumber(item.altura, 0)} cm`
+                          : '—'}
+                      </TableCell>
+                      <TableCell className="text-right text-muted-foreground">
+                        {item.forma === 'bloco' && item.toneladas ? `${formatNumber(item.toneladas)} t` : '—'}
+                      </TableCell>
                       <TableCell className="text-right">
                         {formatNumber(item.quantidade)} {item.unidade}
                       </TableCell>
