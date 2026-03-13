@@ -166,7 +166,7 @@ export default function Produtos() {
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {items.map(item => (
-            <InventarioCard key={`${item.forma}-${item.id}`} item={item} onClick={() => navigate(`/inventario/${item.forma}/${item.id}`)} />
+            <InventarioCard key={`${item.forma}-${item.id}`} item={item} onClick={() => navigate(`/inventario/${item.forma}/${item.id}`)} podeVerValores={podeVerValores} />
           ))}
         </div>
       ) : (
