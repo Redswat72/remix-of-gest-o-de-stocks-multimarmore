@@ -181,7 +181,7 @@ export default function Produtos() {
                     <TableHead>Variedade</TableHead>
                     <TableHead>Parque</TableHead>
                     <TableHead className="text-right">Quantidade</TableHead>
-                    <TableHead className="text-right">Valor (€)</TableHead>
+                     {podeVerValores && <TableHead className="text-right">Valor (€)</TableHead>}
                     <TableHead className="w-[80px]"></TableHead>
                   </TableRow>
                 </TableHeader>
