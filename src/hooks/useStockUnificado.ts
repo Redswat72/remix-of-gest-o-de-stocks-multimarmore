@@ -42,7 +42,8 @@ export type FormaInventario = 'bloco' | 'chapa' | 'ladrilho';
 export interface ItemUnificado {
   id: string;
   forma: FormaInventario;
-  referencia: string;       // id_mm or variedade+dimensoes
+  referencia: string;       // referência principal para listagens
+  idMm?: string | null;     // id_mm direto da BD (quando existir)
   variedade: string | null;
   parque: string;
   quantidade: number;       // tons for blocos, m² for chapas/ladrilho
@@ -107,6 +108,7 @@ export function useStockUnificado(options: UseStockUnificadoOptions = {}) {
         id: b.id,
         forma: 'bloco',
         referencia: b.id_mm,
+        idMm: b.id_mm,
         variedade: b.variedade,
         parque: b.parque,
         quantidade: b.quantidade_tons,
@@ -130,6 +132,7 @@ export function useStockUnificado(options: UseStockUnificadoOptions = {}) {
         id: c.id,
         forma: 'chapa',
         referencia: c.id_mm,
+        idMm: c.id_mm,
         variedade: c.variedade,
         parque: c.parque,
         quantidade: c.quantidade_m2,
@@ -155,6 +158,7 @@ export function useStockUnificado(options: UseStockUnificadoOptions = {}) {
           : l.variedade && l.dimensoes
             ? `${l.variedade} ${l.dimensoes}`
             : l.variedade || l.dimensoes || l.id,
+        idMm: l.id_mm,
         variedade: l.variedade,
         parque: l.parque,
         quantidade: l.quantidade_m2,

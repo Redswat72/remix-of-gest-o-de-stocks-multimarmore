@@ -177,7 +177,7 @@ export default function Produtos() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Forma</TableHead>
-                    <TableHead>ID / Referência</TableHead>
+                    <TableHead>{formaFilter === 'bloco' ? 'ID MM' : 'ID / Referência'}</TableHead>
                     <TableHead>Variedade</TableHead>
                     <TableHead>Parque</TableHead>
                     <TableHead className="text-right">Quantidade</TableHead>
@@ -191,7 +191,7 @@ export default function Produtos() {
                       <TableCell>
                         <Badge className={FORMA_COLORS[item.forma]}>{FORMA_LABELS[item.forma]}</Badge>
                       </TableCell>
-                      <TableCell className="font-mono font-medium">{item.referencia}</TableCell>
+                      <TableCell className="font-mono font-medium">{item.forma === 'bloco' ? (item.idMm || item.referencia) : item.referencia}</TableCell>
                       <TableCell>{item.variedade || '—'}</TableCell>
                       <TableCell>{item.parque}</TableCell>
                       <TableCell className="text-right">{formatNumber(item.quantidade)} {item.unidade}</TableCell>
@@ -238,13 +238,15 @@ function getItemPhoto(item: ItemUnificado): string | null {
 function InventarioCard({ item, onClick, podeVerValores = true }: { item: ItemUnificado; onClick: () => void; podeVerValores?: boolean }) {
   const foto = getItemPhoto(item);
 
+  const displayRef = item.forma === 'bloco' ? (item.idMm || item.referencia) : item.referencia;
+
   return (
     <Card className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer" onClick={onClick}>
       <div className="relative aspect-video bg-muted flex items-center justify-center overflow-hidden group">
         {foto ? (
           <img
             src={foto}
-            alt={item.referencia}
+            alt={displayRef}
             className="w-full h-full object-cover transition-transform group-hover:scale-105"
           />
         ) : (
@@ -256,7 +258,7 @@ function InventarioCard({ item, onClick, podeVerValores = true }: { item: ItemUn
       </div>
       <CardContent className="p-4">
         <div className="mb-2">
-          <h3 className="font-bold text-lg">{item.referencia}</h3>
+          <h3 className="font-bold text-lg">{displayRef}</h3>
           <p className="text-sm text-muted-foreground">{item.variedade || '—'}</p>
         </div>
         <div className="space-y-1 text-sm mb-4">

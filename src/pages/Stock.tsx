@@ -211,7 +211,7 @@ export default function Stock() {
                   <TableRow>
                     <TableHead>Forma</TableHead>
                     <TableHead className="cursor-pointer hover:bg-muted/50" onClick={() => toggleSort('referencia')}>
-                      <div className="flex items-center gap-1">ID / Referência <SortIcon field="referencia" /></div>
+                      <div className="flex items-center gap-1">{formaFilter === 'bloco' ? 'ID MM' : 'ID / Referência'} <SortIcon field="referencia" /></div>
                     </TableHead>
                     <TableHead className="cursor-pointer hover:bg-muted/50" onClick={() => toggleSort('variedade')}>
                       <div className="flex items-center gap-1">Variedade <SortIcon field="variedade" /></div>
@@ -242,7 +242,7 @@ export default function Stock() {
                           {FORMA_BADGE[item.forma].label}
                         </Badge>
                       </TableCell>
-                      <TableCell className="font-mono font-medium">{item.referencia}</TableCell>
+                      <TableCell className="font-mono font-medium">{item.forma === 'bloco' ? (item.idMm || item.referencia) : item.referencia}</TableCell>
                       <TableCell className="text-muted-foreground">{item.variedade || '—'}</TableCell>
                       <TableCell>
                         <Badge variant="outline">{item.parque}</Badge>

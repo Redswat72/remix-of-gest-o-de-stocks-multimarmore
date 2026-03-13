@@ -152,8 +152,8 @@ export default function InventarioFicha() {
               <p className="font-medium">{FORMA_LABELS[forma || '']}</p>
             </div>
             <div>
-              <span className="text-sm text-muted-foreground">ID interno</span>
-              <p className="font-mono text-sm">{id}</p>
+              <span className="text-sm text-muted-foreground">{forma === 'bloco' ? 'ID MM' : 'ID interno'}</span>
+              <p className="font-mono text-sm">{forma === 'bloco' ? (data as Bloco).id_mm : id}</p>
             </div>
             
             {/* Display photos */}
