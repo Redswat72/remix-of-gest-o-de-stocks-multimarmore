@@ -211,6 +211,8 @@ export default function Stock() {
                     </TableHead>
                     <TableHead>Parque</TableHead>
                     <TableHead>Acabamento</TableHead>
+                    <TableHead>Dimensões</TableHead>
+                    <TableHead className="text-right">Toneladas</TableHead>
                     <TableHead className="text-right cursor-pointer hover:bg-muted/50" onClick={() => toggleSort('quantidade')}>
                       <div className="flex items-center justify-end gap-1">Quantidade <SortIcon field="quantidade" /></div>
                     </TableHead>
