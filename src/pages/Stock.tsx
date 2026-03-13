@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { useStockUnificado, type FormaInventario, type ItemUnificado } from '@/hooks/useStockUnificado';
 import { useResumoBandas } from '@/hooks/useBandas';
+import { usePermissoes } from '@/hooks/usePermissoes';
 import { ExportExcelButton } from '@/components/ExportExcelButton';
 import { exportStockCompleto } from '@/utils/exportStockCompleto';
 
