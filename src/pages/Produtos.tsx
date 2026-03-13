@@ -238,13 +238,15 @@ function getItemPhoto(item: ItemUnificado): string | null {
 function InventarioCard({ item, onClick, podeVerValores = true }: { item: ItemUnificado; onClick: () => void; podeVerValores?: boolean }) {
   const foto = getItemPhoto(item);
 
+  const displayRef = item.forma === 'bloco' ? (item.idMm || item.referencia) : item.referencia;
+
   return (
     <Card className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer" onClick={onClick}>
       <div className="relative aspect-video bg-muted flex items-center justify-center overflow-hidden group">
         {foto ? (
           <img
             src={foto}
-            alt={item.referencia}
+            alt={displayRef}
             className="w-full h-full object-cover transition-transform group-hover:scale-105"
           />
         ) : (
@@ -256,7 +258,7 @@ function InventarioCard({ item, onClick, podeVerValores = true }: { item: ItemUn
       </div>
       <CardContent className="p-4">
         <div className="mb-2">
-          <h3 className="font-bold text-lg">{item.referencia}</h3>
+          <h3 className="font-bold text-lg">{displayRef}</h3>
           <p className="text-sm text-muted-foreground">{item.variedade || '—'}</p>
         </div>
         <div className="space-y-1 text-sm mb-4">
