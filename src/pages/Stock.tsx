@@ -73,6 +73,7 @@ export default function Stock() {
 
   const clearFilters = () => { setBusca(''); setFormaFilter(''); };
   const hasFilters = busca || formaFilter;
+  const mostrarIdMm = formaFilter === 'bloco' || (sortedItems.length > 0 && sortedItems.every(i => i.forma === 'bloco'));
 
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) return null;
