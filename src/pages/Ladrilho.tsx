@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useLadrilho } from "@/hooks/useLadrilho";
 import { useSupabaseEmpresa } from "@/hooks/useSupabaseEmpresa";
 import { useEmpresa } from "@/context/EmpresaContext";
+import { usePermissoes } from "@/hooks/usePermissoes";
 import { ExportExcelButton } from "@/components/ExportExcelButton";
 import { exportLadrilhos } from "@/utils/exportExcel";
 import { Search } from "lucide-react";
@@ -19,6 +20,7 @@ export default function Ladrilho() {
   const { data: ladrilhos, isLoading } = useLadrilho(parqueFiltro === "__all__" ? undefined : parqueFiltro);
   const supabase = useSupabaseEmpresa();
   const { empresaConfig } = useEmpresa();
+  const { podeVerValores } = usePermissoes();
 
   const ladrilhosFiltrados = ladrilhos?.filter((ladrilho) => {
     const searchLower = busca.toLowerCase();
@@ -59,7 +61,9 @@ export default function Ladrilho() {
           <h1 className="text-2xl font-bold">Ladrilho</h1>
           <p className="text-muted-foreground">Gestão de ladrilho</p>
         </div>
-        <ExportExcelButton onExport={() => exportLadrilhos(supabase, { empresaNome: empresaConfig!.nome, corHeader: empresaConfig!.cor })} />
+        {podeVerValores && (
+          <ExportExcelButton onExport={() => exportLadrilhos(supabase, { empresaNome: empresaConfig!.nome, corHeader: empresaConfig!.cor })} />
+        )}
       </div>
 
       {/* FILTROS */}
@@ -68,12 +72,7 @@ export default function Ladrilho() {
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Pesquisar por ID, variedade, tipo, dimensões ou butch..."
-                value={busca}
-                onChange={(e) => setBusca(e.target.value)}
-                className="pl-10"
-              />
+              <Input placeholder="Pesquisar por ID, variedade, tipo, dimensões ou butch..." value={busca} onChange={(e) => setBusca(e.target.value)} className="pl-10" />
             </div>
             <Select value={parqueFiltro} onValueChange={setParqueFiltro}>
               <SelectTrigger className="w-full sm:w-[200px]">
@@ -104,8 +103,8 @@ export default function Ladrilho() {
               <TableHead className="text-right">Esp (cm)</TableHead>
               <TableHead className="text-right">Peças</TableHead>
               <TableHead className="text-right">m²</TableHead>
-              <TableHead>Nota</TableHead>
-              <TableHead className="text-right">Valor</TableHead>
+              {podeVerValores && <TableHead>Nota</TableHead>}
+              {podeVerValores && <TableHead className="text-right">Valor</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -120,8 +119,8 @@ export default function Ladrilho() {
                 <TableCell className="text-right">{formatNumber(ladrilho.espessura, 1)}</TableCell>
                 <TableCell className="text-right">{ladrilho.num_pecas || "—"}</TableCell>
                 <TableCell className="text-right">{formatNumber(ladrilho.quantidade_m2)}</TableCell>
-                <TableCell className="max-w-[150px] truncate">{ladrilho.nota || "—"}</TableCell>
-                <TableCell className="text-right font-medium">{formatCurrency(ladrilho.valor_inventario)}</TableCell>
+                {podeVerValores && <TableCell className="max-w-[150px] truncate">{ladrilho.nota || "—"}</TableCell>}
+                {podeVerValores && <TableCell className="text-right font-medium">{formatCurrency(ladrilho.valor_inventario)}</TableCell>}
               </TableRow>
             ))}
           </TableBody>
@@ -136,23 +135,16 @@ export default function Ladrilho() {
               Total de registos: <strong>{ladrilhosFiltrados?.length || 0}</strong>
             </span>
             <span className="text-muted-foreground">
-              Total peças:{" "}
-              <strong>
-                {formatNumber(ladrilhosFiltrados?.reduce((sum, l) => sum + (l.num_pecas || 0), 0) || 0, 0)}
-              </strong>
+              Total peças: <strong>{formatNumber(ladrilhosFiltrados?.reduce((sum, l) => sum + (l.num_pecas || 0), 0) || 0, 0)}</strong>
             </span>
             <span className="text-muted-foreground">
-              Total:{" "}
-              <strong>
-                {formatNumber(ladrilhosFiltrados?.reduce((sum, l) => sum + l.quantidade_m2, 0) || 0)} m²
-              </strong>
+              Total: <strong>{formatNumber(ladrilhosFiltrados?.reduce((sum, l) => sum + l.quantidade_m2, 0) || 0)} m²</strong>
             </span>
-            <span className="text-muted-foreground">
-              Valor:{" "}
-              <strong>
-                {formatCurrency(ladrilhosFiltrados?.reduce((sum, l) => sum + (l.valor_inventario || 0), 0) || 0)}
-              </strong>
-            </span>
+            {podeVerValores && (
+              <span className="text-muted-foreground">
+                Valor: <strong>{formatCurrency(ladrilhosFiltrados?.reduce((sum, l) => sum + (l.valor_inventario || 0), 0) || 0)}</strong>
+              </span>
+            )}
           </div>
         </CardContent>
       </Card>

@@ -6,12 +6,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useBandas } from "@/hooks/useBandas";
+import { usePermissoes } from "@/hooks/usePermissoes";
 import { Search } from "lucide-react";
 
 export default function Bandas() {
   const [parqueFiltro, setParqueFiltro] = useState<string>("");
   const [busca, setBusca] = useState("");
   const { data: bandas, isLoading } = useBandas(parqueFiltro || undefined);
+  const { podeVerValores } = usePermissoes();
 
   const bandasFiltradas = bandas?.filter((banda) => {
     const searchLower = busca.toLowerCase();
@@ -24,18 +26,12 @@ export default function Bandas() {
 
   const formatCurrency = (value: number | null) => {
     if (!value) return "—";
-    return new Intl.NumberFormat('pt-PT', {
-      style: 'currency',
-      currency: 'EUR'
-    }).format(value);
+    return new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(value);
   };
 
   const formatNumber = (value: number | null, decimals: number = 2) => {
     if (!value) return "—";
-    return new Intl.NumberFormat('pt-PT', {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals
-    }).format(value);
+    return new Intl.NumberFormat('pt-PT', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(value);
   };
 
   if (isLoading) {
@@ -59,12 +55,7 @@ export default function Bandas() {
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Pesquisar por ID, variedade..."
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
-              className="pl-10"
-            />
+            <Input placeholder="Pesquisar por ID, variedade..." value={busca} onChange={(e) => setBusca(e.target.value)} className="pl-10" />
           </div>
           <Select value={parqueFiltro} onValueChange={setParqueFiltro}>
             <SelectTrigger className="w-[180px]">
@@ -90,32 +81,22 @@ export default function Bandas() {
               <TableHead>Variedade</TableHead>
               <TableHead>Dimensões</TableHead>
               <TableHead className="text-right">m²</TableHead>
-              <TableHead className="text-right">Preço/m²</TableHead>
-              <TableHead className="text-right">Valor</TableHead>
+              {podeVerValores && <TableHead className="text-right">Preço/m²</TableHead>}
+              {podeVerValores && <TableHead className="text-right">Valor</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
             {bandasFiltradas?.map((banda) => (
               <TableRow key={banda.id}>
                 <TableCell className="font-medium">{banda.idmm}</TableCell>
-                <TableCell>
-                  <Badge variant="outline">{banda.parque}</Badge>
-                </TableCell>
+                <TableCell><Badge variant="outline">{banda.parque}</Badge></TableCell>
                 <TableCell>{banda.variedade || "—"}</TableCell>
                 <TableCell>
-                  {banda.largura && banda.altura
-                    ? `${banda.largura} × ${banda.altura} cm`
-                    : "—"}
+                  {banda.largura && banda.altura ? `${banda.largura} × ${banda.altura} cm` : "—"}
                 </TableCell>
-                <TableCell className="text-right">
-                  {formatNumber(banda.quantidade_m2)}
-                </TableCell>
-                <TableCell className="text-right">
-                  {formatCurrency(banda.preco_unitario)}
-                </TableCell>
-                <TableCell className="text-right font-medium">
-                  {formatCurrency(banda.valor_inventario)}
-                </TableCell>
+                <TableCell className="text-right">{formatNumber(banda.quantidade_m2)}</TableCell>
+                {podeVerValores && <TableCell className="text-right">{formatCurrency(banda.preco_unitario)}</TableCell>}
+                {podeVerValores && <TableCell className="text-right font-medium">{formatCurrency(banda.valor_inventario)}</TableCell>}
               </TableRow>
             ))}
           </TableBody>
@@ -129,17 +110,13 @@ export default function Bandas() {
             Total de bandas: <strong className="text-foreground">{bandasFiltradas?.length || 0}</strong>
           </span>
           <span className="text-muted-foreground">
-            Total:{" "}
-            <strong className="text-foreground">
-              {formatNumber(bandasFiltradas?.reduce((sum, b) => sum + (b.quantidade_m2 || 0), 0) || 0)} m²
-            </strong>
+            Total: <strong className="text-foreground">{formatNumber(bandasFiltradas?.reduce((sum, b) => sum + (b.quantidade_m2 || 0), 0) || 0)} m²</strong>
           </span>
-          <span className="text-muted-foreground">
-            Valor:{" "}
-            <strong className="text-foreground">
-              {formatCurrency(bandasFiltradas?.reduce((sum, b) => sum + (b.valor_inventario || 0), 0) || 0)}
-            </strong>
-          </span>
+          {podeVerValores && (
+            <span className="text-muted-foreground">
+              Valor: <strong className="text-foreground">{formatCurrency(bandasFiltradas?.reduce((sum, b) => sum + (b.valor_inventario || 0), 0) || 0)}</strong>
+            </span>
+          )}
         </div>
       </Card>
     </div>

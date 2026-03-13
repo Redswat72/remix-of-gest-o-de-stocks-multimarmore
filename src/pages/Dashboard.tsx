@@ -7,12 +7,14 @@ import { useLadrilho, useResumoLadrilho } from "@/hooks/useLadrilho";
 import { useResumoBandas } from "@/hooks/useBandas";
 import { Package, Grid3x3, Square, Layers } from "lucide-react";
 import { useEmpresa } from "@/context/EmpresaContext";
+import { usePermissoes } from "@/hooks/usePermissoes";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PARQUES, type ParqueCode } from "@/lib/parques";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
 export default function Dashboard() {
   const { empresaConfig } = useEmpresa();
+  const { podeVerValores } = usePermissoes();
   const { data: resumoBlocos, isLoading: loadingBlocos } = useResumoBlocos();
   const { data: resumoChapas, isLoading: loadingChapas } = useResumoChapas();
   const { data: resumoLadrilho, isLoading: loadingLadrilho } = useResumoLadrilho();
@@ -117,16 +119,18 @@ export default function Dashboard() {
         <p className="text-muted-foreground">Visão geral do inventário</p>
       </div>
 
-      {/* VALOR TOTAL */}
+      {/* VALOR TOTAL - só admin */}
       <Card>
         <CardHeader>
           <CardTitle className="text-sm font-medium text-muted-foreground">
-            Valor Total do Inventário
+            {podeVerValores ? 'Valor Total do Inventário' : 'Resumo do Inventário'}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-bold">{formatCurrency(valorTotal)}</p>
-          <p className="text-sm text-muted-foreground mt-1">
+          {podeVerValores && (
+            <p className="text-3xl font-bold">{formatCurrency(valorTotal)}</p>
+          )}
+          <p className={`text-sm text-muted-foreground ${podeVerValores ? 'mt-1' : ''}`}>
             {formatNumber(totalRegistos)} registos — {formatNumber(resumoBlocos?.total_blocos || 0)} blocos · {formatNumber(resumoChapas?.total_chapas || 0)} chapas · {formatNumber(resumoLadrilho?.total_registos || 0)} ladrilhos · {formatNumber(resumoBandas?.total_bandas || 0)} bandas
           </p>
         </CardContent>
@@ -145,9 +149,11 @@ export default function Dashboard() {
             <p className="text-xs text-muted-foreground">
               {formatNumber(resumoBlocos?.total_tons || 0, 2)} toneladas
             </p>
-            <p className="text-sm font-medium text-primary mt-1">
-              {formatCurrency(resumoBlocos?.valor_total || 0)}
-            </p>
+            {podeVerValores && (
+              <p className="text-sm font-medium text-primary mt-1">
+                {formatCurrency(resumoBlocos?.valor_total || 0)}
+              </p>
+            )}
           </CardContent>
         </Card>
 
@@ -162,9 +168,11 @@ export default function Dashboard() {
             <p className="text-xs text-muted-foreground">
               {formatNumber(resumoChapas?.total_m2 || 0, 2)} m²
             </p>
-            <p className="text-sm font-medium text-primary mt-1">
-              {formatCurrency(resumoChapas?.valor_total || 0)}
-            </p>
+            {podeVerValores && (
+              <p className="text-sm font-medium text-primary mt-1">
+                {formatCurrency(resumoChapas?.valor_total || 0)}
+              </p>
+            )}
           </CardContent>
         </Card>
 
@@ -179,9 +187,11 @@ export default function Dashboard() {
             <p className="text-xs text-muted-foreground">
               {formatNumber(resumoLadrilho?.total_m2 || 0, 2)} m² • {formatNumber(resumoLadrilho?.total_pecas || 0)} peças
             </p>
-            <p className="text-sm font-medium text-primary mt-1">
-              {formatCurrency(resumoLadrilho?.valor_total || 0)}
-            </p>
+            {podeVerValores && (
+              <p className="text-sm font-medium text-primary mt-1">
+                {formatCurrency(resumoLadrilho?.valor_total || 0)}
+              </p>
+            )}
           </CardContent>
         </Card>
 
@@ -196,9 +206,11 @@ export default function Dashboard() {
             <p className="text-xs text-muted-foreground">
               {formatNumber(resumoBandas?.total_m2 || 0, 2)} m²
             </p>
-            <p className="text-sm font-medium text-primary mt-1">
-              {formatCurrency(resumoBandas?.valor_total || 0)}
-            </p>
+            {podeVerValores && (
+              <p className="text-sm font-medium text-primary mt-1">
+                {formatCurrency(resumoBandas?.valor_total || 0)}
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -218,7 +230,7 @@ export default function Dashboard() {
                   <TableHead className="text-right">Blocos (tons)</TableHead>
                   <TableHead className="text-right">Chapas (m²)</TableHead>
                   <TableHead className="text-right">Ladrilho (m²)</TableHead>
-                  <TableHead className="text-right">Valor Total (€)</TableHead>
+                  {podeVerValores && <TableHead className="text-right">Valor Total (€)</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -229,7 +241,7 @@ export default function Dashboard() {
                     <TableCell className="text-right">{formatNumber(row.blocos_tons, 2)}</TableCell>
                     <TableCell className="text-right">{formatNumber(row.chapas_m2, 2)}</TableCell>
                     <TableCell className="text-right">{formatNumber(row.ladrilho_m2, 2)}</TableCell>
-                    <TableCell className="text-right font-medium">{formatCurrency(row.valor)}</TableCell>
+                    {podeVerValores && <TableCell className="text-right font-medium">{formatCurrency(row.valor)}</TableCell>}
                   </TableRow>
                 ))}
                 {/* TOTAL */}
@@ -244,9 +256,11 @@ export default function Dashboard() {
                   <TableCell className="text-right">
                     {formatNumber(parqueBreakdown.reduce((s, r) => s + r.ladrilho_m2, 0), 2)}
                   </TableCell>
-                  <TableCell className="text-right">
-                    {formatCurrency(parqueBreakdown.reduce((s, r) => s + r.valor, 0))}
-                  </TableCell>
+                  {podeVerValores && (
+                    <TableCell className="text-right">
+                      {formatCurrency(parqueBreakdown.reduce((s, r) => s + r.valor, 0))}
+                    </TableCell>
+                  )}
                 </TableRow>
               </TableBody>
             </Table>
@@ -254,40 +268,42 @@ export default function Dashboard() {
         </CardContent>
       </Card>
 
-      {/* GRÁFICO - VALOR POR PARQUE */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Valor por Parque</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={chartData}>
-                <XAxis dataKey="parque" tick={{ fontSize: 12 }} />
-                <YAxis
-                  tickFormatter={(v: number) => `${(v / 1000).toLocaleString('pt-PT')}k`}
-                  tick={{ fontSize: 12 }}
-                />
-                <Tooltip
-                  formatter={(value: number) => [
-                    new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(value),
-                    'Valor',
-                  ]}
-                  labelFormatter={(label: string) => {
-                    const found = chartData.find((d) => d.parque === label);
-                    return found ? `${label} — ${found.nome}` : label;
-                  }}
-                />
-                <Bar dataKey="valor" radius={[4, 4, 0, 0]}>
-                  {chartData.map((_, index) => (
-                    <Cell key={`cell-${index}`} fill={corPrimaria} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </CardContent>
-      </Card>
+      {/* GRÁFICO - VALOR POR PARQUE - só admin */}
+      {podeVerValores && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Valor por Parque</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData}>
+                  <XAxis dataKey="parque" tick={{ fontSize: 12 }} />
+                  <YAxis
+                    tickFormatter={(v: number) => `${(v / 1000).toLocaleString('pt-PT')}k`}
+                    tick={{ fontSize: 12 }}
+                  />
+                  <Tooltip
+                    formatter={(value: number) => [
+                      new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(value),
+                      'Valor',
+                    ]}
+                    labelFormatter={(label: string) => {
+                      const found = chartData.find((d) => d.parque === label);
+                      return found ? `${label} — ${found.nome}` : label;
+                    }}
+                  />
+                  <Bar dataKey="valor" radius={[4, 4, 0, 0]}>
+                    {chartData.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={corPrimaria} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }

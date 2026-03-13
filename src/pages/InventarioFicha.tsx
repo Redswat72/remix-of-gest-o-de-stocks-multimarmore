@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
 import { useEmpresa } from '@/context/EmpresaContext';
 import { useAuth } from '@/hooks/useAuth';
+import { usePermissoes } from '@/hooks/usePermissoes';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -239,6 +240,7 @@ function DetailRow({ label, value }: { label: string; value: string | number | n
 }
 
 function BlocoDetails({ data }: { data: Bloco }) {
+  const { podeVerValores } = usePermissoes();
   return (
     <>
       <DetailRow label="ID MM" value={data.id_mm} />
@@ -247,8 +249,8 @@ function BlocoDetails({ data }: { data: Bloco }) {
       <DetailRow label="Origem" value={data.bloco_origem} />
       <Separator />
       <DetailRow label="Toneladas" value={formatNumber(data.quantidade_tons)} />
-      <DetailRow label="Preço/ton" value={formatCurrency(data.preco_unitario)} />
-      <DetailRow label="Valor de Inventário" value={formatCurrency(data.valor_inventario)} />
+      {podeVerValores && <DetailRow label="Preço/ton" value={formatCurrency(data.preco_unitario)} />}
+      {podeVerValores && <DetailRow label="Valor de Inventário" value={formatCurrency(data.valor_inventario)} />}
       {(data.comprimento || data.largura || data.altura) && (
         <>
           <Separator />
@@ -264,6 +266,7 @@ function BlocoDetails({ data }: { data: Bloco }) {
 }
 
 function ChapaDetails({ data }: { data: Chapa }) {
+  const { podeVerValores } = usePermissoes();
   return (
     <>
       <DetailRow label="ID MM" value={data.id_mm} />
@@ -274,13 +277,14 @@ function ChapaDetails({ data }: { data: Chapa }) {
       <Separator />
       <DetailRow label="Nº Chapas" value={data.num_chapas} />
       <DetailRow label="Área (m²)" value={formatNumber(data.quantidade_m2)} />
-      <DetailRow label="Preço/m²" value={formatCurrency(data.preco_unitario)} />
-      <DetailRow label="Valor de Inventário" value={formatCurrency(data.valor_inventario)} />
+      {podeVerValores && <DetailRow label="Preço/m²" value={formatCurrency(data.preco_unitario)} />}
+      {podeVerValores && <DetailRow label="Valor de Inventário" value={formatCurrency(data.valor_inventario)} />}
     </>
   );
 }
 
 function LadrilhoDetails({ data }: { data: Ladrilho }) {
+  const { podeVerValores } = usePermissoes();
   return (
     <>
       <DetailRow label="Variedade" value={data.variedade} />
@@ -290,8 +294,8 @@ function LadrilhoDetails({ data }: { data: Ladrilho }) {
       <DetailRow label="Peças" value={data.num_pecas} />
       <DetailRow label="Área (m²)" value={formatNumber(data.quantidade_m2)} />
       <DetailRow label="Peso (kg)" value={formatNumber(data.peso, 0)} />
-      <DetailRow label="Preço/m²" value={formatCurrency(data.preco_unitario)} />
-      <DetailRow label="Valor de Inventário" value={formatCurrency(data.valor_inventario)} />
+      {podeVerValores && <DetailRow label="Preço/m²" value={formatCurrency(data.preco_unitario)} />}
+      {podeVerValores && <DetailRow label="Valor de Inventário" value={formatCurrency(data.valor_inventario)} />}
     </>
   );
 }

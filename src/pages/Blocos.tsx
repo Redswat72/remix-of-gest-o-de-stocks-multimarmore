@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useBlocos } from "@/hooks/useBlocos";
 import { useSupabaseEmpresa } from "@/hooks/useSupabaseEmpresa";
 import { useEmpresa } from "@/context/EmpresaContext";
+import { usePermissoes } from "@/hooks/usePermissoes";
 import { ExportExcelButton } from "@/components/ExportExcelButton";
 import { exportBlocos } from "@/utils/exportExcel";
 import { Search } from "lucide-react";
@@ -18,6 +19,7 @@ export default function Blocos() {
   const [busca, setBusca] = useState("");
   const supabase = useSupabaseEmpresa();
   const { empresaConfig } = useEmpresa();
+  const { podeVerValores } = usePermissoes();
 
   const { data: blocos, isLoading } = useBlocos(parqueFiltro === "__all__" ? undefined : parqueFiltro);
 
@@ -33,18 +35,12 @@ export default function Blocos() {
 
   const formatCurrency = (value: number | null) => {
     if (!value) return "—";
-    return new Intl.NumberFormat('pt-PT', {
-      style: 'currency',
-      currency: 'EUR',
-    }).format(value);
+    return new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(value);
   };
 
   const formatNumber = (value: number | null, decimals: number = 2) => {
     if (!value) return "—";
-    return new Intl.NumberFormat('pt-PT', {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals,
-    }).format(value);
+    return new Intl.NumberFormat('pt-PT', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(value);
   };
 
   if (isLoading) {
@@ -63,7 +59,9 @@ export default function Blocos() {
           <h1 className="text-2xl font-bold">Blocos</h1>
           <p className="text-muted-foreground">Gestão de blocos de pedra</p>
         </div>
-        <ExportExcelButton onExport={() => exportBlocos(supabase, { empresaNome: empresaConfig!.nome, corHeader: empresaConfig!.cor })} />
+        {podeVerValores && (
+          <ExportExcelButton onExport={() => exportBlocos(supabase, { empresaNome: empresaConfig!.nome, corHeader: empresaConfig!.cor })} />
+        )}
       </div>
 
       {/* FILTROS */}
@@ -72,12 +70,7 @@ export default function Blocos() {
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Pesquisar por ID, parque ou variedade..."
-                value={busca}
-                onChange={(e) => setBusca(e.target.value)}
-                className="pl-10"
-              />
+              <Input placeholder="Pesquisar por ID, parque ou variedade..." value={busca} onChange={(e) => setBusca(e.target.value)} className="pl-10" />
             </div>
             <Select value={parqueFiltro} onValueChange={setParqueFiltro}>
               <SelectTrigger className="w-full sm:w-[200px]">
@@ -104,28 +97,20 @@ export default function Blocos() {
               <TableHead>Variedade</TableHead>
               <TableHead>Origem</TableHead>
               <TableHead className="text-right">Toneladas</TableHead>
-              <TableHead className="text-right">Preço/ton</TableHead>
-              <TableHead className="text-right">Valor</TableHead>
+              {podeVerValores && <TableHead className="text-right">Preço/ton</TableHead>}
+              {podeVerValores && <TableHead className="text-right">Valor</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
             {blocosFiltrados?.map((bloco) => (
               <TableRow key={bloco.id}>
                 <TableCell className="font-medium">{bloco.id_mm}</TableCell>
-                <TableCell>
-                  <Badge variant="outline">{bloco.parque}</Badge>
-                </TableCell>
+                <TableCell><Badge variant="outline">{bloco.parque}</Badge></TableCell>
                 <TableCell>{bloco.variedade || "—"}</TableCell>
                 <TableCell>{bloco.bloco_origem || "—"}</TableCell>
-                <TableCell className="text-right">
-                  {formatNumber(bloco.quantidade_tons)}
-                </TableCell>
-                <TableCell className="text-right">
-                  {formatCurrency(bloco.preco_unitario)}
-                </TableCell>
-                <TableCell className="text-right font-medium">
-                  {formatCurrency(bloco.valor_inventario)}
-                </TableCell>
+                <TableCell className="text-right">{formatNumber(bloco.quantidade_tons)}</TableCell>
+                {podeVerValores && <TableCell className="text-right">{formatCurrency(bloco.preco_unitario)}</TableCell>}
+                {podeVerValores && <TableCell className="text-right font-medium">{formatCurrency(bloco.valor_inventario)}</TableCell>}
               </TableRow>
             ))}
           </TableBody>
@@ -140,22 +125,13 @@ export default function Blocos() {
               Total de blocos: <strong>{blocosFiltrados?.length || 0}</strong>
             </span>
             <span className="text-muted-foreground">
-              Total:{" "}
-              <strong>
-                {formatNumber(
-                  blocosFiltrados?.reduce((sum, b) => sum + b.quantidade_tons, 0) || 0
-                )}{" "}
-                tons
-              </strong>
+              Total: <strong>{formatNumber(blocosFiltrados?.reduce((sum, b) => sum + b.quantidade_tons, 0) || 0)} tons</strong>
             </span>
-            <span className="text-muted-foreground">
-              Valor:{" "}
-              <strong>
-                {formatCurrency(
-                  blocosFiltrados?.reduce((sum, b) => sum + (b.valor_inventario || 0), 0) || 0
-                )}
-              </strong>
-            </span>
+            {podeVerValores && (
+              <span className="text-muted-foreground">
+                Valor: <strong>{formatCurrency(blocosFiltrados?.reduce((sum, b) => sum + (b.valor_inventario || 0), 0) || 0)}</strong>
+              </span>
+            )}
           </div>
         </CardContent>
       </Card>

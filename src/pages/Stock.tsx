@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { useStockUnificado, type FormaInventario, type ItemUnificado } from '@/hooks/useStockUnificado';
 import { useResumoBandas } from '@/hooks/useBandas';
+import { usePermissoes } from '@/hooks/usePermissoes';
 import { ExportExcelButton } from '@/components/ExportExcelButton';
 import { exportStockCompleto } from '@/utils/exportStockCompleto';
 
@@ -42,6 +43,8 @@ export default function Stock() {
   const [formaFilter, setFormaFilter] = useState<string>('');
   const [sortField, setSortField] = useState<SortField>('referencia');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
+
+  const { podeVerValores } = usePermissoes();
 
   const { data: items, isLoading } = useStockUnificado({
     forma: (formaFilter || undefined) as FormaInventario | undefined,
@@ -102,13 +105,15 @@ export default function Stock() {
           <h1 className="text-2xl font-bold">Consulta de Stock</h1>
           <p className="text-muted-foreground">Blocos, Chapas, Ladrilhos e Bandas de todas as tabelas</p>
         </div>
-        <ExportExcelButton
-          onExport={() => exportStockCompleto(supabase, {
-            empresaNome: empresaConfig!.nome,
-            corHeader: empresaConfig!.cor,
-          })}
-          label="Exportar Excel"
-        />
+        {podeVerValores && (
+          <ExportExcelButton
+            onExport={() => exportStockCompleto(supabase, {
+              empresaNome: empresaConfig!.nome,
+              corHeader: empresaConfig!.cor,
+            })}
+            label="Exportar Excel"
+          />
+        )}
       </div>
 
       {/* Resumo */}
@@ -137,12 +142,14 @@ export default function Stock() {
             <p className="text-2xl font-bold">{totals.bandas}</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="pt-4 pb-4">
-            <p className="text-sm text-muted-foreground">Valor Total</p>
-            <p className="text-2xl font-bold">{formatCurrency(totals.valorTotal)}</p>
-          </CardContent>
-        </Card>
+        {podeVerValores && (
+          <Card>
+            <CardContent className="pt-4 pb-4">
+              <p className="text-sm text-muted-foreground">Valor Total</p>
+              <p className="text-2xl font-bold">{formatCurrency(totals.valorTotal)}</p>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Filtros */}
@@ -216,9 +223,11 @@ export default function Stock() {
                     <TableHead className="text-right cursor-pointer hover:bg-muted/50" onClick={() => toggleSort('quantidade')}>
                       <div className="flex items-center justify-end gap-1">Quantidade <SortIcon field="quantidade" /></div>
                     </TableHead>
-                    <TableHead className="text-right cursor-pointer hover:bg-muted/50" onClick={() => toggleSort('valor')}>
-                      <div className="flex items-center justify-end gap-1">Valor (€) <SortIcon field="valor" /></div>
-                    </TableHead>
+                    {podeVerValores && (
+                      <TableHead className="text-right cursor-pointer hover:bg-muted/50" onClick={() => toggleSort('valor')}>
+                        <div className="flex items-center justify-end gap-1">Valor (€) <SortIcon field="valor" /></div>
+                      </TableHead>
+                    )}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -250,9 +259,11 @@ export default function Stock() {
                       <TableCell className="text-right">
                         {formatNumber(item.quantidade)} {item.unidade}
                       </TableCell>
-                      <TableCell className="text-right font-medium">
-                        {formatCurrency(item.valor)}
-                      </TableCell>
+                      {podeVerValores && (
+                        <TableCell className="text-right font-medium">
+                          {formatCurrency(item.valor)}
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))}
                 </TableBody>
