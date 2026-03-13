@@ -590,7 +590,7 @@ export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoa
             {/* Fotografias para bloco/ladrilho */}
             <div className="space-y-4">
               <h3 className="font-medium text-sm text-muted-foreground">
-                Fotografias ({forma === 'bloco' ? 'máx. 4' : 'máx. 2'})
+                Fotografias (máx. 4)
               </h3>
               <ProdutoFotos
                 forma={forma}
