@@ -177,7 +177,7 @@ export default function Produtos() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Forma</TableHead>
-                    <TableHead>ID / Referência</TableHead>
+                    <TableHead>{formaFilter === 'bloco' ? 'ID MM' : 'ID / Referência'}</TableHead>
                     <TableHead>Variedade</TableHead>
                     <TableHead>Parque</TableHead>
                     <TableHead className="text-right">Quantidade</TableHead>
