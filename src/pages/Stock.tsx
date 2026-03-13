@@ -105,13 +105,15 @@ export default function Stock() {
           <h1 className="text-2xl font-bold">Consulta de Stock</h1>
           <p className="text-muted-foreground">Blocos, Chapas, Ladrilhos e Bandas de todas as tabelas</p>
         </div>
-        <ExportExcelButton
-          onExport={() => exportStockCompleto(supabase, {
-            empresaNome: empresaConfig!.nome,
-            corHeader: empresaConfig!.cor,
-          })}
-          label="Exportar Excel"
-        />
+        {podeVerValores && (
+          <ExportExcelButton
+            onExport={() => exportStockCompleto(supabase, {
+              empresaNome: empresaConfig!.nome,
+              corHeader: empresaConfig!.cor,
+            })}
+            label="Exportar Excel"
+          />
+        )}
       </div>
 
       {/* Resumo */}
