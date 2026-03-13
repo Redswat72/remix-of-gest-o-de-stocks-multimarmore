@@ -284,6 +284,7 @@ function ChapaDetails({ data }: { data: Chapa }) {
 }
 
 function LadrilhoDetails({ data }: { data: Ladrilho }) {
+  const { podeVerValores } = usePermissoes();
   return (
     <>
       <DetailRow label="Variedade" value={data.variedade} />
@@ -293,8 +294,8 @@ function LadrilhoDetails({ data }: { data: Ladrilho }) {
       <DetailRow label="Peças" value={data.num_pecas} />
       <DetailRow label="Área (m²)" value={formatNumber(data.quantidade_m2)} />
       <DetailRow label="Peso (kg)" value={formatNumber(data.peso, 0)} />
-      <DetailRow label="Preço/m²" value={formatCurrency(data.preco_unitario)} />
-      <DetailRow label="Valor de Inventário" value={formatCurrency(data.valor_inventario)} />
+      {podeVerValores && <DetailRow label="Preço/m²" value={formatCurrency(data.preco_unitario)} />}
+      {podeVerValores && <DetailRow label="Valor de Inventário" value={formatCurrency(data.valor_inventario)} />}
     </>
   );
 }
