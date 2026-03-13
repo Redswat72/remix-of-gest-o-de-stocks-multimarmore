@@ -142,12 +142,14 @@ export default function Stock() {
             <p className="text-2xl font-bold">{totals.bandas}</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="pt-4 pb-4">
-            <p className="text-sm text-muted-foreground">Valor Total</p>
-            <p className="text-2xl font-bold">{formatCurrency(totals.valorTotal)}</p>
-          </CardContent>
-        </Card>
+        {podeVerValores && (
+          <Card>
+            <CardContent className="pt-4 pb-4">
+              <p className="text-sm text-muted-foreground">Valor Total</p>
+              <p className="text-2xl font-bold">{formatCurrency(totals.valorTotal)}</p>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Filtros */}
