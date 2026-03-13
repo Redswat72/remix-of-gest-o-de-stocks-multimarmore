@@ -262,7 +262,7 @@ function InventarioCard({ item, onClick, podeVerValores = true }: { item: ItemUn
         <div className="space-y-1 text-sm mb-4">
           <p><span className="text-muted-foreground">Parque:</span> {item.parque}</p>
           <p><span className="text-muted-foreground">Quantidade:</span> {formatNumber(item.quantidade)} {item.unidade}</p>
-          {item.valor != null && (
+          {podeVerValores && item.valor != null && (
             <p><span className="text-muted-foreground">Valor:</span> {formatCurrency(item.valor)}</p>
           )}
         </div>
