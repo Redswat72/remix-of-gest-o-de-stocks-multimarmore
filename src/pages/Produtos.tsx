@@ -235,7 +235,7 @@ function getItemPhoto(item: ItemUnificado): string | null {
   return null;
 }
 
-function InventarioCard({ item, onClick }: { item: ItemUnificado; onClick: () => void }) {
+function InventarioCard({ item, onClick, podeVerValores = true }: { item: ItemUnificado; onClick: () => void; podeVerValores?: boolean }) {
   const foto = getItemPhoto(item);
 
   return (
