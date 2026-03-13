@@ -1,5 +1,6 @@
+import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Loader2, AlertCircle, QrCode } from 'lucide-react';
+import { ArrowLeft, Loader2, AlertCircle, QrCode, ZoomIn } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
 import { useEmpresa } from '@/context/EmpresaContext';
@@ -8,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { FotoLightbox } from '@/components/produtos/FotoLightbox';
 import InventarioEditModal from '@/components/inventario/InventarioEditModal';
 import type { Bloco, Chapa, Ladrilho } from '@/types/inventario';
 import type { FormaInventario } from '@/hooks/useStockUnificado';
@@ -163,14 +165,20 @@ export default function InventarioFicha() {
 }
 
 function PhotoGallery({ forma, data }: { forma: string; data: unknown }) {
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxIndex, setLightboxIndex] = useState(0);
+
   const photos: { label: string; url: string }[] = [];
+  let idLabel = '';
 
   if (forma === 'bloco') {
     const d = data as Bloco;
+    idLabel = d.id_mm;
     if (d.foto1_url) photos.push({ label: 'Foto 1', url: d.foto1_url });
     if (d.foto2_url) photos.push({ label: 'Foto 2', url: d.foto2_url });
   } else if (forma === 'chapa') {
     const d = data as Chapa;
+    idLabel = d.id_mm;
     for (let i = 1; i <= 4; i++) {
       const primeira = d[`parga${i}_foto_primeira` as keyof Chapa] as string | null;
       const ultima = d[`parga${i}_foto_ultima` as keyof Chapa] as string | null;
@@ -179,6 +187,7 @@ function PhotoGallery({ forma, data }: { forma: string; data: unknown }) {
     }
   } else if (forma === 'ladrilho') {
     const d = data as Ladrilho;
+    idLabel = d.variedade || 'Ladrilho';
     if (d.foto_amostra_url) photos.push({ label: 'Foto Amostra', url: d.foto_amostra_url });
   }
 
@@ -186,15 +195,37 @@ function PhotoGallery({ forma, data }: { forma: string; data: unknown }) {
     return <p className="text-sm text-muted-foreground">Sem fotografias</p>;
   }
 
+  const fotosList = photos.map(p => ({ url: p.url, label: p.label, isHd: false }));
+
   return (
-    <div className="grid grid-cols-2 gap-2">
-      {photos.map((p, i) => (
-        <div key={i} className="space-y-1">
-          <span className="text-xs text-muted-foreground">{p.label}</span>
-          <img src={p.url} alt={p.label} className="w-full h-24 object-cover rounded-md border" />
-        </div>
-      ))}
-    </div>
+    <>
+      <div className="grid grid-cols-2 gap-2">
+        {photos.map((p, i) => (
+          <div
+            key={i}
+            className="relative space-y-1 cursor-pointer group"
+            onClick={() => { setLightboxIndex(i); setLightboxOpen(true); }}
+          >
+            <span className="text-xs text-muted-foreground">{p.label}</span>
+            <div className="relative overflow-hidden rounded-md border">
+              <img src={p.url} alt={p.label} className="w-full h-24 object-cover transition-transform group-hover:scale-105" />
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                <ZoomIn className="w-6 h-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <FotoLightbox
+        isOpen={lightboxOpen}
+        onClose={() => setLightboxOpen(false)}
+        fotos={fotosList}
+        initialIndex={lightboxIndex}
+        idmm={idLabel}
+        tipoPedra={FORMA_LABELS[forma] || forma}
+      />
+    </>
   );
 }
 
