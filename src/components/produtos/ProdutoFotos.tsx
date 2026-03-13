@@ -145,7 +145,7 @@ export function ProdutoFotos({
   
   // Configuração baseada na forma
   const hdConfig = HD_SLOTS_CONFIG[forma];
-  const maxFotosOperacionais = forma === 'bloco' ? 4 : 2;
+  const maxFotosOperacionais = 4;
   const maxFotosHd = hdConfig.count;
   
   // Estado para fotos operacionais
