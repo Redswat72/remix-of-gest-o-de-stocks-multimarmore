@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/table';
 import { useStockUnificado, type FormaInventario, type ItemUnificado } from '@/hooks/useStockUnificado';
 import { useEmpresa } from '@/context/EmpresaContext';
+import { usePermissoes } from '@/hooks/usePermissoes';
 
 const FORMA_LABELS: Record<string, string> = {
   bloco: 'Bloco',
@@ -54,6 +55,7 @@ const formatNumber = (value: number | null, decimals = 2) => {
 export default function Produtos() {
   const navigate = useNavigate();
   const { empresaConfig } = useEmpresa();
+  const { podeVerValores } = usePermissoes();
   const [search, setSearch] = useState('');
   const [formaFilter, setFormaFilter] = useState('all');
   const [showFilters, setShowFilters] = useState(true);
@@ -164,7 +166,7 @@ export default function Produtos() {
       ) : viewMode === 'grid' ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {items.map(item => (
-            <InventarioCard key={`${item.forma}-${item.id}`} item={item} onClick={() => navigate(`/inventario/${item.forma}/${item.id}`)} />
+            <InventarioCard key={`${item.forma}-${item.id}`} item={item} onClick={() => navigate(`/inventario/${item.forma}/${item.id}`)} podeVerValores={podeVerValores} />
           ))}
         </div>
       ) : (
@@ -179,7 +181,7 @@ export default function Produtos() {
                     <TableHead>Variedade</TableHead>
                     <TableHead>Parque</TableHead>
                     <TableHead className="text-right">Quantidade</TableHead>
-                    <TableHead className="text-right">Valor (€)</TableHead>
+                     {podeVerValores && <TableHead className="text-right">Valor (€)</TableHead>}
                     <TableHead className="w-[80px]"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -193,7 +195,7 @@ export default function Produtos() {
                       <TableCell>{item.variedade || '—'}</TableCell>
                       <TableCell>{item.parque}</TableCell>
                       <TableCell className="text-right">{formatNumber(item.quantidade)} {item.unidade}</TableCell>
-                      <TableCell className="text-right font-medium">{formatCurrency(item.valor)}</TableCell>
+                      {podeVerValores && <TableCell className="text-right font-medium">{formatCurrency(item.valor)}</TableCell>}
                       <TableCell>
                         <Button variant="ghost" size="sm" onClick={() => navigate(`/inventario/${item.forma}/${item.id}`)}>
                           Ver
@@ -233,7 +235,7 @@ function getItemPhoto(item: ItemUnificado): string | null {
   return null;
 }
 
-function InventarioCard({ item, onClick }: { item: ItemUnificado; onClick: () => void }) {
+function InventarioCard({ item, onClick, podeVerValores = true }: { item: ItemUnificado; onClick: () => void; podeVerValores?: boolean }) {
   const foto = getItemPhoto(item);
 
   return (
@@ -260,7 +262,7 @@ function InventarioCard({ item, onClick }: { item: ItemUnificado; onClick: () =>
         <div className="space-y-1 text-sm mb-4">
           <p><span className="text-muted-foreground">Parque:</span> {item.parque}</p>
           <p><span className="text-muted-foreground">Quantidade:</span> {formatNumber(item.quantidade)} {item.unidade}</p>
-          {item.valor != null && (
+          {podeVerValores && item.valor != null && (
             <p><span className="text-muted-foreground">Valor:</span> {formatCurrency(item.valor)}</p>
           )}
         </div>

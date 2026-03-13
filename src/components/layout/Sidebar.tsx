@@ -41,7 +41,7 @@ const navItems: NavItem[] = [
   { href: '/stock', label: 'Consultar Stock', icon: Boxes },
   { href: '/movimento/novo', label: 'Registar Movimento', icon: PlusCircle },
   { href: '/historico', label: 'Histórico', icon: History },
-  { href: '/produtos', label: 'Produtos', icon: Boxes, adminOnly: true },
+  { href: '/produtos', label: 'Produtos', icon: Boxes },
   { href: '/clientes', label: 'Clientes', icon: Users, adminOnly: true },
   { href: '/superadmin', label: 'Superadmin', icon: MapPin, superadminOnly: true },
   { href: '/importar-stock', label: 'Importar Excel', icon: FileSpreadsheet, superadminOnly: true },
