@@ -108,6 +108,7 @@ export function useStockUnificado(options: UseStockUnificadoOptions = {}) {
         id: b.id,
         forma: 'bloco',
         referencia: b.id_mm,
+        idMm: b.id_mm,
         variedade: b.variedade,
         parque: b.parque,
         quantidade: b.quantidade_tons,
