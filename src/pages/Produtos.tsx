@@ -195,7 +195,7 @@ export default function Produtos() {
                       <TableCell>{item.variedade || '—'}</TableCell>
                       <TableCell>{item.parque}</TableCell>
                       <TableCell className="text-right">{formatNumber(item.quantidade)} {item.unidade}</TableCell>
-                      <TableCell className="text-right font-medium">{formatCurrency(item.valor)}</TableCell>
+                      {podeVerValores && <TableCell className="text-right font-medium">{formatCurrency(item.valor)}</TableCell>}
                       <TableCell>
                         <Button variant="ghost" size="sm" onClick={() => navigate(`/inventario/${item.forma}/${item.id}`)}>
                           Ver
