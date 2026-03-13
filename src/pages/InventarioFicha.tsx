@@ -240,6 +240,7 @@ function DetailRow({ label, value }: { label: string; value: string | number | n
 }
 
 function BlocoDetails({ data }: { data: Bloco }) {
+  const { podeVerValores } = usePermissoes();
   return (
     <>
       <DetailRow label="ID MM" value={data.id_mm} />
@@ -248,8 +249,8 @@ function BlocoDetails({ data }: { data: Bloco }) {
       <DetailRow label="Origem" value={data.bloco_origem} />
       <Separator />
       <DetailRow label="Toneladas" value={formatNumber(data.quantidade_tons)} />
-      <DetailRow label="Preço/ton" value={formatCurrency(data.preco_unitario)} />
-      <DetailRow label="Valor de Inventário" value={formatCurrency(data.valor_inventario)} />
+      {podeVerValores && <DetailRow label="Preço/ton" value={formatCurrency(data.preco_unitario)} />}
+      {podeVerValores && <DetailRow label="Valor de Inventário" value={formatCurrency(data.valor_inventario)} />}
       {(data.comprimento || data.largura || data.altura) && (
         <>
           <Separator />
