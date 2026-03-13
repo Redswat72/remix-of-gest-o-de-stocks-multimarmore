@@ -251,7 +251,7 @@ export default function Stock() {
                           {FORMA_BADGE[item.forma].label}
                         </Badge>
                       </TableCell>
-                      <TableCell className="font-mono font-medium">{item.forma === 'bloco' ? (item.idMm || item.referencia) : item.referencia}</TableCell>
+                      <TableCell className="font-mono font-medium">{getDisplayReferencia(item)}</TableCell>
                       <TableCell className="text-muted-foreground">{item.variedade || '—'}</TableCell>
                       <TableCell>
                         <Badge variant="outline">{item.parque}</Badge>
