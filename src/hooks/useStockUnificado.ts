@@ -132,6 +132,7 @@ export function useStockUnificado(options: UseStockUnificadoOptions = {}) {
         id: c.id,
         forma: 'chapa',
         referencia: c.id_mm,
+        idMm: c.id_mm,
         variedade: c.variedade,
         parque: c.parque,
         quantidade: c.quantidade_m2,
