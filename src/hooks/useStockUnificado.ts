@@ -150,9 +150,11 @@ export function useStockUnificado(options: UseStockUnificadoOptions = {}) {
       items.push({
         id: l.id,
         forma: 'ladrilho',
-        referencia: l.variedade && l.dimensoes
-          ? `${l.variedade} ${l.dimensoes}`
-          : l.variedade || l.dimensoes || l.id,
+        referencia: l.id_mm
+          ? l.id_mm
+          : l.variedade && l.dimensoes
+            ? `${l.variedade} ${l.dimensoes}`
+            : l.variedade || l.dimensoes || l.id,
         variedade: l.variedade,
         parque: l.parque,
         quantidade: l.quantidade_m2,
