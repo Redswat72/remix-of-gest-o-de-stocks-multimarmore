@@ -223,9 +223,11 @@ export default function Stock() {
                     <TableHead className="text-right cursor-pointer hover:bg-muted/50" onClick={() => toggleSort('quantidade')}>
                       <div className="flex items-center justify-end gap-1">Quantidade <SortIcon field="quantidade" /></div>
                     </TableHead>
-                    <TableHead className="text-right cursor-pointer hover:bg-muted/50" onClick={() => toggleSort('valor')}>
-                      <div className="flex items-center justify-end gap-1">Valor (€) <SortIcon field="valor" /></div>
-                    </TableHead>
+                    {podeVerValores && (
+                      <TableHead className="text-right cursor-pointer hover:bg-muted/50" onClick={() => toggleSort('valor')}>
+                        <div className="flex items-center justify-end gap-1">Valor (€) <SortIcon field="valor" /></div>
+                      </TableHead>
+                    )}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
