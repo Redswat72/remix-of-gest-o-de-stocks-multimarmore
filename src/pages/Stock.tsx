@@ -212,7 +212,7 @@ export default function Stock() {
                   <TableRow>
                     <TableHead>Forma</TableHead>
                     <TableHead className="cursor-pointer hover:bg-muted/50" onClick={() => toggleSort('referencia')}>
-                      <div className="flex items-center gap-1">{formaFilter === 'bloco' ? 'ID MM' : 'ID / Referência'} <SortIcon field="referencia" /></div>
+                      <div className="flex items-center gap-1">{mostrarIdMm ? 'ID MM' : 'ID / Referência'} <SortIcon field="referencia" /></div>
                     </TableHead>
                     <TableHead className="cursor-pointer hover:bg-muted/50" onClick={() => toggleSort('variedade')}>
                       <div className="flex items-center gap-1">Variedade <SortIcon field="variedade" /></div>
