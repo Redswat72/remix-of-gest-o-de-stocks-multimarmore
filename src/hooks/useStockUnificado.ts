@@ -158,6 +158,7 @@ export function useStockUnificado(options: UseStockUnificadoOptions = {}) {
           : l.variedade && l.dimensoes
             ? `${l.variedade} ${l.dimensoes}`
             : l.variedade || l.dimensoes || l.id,
+        idMm: l.id_mm,
         variedade: l.variedade,
         parque: l.parque,
         quantidade: l.quantidade_m2,
