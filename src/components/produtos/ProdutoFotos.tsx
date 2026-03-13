@@ -36,12 +36,12 @@ const HD_SLOTS_CONFIG: Record<FormaProduto, { count: number; labels: string[] }>
     labels: ['Lado A', 'Lado B', 'Lado C', 'Lado D'],
   },
   chapa: {
-    count: 2,
-    labels: ['Frente', 'Verso'],
+    count: 4,
+    labels: ['Foto 1', 'Foto 2', 'Foto 3', 'Foto 4'],
   },
   ladrilho: {
-    count: 2,
-    labels: ['Frente', 'Verso'],
+    count: 4,
+    labels: ['Foto 1', 'Foto 2', 'Foto 3', 'Foto 4'],
   },
 };
 
