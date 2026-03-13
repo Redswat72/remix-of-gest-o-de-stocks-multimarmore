@@ -259,9 +259,11 @@ export default function Stock() {
                       <TableCell className="text-right">
                         {formatNumber(item.quantidade)} {item.unidade}
                       </TableCell>
-                      <TableCell className="text-right font-medium">
-                        {formatCurrency(item.valor)}
-                      </TableCell>
+                      {podeVerValores && (
+                        <TableCell className="text-right font-medium">
+                          {formatCurrency(item.valor)}
+                        </TableCell>
+                      )}
                     </TableRow>
                   ))}
                 </TableBody>
