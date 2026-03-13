@@ -51,6 +51,10 @@ export interface ItemUnificado {
   precoUnitario: number | null;
   // Campos extras por forma
   blocoOrigem?: string | null;
+  comprimento?: number | null;
+  largura?: number | null;
+  altura?: number | null;
+  toneladas?: number | null;
   bundleId?: string | null;
   numChapas?: number | null;
   dimensoes?: string | null;
