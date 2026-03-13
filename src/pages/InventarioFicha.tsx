@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
 import { useEmpresa } from '@/context/EmpresaContext';
 import { useAuth } from '@/hooks/useAuth';
+import { usePermissoes } from '@/hooks/usePermissoes';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
