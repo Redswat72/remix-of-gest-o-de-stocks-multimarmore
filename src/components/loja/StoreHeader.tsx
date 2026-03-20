@@ -4,7 +4,7 @@ import { ShoppingCart, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { StoreConfig } from '@/types/store';
 import { STORE_TYPE_LABELS, STORE_PRODUCT_TYPE_KEYS } from '@/types/store';
-import logoMultimarmore from '@/assets/logo-multimarmore.png';
+import logoMultimarmoreWide from '@/assets/logo-multimarmore-wide.png';
 import logoMagratex from '@/assets/logo-magratex.png';
 
 interface StoreHeaderProps {
@@ -14,7 +14,7 @@ interface StoreHeaderProps {
 }
 
 const logos: Record<string, string> = {
-  multimarmore: logoMultimarmore,
+  multimarmore: logoMultimarmoreWide,
   magratex: logoMagratex,
 };
 
@@ -44,12 +44,14 @@ export function StoreHeader({ config, cartCount, onCartClick }: StoreHeaderProps
     >
       <div className="container flex h-20 items-center justify-between">
         {/* Logo */}
-        <Link to={`/loja/${config.slug}`} className="flex items-center gap-3">
-          <img
-            src={logos[config.slug] ?? logoMultimarmore}
-            alt={config.displayName}
-            className="h-12 w-auto object-contain"
-          />
+        <Link to={`/loja/${config.slug}`} className="flex items-center">
+          <div className="bg-white rounded-2xl px-5 py-2 flex items-center justify-center">
+            <img
+              src={logos[config.slug] ?? logoMultimarmoreWide}
+              alt={config.displayName}
+              className="h-10 w-auto object-contain max-w-[240px]"
+            />
+          </div>
         </Link>
 
         {/* Desktop Nav */}
