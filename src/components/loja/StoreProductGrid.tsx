@@ -1,4 +1,5 @@
 import { Grid3X3 } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import type { StoreProduct } from '@/types/store';
 import { StoreProductCard } from './StoreProductCard';
 import { StoreProductCardSkeleton } from './StoreProductCardSkeleton';
@@ -14,6 +15,8 @@ interface StoreProductGridProps {
 }
 
 export function StoreProductGrid({ products, isLoading, isInCart, onProductClick, onAddToCart, onRequestQuote, isSuperadmin }: StoreProductGridProps) {
+  const { t } = useTranslation();
+
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
@@ -29,10 +32,10 @@ export function StoreProductGrid({ products, isLoading, isInCart, onProductClick
           <Grid3X3 className="h-12 w-12 text-[#1E5799]" />
         </div>
         <h2 className="text-2xl font-semibold text-[#F5F2ED] mb-3" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
-          Nenhum produto encontrado
+          {t('grid.noProducts')}
         </h2>
         <p className="text-[#A8ADB5] max-w-md">
-          Tente ajustar os filtros para encontrar o que procura.
+          {t('grid.noProductsHint')}
         </p>
       </div>
     );
@@ -55,4 +58,3 @@ export function StoreProductGrid({ products, isLoading, isInCart, onProductClick
     </div>
   );
 }
-

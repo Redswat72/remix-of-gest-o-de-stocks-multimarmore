@@ -1,4 +1,5 @@
 import { ShoppingCart, Trash2, FileText, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import type { StoreProduct, StoreConfig } from '@/types/store';
@@ -14,6 +15,8 @@ interface Props {
 }
 
 export function StoreCartSheet({ open, onOpenChange, products, config: _config, onRemove, onClear, onRequestQuote }: Props) {
+  const { t } = useTranslation();
+
   const handleQuote = () => {
     if (products.length === 0) return;
     onRequestQuote?.(products);
@@ -29,7 +32,7 @@ export function StoreCartSheet({ open, onOpenChange, products, config: _config, 
         <SheetHeader>
           <SheetTitle className="text-[#F5F2ED] flex items-center gap-2">
             <ShoppingCart className="h-5 w-5 text-[#1E5799]" />
-            Carrinho ({products.length})
+            {t('cart.title')} ({products.length})
           </SheetTitle>
         </SheetHeader>
 
@@ -37,9 +40,9 @@ export function StoreCartSheet({ open, onOpenChange, products, config: _config, 
           {products.length === 0 ? (
             <div className="text-center py-12">
               <ShoppingCart className="h-12 w-12 mx-auto text-[#A8ADB5] mb-4" />
-              <p className="text-[#A8ADB5]">O seu carrinho está vazio</p>
+              <p className="text-[#A8ADB5]">{t('cart.empty')}</p>
               <p className="text-sm text-[rgba(168,173,181,0.6)] mt-1">
-                Adicione produtos para pedir cotação
+                {t('cart.emptyHint')}
               </p>
             </div>
           ) : (
@@ -69,11 +72,11 @@ export function StoreCartSheet({ open, onOpenChange, products, config: _config, 
               onClick={handleQuote}
             >
               <FileText className="h-5 w-5" />
-              Pedir Cotação
+              {t('cart.requestQuote')}
             </Button>
             <Button variant="ghost" onClick={onClear} className="w-full gap-2 text-[#A8ADB5] hover:text-red-400">
               <Trash2 className="h-4 w-4" />
-              Limpar carrinho
+              {t('cart.clear')}
             </Button>
           </div>
         )}

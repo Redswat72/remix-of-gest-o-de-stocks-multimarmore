@@ -1,4 +1,5 @@
 import { Filter } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { StoreProductFilters } from './StoreProductFilters';
@@ -11,6 +12,8 @@ interface Props {
 }
 
 export function StoreMobileFilters({ filters, onFiltersChange, uniqueStones }: Props) {
+  const { t } = useTranslation();
+
   return (
     <Sheet>
       <SheetTrigger asChild>
@@ -20,7 +23,7 @@ export function StoreMobileFilters({ filters, onFiltersChange, uniqueStones }: P
       </SheetTrigger>
       <SheetContent side="left" className="w-80 overflow-y-auto" style={{ backgroundColor: '#1A1D21', borderColor: 'rgba(30,87,153,0.15)' }}>
         <SheetHeader>
-          <SheetTitle className="text-[#F5F2ED]">Filtros</SheetTitle>
+          <SheetTitle className="text-[#F5F2ED]">{t('catalog.filters')}</SheetTitle>
         </SheetHeader>
         <div className="mt-6">
           <StoreProductFilters filters={filters} onFiltersChange={onFiltersChange} uniqueStones={uniqueStones} />
