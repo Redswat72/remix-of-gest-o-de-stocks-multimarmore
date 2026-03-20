@@ -95,7 +95,7 @@ function LojaContent({ company }: { company: CompanySlug }) {
         <div className="container">
           <div className="flex items-end justify-between mb-10">
             <div>
-              <p className="text-sm font-medium text-[#1E5799] uppercase tracking-wider mb-2">{config.tagline}</p>
+              <p className="text-sm font-medium text-[#1E5799] uppercase tracking-wider mb-2">{t(`store.${company}.tagline`)}</p>
               <h2 className="text-3xl md:text-4xl font-semibold text-[#F5F2ED]" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
                 {t('catalog.title')}
               </h2>
