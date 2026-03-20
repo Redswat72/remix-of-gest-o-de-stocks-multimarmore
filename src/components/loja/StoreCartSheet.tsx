@@ -13,7 +13,7 @@ interface Props {
   onRequestQuote?: (products: StoreProduct[]) => void;
 }
 
-export function StoreCartSheet({ open, onOpenChange, products, config, onRemove, onClear, onRequestQuote }: Props) {
+export function StoreCartSheet({ open, onOpenChange, products, config: _config, onRemove, onClear, onRequestQuote }: Props) {
   const handleQuote = () => {
     if (products.length === 0) return;
     onRequestQuote?.(products);
