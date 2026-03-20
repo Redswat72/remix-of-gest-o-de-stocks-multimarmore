@@ -6,6 +6,24 @@
   "hero": {
     "viewCatalog": "View Catalogue"
   },
+  "store": {
+    "multimarmore": {
+      "tagline": "Crafting Iconic Elegance",
+      "heroTitle": "Marbles, Granites & Limestones of Excellence",
+      "heroSubtitle": "Discover our premium natural stone collection. Certified quality with over 25 years of experience.",
+      "stat1": "Premium Products",
+      "stat2": "Years of Experience",
+      "stat3": "Countries Served"
+    },
+    "magratex": {
+      "tagline": "Natural Stone Excellence",
+      "heroTitle": "Superior Quality Natural Stone",
+      "heroSubtitle": "Blocks, slabs and tiles in marble, granite and limestone. Global delivery with quality guarantee.",
+      "stat1": "Items in Stock",
+      "stat2": "Years of Experience",
+      "stat3": "Varieties"
+    }
+  },
   "catalog": {
     "title": "Catalogue",
     "subtitle": "Explore our premium natural stone collection.",
