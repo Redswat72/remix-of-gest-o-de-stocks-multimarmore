@@ -98,7 +98,7 @@ export function useUsers() {
         email,
         password: tempPassword,
         options: {
-          data: { nome },
+          data: { nome, password_changed: false },
           emailRedirectTo: window.location.origin,
         },
       });
