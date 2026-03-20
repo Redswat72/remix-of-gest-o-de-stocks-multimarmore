@@ -1,9 +1,9 @@
-import { Ruler, Box, Scale, FileText, ShoppingCart, Check } from 'lucide-react';
+import { Ruler, Box, Scale, FileText, ShoppingCart, Check, Layers, Grid2x2, Weight } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import type { StoreProduct } from '@/types/store';
-import { STORE_TYPE_LABELS, STORE_STATUS_LABELS } from '@/types/store';
+import { STORE_TYPE_LABELS } from '@/types/store';
 
 interface StoreProductCardProps {
   product: StoreProduct;
@@ -17,10 +17,11 @@ interface StoreProductCardProps {
 export function StoreProductCard({ product, index = 0, inCart, onClick, onAddToCart, onRequestQuote }: StoreProductCardProps) {
   const imageUrl = product.images[0] ?? '/placeholder.svg';
 
-  const statusClass =
-    product.status === 'disponivel' ? 'bg-gradient-to-r from-[#39B54A] to-[#2E9F3E] text-white' :
-    product.status === 'reservado' ? 'bg-gradient-to-r from-[#F7941D] to-[#E68A19] text-white' :
-    'bg-gradient-to-r from-[#C62828] to-[#B71C1C] text-white';
+  const formatQty = () => {
+    if (product.quantidade == null) return null;
+    if (product.unidade === 'ton') return `${product.quantidade} ton`;
+    return `${product.quantidade} m²`;
+  };
 
   return (
     <Card
@@ -45,11 +46,6 @@ export function StoreProductCard({ product, index = 0, inCart, onClick, onAddToC
           />
         </AspectRatio>
 
-        {/* Status badge */}
-        <span className={`absolute top-4 left-4 px-3 py-1 rounded-full text-xs font-semibold shadow-sm ${statusClass}`}>
-          {STORE_STATUS_LABELS[product.status]}
-        </span>
-
         {/* Type badge */}
         <span className="absolute top-4 right-4 px-3 py-1 rounded-full text-xs font-semibold uppercase tracking-wider bg-[rgba(30,87,153,0.15)] text-[#1E5799] border border-[rgba(30,87,153,0.3)]">
           {STORE_TYPE_LABELS[product.type]}
@@ -67,30 +63,35 @@ export function StoreProductCard({ product, index = 0, inCart, onClick, onAddToC
           </p>
         </div>
 
-        {/* Dimensions */}
+        {/* Key metrics */}
         <div className="flex flex-wrap gap-3">
-          {product.length && product.width && product.height && (
+          {formatQty() && (
+            <div className="flex items-center gap-2 text-[#C9C3BA]">
+              <div className="w-7 h-7 rounded-lg bg-[rgba(30,87,153,0.15)] flex items-center justify-center">
+                <Layers className="h-3.5 w-3.5 text-[#1E5799]" />
+              </div>
+              <span className="text-xs font-medium">{formatQty()}</span>
+            </div>
+          )}
+          {product.dimensoes && (
             <div className="flex items-center gap-2 text-[#C9C3BA]">
               <div className="w-7 h-7 rounded-lg bg-[rgba(30,87,153,0.15)] flex items-center justify-center">
                 <Ruler className="h-3.5 w-3.5 text-[#1E5799]" />
               </div>
-              <span className="text-xs font-medium">{product.length}×{product.width}×{product.height}</span>
+              <span className="text-xs font-medium">{product.dimensoes}</span>
             </div>
           )}
-          {product.volume != null && product.volume > 0 && (
+          {product.numChapas != null && product.numChapas > 0 && (
             <div className="flex items-center gap-2 text-[#C9C3BA]">
               <div className="w-7 h-7 rounded-lg bg-[rgba(30,87,153,0.15)] flex items-center justify-center">
-                <Box className="h-3.5 w-3.5 text-[#1E5799]" />
+                <Grid2x2 className="h-3.5 w-3.5 text-[#1E5799]" />
               </div>
-              <span className="text-xs font-medium">{product.volume} m³</span>
+              <span className="text-xs font-medium">{product.numChapas} chapas</span>
             </div>
           )}
-          {product.weight != null && product.weight > 0 && (
+          {product.acabamento && (
             <div className="flex items-center gap-2 text-[#C9C3BA]">
-              <div className="w-7 h-7 rounded-lg bg-[rgba(30,87,153,0.15)] flex items-center justify-center">
-                <Scale className="h-3.5 w-3.5 text-[#1E5799]" />
-              </div>
-              <span className="text-xs font-medium">{product.weight} kg</span>
+              <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-[rgba(255,255,255,0.08)]">{product.acabamento}</span>
             </div>
           )}
         </div>

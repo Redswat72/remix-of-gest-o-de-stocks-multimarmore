@@ -1,5 +1,8 @@
 import { useState } from 'react';
-import { ShoppingCart, Ruler, Box, Scale, ChevronLeft, ChevronRight, FileText, ZoomIn, Check } from 'lucide-react';
+import {
+  ShoppingCart, Ruler, Layers, Grid2x2, Scale, ChevronLeft, ChevronRight,
+  FileText, ZoomIn, Check, Weight, Box
+} from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -24,6 +27,12 @@ export function StoreProductDetail({ product, open, onOpenChange, inCart, onAddT
   if (!product) return null;
 
   const images = product.images.length > 0 ? product.images : ['/placeholder.svg'];
+
+  const formatQty = () => {
+    if (product.quantidade == null) return null;
+    if (product.unidade === 'ton') return `${product.quantidade} ton`;
+    return `${product.quantidade} m²`;
+  };
 
   return (
     <>
@@ -83,24 +92,70 @@ export function StoreProductDetail({ product, open, onOpenChange, inCart, onAddT
 
             {/* Info */}
             <div className="md:col-span-2 space-y-4">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <Badge className="bg-[rgba(30,87,153,0.15)] text-[#1E5799] border-[rgba(30,87,153,0.3)]">
                   {STORE_TYPE_LABELS[product.type]}
                 </Badge>
                 <span className="text-sm font-mono text-[#C9C3BA]">{product.internal_id}</span>
+                {product.acabamento && (
+                  <Badge variant="outline" className="text-[#C9C3BA] border-[rgba(255,255,255,0.2)]">
+                    {product.acabamento}
+                  </Badge>
+                )}
               </div>
 
-              {/* Dimensions */}
+              {/* Technical Details */}
               <div className="grid grid-cols-2 gap-3 p-4 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                {product.length && product.width && product.height && (
-                  <div className="col-span-2">
+                {formatQty() && (
+                  <div>
+                    <div className="flex items-center gap-2 text-[#C9C3BA] mb-1">
+                      <Layers className="h-4 w-4 text-[#1E5799]" />
+                      <span className="text-xs uppercase">Quantidade</span>
+                    </div>
+                    <p className="font-medium text-[#F5F2ED]">{formatQty()}</p>
+                  </div>
+                )}
+
+                {product.dimensoes && (
+                  <div>
                     <div className="flex items-center gap-2 text-[#C9C3BA] mb-1">
                       <Ruler className="h-4 w-4 text-[#1E5799]" />
                       <span className="text-xs uppercase">Dimensões</span>
                     </div>
-                    <p className="font-medium text-[#F5F2ED]">{product.length} × {product.width} × {product.height} cm</p>
+                    <p className="font-medium text-[#F5F2ED]">{product.dimensoes}</p>
                   </div>
                 )}
+
+                {product.numChapas != null && product.numChapas > 0 && (
+                  <div>
+                    <div className="flex items-center gap-2 text-[#C9C3BA] mb-1">
+                      <Grid2x2 className="h-4 w-4 text-[#1E5799]" />
+                      <span className="text-xs uppercase">Nº Chapas</span>
+                    </div>
+                    <p className="font-medium text-[#F5F2ED]">{product.numChapas}</p>
+                  </div>
+                )}
+
+                {product.bundleId && (
+                  <div>
+                    <div className="flex items-center gap-2 text-[#C9C3BA] mb-1">
+                      <Box className="h-4 w-4 text-[#1E5799]" />
+                      <span className="text-xs uppercase">Bundle</span>
+                    </div>
+                    <p className="font-medium text-[#F5F2ED]">{product.bundleId}</p>
+                  </div>
+                )}
+
+                {product.blocoOrigem && (
+                  <div>
+                    <div className="flex items-center gap-2 text-[#C9C3BA] mb-1">
+                      <Box className="h-4 w-4 text-[#1E5799]" />
+                      <span className="text-xs uppercase">Bloco Origem</span>
+                    </div>
+                    <p className="font-medium text-[#F5F2ED]">{product.blocoOrigem}</p>
+                  </div>
+                )}
+
                 {product.volume != null && product.volume > 0 && (
                   <div>
                     <div className="flex items-center gap-2 text-[#C9C3BA] mb-1">
@@ -110,16 +165,56 @@ export function StoreProductDetail({ product, open, onOpenChange, inCart, onAddT
                     <p className="font-medium text-[#F5F2ED]">{product.volume} m³</p>
                   </div>
                 )}
+
+                {product.numPecas != null && product.numPecas > 0 && (
+                  <div>
+                    <div className="flex items-center gap-2 text-[#C9C3BA] mb-1">
+                      <Grid2x2 className="h-4 w-4 text-[#1E5799]" />
+                      <span className="text-xs uppercase">Nº Peças</span>
+                    </div>
+                    <p className="font-medium text-[#F5F2ED]">{product.numPecas}</p>
+                  </div>
+                )}
+
+                {product.butchNo && (
+                  <div>
+                    <div className="flex items-center gap-2 text-[#C9C3BA] mb-1">
+                      <span className="text-xs uppercase text-[#C9C3BA]">Butch Nº</span>
+                    </div>
+                    <p className="font-medium text-[#F5F2ED]">{product.butchNo}</p>
+                  </div>
+                )}
+
                 {product.weight != null && product.weight > 0 && (
                   <div>
                     <div className="flex items-center gap-2 text-[#C9C3BA] mb-1">
                       <Scale className="h-4 w-4 text-[#1E5799]" />
                       <span className="text-xs uppercase">Peso</span>
                     </div>
-                    <p className="font-medium text-[#F5F2ED]">{product.weight} kg</p>
+                    <p className="font-medium text-[#F5F2ED]">
+                      {product.unidade === 'ton' ? `${product.peso} ton` : `${product.peso} kg`}
+                    </p>
                   </div>
                 )}
               </div>
+
+              {/* Pargas (chapa sections) */}
+              {product.pargas.length > 0 && (
+                <div className="space-y-3">
+                  <h4 className="text-sm font-semibold text-[#C9C3BA] uppercase tracking-wider">Secções (Pargas)</h4>
+                  {product.pargas.map((parga, idx) => (
+                    <div key={idx} className="p-3 rounded-lg" style={{ backgroundColor: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                      <p className="text-sm font-medium text-[#F5F2ED] mb-1">{parga.nome}</p>
+                      <div className="flex gap-4 text-xs text-[#C9C3BA]">
+                        {parga.quantidade != null && <span>Qtd: {parga.quantidade}</span>}
+                        {parga.comprimento != null && parga.altura != null && (
+                          <span>{parga.comprimento} × {parga.altura} cm</span>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
 
               {product.observations && (
                 <div>
