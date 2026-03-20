@@ -444,7 +444,6 @@ function GestaoUtilizadoresTab() {
   const usersAtivos = users?.filter((u) => u.ativo) || [];
   const usersInativos = users?.filter((u) => !u.ativo) || [];
 
-
   const getRoleBadge = (role: AppRole) => {
     const variants: Record<AppRole, string> = {
       superadmin: "bg-destructive text-destructive-foreground",
@@ -454,19 +453,9 @@ function GestaoUtilizadoresTab() {
     return <Badge className={variants[role]}>{role}</Badge>;
   };
 
-  if (isLoading) {
-    return (
-      <Card>
-        <CardContent className="p-6 space-y-4">
-          {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Header - always visible */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold">Gestão de Utilizadores</h2>
@@ -478,132 +467,150 @@ function GestaoUtilizadoresTab() {
         </Button>
       </div>
 
-      {/* Utilizadores Ativos */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Power className="w-4 h-4 text-green-500" />
-            Utilizadores Ativos ({usersAtivos.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nome</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Parque</TableHead>
-                <TableHead>Permissão</TableHead>
-                <TableHead>Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {usersAtivos.map((user) => {
-                const role = getUserRole(user);
-                return (
-                  <TableRow key={user.id}>
-                    <TableCell className="font-medium">{user.nome}</TableCell>
-                    <TableCell className="text-muted-foreground">{user.email}</TableCell>
-                    <TableCell>{(user as any).local?.nome || "—"}</TableCell>
-                    <TableCell>{getRoleBadge(role)}</TableCell>
-                    <TableCell>
-                      {role !== "superadmin" && (
-                        <div className="flex items-center gap-2">
-                          <Select
-                            value={role}
-                            onValueChange={(value: string) =>
-                              atualizarRole.mutate({ userId: user.user_id, role: value as AppRole })
-                            }
-                          >
-                            <SelectTrigger className="w-[130px]">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="operador">Operador</SelectItem>
-                              <SelectItem value="admin">Admin</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            title="Desativar"
-                            onClick={() => toggleAtivo.mutate({ userId: user.user_id, ativo: false })}
-                          >
-                            <PowerOff className="w-4 h-4 text-destructive" />
-                          </Button>
-                        </div>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
-
-      {/* Utilizadores Pendentes / Inativos */}
-      {usersInativos.length > 0 && (
-        <Card className="border-amber-200 dark:border-amber-800">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-amber-500" />
-              Pendentes de Aprovação / Inativos ({usersInativos.length})
-            </CardTitle>
-            <CardDescription>Utilizadores que se registaram e aguardam ativação</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nome</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Permissão</TableHead>
-                  <TableHead>Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {usersInativos.map((user) => {
-                  const role = getUserRole(user);
-                  return (
-                    <TableRow key={user.id} className="opacity-70">
-                      <TableCell className="font-medium">{user.nome}</TableCell>
-                      <TableCell className="text-muted-foreground">{user.email}</TableCell>
-                      <TableCell>{getRoleBadge(role)}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Select
-                            value={role}
-                            onValueChange={(value: string) =>
-                              atualizarRole.mutate({ userId: user.user_id, role: value as AppRole })
-                            }
-                          >
-                            <SelectTrigger className="w-[130px]">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="operador">Operador</SelectItem>
-                              <SelectItem value="admin">Admin</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <Button
-                            variant="default"
-                            size="sm"
-                            className="gap-1"
-                            onClick={() => toggleAtivo.mutate({ userId: user.user_id, ativo: true })}
-                          >
-                            <Check className="w-3 h-3" />
-                            Aprovar
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+      {isLoading ? (
+        <Card>
+          <CardContent className="p-6 space-y-4">
+            {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-12 w-full" />)}
           </CardContent>
         </Card>
+      ) : (
+        <>
+          {/* Utilizadores Pendentes / Inativos - shown first for visibility */}
+          {usersInativos.length > 0 && (
+            <Card className="border-amber-200 dark:border-amber-800">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-amber-500" />
+                  Pendentes de Aprovação / Inativos ({usersInativos.length})
+                </CardTitle>
+                <CardDescription>Utilizadores que se registaram e aguardam ativação</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nome</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Permissão</TableHead>
+                      <TableHead>Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {usersInativos.map((user) => {
+                      const role = getUserRole(user);
+                      return (
+                        <TableRow key={user.id} className="opacity-70">
+                          <TableCell className="font-medium">{user.nome}</TableCell>
+                          <TableCell className="text-muted-foreground">{user.email}</TableCell>
+                          <TableCell>{getRoleBadge(role)}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <Select
+                                value={role}
+                                onValueChange={(value: string) =>
+                                  atualizarRole.mutate({ userId: user.user_id, role: value as AppRole })
+                                }
+                              >
+                                <SelectTrigger className="w-[130px]">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="operador">Operador</SelectItem>
+                                  <SelectItem value="admin">Admin</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <Button
+                                variant="default"
+                                size="sm"
+                                className="gap-1"
+                                onClick={() => toggleAtivo.mutate({ userId: user.user_id, ativo: true })}
+                              >
+                                <Check className="w-3 h-3" />
+                                Aprovar
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Utilizadores Ativos */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Power className="w-4 h-4 text-green-500" />
+                Utilizadores Ativos ({usersAtivos.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {usersAtivos.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Nome</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Parque</TableHead>
+                      <TableHead>Permissão</TableHead>
+                      <TableHead>Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {usersAtivos.map((user) => {
+                      const role = getUserRole(user);
+                      return (
+                        <TableRow key={user.id}>
+                          <TableCell className="font-medium">{user.nome}</TableCell>
+                          <TableCell className="text-muted-foreground">{user.email}</TableCell>
+                          <TableCell>{(user as any).local?.nome || "—"}</TableCell>
+                          <TableCell>{getRoleBadge(role)}</TableCell>
+                          <TableCell>
+                            {role !== "superadmin" && (
+                              <div className="flex items-center gap-2">
+                                <Select
+                                  value={role}
+                                  onValueChange={(value: string) =>
+                                    atualizarRole.mutate({ userId: user.user_id, role: value as AppRole })
+                                  }
+                                >
+                                  <SelectTrigger className="w-[130px]">
+                                    <SelectValue />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="operador">Operador</SelectItem>
+                                    <SelectItem value="admin">Admin</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  title="Desativar"
+                                  onClick={() => toggleAtivo.mutate({ userId: user.user_id, ativo: false })}
+                                >
+                                  <PowerOff className="w-4 h-4 text-destructive" />
+                                </Button>
+                              </div>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Users className="w-10 h-10 mx-auto mb-2 opacity-50" />
+                  <p>Nenhum utilizador ativo encontrado</p>
+                  <p className="text-xs mt-1">Adicione um colaborador usando o botão acima</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </>
       )}
 
       <AddUserModal open={modalOpen} onClose={() => setModalOpen(false)} />
