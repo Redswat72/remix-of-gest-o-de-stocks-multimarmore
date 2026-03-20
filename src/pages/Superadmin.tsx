@@ -20,6 +20,7 @@ import { gerarModeloExcel } from "@/lib/excelTemplateGenerator";
 import { useEmpresa } from "@/context/EmpresaContext";
 import AddUserModal from "@/components/AddUserModal";
 import type { AppRole, LocalFormData } from "@/types/database";
+import ExportLojaButton from "@/components/ExportLojaButton";
 import {
   Shield, MapPin, Users, Package, Plus, Pencil, Check, Loader2,
   FileDown, FileSpreadsheet, Upload, UserPlus, Power, PowerOff, RefreshCw, Clock,
