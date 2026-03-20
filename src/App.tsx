@@ -66,6 +66,9 @@ const App = () => (
                 {/* Rota pública QR Code */}
                 <Route path="/p/:idmm" element={<ProdutoPublico />} />
 
+                {/* Lojas públicas */}
+                <Route path="/loja/:empresa" element={<Loja />} />
+
                 {/* Alterar password (protegida mas sem verificação de password) */}
                 <Route path="/alterar-password" element={<ProtectedRoute skipPasswordCheck><AlterarPassword /></ProtectedRoute>} />
 
