@@ -15,6 +15,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useUsers, type User } from "@/hooks/useUsers";
 import { useLocais, useCreateLocal, useUpdateLocal } from "@/hooks/useLocais";
 import { useStockAgregado } from "@/hooks/useStock";
+import { useStockUnificado, type ItemUnificado } from "@/hooks/useStockUnificado";
 import { exportToExcel } from "@/lib/exportExcel";
 import { gerarModeloExcel } from "@/lib/excelTemplateGenerator";
 import { useEmpresa } from "@/context/EmpresaContext";
