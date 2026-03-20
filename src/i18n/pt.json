@@ -6,6 +6,24 @@
   "hero": {
     "viewCatalog": "Ver Catálogo"
   },
+  "store": {
+    "multimarmore": {
+      "tagline": "Crafting Iconic Elegance",
+      "heroTitle": "Mármores, Granitos & Calcários de Excelência",
+      "heroSubtitle": "Descubra a nossa coleção premium de pedra natural. Qualidade certificada com mais de 25 anos de experiência.",
+      "stat1": "Produtos Premium",
+      "stat2": "Anos de Experiência",
+      "stat3": "Países Servidos"
+    },
+    "magratex": {
+      "tagline": "Natural Stone Excellence",
+      "heroTitle": "Pedra Natural de Qualidade Superior",
+      "heroSubtitle": "Blocos, chapas e ladrilho em mármore, granito e calcário. Entrega global com garantia de qualidade.",
+      "stat1": "Itens em Stock",
+      "stat2": "Anos de Experiência",
+      "stat3": "Variedades"
+    }
+  },
   "catalog": {
     "title": "Catálogo",
     "subtitle": "Explore a nossa coleção de pedra natural premium.",

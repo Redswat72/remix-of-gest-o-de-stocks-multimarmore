@@ -22,7 +22,7 @@ export function StoreHero({ config }: { config: StoreConfig }) {
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[rgba(30,87,153,0.1)] border border-[rgba(30,87,153,0.2)] mb-8">
           <Sparkles className="h-4 w-4 text-[#1E5799]" />
           <span className="text-sm font-medium text-[#1E5799] tracking-wide uppercase">
-            {config.tagline}
+            {t(`store.${config.slug}.tagline`)}
           </span>
         </div>
 
@@ -30,11 +30,11 @@ export function StoreHero({ config }: { config: StoreConfig }) {
           className="text-4xl md:text-5xl lg:text-6xl font-semibold text-[#F7F5F2] mb-6 tracking-tight"
           style={{ lineHeight: 1.1, fontFamily: "'Cormorant Garamond', serif" }}
         >
-          {config.heroTitle}
+          {t(`store.${config.slug}.heroTitle`)}
         </h1>
 
         <p className="text-lg md:text-xl text-[#A8ADB5] mb-10 max-w-2xl mx-auto font-light leading-relaxed">
-          {config.heroSubtitle}
+          {t(`store.${config.slug}.heroSubtitle`)}
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -55,7 +55,7 @@ export function StoreHero({ config }: { config: StoreConfig }) {
               <p className="text-3xl md:text-4xl font-semibold text-[#F7941D] mb-1" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
                 {stat.value}
               </p>
-              <p className="text-sm text-[rgba(168,173,181,0.6)]">{stat.label}</p>
+              <p className="text-sm text-[rgba(168,173,181,0.6)]">{t(`store.${config.slug}.stat${i + 1}`)}</p>
             </div>
           ))}
         </div>
