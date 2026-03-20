@@ -144,6 +144,7 @@ export function useUsers() {
   return {
     users,
     isLoading,
+    error,
     atualizarRole,
     toggleAtivo,
     convidarUser,
