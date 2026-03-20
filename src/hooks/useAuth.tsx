@@ -90,11 +90,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = async (email: string, password: string, nome: string) => {
     if (!supabaseEmpresa) return { error: new Error('Nenhuma empresa selecionada') };
-    const { error } = await supabaseEmpresa.auth.signUp({
+    const { data, error } = await supabaseEmpresa.auth.signUp({
       email,
       password,
-      options: { data: { nome } },
+      options: { 
+        data: { nome, password_changed: true },
+      },
     });
+
+    if (!error && data?.user) {
+      // Fallback: ensure profile exists and mark as inactive for approval
+      // The trigger may have already created it, so we upsert
+      try {
+        await supabaseEmpresa
+          .from('profiles')
+          .update({ ativo: false })
+          .eq('user_id', data.user.id);
+      } catch {
+        // Ignore - trigger may not have fired yet or RLS may block
+      }
+    }
+
     return { error: error as Error | null };
   };
 

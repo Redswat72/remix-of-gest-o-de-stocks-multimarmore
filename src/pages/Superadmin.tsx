@@ -22,7 +22,7 @@ import AddUserModal from "@/components/AddUserModal";
 import type { AppRole, LocalFormData } from "@/types/database";
 import {
   Shield, MapPin, Users, Package, Plus, Pencil, Check, Loader2,
-  FileDown, FileSpreadsheet, Upload, UserPlus, Power, PowerOff, RefreshCw,
+  FileDown, FileSpreadsheet, Upload, UserPlus, Power, PowerOff, RefreshCw, Clock,
 } from "lucide-react";
 import { useSupabaseEmpresa } from "@/hooks/useSupabaseEmpresa";
 import { useQueryClient } from "@tanstack/react-query";
@@ -444,6 +444,7 @@ function GestaoUtilizadoresTab() {
   const usersAtivos = users?.filter((u) => u.ativo) || [];
   const usersInativos = users?.filter((u) => !u.ativo) || [];
 
+
   const getRoleBadge = (role: AppRole) => {
     const variants: Record<AppRole, string> = {
       superadmin: "bg-destructive text-destructive-foreground",
@@ -541,14 +542,15 @@ function GestaoUtilizadoresTab() {
         </CardContent>
       </Card>
 
-      {/* Utilizadores Inativos */}
+      {/* Utilizadores Pendentes / Inativos */}
       {usersInativos.length > 0 && (
-        <Card>
+        <Card className="border-amber-200 dark:border-amber-800">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <PowerOff className="w-4 h-4 text-muted-foreground" />
-              Utilizadores Inativos ({usersInativos.length})
+              <Clock className="w-4 h-4 text-amber-500" />
+              Pendentes de Aprovação / Inativos ({usersInativos.length})
             </CardTitle>
+            <CardDescription>Utilizadores que se registaram e aguardam ativação</CardDescription>
           </CardHeader>
           <CardContent>
             <Table>
@@ -564,20 +566,36 @@ function GestaoUtilizadoresTab() {
                 {usersInativos.map((user) => {
                   const role = getUserRole(user);
                   return (
-                    <TableRow key={user.id} className="opacity-60">
-                      <TableCell>{user.nome}</TableCell>
+                    <TableRow key={user.id} className="opacity-70">
+                      <TableCell className="font-medium">{user.nome}</TableCell>
                       <TableCell className="text-muted-foreground">{user.email}</TableCell>
                       <TableCell>{getRoleBadge(role)}</TableCell>
                       <TableCell>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="gap-1"
-                          onClick={() => toggleAtivo.mutate({ userId: user.user_id, ativo: true })}
-                        >
-                          <Power className="w-3 h-3" />
-                          Reativar
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Select
+                            value={role}
+                            onValueChange={(value: string) =>
+                              atualizarRole.mutate({ userId: user.user_id, role: value as AppRole })
+                            }
+                          >
+                            <SelectTrigger className="w-[130px]">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="operador">Operador</SelectItem>
+                              <SelectItem value="admin">Admin</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <Button
+                            variant="default"
+                            size="sm"
+                            className="gap-1"
+                            onClick={() => toggleAtivo.mutate({ userId: user.user_id, ativo: true })}
+                          >
+                            <Check className="w-3 h-3" />
+                            Aprovar
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   );

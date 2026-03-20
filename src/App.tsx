@@ -31,6 +31,7 @@ import Perfil from "./pages/Perfil";
 import ProdutoPublico from "./pages/ProdutoPublico";
 import ProdutoFicha from "./pages/ProdutoFicha";
 import InventarioFicha from "./pages/InventarioFicha";
+import AlterarPassword from "./pages/AlterarPassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient({
@@ -63,6 +64,9 @@ const App = () => (
 
                 {/* Rota pública QR Code */}
                 <Route path="/p/:idmm" element={<ProdutoPublico />} />
+
+                {/* Alterar password (protegida mas sem verificação de password) */}
+                <Route path="/alterar-password" element={<ProtectedRoute skipPasswordCheck><AlterarPassword /></ProtectedRoute>} />
 
                 {/* Rotas protegidas */}
                 <Route path="/" element={<ProtectedRoute><AppLayout><Dashboard /></AppLayout></ProtectedRoute>} />
