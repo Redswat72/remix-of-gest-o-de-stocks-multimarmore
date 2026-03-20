@@ -54,6 +54,30 @@ export function ProtectedRoute({
     return <Navigate to="/" replace />;
   }
 
+  // Account pending approval
+  if (profile && !profile.ativo && !isAdmin && !isSuperadmin) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <div className="flex flex-col items-center gap-4 text-center max-w-md">
+          <div className="p-3 rounded-full bg-amber-100 dark:bg-amber-900/30">
+            <Clock className="w-8 h-8 text-amber-600 dark:text-amber-400" />
+          </div>
+          <h2 className="text-xl font-semibold">Conta Pendente de Aprovação</h2>
+          <p className="text-muted-foreground">
+            A sua conta foi criada com sucesso mas aguarda aprovação por parte de um administrador. 
+            Será notificado quando a sua conta for ativada.
+          </p>
+          <button
+            onClick={() => signOut()}
+            className="text-sm text-primary hover:underline mt-2"
+          >
+            Terminar sessão
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // Force password change for operators on first login
   if (
     !skipPasswordCheck &&
