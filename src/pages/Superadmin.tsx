@@ -116,11 +116,7 @@ function StockGlobalTab() {
     };
   }, [items, allBlocos, allChapas, allLadrilho]);
 
-  // Unique parques from unified data
-  const parques = useMemo(() => {
-    if (!items) return [];
-    return [...new Set(items.map(i => i.parque))].sort();
-  }, [items]);
+  const handleRecalcularStock = async () => {
 
   const handleRecalcularStock = async () => {
     setRecalculating(true);
