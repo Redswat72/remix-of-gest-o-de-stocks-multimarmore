@@ -24,6 +24,7 @@ import ExportLojaButton from "@/components/ExportLojaButton";
 import {
   Shield, MapPin, Users, Package, Plus, Pencil, Check, Loader2,
   FileDown, FileSpreadsheet, Upload, UserPlus, Power, PowerOff, RefreshCw, Clock,
+  Store, ExternalLink,
 } from "lucide-react";
 import { useSupabaseEmpresa } from "@/hooks/useSupabaseEmpresa";
 import { useQueryClient } from "@tanstack/react-query";
@@ -263,6 +264,27 @@ function StockGlobalTab() {
 
   return (
     <div className="space-y-6">
+      {/* Store Quick Links */}
+      <div className="flex flex-wrap gap-3">
+        {[
+          { slug: 'multimarmore', label: 'Loja Multimarmore' },
+          { slug: 'magratex', label: 'Loja Magratex' },
+        ].map((store) => (
+          <a
+            key={store.slug}
+            href={`/loja/${store.slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Button variant="outline" className="gap-2">
+              <Store className="h-4 w-4" />
+              {store.label}
+              <ExternalLink className="h-3.5 w-3.5 text-muted-foreground" />
+            </Button>
+          </a>
+        ))}
+      </div>
+
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setFormaFilter('all')}>
