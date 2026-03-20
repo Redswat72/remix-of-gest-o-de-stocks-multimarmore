@@ -24,6 +24,7 @@ import ExportLojaButton from "@/components/ExportLojaButton";
 import {
   Shield, MapPin, Users, Package, Plus, Pencil, Check, Loader2,
   FileDown, FileSpreadsheet, Upload, UserPlus, Power, PowerOff, RefreshCw, Clock,
+  Store, ExternalLink,
 } from "lucide-react";
 import { useSupabaseEmpresa } from "@/hooks/useSupabaseEmpresa";
 import { useQueryClient } from "@tanstack/react-query";
