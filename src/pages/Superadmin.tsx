@@ -20,6 +20,7 @@ import { gerarModeloExcel } from "@/lib/excelTemplateGenerator";
 import { useEmpresa } from "@/context/EmpresaContext";
 import AddUserModal from "@/components/AddUserModal";
 import type { AppRole, LocalFormData } from "@/types/database";
+import ExportLojaButton from "@/components/ExportLojaButton";
 import {
   Shield, MapPin, Users, Package, Plus, Pencil, Check, Loader2,
   FileDown, FileSpreadsheet, Upload, UserPlus, Power, PowerOff, RefreshCw, Clock,
@@ -255,6 +256,7 @@ function StockGlobalTab() {
               <span className="sm:hidden">Modelo</span>
             </Button>
             <ImportarButton />
+            <ExportLojaButton />
             <Button onClick={handleExport} disabled={!stockAgregado?.length} className="gap-2">
               <FileSpreadsheet className="h-4 w-4" />
               <span className="hidden sm:inline">Exportar Excel</span>
