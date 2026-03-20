@@ -93,7 +93,7 @@ function StockGlobalTab() {
 
   // Use unified inventory (blocos + chapas + ladrilho) instead of just produtos/stock
   const { data: items, isLoading, allBlocos, allChapas, allLadrilho } = useStockUnificado();
-  const { data: locais } = useLocais({ ativo: true });
+  useLocais({ ativo: true }); // keep the query warm for recalculation
   const [recalculating, setRecalculating] = useState(false);
   const [formaFilter, setFormaFilter] = useState<string>('all');
 
