@@ -10,9 +10,10 @@ interface StoreProductGridProps {
   onProductClick?: (p: StoreProduct) => void;
   onAddToCart?: (p: StoreProduct) => void;
   onRequestQuote?: (p: StoreProduct) => void;
+  isSuperadmin?: boolean;
 }
 
-export function StoreProductGrid({ products, isLoading, isInCart, onProductClick, onAddToCart, onRequestQuote }: StoreProductGridProps) {
+export function StoreProductGrid({ products, isLoading, isInCart, onProductClick, onAddToCart, onRequestQuote, isSuperadmin }: StoreProductGridProps) {
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-8">
@@ -48,8 +49,10 @@ export function StoreProductGrid({ products, isLoading, isInCart, onProductClick
           onClick={onProductClick}
           onAddToCart={onAddToCart}
           onRequestQuote={onRequestQuote}
+          isSuperadmin={isSuperadmin}
         />
       ))}
     </div>
   );
 }
+
