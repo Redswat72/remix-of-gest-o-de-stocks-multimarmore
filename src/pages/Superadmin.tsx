@@ -256,6 +256,7 @@ function StockGlobalTab() {
               <span className="sm:hidden">Modelo</span>
             </Button>
             <ImportarButton />
+            <ExportLojaButton />
             <Button onClick={handleExport} disabled={!stockAgregado?.length} className="gap-2">
               <FileSpreadsheet className="h-4 w-4" />
               <span className="hidden sm:inline">Exportar Excel</span>
