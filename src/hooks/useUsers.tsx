@@ -22,15 +22,20 @@ export function useUsers() {
   const { empresa } = useEmpresa();
   const queryClient = useQueryClient();
 
-  const { data: users, isLoading } = useQuery({
+  const { data: users, isLoading, error } = useQuery({
     queryKey: ["users", empresa],
     queryFn: async () => {
+      console.log("[useUsers] Fetching users for empresa:", empresa);
       const { data, error } = await supabase
         .from("profiles")
         .select("*, local:locais(id, nome), user_roles(role)")
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("[useUsers] Error fetching users:", error);
+        throw error;
+      }
+      console.log("[useUsers] Fetched users:", data?.length);
       return data as unknown as User[];
     },
     enabled: !!empresa,
