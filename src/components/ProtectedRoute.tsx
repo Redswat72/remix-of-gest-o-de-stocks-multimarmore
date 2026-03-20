@@ -19,7 +19,7 @@ export function ProtectedRoute({
   superadminOnly = false,
   skipPasswordCheck = false,
 }: ProtectedRouteProps) {
-  const { user, loading, hasRole, isAdmin, isSuperadmin, roles } = useAuth();
+  const { user, loading, hasRole, isAdmin, isSuperadmin, roles, profile, signOut } = useAuth();
   const { empresa } = useEmpresa();
   const location = useLocation();
 
