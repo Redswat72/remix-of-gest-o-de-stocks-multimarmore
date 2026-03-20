@@ -443,7 +443,6 @@ function GestaoUtilizadoresTab() {
 
   const usersAtivos = users?.filter((u) => u.ativo) || [];
   const usersInativos = users?.filter((u) => !u.ativo) || [];
-  const usersPendentes = usersInativos;
 
 
   const getRoleBadge = (role: AppRole) => {
