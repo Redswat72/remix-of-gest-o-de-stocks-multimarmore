@@ -17,7 +17,13 @@ export function StoreCartSheet({ open, onOpenChange, products, config, onRemove,
   const handleQuote = () => {
     if (products.length === 0) return;
     const url = buildWhatsAppQuoteUrl(config.whatsapp, config.displayName, products);
-    window.open(url, '_blank');
+    const a = document.createElement('a');
+    a.href = url;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   };
 
   return (
