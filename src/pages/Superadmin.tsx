@@ -22,7 +22,7 @@ import AddUserModal from "@/components/AddUserModal";
 import type { AppRole, LocalFormData } from "@/types/database";
 import {
   Shield, MapPin, Users, Package, Plus, Pencil, Check, Loader2,
-  FileDown, FileSpreadsheet, Upload, UserPlus, Power, PowerOff, RefreshCw,
+  FileDown, FileSpreadsheet, Upload, UserPlus, Power, PowerOff, RefreshCw, Clock,
 } from "lucide-react";
 import { useSupabaseEmpresa } from "@/hooks/useSupabaseEmpresa";
 import { useQueryClient } from "@tanstack/react-query";
