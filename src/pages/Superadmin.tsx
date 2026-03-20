@@ -90,14 +90,42 @@ function StockGlobalTab() {
   const { empresaConfig } = useEmpresa();
   const supabase = useSupabaseEmpresa();
   const queryClient = useQueryClient();
-  const { data: stockAgregado, isLoading } = useStockAgregado();
+  const navigate = useNavigate();
+
+  // Use unified inventory (blocos + chapas + ladrilho) instead of just produtos/stock
+  const { data: items, isLoading, allBlocos, allChapas, allLadrilho } = useStockUnificado();
   const { data: locais } = useLocais({ ativo: true });
   const [recalculating, setRecalculating] = useState(false);
+  const [formaFilter, setFormaFilter] = useState<string>('all');
+
+  // Filter by forma
+  const filteredItems = useMemo(() => {
+    if (!items) return [];
+    if (formaFilter === 'all') return items;
+    return items.filter(i => i.forma === formaFilter);
+  }, [items, formaFilter]);
+
+  // Summary stats
+  const summary = useMemo(() => {
+    const all = items || [];
+    return {
+      totalItems: all.length,
+      blocos: allBlocos.length,
+      chapas: allChapas.length,
+      ladrilho: allLadrilho.length,
+      valorTotal: all.reduce((sum, i) => sum + (i.valor || 0), 0),
+    };
+  }, [items, allBlocos, allChapas, allLadrilho]);
+
+  // Unique parques from unified data
+  const parques = useMemo(() => {
+    if (!items) return [];
+    return [...new Set(items.map(i => i.parque))].sort();
+  }, [items]);
 
   const handleRecalcularStock = async () => {
     setRecalculating(true);
     try {
-      // 1. Fetch all non-cancelled movements
       const { data: movimentos, error: movError } = await supabase
         .from('movimentos')
         .select('produto_id, tipo, quantidade, local_origem_id, local_destino_id')
@@ -105,7 +133,6 @@ function StockGlobalTab() {
 
       if (movError) throw movError;
 
-      // 2. Calculate stock per produto_id + local_id
       const stockMap = new Map<string, number>();
       const key = (prodId: string, localId: string) => `${prodId}|${localId}`;
 
@@ -128,7 +155,6 @@ function StockGlobalTab() {
         }
       }
 
-      // 3. Get existing stock rows
       const { data: existingStock, error: stockError } = await supabase
         .from('stock')
         .select('id, produto_id, local_id, quantidade');
@@ -139,7 +165,6 @@ function StockGlobalTab() {
         existingMap.set(key(s.produto_id, s.local_id), { id: s.id, quantidade: s.quantidade });
       }
 
-      // 4. Update/insert stock rows
       let updated = 0;
       let inserted = 0;
       for (const [k, qty] of stockMap.entries()) {
@@ -164,7 +189,6 @@ function StockGlobalTab() {
         }
       }
 
-      // 5. Zero out stock rows that have no movements
       let zeroed = 0;
       for (const [, { id, quantidade }] of existingMap.entries()) {
         if (quantidade !== 0) {
@@ -192,22 +216,34 @@ function StockGlobalTab() {
     }
   };
 
+  const FORMA_LABELS: Record<string, string> = { bloco: 'Bloco', chapa: 'Chapa', ladrilho: 'Ladrilho' };
+  const FORMA_COLORS: Record<string, string> = {
+    bloco: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+    chapa: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+    ladrilho: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
+  };
+
+  const formatNumber = (value: number | null, decimals = 2) => {
+    if (value == null) return '—';
+    return new Intl.NumberFormat('pt-PT', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(value);
+  };
+
+  const formatCurrency = (value: number | null) => {
+    if (!value) return '—';
+    return new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(value);
+  };
+
   const handleExport = () => {
-    if (!stockAgregado || !locais) return;
-    const exportData = stockAgregado.map((item) => {
-      const row: Record<string, string | number> = {
-        [empresaConfig?.idPrefix ?? "IDMM"]: item.produto.idmm,
-        "Tipo de Pedra": item.produto.tipo_pedra,
-        "Nome Comercial": item.produto.nome_comercial || "-",
-        Forma: item.produto.forma,
-      };
-      locais.forEach((local) => {
-        const stockLocal = item.stockPorLocal.find((s) => s.local.id === local.id);
-        row[local.nome] = stockLocal?.quantidade || 0;
-      });
-      row["Stock Total"] = item.stockTotal;
-      return row;
-    });
+    if (!filteredItems.length) return;
+    const exportData = filteredItems.map((item) => ({
+      [empresaConfig?.idPrefix ?? "IDMM"]: item.referencia,
+      "Forma": FORMA_LABELS[item.forma] || item.forma,
+      "Variedade": item.variedade || "-",
+      "Parque": item.parque,
+      "Quantidade": item.quantidade,
+      "Unidade": item.unidade,
+      "Valor (€)": item.valor ?? 0,
+    }));
     exportToExcel(exportData, `stock-global-${empresaConfig?.id ?? "empresa"}`);
   };
 
@@ -233,78 +269,120 @@ function StockGlobalTab() {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <CardTitle>Stock Global da Empresa</CardTitle>
-            <CardDescription>Visão agregada de todos os parques</CardDescription>
+    <div className="space-y-6">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setFormaFilter('all')}>
+          <CardContent className="p-4 text-center">
+            <p className="text-2xl font-bold">{summary.totalItems}</p>
+            <p className="text-xs text-muted-foreground">Total Registos</p>
+          </CardContent>
+        </Card>
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setFormaFilter('bloco')}>
+          <CardContent className="p-4 text-center">
+            <p className="text-2xl font-bold">{summary.blocos}</p>
+            <p className="text-xs text-muted-foreground">Blocos</p>
+          </CardContent>
+        </Card>
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setFormaFilter('chapa')}>
+          <CardContent className="p-4 text-center">
+            <p className="text-2xl font-bold">{summary.chapas}</p>
+            <p className="text-xs text-muted-foreground">Chapas</p>
+          </CardContent>
+        </Card>
+        <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setFormaFilter('ladrilho')}>
+          <CardContent className="p-4 text-center">
+            <p className="text-2xl font-bold">{summary.ladrilho}</p>
+            <p className="text-xs text-muted-foreground">Ladrilhos</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4 text-center">
+            <p className="text-2xl font-bold text-primary">{formatCurrency(summary.valorTotal)}</p>
+            <p className="text-xs text-muted-foreground">Valor Total</p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Table */}
+      <Card>
+        <CardHeader>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <CardTitle>
+                Stock Global — {formaFilter === 'all' ? 'Todos' : FORMA_LABELS[formaFilter]}
+                <span className="ml-2 text-sm font-normal text-muted-foreground">({filteredItems.length} registos)</span>
+              </CardTitle>
+              <CardDescription>Visão unificada de blocos, chapas e ladrilhos</CardDescription>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                variant="outline"
+                onClick={handleRecalcularStock}
+                disabled={recalculating}
+                className="gap-2"
+              >
+                <RefreshCw className={`h-4 w-4 ${recalculating ? 'animate-spin' : ''}`} />
+                <span className="hidden sm:inline">{recalculating ? 'Recalculando...' : 'Recalcular Stock'}</span>
+              </Button>
+              <Button variant="outline" onClick={handleDownloadTemplate} className="gap-2">
+                <FileDown className="h-4 w-4" />
+                <span className="hidden sm:inline">Modelo Excel</span>
+              </Button>
+              <ImportarButton />
+              <ExportLojaButton />
+              <Button onClick={handleExport} disabled={!filteredItems.length} className="gap-2">
+                <FileSpreadsheet className="h-4 w-4" />
+                <span className="hidden sm:inline">Exportar Excel</span>
+              </Button>
+            </div>
           </div>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              variant="outline"
-              onClick={handleRecalcularStock}
-              disabled={recalculating}
-              className="gap-2"
-            >
-              <RefreshCw className={`h-4 w-4 ${recalculating ? 'animate-spin' : ''}`} />
-              <span className="hidden sm:inline">{recalculating ? 'Recalculando...' : 'Recalcular Stock'}</span>
-              <span className="sm:hidden">{recalculating ? '...' : 'Recalcular'}</span>
-            </Button>
-            <Button variant="outline" onClick={handleDownloadTemplate} className="gap-2">
-              <FileDown className="h-4 w-4" />
-              <span className="hidden sm:inline">Modelo Excel</span>
-              <span className="sm:hidden">Modelo</span>
-            </Button>
-            <ImportarButton />
-            <ExportLojaButton />
-            <Button onClick={handleExport} disabled={!stockAgregado?.length} className="gap-2">
-              <FileSpreadsheet className="h-4 w-4" />
-              <span className="hidden sm:inline">Exportar Excel</span>
-              <span className="sm:hidden">Exportar</span>
-            </Button>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        {stockAgregado && stockAgregado.length > 0 ? (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{empresaConfig?.idPrefix ?? "IDMM"}</TableHead>
-                  <TableHead>Tipo de Pedra</TableHead>
-                  <TableHead>Forma</TableHead>
-                  {locais?.map((local) => (
-                    <TableHead key={local.id} className="text-center">{local.nome}</TableHead>
-                  ))}
-                  <TableHead className="text-right font-bold">Total</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {stockAgregado.map((item) => (
-                  <TableRow key={item.produto.id}>
-                    <TableCell className="font-mono font-medium">{item.produto.idmm}</TableCell>
-                    <TableCell>{item.produto.tipo_pedra}</TableCell>
-                    <TableCell><Badge variant="outline">{item.produto.forma}</Badge></TableCell>
-                    {locais?.map((local) => {
-                      const stockLocal = item.stockPorLocal.find((s) => s.local.id === local.id);
-                      return <TableCell key={local.id} className="text-center">{stockLocal?.quantidade || 0}</TableCell>;
-                    })}
-                    <TableCell className="text-right font-bold">{item.stockTotal}</TableCell>
+        </CardHeader>
+        <CardContent>
+          {filteredItems.length > 0 ? (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Forma</TableHead>
+                    <TableHead>{empresaConfig?.idPrefix ?? "IDMM"}</TableHead>
+                    <TableHead>Variedade</TableHead>
+                    <TableHead>Parque</TableHead>
+                    <TableHead className="text-right">Quantidade</TableHead>
+                    <TableHead className="text-right">Valor (€)</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        ) : (
-          <div className="text-center py-12 text-muted-foreground">
-            <Package className="w-12 h-12 mx-auto mb-2 opacity-50" />
-            <p>Nenhum produto em stock</p>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+                </TableHeader>
+                <TableBody>
+                  {filteredItems.map((item) => (
+                    <TableRow
+                      key={`${item.forma}-${item.id}`}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => navigate(`/inventario/${item.forma}/${item.id}`)}
+                    >
+                      <TableCell>
+                        <Badge className={FORMA_COLORS[item.forma]}>{FORMA_LABELS[item.forma]}</Badge>
+                      </TableCell>
+                      <TableCell className="font-mono font-medium">
+                        {item.forma === 'bloco' ? (item.idMm || item.referencia) : item.referencia}
+                      </TableCell>
+                      <TableCell>{item.variedade || '—'}</TableCell>
+                      <TableCell>{item.parque}</TableCell>
+                      <TableCell className="text-right">{formatNumber(item.quantidade)} {item.unidade}</TableCell>
+                      <TableCell className="text-right font-medium">{formatCurrency(item.valor)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          ) : (
+            <div className="text-center py-12 text-muted-foreground">
+              <Package className="w-12 h-12 mx-auto mb-2 opacity-50" />
+              <p>Nenhum produto em stock</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }
 
