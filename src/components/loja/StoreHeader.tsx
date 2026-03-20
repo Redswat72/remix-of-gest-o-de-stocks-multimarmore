@@ -4,7 +4,7 @@ import { ShoppingCart, Menu, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import type { StoreConfig } from '@/types/store';
 import { STORE_TYPE_LABELS, STORE_PRODUCT_TYPE_KEYS } from '@/types/store';
-import logoMultimarmore from '@/assets/logo-multimarmore.png';
+import logoMultimarmoreWide from '@/assets/logo-multimarmore-wide.png';
 import logoMagratex from '@/assets/logo-magratex.png';
 
 interface StoreHeaderProps {
@@ -14,7 +14,7 @@ interface StoreHeaderProps {
 }
 
 const logos: Record<string, string> = {
-  multimarmore: logoMultimarmore,
+  multimarmore: logoMultimarmoreWide,
   magratex: logoMagratex,
 };
 
