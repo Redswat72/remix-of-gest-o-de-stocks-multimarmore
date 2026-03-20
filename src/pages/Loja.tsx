@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { Eye, EyeOff } from 'lucide-react';
 import { StoreLayout } from '@/components/loja/StoreLayout';
 import { StoreHero } from '@/components/loja/StoreHero';
 import { StoreProductGrid } from '@/components/loja/StoreProductGrid';
@@ -11,8 +12,15 @@ import { StoreCartSheet } from '@/components/loja/StoreCartSheet';
 import { useStoreProducts, useUniqueStoneNames } from '@/hooks/useStoreProducts';
 import { useStoreCart, buildWhatsAppQuoteUrl } from '@/hooks/useStoreCart';
 import { getStoreConfig } from '@/lib/store-configs';
+import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
 import type { StoreProduct, StoreFilters, CompanySlug } from '@/types/store';
 import { DEFAULT_STORE_FILTERS } from '@/types/store';
+
+/** A product has real photos if it has at least one image that isn't the placeholder */
+function hasRealPhotos(p: StoreProduct): boolean {
+  return p.images.some(img => img !== '/placeholder.svg');
+}
 
 export default function Loja() {
   const { empresa } = useParams<{ empresa: string }>();
@@ -28,14 +36,19 @@ function LojaContent({ company }: { company: CompanySlug }) {
   const { data: products = [], isLoading } = useStoreProducts(company);
   const { data: uniqueStones = [] } = useUniqueStoneNames(company);
   const cart = useStoreCart(company);
+  const { isSuperadmin } = useAuth();
 
   const [filters, setFilters] = useState<StoreFilters>(DEFAULT_STORE_FILTERS);
   const [selectedProduct, setSelectedProduct] = useState<StoreProduct | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
+  const [showHidden, setShowHidden] = useState(false);
 
   const filtered = useMemo(() => {
     return products.filter(p => {
+      // Hide products without photos unless superadmin toggled "show hidden"
+      if (!hasRealPhotos(p) && !(isSuperadmin && showHidden)) return false;
+
       if (filters.search) {
         const term = filters.search.toLowerCase();
         if (!p.name.toLowerCase().includes(term) && !p.internal_id.toLowerCase().includes(term)) return false;
@@ -47,7 +60,9 @@ function LojaContent({ company }: { company: CompanySlug }) {
       if (p.height != null && (p.height < filters.heightRange[0] || p.height > filters.heightRange[1])) return false;
       return true;
     });
-  }, [products, filters]);
+  }, [products, filters, isSuperadmin, showHidden]);
+
+  const hiddenCount = useMemo(() => products.filter(p => !hasRealPhotos(p)).length, [products]);
 
   const handleAddToCart = (p: StoreProduct) => {
     if (cart.isInCart(p.id)) {
@@ -82,6 +97,24 @@ function LojaContent({ company }: { company: CompanySlug }) {
             <StoreMobileFilters filters={filters} onFiltersChange={setFilters} uniqueStones={uniqueStones} />
           </div>
 
+          {/* Superadmin controls */}
+          {isSuperadmin && hiddenCount > 0 && (
+            <div className="flex items-center gap-3 mb-6 p-3 rounded-xl" style={{ backgroundColor: 'rgba(247,148,29,0.1)', border: '1px solid rgba(247,148,29,0.25)' }}>
+              <span className="text-sm text-[#F7941D] font-medium">
+                {hiddenCount} produto(s) sem foto oculto(s) da loja
+              </span>
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-2 text-xs border-[#F7941D] text-[#F7941D] hover:bg-[rgba(247,148,29,0.15)]"
+                onClick={() => setShowHidden(!showHidden)}
+              >
+                {showHidden ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                {showHidden ? 'Ocultar sem foto' : 'Mostrar todos'}
+              </Button>
+            </div>
+          )}
+
           {/* Results count */}
           {!isLoading && filtered.length > 0 && (
             <div className="flex items-center gap-4 mb-8">
@@ -109,6 +142,7 @@ function LojaContent({ company }: { company: CompanySlug }) {
                 onProductClick={p => { setSelectedProduct(p); setDetailOpen(true); }}
                 onAddToCart={handleAddToCart}
                 onRequestQuote={handleRequestQuote}
+                isSuperadmin={isSuperadmin}
               />
             </main>
           </div>

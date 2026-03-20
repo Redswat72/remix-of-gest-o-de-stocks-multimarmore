@@ -1,4 +1,4 @@
-import { Ruler, Box, Scale, FileText, ShoppingCart, Check, Layers, Grid2x2, Weight } from 'lucide-react';
+import { Ruler, Box, Scale, FileText, ShoppingCart, Check, Layers, Grid2x2, Weight, ImageOff, ExternalLink } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
@@ -12,10 +12,16 @@ interface StoreProductCardProps {
   onClick?: (p: StoreProduct) => void;
   onAddToCart?: (p: StoreProduct) => void;
   onRequestQuote?: (p: StoreProduct) => void;
+  isSuperadmin?: boolean;
 }
 
-export function StoreProductCard({ product, index = 0, inCart, onClick, onAddToCart, onRequestQuote }: StoreProductCardProps) {
+function hasRealPhotos(p: StoreProduct): boolean {
+  return p.images.some(img => img !== '/placeholder.svg');
+}
+
+export function StoreProductCard({ product, index = 0, inCart, onClick, onAddToCart, onRequestQuote, isSuperadmin }: StoreProductCardProps) {
   const imageUrl = product.images[0] ?? '/placeholder.svg';
+  const noPhoto = !hasRealPhotos(product);
 
   const formatQty = () => {
     if (product.quantidade == null) return null;
@@ -23,18 +29,42 @@ export function StoreProductCard({ product, index = 0, inCart, onClick, onAddToC
     return `${product.quantidade} m²`;
   };
 
+  // Build the edit link based on product type
+  const editUrl = `/inventario/${product.type}/${product.id}`;
+
   return (
     <Card
-      className="group cursor-pointer overflow-hidden border-0 transition-all duration-300 hover:-translate-y-1"
+      className="group cursor-pointer overflow-hidden border-0 transition-all duration-300 hover:-translate-y-1 relative"
       style={{
         backgroundColor: 'rgba(255,255,255,0.06)',
         backdropFilter: 'blur(12px)',
-        border: '1px solid rgba(255,255,255,0.08)',
+        border: noPhoto && isSuperadmin ? '2px solid rgba(247,148,29,0.4)' : '1px solid rgba(255,255,255,0.08)',
         borderRadius: 20,
         boxShadow: '0 4px 24px rgba(0,0,0,0.30)',
       }}
       onClick={() => onClick?.(product)}
     >
+      {/* Superadmin badge for no-photo products */}
+      {isSuperadmin && noPhoto && (
+        <div className="absolute top-3 left-3 z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-[rgba(247,148,29,0.9)] text-[#1A1D21]">
+          <ImageOff className="h-3 w-3" />
+          Sem foto
+        </div>
+      )}
+
+      {/* Superadmin edit link */}
+      {isSuperadmin && (
+        <a
+          href={editUrl}
+          onClick={(e) => e.stopPropagation()}
+          className="absolute top-3 right-14 z-10 flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold bg-[rgba(30,87,153,0.9)] text-white hover:bg-[#1E5799] transition-colors"
+          title="Editar produto"
+        >
+          <ExternalLink className="h-3 w-3" />
+          Editar
+        </a>
+      )}
+
       {/* Image */}
       <div className="relative overflow-hidden rounded-t-[20px]">
         <AspectRatio ratio={1}>
@@ -42,7 +72,7 @@ export function StoreProductCard({ product, index = 0, inCart, onClick, onAddToC
             src={imageUrl}
             alt={product.name}
             loading={index < 6 ? 'eager' : 'lazy'}
-            className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110"
+            className={`w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110 ${noPhoto ? 'opacity-30' : ''}`}
           />
         </AspectRatio>
 
@@ -128,3 +158,4 @@ export function StoreProductCard({ product, index = 0, inCart, onClick, onAddToC
     </Card>
   );
 }
+
