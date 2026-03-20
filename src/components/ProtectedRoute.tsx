@@ -1,7 +1,7 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useEmpresa } from '@/context/EmpresaContext';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Clock } from 'lucide-react';
 import type { AppRole } from '@/types/database';
 
 interface ProtectedRouteProps {
