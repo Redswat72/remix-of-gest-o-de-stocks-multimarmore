@@ -443,6 +443,14 @@ function GestaoUtilizadoresTab() {
 
   const usersAtivos = users?.filter((u) => u.ativo) || [];
   const usersInativos = users?.filter((u) => !u.ativo) || [];
+  const usersPendentes = usersInativos.filter((u) => {
+    const role = getUserRole(u);
+    return role === 'operador';
+  });
+  const usersDesativados = usersInativos.filter((u) => {
+    const role = getUserRole(u);
+    return role !== 'operador' || !usersPendentes.includes(u);
+  });
 
   const getRoleBadge = (role: AppRole) => {
     const variants: Record<AppRole, string> = {
