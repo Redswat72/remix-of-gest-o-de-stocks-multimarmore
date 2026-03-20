@@ -9,15 +9,17 @@ interface ProtectedRouteProps {
   requiredRole?: AppRole;
   adminOnly?: boolean;
   superadminOnly?: boolean;
+  skipPasswordCheck?: boolean;
 }
 
 export function ProtectedRoute({ 
   children, 
   requiredRole,
   adminOnly = false,
-  superadminOnly = false 
+  superadminOnly = false,
+  skipPasswordCheck = false,
 }: ProtectedRouteProps) {
-  const { user, loading, hasRole, isAdmin, isSuperadmin } = useAuth();
+  const { user, loading, hasRole, isAdmin, isSuperadmin, roles } = useAuth();
   const { empresa } = useEmpresa();
   const location = useLocation();
 
@@ -50,6 +52,17 @@ export function ProtectedRoute({
 
   if (requiredRole && !hasRole(requiredRole)) {
     return <Navigate to="/" replace />;
+  }
+
+  // Force password change for operators on first login
+  if (
+    !skipPasswordCheck &&
+    !isAdmin &&
+    !isSuperadmin &&
+    roles.includes('operador') &&
+    !user.user_metadata?.password_changed
+  ) {
+    return <Navigate to="/alterar-password" replace />;
   }
 
   return <>{children}</>;
