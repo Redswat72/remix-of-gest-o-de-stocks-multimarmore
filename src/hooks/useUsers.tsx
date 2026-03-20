@@ -26,17 +26,43 @@ export function useUsers() {
     queryKey: ["users", empresa],
     queryFn: async () => {
       console.log("[useUsers] Fetching users for empresa:", empresa);
-      const { data, error } = await supabase
+      
+      // Fetch profiles with local join
+      const { data: profiles, error: profilesError } = await supabase
         .from("profiles")
-        .select("*, local:locais(id, nome), user_roles(role)")
+        .select("*, local:locais(id, nome)")
         .order("created_at", { ascending: false });
 
-      if (error) {
-        console.error("[useUsers] Error fetching users:", error);
-        throw error;
+      if (profilesError) {
+        console.error("[useUsers] Error fetching profiles:", profilesError);
+        throw profilesError;
       }
-      console.log("[useUsers] Fetched users:", data?.length);
-      return data as unknown as User[];
+
+      // Fetch all roles separately (no FK between profiles and user_roles)
+      const { data: roles, error: rolesError } = await supabase
+        .from("user_roles")
+        .select("user_id, role");
+
+      if (rolesError) {
+        console.error("[useUsers] Error fetching roles:", rolesError);
+        // Don't throw - roles might fail due to RLS but profiles should still show
+      }
+
+      // Merge roles into profiles
+      const rolesMap = new Map<string, { role: AppRole }[]>();
+      for (const r of roles || []) {
+        const existing = rolesMap.get(r.user_id) || [];
+        existing.push({ role: r.role as AppRole });
+        rolesMap.set(r.user_id, existing);
+      }
+
+      const merged = (profiles || []).map((p: any) => ({
+        ...p,
+        user_roles: rolesMap.get(p.user_id) || [],
+      }));
+
+      console.log("[useUsers] Fetched users:", merged.length);
+      return merged as User[];
     },
     enabled: !!empresa,
   });
