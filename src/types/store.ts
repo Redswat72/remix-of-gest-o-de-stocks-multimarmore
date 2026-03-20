@@ -18,6 +18,28 @@ export interface StoreProduct {
   variety: string | null;
   finish: string | null;
   line: string | null;
+  // Inventory-specific fields
+  quantidade: number | null;
+  unidade: string | null;         // 'ton' | 'm²'
+  blocoOrigem: string | null;
+  bundleId: string | null;
+  numChapas: number | null;
+  dimensoes: string | null;
+  butchNo: string | null;
+  numPecas: number | null;
+  peso: number | null;
+  acabamento: string | null;
+  // Pargas (chapa sections with photos)
+  pargas: StoreProductParga[];
+}
+
+export interface StoreProductParga {
+  nome: string;
+  quantidade: number | null;
+  comprimento: number | null;
+  altura: number | null;
+  fotoPrimeira: string | null;
+  fotoUltima: string | null;
 }
 
 export interface StoreFilters {

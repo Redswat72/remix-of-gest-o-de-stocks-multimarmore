@@ -77,8 +77,12 @@ export function buildWhatsAppQuoteUrl(
   products: StoreProduct[],
 ) {
   const lines = products.map((p, i) => {
-    const dims = [p.length, p.width, p.height].filter(Boolean).join('×');
-    return `${i + 1}. *${p.name}* (${p.internal_id})${dims ? ` — ${dims} cm` : ''}`;
+    const details: string[] = [];
+    if (p.dimensoes) details.push(p.dimensoes);
+    if (p.quantidade != null && p.unidade) details.push(`${p.quantidade} ${p.unidade}`);
+    if (p.acabamento) details.push(p.acabamento);
+    const suffix = details.length > 0 ? ` — ${details.join(', ')}` : '';
+    return `${i + 1}. *${p.name}* (${p.internal_id})${suffix}`;
   });
 
   const message = `*Pedido de Cotação — ${companyName}*
