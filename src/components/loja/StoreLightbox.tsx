@@ -60,7 +60,7 @@ export function StoreLightbox({ images, currentIndex, isOpen, onClose, onIndexCh
 
   const handleDoubleClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    zoom === 1 ? setZoom(2.5) : resetZoom();
+    if (zoom === 1) { setZoom(2.5); } else { resetZoom(); }
   }, [zoom, resetZoom]);
 
   if (!isOpen) return null;
