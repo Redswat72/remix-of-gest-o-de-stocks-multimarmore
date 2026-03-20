@@ -117,8 +117,6 @@ function StockGlobalTab() {
   }, [items, allBlocos, allChapas, allLadrilho]);
 
   const handleRecalcularStock = async () => {
-
-  const handleRecalcularStock = async () => {
     setRecalculating(true);
     try {
       const { data: movimentos, error: movError } = await supabase
