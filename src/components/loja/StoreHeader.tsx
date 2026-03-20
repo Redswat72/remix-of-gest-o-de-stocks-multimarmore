@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ShoppingCart, Menu, X } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import type { StoreConfig } from '@/types/store';
-import { STORE_TYPE_LABELS, STORE_PRODUCT_TYPE_KEYS } from '@/types/store';
+import { STORE_PRODUCT_TYPE_KEYS } from '@/types/store';
+import { LanguageSelector } from './LanguageSelector';
 import logoMultimarmoreWide from '@/assets/logo-multimarmore-wide.png';
 import logoMagratex from '@/assets/logo-magratex.png';
 
@@ -19,6 +21,7 @@ const logos: Record<string, string> = {
 };
 
 export function StoreHeader({ config, cartCount, onCartClick }: StoreHeaderProps) {
+  const { t } = useTranslation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
 
@@ -60,18 +63,19 @@ export function StoreHeader({ config, cartCount, onCartClick }: StoreHeaderProps
             onClick={scrollToCatalog}
             className="text-sm font-medium text-[#F7F5F2] hover:text-[#1E5799] transition-colors"
           >
-            Catálogo
+            {t('header.catalog')}
           </button>
           <a
             href={`mailto:${config.email}`}
             className="text-sm font-medium text-[#F7F5F2] hover:text-[#1E5799] transition-colors"
           >
-            Contacto
+            {t('header.contact')}
           </a>
         </nav>
 
         {/* Actions */}
         <div className="flex items-center gap-3">
+          <LanguageSelector />
           <Button
             variant="ghost"
             size="icon"
@@ -107,7 +111,7 @@ export function StoreHeader({ config, cartCount, onCartClick }: StoreHeaderProps
               onClick={scrollToCatalog}
               className="block w-full text-left px-4 py-3 rounded-lg text-[#F7F5F2] hover:bg-[rgba(255,255,255,0.05)] transition-colors"
             >
-              Catálogo
+              {t('header.catalog')}
             </button>
             {STORE_PRODUCT_TYPE_KEYS.map(type => (
               <button
@@ -115,7 +119,7 @@ export function StoreHeader({ config, cartCount, onCartClick }: StoreHeaderProps
                 onClick={() => { scrollToCatalog(); setMobileOpen(false); }}
                 className="block w-full text-left px-8 py-2 text-sm text-[#A8ADB5] hover:text-[#1E5799] hover:bg-[rgba(255,255,255,0.05)] rounded-lg transition-colors"
               >
-                {STORE_TYPE_LABELS[type]}
+                {t(`productTypes.${type}`)}
               </button>
             ))}
             <div className="h-px bg-[rgba(30,87,153,0.2)] my-3" />
@@ -123,7 +127,7 @@ export function StoreHeader({ config, cartCount, onCartClick }: StoreHeaderProps
               href={`mailto:${config.email}`}
               className="block px-4 py-3 rounded-lg text-[#F7F5F2] hover:bg-[rgba(255,255,255,0.05)] transition-colors"
             >
-              Contacto
+              {t('header.contact')}
             </a>
           </div>
         </div>

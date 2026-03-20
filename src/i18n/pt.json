@@ -1,0 +1,104 @@
+{
+  "header": {
+    "catalog": "Catálogo",
+    "contact": "Contacto"
+  },
+  "hero": {
+    "viewCatalog": "Ver Catálogo"
+  },
+  "catalog": {
+    "title": "Catálogo",
+    "subtitle": "Explore a nossa coleção de pedra natural premium.",
+    "productsFound": "{{count}} produto(s) encontrado(s)",
+    "filters": "Filtros",
+    "hiddenProducts": "{{count}} produto(s) sem foto oculto(s) da loja",
+    "showAll": "Mostrar todos",
+    "hideNoPhoto": "Ocultar sem foto"
+  },
+  "filters": {
+    "search": "Pesquisar",
+    "searchPlaceholder": "Nome ou ID...",
+    "type": "Tipo",
+    "stone": "Pedra",
+    "allStones": "Todas as pedras",
+    "length": "Comprimento",
+    "width": "Largura",
+    "height": "Altura",
+    "clearFilters": "Limpar filtros"
+  },
+  "productTypes": {
+    "bloco": "Blocos",
+    "chapa": "Chapas",
+    "ladrilho": "Ladrilho",
+    "banda": "Bandas"
+  },
+  "product": {
+    "noPhoto": "Sem foto",
+    "edit": "Editar",
+    "slabs": "chapas",
+    "requestQuote": "Pedir Cotação",
+    "quote": "Cotação",
+    "inCart": "No Carrinho",
+    "addToCart": "Adicionar ao Carrinho",
+    "addedToCart": "{{name}} adicionado ao carrinho",
+    "removedFromCart": "{{name}} removido do carrinho",
+    "viewHD": "Ver em HD",
+    "quantity": "Quantidade",
+    "dimensions": "Dimensões",
+    "numSlabs": "Nº Chapas",
+    "bundle": "Bundle",
+    "blockOrigin": "Bloco Origem",
+    "volume": "Volume",
+    "numPieces": "Nº Peças",
+    "weight": "Peso",
+    "sections": "Secções (Pargas)",
+    "qty": "Qtd",
+    "observations": "Observações"
+  },
+  "grid": {
+    "noProducts": "Nenhum produto encontrado",
+    "noProductsHint": "Tente ajustar os filtros para encontrar o que procura."
+  },
+  "cart": {
+    "title": "Carrinho",
+    "empty": "O seu carrinho está vazio",
+    "emptyHint": "Adicione produtos para pedir cotação",
+    "requestQuote": "Pedir Cotação",
+    "clear": "Limpar carrinho"
+  },
+  "quoteModal": {
+    "title": "Pedir Cotação",
+    "description": "Preencha os seus dados e entraremos em contacto.",
+    "selectedProduct": "Produto selecionado",
+    "selectedProducts": "{{count}} produtos selecionados",
+    "name": "Nome",
+    "namePlaceholder": "O seu nome",
+    "email": "Email",
+    "emailPlaceholder": "email@exemplo.com",
+    "phone": "Telefone",
+    "phonePlaceholder": "+351 912 345 678",
+    "message": "Mensagem",
+    "messagePlaceholder": "Descreva o que pretende, quantidades, acabamento, prazo...",
+    "submit": "Enviar Pedido de Cotação",
+    "sending": "A enviar...",
+    "or": "ou",
+    "whatsapp": "Contactar via WhatsApp",
+    "successTitle": "Pedido Enviado!",
+    "successMessage": "O seu pedido de cotação foi registado. A nossa equipa entrará em contacto em breve.",
+    "close": "Fechar",
+    "errorName": "Por favor introduza o seu nome",
+    "errorEmail": "Por favor introduza um email válido",
+    "errorNoProducts": "Nenhum produto selecionado",
+    "successToast": "Pedido de cotação enviado com sucesso!",
+    "errorToast": "Erro ao enviar pedido. Tente novamente ou use o WhatsApp."
+  },
+  "footer": {
+    "certifiedQuality": "Qualidade Certificada",
+    "premiumExcellence": "Excelência Premium",
+    "globalDelivery": "Entrega Global",
+    "dedicatedSupport": "Suporte Dedicado",
+    "contacts": "Contactos",
+    "address": "Morada",
+    "rights": "Mármores, Granitos & Calcários. Todos os direitos reservados."
+  }
+}

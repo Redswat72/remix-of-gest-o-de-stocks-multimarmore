@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Send, Loader2, CheckCircle2, MessageCircle } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,6 +20,7 @@ interface Props {
 }
 
 export function StoreQuoteModal({ open, onOpenChange, products, config, onSuccess }: Props) {
+  const { t } = useTranslation();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -29,9 +31,9 @@ export function StoreQuoteModal({ open, onOpenChange, products, config, onSucces
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!name.trim()) { toast.error('Por favor introduza o seu nome'); return; }
-    if (!email.trim() || !email.includes('@')) { toast.error('Por favor introduza um email válido'); return; }
-    if (products.length === 0) { toast.error('Nenhum produto selecionado'); return; }
+    if (!name.trim()) { toast.error(t('quoteModal.errorName')); return; }
+    if (!email.trim() || !email.includes('@')) { toast.error(t('quoteModal.errorEmail')); return; }
+    if (products.length === 0) { toast.error(t('quoteModal.errorNoProducts')); return; }
 
     setSending(true);
     try {
@@ -55,11 +57,11 @@ export function StoreQuoteModal({ open, onOpenChange, products, config, onSucces
       if (data?.error) throw new Error(data.error);
 
       setSent(true);
-      toast.success('Pedido de cotação enviado com sucesso!');
+      toast.success(t('quoteModal.successToast'));
       onSuccess?.();
     } catch (err: any) {
       console.error('Quote request error:', err);
-      toast.error('Erro ao enviar pedido. Tente novamente ou use o WhatsApp.');
+      toast.error(t('quoteModal.errorToast'));
     } finally {
       setSending(false);
     }
@@ -78,7 +80,6 @@ export function StoreQuoteModal({ open, onOpenChange, products, config, onSucces
 
   const handleClose = (o: boolean) => {
     if (!o) {
-      // Reset form when closing
       setTimeout(() => {
         setName(''); setEmail(''); setPhone(''); setMessage(''); setSent(false);
       }, 300);
@@ -104,17 +105,17 @@ export function StoreQuoteModal({ open, onOpenChange, products, config, onSucces
               className="text-xl font-semibold text-[#F5F2ED]"
               style={{ fontFamily: "'Cormorant Garamond', serif" }}
             >
-              Pedido Enviado!
+              {t('quoteModal.successTitle')}
             </h3>
             <p className="text-[#C9C3BA] text-sm max-w-xs mx-auto">
-              O seu pedido de cotação foi registado. A nossa equipa entrará em contacto em breve.
+              {t('quoteModal.successMessage')}
             </p>
             <Button
               onClick={() => handleClose(false)}
               className="mt-4"
               style={{ background: 'linear-gradient(135deg, #1E5799, #2A6BB8)', color: '#fff' }}
             >
-              Fechar
+              {t('quoteModal.close')}
             </Button>
           </div>
         </DialogContent>
@@ -133,20 +134,19 @@ export function StoreQuoteModal({ open, onOpenChange, products, config, onSucces
             className="text-xl text-[#F5F2ED]"
             style={{ fontFamily: "'Cormorant Garamond', serif" }}
           >
-            Pedir Cotação
+            {t('quoteModal.title')}
           </DialogTitle>
           <DialogDescription className="text-[#C9C3BA]">
-            Preencha os seus dados e entraremos em contacto.
+            {t('quoteModal.description')}
           </DialogDescription>
         </DialogHeader>
 
-        {/* Selected products summary */}
         <div
           className="p-3 rounded-lg space-y-2"
           style={{ backgroundColor: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
         >
           <p className="text-xs font-medium uppercase tracking-wider text-[#1E5799]">
-            {products.length === 1 ? 'Produto selecionado' : `${products.length} produtos selecionados`}
+            {products.length === 1 ? t('quoteModal.selectedProduct') : t('quoteModal.selectedProducts', { count: products.length })}
           </p>
           {products.map(p => (
             <div key={p.id} className="flex items-center gap-3">
@@ -165,12 +165,12 @@ export function StoreQuoteModal({ open, onOpenChange, products, config, onSucces
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="quote-name" className="text-[#C9C3BA]">Nome *</Label>
+            <Label htmlFor="quote-name" className="text-[#C9C3BA]">{t('quoteModal.name')} *</Label>
             <Input
               id="quote-name"
               value={name}
               onChange={e => setName(e.target.value)}
-              placeholder="O seu nome"
+              placeholder={t('quoteModal.namePlaceholder')}
               required
               maxLength={100}
               className="bg-[rgba(255,255,255,0.06)] border-[rgba(255,255,255,0.12)] text-[#F5F2ED] placeholder:text-[#A8ADB5] focus:border-[#1E5799]"
@@ -178,13 +178,13 @@ export function StoreQuoteModal({ open, onOpenChange, products, config, onSucces
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="quote-email" className="text-[#C9C3BA]">Email *</Label>
+            <Label htmlFor="quote-email" className="text-[#C9C3BA]">{t('quoteModal.email')} *</Label>
             <Input
               id="quote-email"
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
-              placeholder="email@exemplo.com"
+              placeholder={t('quoteModal.emailPlaceholder')}
               required
               maxLength={255}
               className="bg-[rgba(255,255,255,0.06)] border-[rgba(255,255,255,0.12)] text-[#F5F2ED] placeholder:text-[#A8ADB5] focus:border-[#1E5799]"
@@ -192,25 +192,25 @@ export function StoreQuoteModal({ open, onOpenChange, products, config, onSucces
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="quote-phone" className="text-[#C9C3BA]">Telefone</Label>
+            <Label htmlFor="quote-phone" className="text-[#C9C3BA]">{t('quoteModal.phone')}</Label>
             <Input
               id="quote-phone"
               type="tel"
               value={phone}
               onChange={e => setPhone(e.target.value)}
-              placeholder="+351 912 345 678"
+              placeholder={t('quoteModal.phonePlaceholder')}
               maxLength={20}
               className="bg-[rgba(255,255,255,0.06)] border-[rgba(255,255,255,0.12)] text-[#F5F2ED] placeholder:text-[#A8ADB5] focus:border-[#1E5799]"
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="quote-message" className="text-[#C9C3BA]">Mensagem</Label>
+            <Label htmlFor="quote-message" className="text-[#C9C3BA]">{t('quoteModal.message')}</Label>
             <Textarea
               id="quote-message"
               value={message}
               onChange={e => setMessage(e.target.value)}
-              placeholder="Descreva o que pretende, quantidades, acabamento, prazo..."
+              placeholder={t('quoteModal.messagePlaceholder')}
               rows={4}
               maxLength={2000}
               className="bg-[rgba(255,255,255,0.06)] border-[rgba(255,255,255,0.12)] text-[#F5F2ED] placeholder:text-[#A8ADB5] focus:border-[#1E5799] resize-none"
@@ -225,15 +225,15 @@ export function StoreQuoteModal({ open, onOpenChange, products, config, onSucces
               style={{ background: 'linear-gradient(135deg, #F7941D, #FFA940)', color: '#1A1D21' }}
             >
               {sending ? (
-                <><Loader2 className="h-5 w-5 animate-spin" /> A enviar...</>
+                <><Loader2 className="h-5 w-5 animate-spin" /> {t('quoteModal.sending')}</>
               ) : (
-                <><Send className="h-5 w-5" /> Enviar Pedido de Cotação</>
+                <><Send className="h-5 w-5" /> {t('quoteModal.submit')}</>
               )}
             </Button>
 
             <div className="flex items-center gap-3">
               <div className="h-px flex-1 bg-[rgba(255,255,255,0.08)]" />
-              <span className="text-xs text-[#A8ADB5]">ou</span>
+              <span className="text-xs text-[#A8ADB5]">{t('quoteModal.or')}</span>
               <div className="h-px flex-1 bg-[rgba(255,255,255,0.08)]" />
             </div>
 
@@ -244,7 +244,7 @@ export function StoreQuoteModal({ open, onOpenChange, products, config, onSucces
               className="w-full gap-2 border-[#25D366] text-[#25D366] hover:bg-[rgba(37,211,102,0.1)]"
             >
               <MessageCircle className="h-5 w-5" />
-              Contactar via WhatsApp
+              {t('quoteModal.whatsapp')}
             </Button>
           </div>
         </form>

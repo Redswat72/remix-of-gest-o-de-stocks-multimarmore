@@ -1,0 +1,104 @@
+{
+  "header": {
+    "catalog": "Catalogue",
+    "contact": "Contact"
+  },
+  "hero": {
+    "viewCatalog": "View Catalogue"
+  },
+  "catalog": {
+    "title": "Catalogue",
+    "subtitle": "Explore our premium natural stone collection.",
+    "productsFound": "{{count}} product(s) found",
+    "filters": "Filters",
+    "hiddenProducts": "{{count}} product(s) without photo hidden from store",
+    "showAll": "Show all",
+    "hideNoPhoto": "Hide without photo"
+  },
+  "filters": {
+    "search": "Search",
+    "searchPlaceholder": "Name or ID...",
+    "type": "Type",
+    "stone": "Stone",
+    "allStones": "All stones",
+    "length": "Length",
+    "width": "Width",
+    "height": "Height",
+    "clearFilters": "Clear filters"
+  },
+  "productTypes": {
+    "bloco": "Blocks",
+    "chapa": "Slabs",
+    "ladrilho": "Tiles",
+    "banda": "Strips"
+  },
+  "product": {
+    "noPhoto": "No photo",
+    "edit": "Edit",
+    "slabs": "slabs",
+    "requestQuote": "Request Quote",
+    "quote": "Quote",
+    "inCart": "In Cart",
+    "addToCart": "Add to Cart",
+    "addedToCart": "{{name}} added to cart",
+    "removedFromCart": "{{name}} removed from cart",
+    "viewHD": "View in HD",
+    "quantity": "Quantity",
+    "dimensions": "Dimensions",
+    "numSlabs": "No. Slabs",
+    "bundle": "Bundle",
+    "blockOrigin": "Block Origin",
+    "volume": "Volume",
+    "numPieces": "No. Pieces",
+    "weight": "Weight",
+    "sections": "Sections (Pargas)",
+    "qty": "Qty",
+    "observations": "Observations"
+  },
+  "grid": {
+    "noProducts": "No products found",
+    "noProductsHint": "Try adjusting the filters to find what you're looking for."
+  },
+  "cart": {
+    "title": "Cart",
+    "empty": "Your cart is empty",
+    "emptyHint": "Add products to request a quote",
+    "requestQuote": "Request Quote",
+    "clear": "Clear cart"
+  },
+  "quoteModal": {
+    "title": "Request Quote",
+    "description": "Fill in your details and we'll get in touch.",
+    "selectedProduct": "Selected product",
+    "selectedProducts": "{{count}} products selected",
+    "name": "Name",
+    "namePlaceholder": "Your name",
+    "email": "Email",
+    "emailPlaceholder": "email@example.com",
+    "phone": "Phone",
+    "phonePlaceholder": "+351 912 345 678",
+    "message": "Message",
+    "messagePlaceholder": "Describe what you need, quantities, finish, timeline...",
+    "submit": "Send Quote Request",
+    "sending": "Sending...",
+    "or": "or",
+    "whatsapp": "Contact via WhatsApp",
+    "successTitle": "Request Sent!",
+    "successMessage": "Your quote request has been registered. Our team will contact you shortly.",
+    "close": "Close",
+    "errorName": "Please enter your name",
+    "errorEmail": "Please enter a valid email",
+    "errorNoProducts": "No products selected",
+    "successToast": "Quote request sent successfully!",
+    "errorToast": "Error sending request. Please try again or use WhatsApp."
+  },
+  "footer": {
+    "certifiedQuality": "Certified Quality",
+    "premiumExcellence": "Premium Excellence",
+    "globalDelivery": "Global Delivery",
+    "dedicatedSupport": "Dedicated Support",
+    "contacts": "Contacts",
+    "address": "Address",
+    "rights": "Marbles, Granites & Limestones. All rights reserved."
+  }
+}

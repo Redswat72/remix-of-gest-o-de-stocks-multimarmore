@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useParams, Navigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { Eye, EyeOff } from 'lucide-react';
 import { StoreLayout } from '@/components/loja/StoreLayout';
@@ -18,7 +19,6 @@ import { Button } from '@/components/ui/button';
 import type { StoreProduct, StoreFilters, CompanySlug } from '@/types/store';
 import { DEFAULT_STORE_FILTERS } from '@/types/store';
 
-/** A product has real photos if it has at least one image that isn't the placeholder */
 function hasRealPhotos(p: StoreProduct): boolean {
   return p.images.some(img => img !== '/placeholder.svg');
 }
@@ -33,6 +33,7 @@ export default function Loja() {
 }
 
 function LojaContent({ company }: { company: CompanySlug }) {
+  const { t } = useTranslation();
   const config = getStoreConfig(company)!;
   const { data: products = [], isLoading } = useStoreProducts(company);
   const { data: uniqueStones = [] } = useUniqueStoneNames(company);
@@ -68,10 +69,10 @@ function LojaContent({ company }: { company: CompanySlug }) {
   const handleAddToCart = (p: StoreProduct) => {
     if (cart.isInCart(p.id)) {
       cart.removeFromCart(p.id);
-      toast.info(`${p.name} removido do carrinho`);
+      toast.info(t('product.removedFromCart', { name: p.name }));
     } else {
       cart.addToCart(p.id);
-      toast.success(`${p.name} adicionado ao carrinho`);
+      toast.success(t('product.addedToCart', { name: p.name }));
     }
   };
 
@@ -92,23 +93,21 @@ function LojaContent({ company }: { company: CompanySlug }) {
 
       <div id="catalog-section" className="py-16 relative" style={{ background: 'linear-gradient(180deg, #1A1D21 0%, #1E2127 50%, #1A1D21 100%)' }}>
         <div className="container">
-          {/* Header */}
           <div className="flex items-end justify-between mb-10">
             <div>
               <p className="text-sm font-medium text-[#1E5799] uppercase tracking-wider mb-2">{config.tagline}</p>
               <h2 className="text-3xl md:text-4xl font-semibold text-[#F5F2ED]" style={{ fontFamily: "'Cormorant Garamond', serif" }}>
-                Catálogo
+                {t('catalog.title')}
               </h2>
-              <p className="text-[#C9C3BA] mt-2 max-w-lg">Explore a nossa coleção de pedra natural premium.</p>
+              <p className="text-[#C9C3BA] mt-2 max-w-lg">{t('catalog.subtitle')}</p>
             </div>
             <StoreMobileFilters filters={filters} onFiltersChange={setFilters} uniqueStones={uniqueStones} />
           </div>
 
-          {/* Superadmin controls */}
           {isSuperadmin && hiddenCount > 0 && (
             <div className="flex items-center gap-3 mb-6 p-3 rounded-xl" style={{ backgroundColor: 'rgba(247,148,29,0.1)', border: '1px solid rgba(247,148,29,0.25)' }}>
               <span className="text-sm text-[#F7941D] font-medium">
-                {hiddenCount} produto(s) sem foto oculto(s) da loja
+                {t('catalog.hiddenProducts', { count: hiddenCount })}
               </span>
               <Button
                 size="sm"
@@ -117,16 +116,15 @@ function LojaContent({ company }: { company: CompanySlug }) {
                 onClick={() => setShowHidden(!showHidden)}
               >
                 {showHidden ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-                {showHidden ? 'Ocultar sem foto' : 'Mostrar todos'}
+                {showHidden ? t('catalog.hideNoPhoto') : t('catalog.showAll')}
               </Button>
             </div>
           )}
 
-          {/* Results count */}
           {!isLoading && filtered.length > 0 && (
             <div className="flex items-center gap-4 mb-8">
               <div className="h-px flex-1 bg-[rgba(255,255,255,0.08)]" />
-              <p className="text-sm text-[#C9C3BA]">{filtered.length} produto(s) encontrado(s)</p>
+              <p className="text-sm text-[#C9C3BA]">{t('catalog.productsFound', { count: filtered.length })}</p>
               <div className="h-px flex-1 bg-[rgba(255,255,255,0.08)]" />
             </div>
           )}
@@ -134,7 +132,7 @@ function LojaContent({ company }: { company: CompanySlug }) {
           <div className="flex gap-10">
             <aside className="hidden lg:block w-80 flex-shrink-0">
               <div className="sticky top-28 p-6 rounded-2xl" style={{ backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
-                <h3 className="text-sm font-semibold uppercase tracking-wider text-[#1E5799] mb-6">Filtros</h3>
+                <h3 className="text-sm font-semibold uppercase tracking-wider text-[#1E5799] mb-6">{t('catalog.filters')}</h3>
                 <StoreProductFilters filters={filters} onFiltersChange={setFilters} uniqueStones={uniqueStones} />
               </div>
             </aside>
