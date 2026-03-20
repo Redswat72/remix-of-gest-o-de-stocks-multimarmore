@@ -435,7 +435,7 @@ function GestaoLocaisTab() {
 // === Gestão de Utilizadores Tab ===
 function GestaoUtilizadoresTab() {
   const [modalOpen, setModalOpen] = useState(false);
-  const { users, isLoading, atualizarRole, toggleAtivo } = useUsers();
+  const { users, isLoading, error, atualizarRole, toggleAtivo } = useUsers();
 
   const getUserRole = (user: User): AppRole => {
     return user.user_roles?.[0]?.role ?? "operador";
@@ -466,6 +466,15 @@ function GestaoUtilizadoresTab() {
           Adicionar Colaborador
         </Button>
       </div>
+
+      {error && (
+        <Card className="border-destructive">
+          <CardContent className="p-4 text-destructive text-sm">
+            <p className="font-medium">Erro ao carregar utilizadores:</p>
+            <p>{(error as Error).message}</p>
+          </CardContent>
+        </Card>
+      )}
 
       {isLoading ? (
         <Card>
