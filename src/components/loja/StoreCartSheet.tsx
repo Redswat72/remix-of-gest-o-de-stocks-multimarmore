@@ -2,7 +2,6 @@ import { ShoppingCart, Trash2, FileText, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet';
 import type { StoreProduct, StoreConfig } from '@/types/store';
-import { buildWhatsAppQuoteUrl } from '@/hooks/useStoreCart';
 
 interface Props {
   open: boolean;
@@ -11,19 +10,13 @@ interface Props {
   config: StoreConfig;
   onRemove: (id: string) => void;
   onClear: () => void;
+  onRequestQuote?: (products: StoreProduct[]) => void;
 }
 
-export function StoreCartSheet({ open, onOpenChange, products, config, onRemove, onClear }: Props) {
+export function StoreCartSheet({ open, onOpenChange, products, config: _config, onRemove, onClear, onRequestQuote }: Props) {
   const handleQuote = () => {
     if (products.length === 0) return;
-    const url = buildWhatsAppQuoteUrl(config.whatsapp, config.displayName, products);
-    const a = document.createElement('a');
-    a.href = url;
-    a.target = '_blank';
-    a.rel = 'noopener noreferrer';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    onRequestQuote?.(products);
   };
 
   return (
@@ -76,7 +69,7 @@ export function StoreCartSheet({ open, onOpenChange, products, config, onRemove,
               onClick={handleQuote}
             >
               <FileText className="h-5 w-5" />
-              Pedir Cotação via WhatsApp
+              Pedir Cotação
             </Button>
             <Button variant="ghost" onClick={onClear} className="w-full gap-2 text-[#A8ADB5] hover:text-red-400">
               <Trash2 className="h-4 w-4" />

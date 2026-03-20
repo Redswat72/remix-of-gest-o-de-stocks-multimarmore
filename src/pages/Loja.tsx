@@ -9,8 +9,9 @@ import { StoreProductFilters } from '@/components/loja/StoreProductFilters';
 import { StoreMobileFilters } from '@/components/loja/StoreMobileFilters';
 import { StoreProductDetail } from '@/components/loja/StoreProductDetail';
 import { StoreCartSheet } from '@/components/loja/StoreCartSheet';
+import { StoreQuoteModal } from '@/components/loja/StoreQuoteModal';
 import { useStoreProducts, useUniqueStoneNames } from '@/hooks/useStoreProducts';
-import { useStoreCart, buildWhatsAppQuoteUrl } from '@/hooks/useStoreCart';
+import { useStoreCart } from '@/hooks/useStoreCart';
 import { getStoreConfig } from '@/lib/store-configs';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
@@ -43,12 +44,12 @@ function LojaContent({ company }: { company: CompanySlug }) {
   const [detailOpen, setDetailOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [showHidden, setShowHidden] = useState(false);
+  const [quoteProducts, setQuoteProducts] = useState<StoreProduct[]>([]);
+  const [quoteOpen, setQuoteOpen] = useState(false);
 
   const filtered = useMemo(() => {
     return products.filter(p => {
-      // Hide products without photos unless superadmin toggled "show hidden"
       if (!hasRealPhotos(p) && !(isSuperadmin && showHidden)) return false;
-
       if (filters.search) {
         const term = filters.search.toLowerCase();
         if (!p.name.toLowerCase().includes(term) && !p.internal_id.toLowerCase().includes(term)) return false;
@@ -75,14 +76,14 @@ function LojaContent({ company }: { company: CompanySlug }) {
   };
 
   const handleRequestQuote = (p: StoreProduct) => {
-    const url = buildWhatsAppQuoteUrl(config.whatsapp, config.displayName, [p]);
-    const a = document.createElement('a');
-    a.href = url;
-    a.target = '_blank';
-    a.rel = 'noopener noreferrer';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    setQuoteProducts([p]);
+    setQuoteOpen(true);
+  };
+
+  const handleCartQuote = (cartProducts: StoreProduct[]) => {
+    setQuoteProducts(cartProducts);
+    setQuoteOpen(true);
+    setCartOpen(false);
   };
 
   return (
@@ -131,7 +132,6 @@ function LojaContent({ company }: { company: CompanySlug }) {
           )}
 
           <div className="flex gap-10">
-            {/* Sidebar */}
             <aside className="hidden lg:block w-80 flex-shrink-0">
               <div className="sticky top-28 p-6 rounded-2xl" style={{ backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.08)' }}>
                 <h3 className="text-sm font-semibold uppercase tracking-wider text-[#1E5799] mb-6">Filtros</h3>
@@ -139,7 +139,6 @@ function LojaContent({ company }: { company: CompanySlug }) {
               </div>
             </aside>
 
-            {/* Grid */}
             <main className="flex-1 min-w-0">
               <StoreProductGrid
                 products={filtered}
@@ -171,6 +170,14 @@ function LojaContent({ company }: { company: CompanySlug }) {
         config={config}
         onRemove={cart.removeFromCart}
         onClear={cart.clearCart}
+        onRequestQuote={handleCartQuote}
+      />
+
+      <StoreQuoteModal
+        open={quoteOpen}
+        onOpenChange={setQuoteOpen}
+        products={quoteProducts}
+        config={config}
       />
     </StoreLayout>
   );
