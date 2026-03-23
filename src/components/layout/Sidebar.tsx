@@ -139,7 +139,7 @@ export function Sidebar() {
         </ul>
 
         {/* Store Links */}
-        <div className="mt-4 pt-4 border-t border-border px-2">
+        {isAdmin && <div className="mt-4 pt-4 border-t border-border px-2">
           {!collapsed && (
             <p className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Lojas</p>
           )}
@@ -171,7 +171,7 @@ export function Sidebar() {
               </li>
             ))}
           </ul>
-        </div>
+        </div>}
       </nav>
 
       {/* User info & Logout */}
