@@ -171,7 +171,7 @@ export function Sidebar() {
               </li>
             ))}
           </ul>
-        </div>
+        </div>}
       </nav>
 
       {/* User info & Logout */}
