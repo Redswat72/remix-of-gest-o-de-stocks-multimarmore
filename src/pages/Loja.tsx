@@ -27,7 +27,7 @@ export default function Loja() {
   const { empresa } = useParams<{ empresa: string }>();
   const config = getStoreConfig(empresa ?? '');
 
-  if (!config) return <Navigate to="/selecionar-empresa" replace />;
+  if (!config) return <Navigate to="/404" replace />;
 
   return <LojaContent company={config.slug} />;
 }
