@@ -165,7 +165,62 @@ export default function InventarioFicha() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Observações */}
+      <ObservacoesSection forma={forma!} itemId={id!} data={data} empresa={empresa} supabase={supabase} queryClient={queryClient} />
     </div>
+  );
+}
+
+function ObservacoesSection({ forma, itemId, data, empresa, supabase, queryClient }: {
+  forma: string; itemId: string; data: any; empresa: string | null; supabase: any; queryClient: any;
+}) {
+  const obsField = forma === 'ladrilho' ? 'nota' : 'observacoes';
+  const initialObs = data?.[obsField] || '';
+  const [observacoes, setObservacoes] = useState<string>(initialObs);
+
+  const tableName = forma === 'bloco' ? 'blocos' : forma === 'chapa' ? 'chapas' : 'ladrilho';
+  const updateTable = forma === 'bloco' && empresa === 'magratex' ? 'inventario' : tableName;
+
+  const obsMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from(updateTable)
+        .update({ [obsField]: observacoes || null })
+        .eq('id', itemId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Observações guardadas com sucesso');
+      queryClient.invalidateQueries({ queryKey: ['inventario-ficha', forma, itemId] });
+    },
+    onError: (err: Error) => {
+      toast.error('Erro ao guardar observações: ' + err.message);
+    },
+  });
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Observações</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <Textarea
+          rows={4}
+          placeholder="Sem observações..."
+          value={observacoes}
+          onChange={(e) => setObservacoes(e.target.value)}
+        />
+        <Button
+          onClick={() => obsMutation.mutate()}
+          disabled={obsMutation.isPending}
+          size="sm"
+        >
+          {obsMutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+          Guardar Observações
+        </Button>
+      </CardContent>
+    </Card>
   );
 }
 
