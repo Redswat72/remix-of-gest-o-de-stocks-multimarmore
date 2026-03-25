@@ -76,6 +76,7 @@ export type Database = {
           id_mm: string
           largura: number | null
           linha: string | null
+          observacoes: string | null
           parque: string
           preco_unitario: number | null
           quantidade_kg: number | null
@@ -96,6 +97,7 @@ export type Database = {
           id_mm: string
           largura?: number | null
           linha?: string | null
+          observacoes?: string | null
           parque: string
           preco_unitario?: number | null
           quantidade_kg?: number | null
@@ -116,6 +118,7 @@ export type Database = {
           id_mm?: string
           largura?: number | null
           linha?: string | null
+          observacoes?: string | null
           parque?: string
           preco_unitario?: number | null
           quantidade_kg?: number | null
@@ -137,6 +140,7 @@ export type Database = {
           largura: number | null
           linha: string | null
           num_chapas: number | null
+          observacoes: string | null
           parga1_altura: number | null
           parga1_comprimento: number | null
           parga1_foto_primeira: string | null
@@ -178,6 +182,7 @@ export type Database = {
           largura?: number | null
           linha?: string | null
           num_chapas?: number | null
+          observacoes?: string | null
           parga1_altura?: number | null
           parga1_comprimento?: number | null
           parga1_foto_primeira?: string | null
@@ -219,6 +224,7 @@ export type Database = {
           largura?: number | null
           linha?: string | null
           num_chapas?: number | null
+          observacoes?: string | null
           parga1_altura?: number | null
           parga1_comprimento?: number | null
           parga1_foto_primeira?: string | null
