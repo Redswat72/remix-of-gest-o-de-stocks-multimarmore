@@ -48,9 +48,10 @@ export default function InventarioFicha() {
   const { forma, id } = useParams<{ forma: string; id: string }>();
   const navigate = useNavigate();
   const supabase = useSupabaseEmpresa();
-  const { empresaConfig } = useEmpresa();
+  const { empresaConfig, empresa } = useEmpresa();
   const { isSuperadmin, isAdmin } = useAuth();
   const canEdit = isSuperadmin || isAdmin;
+  const queryClient = useQueryClient();
 
   const tableName = forma === 'bloco' ? 'blocos' : forma === 'chapa' ? 'chapas' : 'ladrilho';
 
