@@ -18,6 +18,7 @@ export interface Bloco {
   foto2_url: string | null;
   foto3_url: string | null;
   foto4_url: string | null;
+  observacoes: string | null;
   created_at: string;
 }
 
