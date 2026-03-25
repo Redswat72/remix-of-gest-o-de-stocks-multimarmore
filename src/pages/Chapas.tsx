@@ -13,6 +13,7 @@ import { ExportExcelButton } from "@/components/ExportExcelButton";
 import { exportChapas } from "@/utils/exportExcel";
 import { Search } from "lucide-react";
 import { PARQUES_OPTIONS } from "@/lib/parques";
+import InventarioDetailModal from "@/components/inventario/InventarioDetailModal";
 
 export default function Chapas() {
   const [parqueFiltro, setParqueFiltro] = useState("__all__");
@@ -20,6 +21,7 @@ export default function Chapas() {
   const supabase = useSupabaseEmpresa();
   const { empresaConfig } = useEmpresa();
   const { podeVerValores } = usePermissoes();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const { data: chapas, isLoading } = useChapas(parqueFiltro === "__all__" ? undefined : parqueFiltro);
 
@@ -107,7 +109,7 @@ export default function Chapas() {
           </TableHeader>
           <TableBody>
             {chapasFiltradas?.map((chapa) => (
-              <TableRow key={chapa.id}>
+              <TableRow key={chapa.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedId(chapa.id)}>
                 <TableCell className="font-medium">{chapa.id_mm}</TableCell>
                 <TableCell>{chapa.bundle_id || "—"}</TableCell>
                 <TableCell><Badge variant="outline">{chapa.parque}</Badge></TableCell>
@@ -141,6 +143,15 @@ export default function Chapas() {
           </div>
         </CardContent>
       </Card>
+
+      {selectedId && (
+        <InventarioDetailModal
+          open={!!selectedId}
+          onOpenChange={(v) => { if (!v) setSelectedId(null); }}
+          forma="chapa"
+          itemId={selectedId}
+        />
+      )}
     </div>
   );
 }
