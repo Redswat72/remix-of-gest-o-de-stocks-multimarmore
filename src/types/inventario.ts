@@ -62,6 +62,7 @@ export interface Chapa {
   parga4_foto_primeira: string | null;
   parga4_foto_ultima: string | null;
   acabamento: string | null;
+  observacoes: string | null;
   created_at: string;
 }
 
