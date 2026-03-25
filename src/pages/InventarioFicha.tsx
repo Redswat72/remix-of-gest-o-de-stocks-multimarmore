@@ -15,10 +15,6 @@ import { Textarea } from '@/components/ui/textarea';
 import { FotoLightbox } from '@/components/produtos/FotoLightbox';
 import InventarioEditModal from '@/components/inventario/InventarioEditModal';
 import { toast } from 'sonner';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { FotoLightbox } from '@/components/produtos/FotoLightbox';
-import InventarioEditModal from '@/components/inventario/InventarioEditModal';
 import type { Bloco, Chapa, Ladrilho } from '@/types/inventario';
 import type { FormaInventario } from '@/hooks/useStockUnificado';
 
