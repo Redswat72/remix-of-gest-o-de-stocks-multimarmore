@@ -13,6 +13,7 @@ import { ExportExcelButton } from "@/components/ExportExcelButton";
 import { exportLadrilhos } from "@/utils/exportExcel";
 import { Search } from "lucide-react";
 import { PARQUES_OPTIONS } from "@/lib/parques";
+import InventarioDetailModal from "@/components/inventario/InventarioDetailModal";
 
 export default function Ladrilho() {
   const [parqueFiltro, setParqueFiltro] = useState("__all__");
@@ -21,6 +22,7 @@ export default function Ladrilho() {
   const supabase = useSupabaseEmpresa();
   const { empresaConfig } = useEmpresa();
   const { podeVerValores } = usePermissoes();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const ladrilhosFiltrados = ladrilhos?.filter((ladrilho) => {
     const searchLower = busca.toLowerCase();
@@ -109,7 +111,7 @@ export default function Ladrilho() {
           </TableHeader>
           <TableBody>
             {ladrilhosFiltrados?.map((ladrilho) => (
-              <TableRow key={ladrilho.id}>
+              <TableRow key={ladrilho.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedId(ladrilho.id)}>
                 <TableCell className="font-medium">{ladrilho.id_mm || "—"}</TableCell>
                 <TableCell>{ladrilho.tipo || "—"}</TableCell>
                 <TableCell>{ladrilho.variedade || "—"}</TableCell>
@@ -148,6 +150,15 @@ export default function Ladrilho() {
           </div>
         </CardContent>
       </Card>
+
+      {selectedId && (
+        <InventarioDetailModal
+          open={!!selectedId}
+          onOpenChange={(v) => { if (!v) setSelectedId(null); }}
+          forma="ladrilho"
+          itemId={selectedId}
+        />
+      )}
     </div>
   );
 }

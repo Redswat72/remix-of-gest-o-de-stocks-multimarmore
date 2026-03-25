@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Loader2, AlertCircle, QrCode, ZoomIn } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
 import { useEmpresa } from '@/context/EmpresaContext';
 import { useAuth } from '@/hooks/useAuth';
@@ -10,8 +10,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { FotoLightbox } from '@/components/produtos/FotoLightbox';
 import InventarioEditModal from '@/components/inventario/InventarioEditModal';
+import { toast } from 'sonner';
 import type { Bloco, Chapa, Ladrilho } from '@/types/inventario';
 import type { FormaInventario } from '@/hooks/useStockUnificado';
 
@@ -41,9 +44,10 @@ export default function InventarioFicha() {
   const { forma, id } = useParams<{ forma: string; id: string }>();
   const navigate = useNavigate();
   const supabase = useSupabaseEmpresa();
-  const { empresaConfig } = useEmpresa();
+  const { empresaConfig, empresa } = useEmpresa();
   const { isSuperadmin, isAdmin } = useAuth();
   const canEdit = isSuperadmin || isAdmin;
+  const queryClient = useQueryClient();
 
   const tableName = forma === 'bloco' ? 'blocos' : forma === 'chapa' ? 'chapas' : 'ladrilho';
 
@@ -161,7 +165,62 @@ export default function InventarioFicha() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Observações */}
+      <ObservacoesSection forma={forma!} itemId={id!} data={data} empresa={empresa} supabase={supabase} queryClient={queryClient} />
     </div>
+  );
+}
+
+function ObservacoesSection({ forma, itemId, data, empresa, supabase, queryClient }: {
+  forma: string; itemId: string; data: any; empresa: string | null; supabase: any; queryClient: any;
+}) {
+  const obsField = forma === 'ladrilho' ? 'nota' : 'observacoes';
+  const initialObs = data?.[obsField] || '';
+  const [observacoes, setObservacoes] = useState<string>(initialObs);
+
+  const tableName = forma === 'bloco' ? 'blocos' : forma === 'chapa' ? 'chapas' : 'ladrilho';
+  const updateTable = forma === 'bloco' && empresa === 'magratex' ? 'inventario' : tableName;
+
+  const obsMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase
+        .from(updateTable)
+        .update({ [obsField]: observacoes || null })
+        .eq('id', itemId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success('Observações guardadas com sucesso');
+      queryClient.invalidateQueries({ queryKey: ['inventario-ficha', forma, itemId] });
+    },
+    onError: (err: Error) => {
+      toast.error('Erro ao guardar observações: ' + err.message);
+    },
+  });
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">Observações</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <Textarea
+          rows={4}
+          placeholder="Sem observações..."
+          value={observacoes}
+          onChange={(e) => setObservacoes(e.target.value)}
+        />
+        <Button
+          onClick={() => obsMutation.mutate()}
+          disabled={obsMutation.isPending}
+          size="sm"
+        >
+          {obsMutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+          Guardar Observações
+        </Button>
+      </CardContent>
+    </Card>
   );
 }
 

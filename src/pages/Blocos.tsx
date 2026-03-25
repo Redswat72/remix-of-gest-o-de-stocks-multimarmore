@@ -13,6 +13,7 @@ import { ExportExcelButton } from "@/components/ExportExcelButton";
 import { exportBlocos } from "@/utils/exportExcel";
 import { Search } from "lucide-react";
 import { PARQUES_OPTIONS } from "@/lib/parques";
+import InventarioDetailModal from "@/components/inventario/InventarioDetailModal";
 
 export default function Blocos() {
   const [parqueFiltro, setParqueFiltro] = useState("__all__");
@@ -20,6 +21,7 @@ export default function Blocos() {
   const supabase = useSupabaseEmpresa();
   const { empresaConfig } = useEmpresa();
   const { podeVerValores } = usePermissoes();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const { data: blocos, isLoading } = useBlocos(parqueFiltro === "__all__" ? undefined : parqueFiltro);
 
@@ -103,7 +105,7 @@ export default function Blocos() {
           </TableHeader>
           <TableBody>
             {blocosFiltrados?.map((bloco) => (
-              <TableRow key={bloco.id}>
+              <TableRow key={bloco.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedId(bloco.id)}>
                 <TableCell className="font-medium">{bloco.id_mm}</TableCell>
                 <TableCell><Badge variant="outline">{bloco.parque}</Badge></TableCell>
                 <TableCell>{bloco.variedade || "—"}</TableCell>
@@ -135,6 +137,15 @@ export default function Blocos() {
           </div>
         </CardContent>
       </Card>
+
+      {selectedId && (
+        <InventarioDetailModal
+          open={!!selectedId}
+          onOpenChange={(v) => { if (!v) setSelectedId(null); }}
+          forma="bloco"
+          itemId={selectedId}
+        />
+      )}
     </div>
   );
 }

@@ -8,12 +8,14 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useBandas } from "@/hooks/useBandas";
 import { usePermissoes } from "@/hooks/usePermissoes";
 import { Search } from "lucide-react";
+import InventarioDetailModal from "@/components/inventario/InventarioDetailModal";
 
 export default function Bandas() {
   const [parqueFiltro, setParqueFiltro] = useState<string>("");
   const [busca, setBusca] = useState("");
   const { data: bandas, isLoading } = useBandas(parqueFiltro || undefined);
   const { podeVerValores } = usePermissoes();
+  const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const bandasFiltradas = bandas?.filter((banda) => {
     const searchLower = busca.toLowerCase();
@@ -87,7 +89,7 @@ export default function Bandas() {
           </TableHeader>
           <TableBody>
             {bandasFiltradas?.map((banda) => (
-              <TableRow key={banda.id}>
+              <TableRow key={banda.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedId(banda.id)}>
                 <TableCell className="font-medium">{banda.idmm}</TableCell>
                 <TableCell><Badge variant="outline">{banda.parque}</Badge></TableCell>
                 <TableCell>{banda.variedade || "—"}</TableCell>
@@ -119,6 +121,15 @@ export default function Bandas() {
           )}
         </div>
       </Card>
+
+      {selectedId && (
+        <InventarioDetailModal
+          open={!!selectedId}
+          onOpenChange={(v) => { if (!v) setSelectedId(null); }}
+          forma="banda"
+          itemId={selectedId}
+        />
+      )}
     </div>
   );
 }

@@ -18,6 +18,7 @@ export interface Bloco {
   foto2_url: string | null;
   foto3_url: string | null;
   foto4_url: string | null;
+  observacoes: string | null;
   created_at: string;
 }
 
@@ -61,6 +62,7 @@ export interface Chapa {
   parga4_foto_primeira: string | null;
   parga4_foto_ultima: string | null;
   acabamento: string | null;
+  observacoes: string | null;
   created_at: string;
 }
 
