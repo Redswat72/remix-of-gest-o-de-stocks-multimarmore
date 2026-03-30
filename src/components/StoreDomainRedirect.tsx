@@ -1,9 +1,8 @@
-import { useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, Navigate } from 'react-router-dom';
 
 /**
  * Maps store domains to their respective company slugs.
- * When accessed via a store domain, redirects to /loja/:slug.
+ * When accessed via a store domain, forces /loja/:slug routes only.
  */
 const STORE_DOMAINS: Record<string, string> = {
   'multimarmore.store': 'multimarmore',
@@ -19,14 +18,13 @@ export function getStoreDomainSlug(): string | null {
 
 export function StoreDomainRedirect({ children }: { children: React.ReactNode }) {
   const location = useLocation();
-  const navigate = useNavigate();
   const slug = getStoreDomainSlug();
 
-  useEffect(() => {
-    if (slug && !location.pathname.startsWith(`/loja/`)) {
-      navigate(`/loja/${slug}`, { replace: true });
-    }
-  }, [slug, location.pathname, navigate]);
+  // If we're on a store domain and NOT already on the correct /loja/ path,
+  // redirect immediately during render (not in useEffect) to prevent flicker
+  if (slug && !location.pathname.startsWith(`/loja/${slug}`)) {
+    return <Navigate to={`/loja/${slug}`} replace />;
+  }
 
   return <>{children}</>;
 }
