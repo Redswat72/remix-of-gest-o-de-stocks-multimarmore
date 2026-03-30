@@ -1,4 +1,5 @@
-import { Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 /**
  * Maps store domains to their respective company slugs.
@@ -17,14 +18,15 @@ export function getStoreDomainSlug(): string | null {
 }
 
 export function StoreDomainRedirect({ children }: { children: React.ReactNode }) {
+  const location = useLocation();
+  const navigate = useNavigate();
   const slug = getStoreDomainSlug();
-  
-  if (slug) {
-    // If we're on a store domain but NOT already on /loja/*, redirect
-    if (!window.location.pathname.startsWith('/loja/')) {
-      return <Navigate to={`/loja/${slug}`} replace />;
+
+  useEffect(() => {
+    if (slug && !location.pathname.startsWith(`/loja/`)) {
+      navigate(`/loja/${slug}`, { replace: true });
     }
-  }
-  
+  }, [slug, location.pathname, navigate]);
+
   return <>{children}</>;
 }
