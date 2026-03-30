@@ -35,8 +35,11 @@ export function StoreLightbox({ images, currentIndex, isOpen, onClose, onIndexCh
 
   const resetZoom = useCallback(() => { setZoom(1); setPos({ x: 0, y: 0 }); }, []);
 
-  const imageContainerRef = useCallback((node: HTMLDivElement | null) => {
-    if (!node) return;
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const node = containerRef.current;
+    if (!node || !isOpen) return;
     const handler = (e: WheelEvent) => {
       e.preventDefault();
       setZoom(prev => {
@@ -47,7 +50,7 @@ export function StoreLightbox({ images, currentIndex, isOpen, onClose, onIndexCh
     };
     node.addEventListener('wheel', handler, { passive: false });
     return () => node.removeEventListener('wheel', handler);
-  }, []);
+  }, [isOpen]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (zoom > 1) { setDragging(true); setDragStart({ x: e.clientX - pos.x, y: e.clientY - pos.y }); }
