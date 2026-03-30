@@ -57,6 +57,7 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
+              <StoreDomainRedirect>
               <Routes>
                 {/* Entrada — selecionar empresa */}
                 <Route path="/selecionar-empresa" element={<SelecionarEmpresa />} />
