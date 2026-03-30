@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X, ChevronLeft, ChevronRight, ZoomIn, ZoomOut, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -35,14 +35,22 @@ export function StoreLightbox({ images, currentIndex, isOpen, onClose, onIndexCh
 
   const resetZoom = useCallback(() => { setZoom(1); setPos({ x: 0, y: 0 }); }, []);
 
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    e.preventDefault();
-    setZoom(prev => {
-      const next = Math.max(1, Math.min(5, prev + (e.deltaY > 0 ? -0.5 : 0.5)));
-      if (next === 1) setPos({ x: 0, y: 0 });
-      return next;
-    });
-  }, []);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const node = containerRef.current;
+    if (!node || !isOpen) return;
+    const handler = (e: WheelEvent) => {
+      e.preventDefault();
+      setZoom(prev => {
+        const next = Math.max(1, Math.min(5, prev + (e.deltaY > 0 ? -0.5 : 0.5)));
+        if (next === 1) setPos({ x: 0, y: 0 });
+        return next;
+      });
+    };
+    node.addEventListener('wheel', handler, { passive: false });
+    return () => node.removeEventListener('wheel', handler);
+  }, [isOpen]);
 
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
     if (zoom > 1) { setDragging(true); setDragStart({ x: e.clientX - pos.x, y: e.clientY - pos.y }); }
@@ -97,8 +105,8 @@ export function StoreLightbox({ images, currentIndex, isOpen, onClose, onIndexCh
       </div>
 
       {/* Image */}
-      <div className="flex-1 flex items-center justify-center relative overflow-hidden"
-        onWheel={handleWheel} onMouseDown={handleMouseDown} onMouseMove={handleMouseMove}
+      <div ref={containerRef} className="flex-1 flex items-center justify-center relative overflow-hidden"
+        onMouseDown={handleMouseDown} onMouseMove={handleMouseMove}
         onMouseUp={() => setDragging(false)} onMouseLeave={() => setDragging(false)}
         onClick={e => e.stopPropagation()}
         style={{ cursor: zoom > 1 ? (dragging ? 'grabbing' : 'grab') : 'zoom-in' }}
