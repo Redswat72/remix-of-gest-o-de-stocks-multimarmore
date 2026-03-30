@@ -102,8 +102,8 @@ export function StoreLightbox({ images, currentIndex, isOpen, onClose, onIndexCh
       </div>
 
       {/* Image */}
-      <div className="flex-1 flex items-center justify-center relative overflow-hidden"
-        onWheel={handleWheel} onMouseDown={handleMouseDown} onMouseMove={handleMouseMove}
+      <div ref={imageContainerRef} className="flex-1 flex items-center justify-center relative overflow-hidden"
+        onMouseDown={handleMouseDown} onMouseMove={handleMouseMove}
         onMouseUp={() => setDragging(false)} onMouseLeave={() => setDragging(false)}
         onClick={e => e.stopPropagation()}
         style={{ cursor: zoom > 1 ? (dragging ? 'grabbing' : 'grab') : 'zoom-in' }}
