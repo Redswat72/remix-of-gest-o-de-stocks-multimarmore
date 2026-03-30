@@ -1,0 +1,122 @@
+{
+  "header": {
+    "catalog": "แคตตาล็อก",
+    "contact": "ติดต่อ"
+  },
+  "hero": {
+    "viewCatalog": "ดูแคตตาล็อก"
+  },
+  "store": {
+    "multimarmore": {
+      "tagline": "Crafting Iconic Elegance",
+      "heroTitle": "หินอ่อน หินแกรนิต และหินปูนชั้นเยี่ยม",
+      "heroSubtitle": "ค้นพบคอลเลกชันหินธรรมชาติระดับพรีเมียมของเรา คุณภาพได้รับการรับรองด้วยประสบการณ์กว่า 25 ปี",
+      "stat1": "สินค้าพรีเมียม",
+      "stat2": "ปีประสบการณ์",
+      "stat3": "ประเทศที่ให้บริการ"
+    },
+    "magratex": {
+      "tagline": "Natural Stone Excellence",
+      "heroTitle": "หินธรรมชาติคุณภาพเยี่ยม",
+      "heroSubtitle": "บล็อก แผ่น และกระเบื้องจากหินอ่อน หินแกรนิต และหินปูน จัดส่งทั่วโลกพร้อมรับประกันคุณภาพ",
+      "stat1": "สินค้าในสต็อก",
+      "stat2": "ปีประสบการณ์",
+      "stat3": "สายพันธุ์"
+    }
+  },
+  "catalog": {
+    "title": "แคตตาล็อก",
+    "subtitle": "สำรวจคอลเลกชันหินธรรมชาติพรีเมียมของเรา",
+    "productsFound": "พบ {{count}} สินค้า",
+    "filters": "ตัวกรอง",
+    "hiddenProducts": "{{count}} สินค้าไม่มีรูปภาพถูกซ่อน",
+    "showAll": "แสดงทั้งหมด",
+    "hideNoPhoto": "ซ่อนไม่มีรูปภาพ"
+  },
+  "filters": {
+    "search": "ค้นหา",
+    "searchPlaceholder": "ชื่อหรือรหัส...",
+    "type": "ประเภท",
+    "stone": "หิน",
+    "allStones": "หินทั้งหมด",
+    "length": "ความยาว",
+    "width": "ความกว้าง",
+    "height": "ความสูง",
+    "clearFilters": "ล้างตัวกรอง"
+  },
+  "productTypes": {
+    "bloco": "บล็อก",
+    "chapa": "แผ่น",
+    "ladrilho": "กระเบื้อง",
+    "banda": "แถบ"
+  },
+  "product": {
+    "noPhoto": "ไม่มีรูปภาพ",
+    "edit": "แก้ไข",
+    "slabs": "แผ่น",
+    "requestQuote": "ขอใบเสนอราคา",
+    "quote": "ใบเสนอราคา",
+    "inCart": "ในตะกร้า",
+    "addToCart": "เพิ่มลงตะกร้า",
+    "addedToCart": "เพิ่ม {{name}} ลงตะกร้าแล้ว",
+    "removedFromCart": "ลบ {{name}} ออกจากตะกร้าแล้ว",
+    "viewHD": "ดูแบบ HD",
+    "quantity": "จำนวน",
+    "dimensions": "ขนาด",
+    "numSlabs": "จำนวนแผ่น",
+    "bundle": "บันเดิล",
+    "blockOrigin": "บล็อกต้นทาง",
+    "volume": "ปริมาตร",
+    "numPieces": "จำนวนชิ้น",
+    "weight": "น้ำหนัก",
+    "sections": "ส่วน (Pargas)",
+    "qty": "จำนวน",
+    "observations": "หมายเหตุ"
+  },
+  "grid": {
+    "noProducts": "ไม่พบสินค้า",
+    "noProductsHint": "ลองปรับตัวกรองเพื่อค้นหาสิ่งที่คุณต้องการ"
+  },
+  "cart": {
+    "title": "ตะกร้าสินค้า",
+    "empty": "ตะกร้าของคุณว่างเปล่า",
+    "emptyHint": "เพิ่มสินค้าเพื่อขอใบเสนอราคา",
+    "requestQuote": "ขอใบเสนอราคา",
+    "clear": "ล้างตะกร้า"
+  },
+  "quoteModal": {
+    "title": "ขอใบเสนอราคา",
+    "description": "กรอกข้อมูลของคุณแล้วเราจะติดต่อกลับ",
+    "selectedProduct": "สินค้าที่เลือก",
+    "selectedProducts": "เลือก {{count}} สินค้า",
+    "name": "ชื่อ",
+    "namePlaceholder": "ชื่อของคุณ",
+    "email": "อีเมล",
+    "emailPlaceholder": "email@example.com",
+    "phone": "โทรศัพท์",
+    "phonePlaceholder": "+66 81 234 5678",
+    "message": "ข้อความ",
+    "messagePlaceholder": "อธิบายความต้องการ จำนวน การตกแต่ง ระยะเวลา...",
+    "submit": "ส่งคำขอใบเสนอราคา",
+    "sending": "กำลังส่ง...",
+    "or": "หรือ",
+    "whatsapp": "ติดต่อผ่าน WhatsApp",
+    "successTitle": "ส่งคำขอแล้ว!",
+    "successMessage": "คำขอใบเสนอราคาของคุณได้รับการบันทึกแล้ว ทีมงานจะติดต่อคุณในเร็วๆ นี้",
+    "close": "ปิด",
+    "errorName": "กรุณาใส่ชื่อของคุณ",
+    "errorEmail": "กรุณาใส่อีเมลที่ถูกต้อง",
+    "errorNoProducts": "ยังไม่ได้เลือกสินค้า",
+    "successToast": "ส่งคำขอใบเสนอราคาสำเร็จ!",
+    "errorToast": "เกิดข้อผิดพลาดในการส่ง กรุณาลองอีกครั้งหรือใช้ WhatsApp"
+  },
+  "footer": {
+    "certifiedQuality": "คุณภาพรับรอง",
+    "premiumExcellence": "ความเป็นเลิศพรีเมียม",
+    "globalDelivery": "จัดส่งทั่วโลก",
+    "dedicatedSupport": "สนับสนุนเฉพาะทาง",
+    "contacts": "ติดต่อ",
+    "address": "ที่อยู่",
+    "rights": "หินอ่อน หินแกรนิต และหินปูน สงวนลิขสิทธิ์"
+  }
+}

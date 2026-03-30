@@ -1,0 +1,122 @@
+{
+  "header": {
+    "catalog": "Catálogo",
+    "contact": "Contacto"
+  },
+  "hero": {
+    "viewCatalog": "Ver Catálogo"
+  },
+  "store": {
+    "multimarmore": {
+      "tagline": "Crafting Iconic Elegance",
+      "heroTitle": "Mármoles, Granitos y Calizas de Excelencia",
+      "heroSubtitle": "Descubra nuestra colección premium de piedra natural. Calidad certificada con más de 25 años de experiencia.",
+      "stat1": "Productos Premium",
+      "stat2": "Años de Experiencia",
+      "stat3": "Países Atendidos"
+    },
+    "magratex": {
+      "tagline": "Natural Stone Excellence",
+      "heroTitle": "Piedra Natural de Calidad Superior",
+      "heroSubtitle": "Bloques, losas y baldosas en mármol, granito y caliza. Entrega global con garantía de calidad.",
+      "stat1": "Artículos en Stock",
+      "stat2": "Años de Experiencia",
+      "stat3": "Variedades"
+    }
+  },
+  "catalog": {
+    "title": "Catálogo",
+    "subtitle": "Explore nuestra colección de piedra natural premium.",
+    "productsFound": "{{count}} producto(s) encontrado(s)",
+    "filters": "Filtros",
+    "hiddenProducts": "{{count}} producto(s) sin foto oculto(s)",
+    "showAll": "Mostrar todos",
+    "hideNoPhoto": "Ocultar sin foto"
+  },
+  "filters": {
+    "search": "Buscar",
+    "searchPlaceholder": "Nombre o ID...",
+    "type": "Tipo",
+    "stone": "Piedra",
+    "allStones": "Todas las piedras",
+    "length": "Longitud",
+    "width": "Ancho",
+    "height": "Altura",
+    "clearFilters": "Limpiar filtros"
+  },
+  "productTypes": {
+    "bloco": "Bloques",
+    "chapa": "Losas",
+    "ladrilho": "Baldosas",
+    "banda": "Bandas"
+  },
+  "product": {
+    "noPhoto": "Sin foto",
+    "edit": "Editar",
+    "slabs": "losas",
+    "requestQuote": "Solicitar Presupuesto",
+    "quote": "Presupuesto",
+    "inCart": "En el Carrito",
+    "addToCart": "Añadir al Carrito",
+    "addedToCart": "{{name}} añadido al carrito",
+    "removedFromCart": "{{name}} eliminado del carrito",
+    "viewHD": "Ver en HD",
+    "quantity": "Cantidad",
+    "dimensions": "Dimensiones",
+    "numSlabs": "Nº Losas",
+    "bundle": "Bundle",
+    "blockOrigin": "Bloque de Origen",
+    "volume": "Volumen",
+    "numPieces": "Nº Piezas",
+    "weight": "Peso",
+    "sections": "Secciones (Pargas)",
+    "qty": "Cant.",
+    "observations": "Observaciones"
+  },
+  "grid": {
+    "noProducts": "No se encontraron productos",
+    "noProductsHint": "Intente ajustar los filtros para encontrar lo que busca."
+  },
+  "cart": {
+    "title": "Carrito",
+    "empty": "Su carrito está vacío",
+    "emptyHint": "Añada productos para solicitar un presupuesto",
+    "requestQuote": "Solicitar Presupuesto",
+    "clear": "Vaciar carrito"
+  },
+  "quoteModal": {
+    "title": "Solicitar Presupuesto",
+    "description": "Complete sus datos y nos pondremos en contacto.",
+    "selectedProduct": "Producto seleccionado",
+    "selectedProducts": "{{count}} productos seleccionados",
+    "name": "Nombre",
+    "namePlaceholder": "Su nombre",
+    "email": "Email",
+    "emailPlaceholder": "email@ejemplo.com",
+    "phone": "Teléfono",
+    "phonePlaceholder": "+34 612 345 678",
+    "message": "Mensaje",
+    "messagePlaceholder": "Describa lo que necesita, cantidades, acabado, plazo...",
+    "submit": "Enviar Solicitud de Presupuesto",
+    "sending": "Enviando...",
+    "or": "o",
+    "whatsapp": "Contactar por WhatsApp",
+    "successTitle": "¡Solicitud Enviada!",
+    "successMessage": "Su solicitud de presupuesto ha sido registrada. Nuestro equipo se pondrá en contacto pronto.",
+    "close": "Cerrar",
+    "errorName": "Por favor introduzca su nombre",
+    "errorEmail": "Por favor introduzca un email válido",
+    "errorNoProducts": "Ningún producto seleccionado",
+    "successToast": "¡Solicitud de presupuesto enviada con éxito!",
+    "errorToast": "Error al enviar. Inténtelo de nuevo o use WhatsApp."
+  },
+  "footer": {
+    "certifiedQuality": "Calidad Certificada",
+    "premiumExcellence": "Excelencia Premium",
+    "globalDelivery": "Entrega Global",
+    "dedicatedSupport": "Soporte Dedicado",
+    "contacts": "Contactos",
+    "address": "Dirección",
+    "rights": "Mármoles, Granitos y Calizas. Todos los derechos reservados."
+  }
+}

@@ -1,0 +1,122 @@
+{
+  "header": {
+    "catalog": "Danh Mục",
+    "contact": "Liên Hệ"
+  },
+  "hero": {
+    "viewCatalog": "Xem Danh Mục"
+  },
+  "store": {
+    "multimarmore": {
+      "tagline": "Crafting Iconic Elegance",
+      "heroTitle": "Đá Cẩm Thạch, Đá Granite & Đá Vôi Cao Cấp",
+      "heroSubtitle": "Khám phá bộ sưu tập đá tự nhiên cao cấp của chúng tôi. Chất lượng được chứng nhận với hơn 25 năm kinh nghiệm.",
+      "stat1": "Sản Phẩm Cao Cấp",
+      "stat2": "Năm Kinh Nghiệm",
+      "stat3": "Quốc Gia Phục Vụ"
+    },
+    "magratex": {
+      "tagline": "Natural Stone Excellence",
+      "heroTitle": "Đá Tự Nhiên Chất Lượng Vượt Trội",
+      "heroSubtitle": "Khối, tấm và gạch bằng đá cẩm thạch, đá granite và đá vôi. Giao hàng toàn cầu với đảm bảo chất lượng.",
+      "stat1": "Sản Phẩm Tồn Kho",
+      "stat2": "Năm Kinh Nghiệm",
+      "stat3": "Chủng Loại"
+    }
+  },
+  "catalog": {
+    "title": "Danh Mục",
+    "subtitle": "Khám phá bộ sưu tập đá tự nhiên cao cấp của chúng tôi.",
+    "productsFound": "Tìm thấy {{count}} sản phẩm",
+    "filters": "Bộ Lọc",
+    "hiddenProducts": "{{count}} sản phẩm không có ảnh đã ẩn",
+    "showAll": "Hiện tất cả",
+    "hideNoPhoto": "Ẩn không có ảnh"
+  },
+  "filters": {
+    "search": "Tìm Kiếm",
+    "searchPlaceholder": "Tên hoặc ID...",
+    "type": "Loại",
+    "stone": "Đá",
+    "allStones": "Tất cả các loại đá",
+    "length": "Chiều Dài",
+    "width": "Chiều Rộng",
+    "height": "Chiều Cao",
+    "clearFilters": "Xóa bộ lọc"
+  },
+  "productTypes": {
+    "bloco": "Khối",
+    "chapa": "Tấm",
+    "ladrilho": "Gạch",
+    "banda": "Dải"
+  },
+  "product": {
+    "noPhoto": "Không có ảnh",
+    "edit": "Chỉnh sửa",
+    "slabs": "tấm",
+    "requestQuote": "Yêu Cầu Báo Giá",
+    "quote": "Báo Giá",
+    "inCart": "Trong Giỏ Hàng",
+    "addToCart": "Thêm Vào Giỏ",
+    "addedToCart": "Đã thêm {{name}} vào giỏ hàng",
+    "removedFromCart": "Đã xóa {{name}} khỏi giỏ hàng",
+    "viewHD": "Xem HD",
+    "quantity": "Số Lượng",
+    "dimensions": "Kích Thước",
+    "numSlabs": "Số Tấm",
+    "bundle": "Bundle",
+    "blockOrigin": "Khối Gốc",
+    "volume": "Thể Tích",
+    "numPieces": "Số Mảnh",
+    "weight": "Trọng Lượng",
+    "sections": "Phần (Pargas)",
+    "qty": "SL",
+    "observations": "Ghi Chú"
+  },
+  "grid": {
+    "noProducts": "Không tìm thấy sản phẩm",
+    "noProductsHint": "Hãy thử điều chỉnh bộ lọc để tìm thấy sản phẩm bạn cần."
+  },
+  "cart": {
+    "title": "Giỏ Hàng",
+    "empty": "Giỏ hàng của bạn trống",
+    "emptyHint": "Thêm sản phẩm để yêu cầu báo giá",
+    "requestQuote": "Yêu Cầu Báo Giá",
+    "clear": "Xóa giỏ hàng"
+  },
+  "quoteModal": {
+    "title": "Yêu Cầu Báo Giá",
+    "description": "Điền thông tin của bạn và chúng tôi sẽ liên hệ.",
+    "selectedProduct": "Sản phẩm đã chọn",
+    "selectedProducts": "{{count}} sản phẩm đã chọn",
+    "name": "Họ Tên",
+    "namePlaceholder": "Tên của bạn",
+    "email": "Email",
+    "emailPlaceholder": "email@vidu.com",
+    "phone": "Điện Thoại",
+    "phonePlaceholder": "+84 912 345 678",
+    "message": "Tin Nhắn",
+    "messagePlaceholder": "Mô tả nhu cầu, số lượng, bề mặt, thời gian...",
+    "submit": "Gửi Yêu Cầu Báo Giá",
+    "sending": "Đang gửi...",
+    "or": "hoặc",
+    "whatsapp": "Liên hệ qua WhatsApp",
+    "successTitle": "Đã Gửi Yêu Cầu!",
+    "successMessage": "Yêu cầu báo giá của bạn đã được ghi nhận. Đội ngũ của chúng tôi sẽ liên hệ sớm.",
+    "close": "Đóng",
+    "errorName": "Vui lòng nhập tên của bạn",
+    "errorEmail": "Vui lòng nhập email hợp lệ",
+    "errorNoProducts": "Chưa chọn sản phẩm nào",
+    "successToast": "Yêu cầu báo giá đã gửi thành công!",
+    "errorToast": "Lỗi khi gửi. Vui lòng thử lại hoặc sử dụng WhatsApp."
+  },
+  "footer": {
+    "certifiedQuality": "Chất Lượng Chứng Nhận",
+    "premiumExcellence": "Xuất Sắc Cao Cấp",
+    "globalDelivery": "Giao Hàng Toàn Cầu",
+    "dedicatedSupport": "Hỗ Trợ Tận Tâm",
+    "contacts": "Liên Hệ",
+    "address": "Địa Chỉ",
+    "rights": "Đá Cẩm Thạch, Đá Granite & Đá Vôi. Bảo lưu mọi quyền."
+  }
+}

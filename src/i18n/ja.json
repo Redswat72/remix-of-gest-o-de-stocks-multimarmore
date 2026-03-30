@@ -1,0 +1,122 @@
+{
+  "header": {
+    "catalog": "カタログ",
+    "contact": "お問い合わせ"
+  },
+  "hero": {
+    "viewCatalog": "カタログを見る"
+  },
+  "store": {
+    "multimarmore": {
+      "tagline": "Crafting Iconic Elegance",
+      "heroTitle": "最高級の大理石・花崗岩・石灰岩",
+      "heroSubtitle": "プレミアム天然石コレクションをご覧ください。25年以上の経験による認定品質。",
+      "stat1": "プレミアム製品",
+      "stat2": "年の経験",
+      "stat3": "対応国数"
+    },
+    "magratex": {
+      "tagline": "Natural Stone Excellence",
+      "heroTitle": "最高品質の天然石",
+      "heroSubtitle": "大理石、花崗岩、石灰岩のブロック、スラブ、タイル。品質保証付きグローバル配送。",
+      "stat1": "在庫商品",
+      "stat2": "年の経験",
+      "stat3": "品種"
+    }
+  },
+  "catalog": {
+    "title": "カタログ",
+    "subtitle": "プレミアム天然石コレクションをご覧ください。",
+    "productsFound": "{{count}}件の製品が見つかりました",
+    "filters": "フィルター",
+    "hiddenProducts": "写真なしの{{count}}件の製品が非表示",
+    "showAll": "すべて表示",
+    "hideNoPhoto": "写真なしを非表示"
+  },
+  "filters": {
+    "search": "検索",
+    "searchPlaceholder": "名前またはID...",
+    "type": "タイプ",
+    "stone": "石材",
+    "allStones": "すべての石材",
+    "length": "長さ",
+    "width": "幅",
+    "height": "高さ",
+    "clearFilters": "フィルターをクリア"
+  },
+  "productTypes": {
+    "bloco": "ブロック",
+    "chapa": "スラブ",
+    "ladrilho": "タイル",
+    "banda": "ストリップ"
+  },
+  "product": {
+    "noPhoto": "写真なし",
+    "edit": "編集",
+    "slabs": "スラブ",
+    "requestQuote": "見積もりを依頼",
+    "quote": "見積もり",
+    "inCart": "カート内",
+    "addToCart": "カートに追加",
+    "addedToCart": "{{name}}をカートに追加しました",
+    "removedFromCart": "{{name}}をカートから削除しました",
+    "viewHD": "HDで見る",
+    "quantity": "数量",
+    "dimensions": "寸法",
+    "numSlabs": "スラブ数",
+    "bundle": "バンドル",
+    "blockOrigin": "原石ブロック",
+    "volume": "体積",
+    "numPieces": "個数",
+    "weight": "重量",
+    "sections": "セクション (Pargas)",
+    "qty": "数量",
+    "observations": "備考"
+  },
+  "grid": {
+    "noProducts": "製品が見つかりません",
+    "noProductsHint": "フィルターを調整してお探しの製品を見つけてください。"
+  },
+  "cart": {
+    "title": "カート",
+    "empty": "カートは空です",
+    "emptyHint": "製品を追加して見積もりを依頼してください",
+    "requestQuote": "見積もりを依頼",
+    "clear": "カートを空にする"
+  },
+  "quoteModal": {
+    "title": "見積もりを依頼",
+    "description": "詳細をご記入ください。折り返しご連絡いたします。",
+    "selectedProduct": "選択した製品",
+    "selectedProducts": "{{count}}件の製品を選択",
+    "name": "お名前",
+    "namePlaceholder": "お名前",
+    "email": "メールアドレス",
+    "emailPlaceholder": "email@example.com",
+    "phone": "電話番号",
+    "phonePlaceholder": "+81 90 1234 5678",
+    "message": "メッセージ",
+    "messagePlaceholder": "ご要望、数量、仕上げ、納期などをご記入ください...",
+    "submit": "見積もり依頼を送信",
+    "sending": "送信中...",
+    "or": "または",
+    "whatsapp": "WhatsAppでお問い合わせ",
+    "successTitle": "送信完了！",
+    "successMessage": "見積もり依頼が登録されました。当チームより早急にご連絡いたします。",
+    "close": "閉じる",
+    "errorName": "お名前を入力してください",
+    "errorEmail": "有効なメールアドレスを入力してください",
+    "errorNoProducts": "製品が選択されていません",
+    "successToast": "見積もり依頼が正常に送信されました！",
+    "errorToast": "送信エラー。再度お試しいただくか、WhatsAppをご利用ください。"
+  },
+  "footer": {
+    "certifiedQuality": "認定品質",
+    "premiumExcellence": "プレミアム品質",
+    "globalDelivery": "グローバル配送",
+    "dedicatedSupport": "専任サポート",
+    "contacts": "連絡先",
+    "address": "住所",
+    "rights": "大理石・花崗岩・石灰岩。全著作権所有。"
+  }
+}
