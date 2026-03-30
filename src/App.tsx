@@ -97,6 +97,7 @@ const App = () => (
                 {/* Redirecionar raiz para selecionar empresa se não autenticado */}
                 <Route path="*" element={<Navigate to="/selecionar-empresa" replace />} />
               </Routes>
+              </StoreDomainRedirect>
             </BrowserRouter>
           </TooltipProvider>
         </AuthProvider>
