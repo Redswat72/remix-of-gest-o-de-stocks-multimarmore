@@ -1,0 +1,122 @@
+{
+  "header": {
+    "catalog": "الكتالوج",
+    "contact": "اتصل بنا"
+  },
+  "hero": {
+    "viewCatalog": "عرض الكتالوج"
+  },
+  "store": {
+    "multimarmore": {
+      "tagline": "Crafting Iconic Elegance",
+      "heroTitle": "رخام وجرانيت وحجر جيري متميز",
+      "heroSubtitle": "اكتشف مجموعتنا الفاخرة من الحجر الطبيعي. جودة معتمدة بخبرة تزيد عن 25 عامًا.",
+      "stat1": "منتجات فاخرة",
+      "stat2": "سنوات خبرة",
+      "stat3": "دول مخدومة"
+    },
+    "magratex": {
+      "tagline": "Natural Stone Excellence",
+      "heroTitle": "حجر طبيعي بجودة فائقة",
+      "heroSubtitle": "كتل وألواح وبلاط من الرخام والجرانيت والحجر الجيري. توصيل عالمي مع ضمان الجودة.",
+      "stat1": "منتجات في المخزون",
+      "stat2": "سنوات خبرة",
+      "stat3": "أصناف"
+    }
+  },
+  "catalog": {
+    "title": "الكتالوج",
+    "subtitle": "استكشف مجموعتنا الفاخرة من الحجر الطبيعي.",
+    "productsFound": "تم العثور على {{count}} منتج(ات)",
+    "filters": "تصفية",
+    "hiddenProducts": "{{count}} منتج(ات) بدون صورة مخفية",
+    "showAll": "إظهار الكل",
+    "hideNoPhoto": "إخفاء بدون صورة"
+  },
+  "filters": {
+    "search": "بحث",
+    "searchPlaceholder": "الاسم أو الرقم...",
+    "type": "النوع",
+    "stone": "الحجر",
+    "allStones": "جميع الأحجار",
+    "length": "الطول",
+    "width": "العرض",
+    "height": "الارتفاع",
+    "clearFilters": "مسح التصفية"
+  },
+  "productTypes": {
+    "bloco": "كتل",
+    "chapa": "ألواح",
+    "ladrilho": "بلاط",
+    "banda": "شرائط"
+  },
+  "product": {
+    "noPhoto": "بدون صورة",
+    "edit": "تعديل",
+    "slabs": "ألواح",
+    "requestQuote": "طلب عرض سعر",
+    "quote": "عرض سعر",
+    "inCart": "في السلة",
+    "addToCart": "أضف إلى السلة",
+    "addedToCart": "تمت إضافة {{name}} إلى السلة",
+    "removedFromCart": "تمت إزالة {{name}} من السلة",
+    "viewHD": "عرض بدقة عالية",
+    "quantity": "الكمية",
+    "dimensions": "الأبعاد",
+    "numSlabs": "عدد الألواح",
+    "bundle": "حزمة",
+    "blockOrigin": "الكتلة الأصلية",
+    "volume": "الحجم",
+    "numPieces": "عدد القطع",
+    "weight": "الوزن",
+    "sections": "أقسام (Pargas)",
+    "qty": "الكمية",
+    "observations": "ملاحظات"
+  },
+  "grid": {
+    "noProducts": "لم يتم العثور على منتجات",
+    "noProductsHint": "حاول تعديل التصفية للعثور على ما تبحث عنه."
+  },
+  "cart": {
+    "title": "سلة التسوق",
+    "empty": "سلة التسوق فارغة",
+    "emptyHint": "أضف منتجات لطلب عرض سعر",
+    "requestQuote": "طلب عرض سعر",
+    "clear": "تفريغ السلة"
+  },
+  "quoteModal": {
+    "title": "طلب عرض سعر",
+    "description": "املأ بياناتك وسنتواصل معك.",
+    "selectedProduct": "المنتج المحدد",
+    "selectedProducts": "{{count}} منتجات محددة",
+    "name": "الاسم",
+    "namePlaceholder": "اسمك",
+    "email": "البريد الإلكتروني",
+    "emailPlaceholder": "email@example.com",
+    "phone": "الهاتف",
+    "phonePlaceholder": "+966 50 123 4567",
+    "message": "الرسالة",
+    "messagePlaceholder": "صف احتياجاتك، الكميات، التشطيب، الموعد...",
+    "submit": "إرسال طلب عرض السعر",
+    "sending": "جارٍ الإرسال...",
+    "or": "أو",
+    "whatsapp": "تواصل عبر واتساب",
+    "successTitle": "تم إرسال الطلب!",
+    "successMessage": "تم تسجيل طلب عرض السعر. سيتواصل فريقنا معك قريبًا.",
+    "close": "إغلاق",
+    "errorName": "يرجى إدخال اسمك",
+    "errorEmail": "يرجى إدخال بريد إلكتروني صحيح",
+    "errorNoProducts": "لم يتم تحديد أي منتج",
+    "successToast": "تم إرسال طلب عرض السعر بنجاح!",
+    "errorToast": "خطأ في الإرسال. يرجى المحاولة مرة أخرى أو استخدام واتساب."
+  },
+  "footer": {
+    "certifiedQuality": "جودة معتمدة",
+    "premiumExcellence": "تميز فاخر",
+    "globalDelivery": "توصيل عالمي",
+    "dedicatedSupport": "دعم مخصص",
+    "contacts": "جهات الاتصال",
+    "address": "العنوان",
+    "rights": "رخام وجرانيت وحجر جيري. جميع الحقوق محفوظة."
+  }
+}

@@ -1,0 +1,122 @@
+{
+  "header": {
+    "catalog": "产品目录",
+    "contact": "联系我们"
+  },
+  "hero": {
+    "viewCatalog": "查看目录"
+  },
+  "store": {
+    "multimarmore": {
+      "tagline": "Crafting Iconic Elegance",
+      "heroTitle": "卓越大理石、花岗岩和石灰石",
+      "heroSubtitle": "探索我们的优质天然石材系列。超过25年经验的认证品质。",
+      "stat1": "优质产品",
+      "stat2": "年经验",
+      "stat3": "服务国家"
+    },
+    "magratex": {
+      "tagline": "Natural Stone Excellence",
+      "heroTitle": "优质天然石材",
+      "heroSubtitle": "大理石、花岗岩和石灰石的荒料、板材和瓷砖。全球配送，品质保证。",
+      "stat1": "库存产品",
+      "stat2": "年经验",
+      "stat3": "品种"
+    }
+  },
+  "catalog": {
+    "title": "产品目录",
+    "subtitle": "探索我们的优质天然石材系列。",
+    "productsFound": "找到 {{count}} 个产品",
+    "filters": "筛选",
+    "hiddenProducts": "{{count}} 个无照片产品已隐藏",
+    "showAll": "显示全部",
+    "hideNoPhoto": "隐藏无照片"
+  },
+  "filters": {
+    "search": "搜索",
+    "searchPlaceholder": "名称或编号...",
+    "type": "类型",
+    "stone": "石材",
+    "allStones": "所有石材",
+    "length": "长度",
+    "width": "宽度",
+    "height": "高度",
+    "clearFilters": "清除筛选"
+  },
+  "productTypes": {
+    "bloco": "荒料",
+    "chapa": "板材",
+    "ladrilho": "瓷砖",
+    "banda": "条板"
+  },
+  "product": {
+    "noPhoto": "无照片",
+    "edit": "编辑",
+    "slabs": "板材",
+    "requestQuote": "请求报价",
+    "quote": "报价",
+    "inCart": "已在购物车",
+    "addToCart": "加入购物车",
+    "addedToCart": "{{name}} 已加入购物车",
+    "removedFromCart": "{{name}} 已从购物车移除",
+    "viewHD": "查看高清",
+    "quantity": "数量",
+    "dimensions": "尺寸",
+    "numSlabs": "板材数",
+    "bundle": "捆装",
+    "blockOrigin": "原始荒料",
+    "volume": "体积",
+    "numPieces": "件数",
+    "weight": "重量",
+    "sections": "分段 (Pargas)",
+    "qty": "数量",
+    "observations": "备注"
+  },
+  "grid": {
+    "noProducts": "未找到产品",
+    "noProductsHint": "请尝试调整筛选条件来查找您需要的产品。"
+  },
+  "cart": {
+    "title": "购物车",
+    "empty": "您的购物车为空",
+    "emptyHint": "添加产品以请求报价",
+    "requestQuote": "请求报价",
+    "clear": "清空购物车"
+  },
+  "quoteModal": {
+    "title": "请求报价",
+    "description": "填写您的信息，我们将与您联系。",
+    "selectedProduct": "已选产品",
+    "selectedProducts": "已选 {{count}} 个产品",
+    "name": "姓名",
+    "namePlaceholder": "您的姓名",
+    "email": "电子邮件",
+    "emailPlaceholder": "email@example.com",
+    "phone": "电话",
+    "phonePlaceholder": "+86 138 0000 0000",
+    "message": "留言",
+    "messagePlaceholder": "描述您的需求、数量、表面处理、交货时间...",
+    "submit": "发送报价请求",
+    "sending": "发送中...",
+    "or": "或",
+    "whatsapp": "通过WhatsApp联系",
+    "successTitle": "请求已发送！",
+    "successMessage": "您的报价请求已记录。我们的团队将尽快与您联系。",
+    "close": "关闭",
+    "errorName": "请输入您的姓名",
+    "errorEmail": "请输入有效的电子邮件",
+    "errorNoProducts": "未选择任何产品",
+    "successToast": "报价请求发送成功！",
+    "errorToast": "发送失败。请重试或使用WhatsApp。"
+  },
+  "footer": {
+    "certifiedQuality": "认证品质",
+    "premiumExcellence": "卓越品质",
+    "globalDelivery": "全球配送",
+    "dedicatedSupport": "专属支持",
+    "contacts": "联系方式",
+    "address": "地址",
+    "rights": "大理石、花岗岩和石灰石。版权所有。"
+  }
+}

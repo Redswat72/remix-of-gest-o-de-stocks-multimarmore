@@ -1,0 +1,122 @@
+{
+  "header": {
+    "catalog": "Catalogue",
+    "contact": "Contact"
+  },
+  "hero": {
+    "viewCatalog": "Voir le Catalogue"
+  },
+  "store": {
+    "multimarmore": {
+      "tagline": "Crafting Iconic Elegance",
+      "heroTitle": "Marbres, Granits & Calcaires d'Excellence",
+      "heroSubtitle": "Découvrez notre collection premium de pierre naturelle. Qualité certifiée avec plus de 25 ans d'expérience.",
+      "stat1": "Produits Premium",
+      "stat2": "Années d'Expérience",
+      "stat3": "Pays Desservis"
+    },
+    "magratex": {
+      "tagline": "Natural Stone Excellence",
+      "heroTitle": "Pierre Naturelle de Qualité Supérieure",
+      "heroSubtitle": "Blocs, dalles et carreaux en marbre, granit et calcaire. Livraison mondiale avec garantie de qualité.",
+      "stat1": "Articles en Stock",
+      "stat2": "Années d'Expérience",
+      "stat3": "Variétés"
+    }
+  },
+  "catalog": {
+    "title": "Catalogue",
+    "subtitle": "Explorez notre collection de pierre naturelle premium.",
+    "productsFound": "{{count}} produit(s) trouvé(s)",
+    "filters": "Filtres",
+    "hiddenProducts": "{{count}} produit(s) sans photo masqué(s)",
+    "showAll": "Tout afficher",
+    "hideNoPhoto": "Masquer sans photo"
+  },
+  "filters": {
+    "search": "Rechercher",
+    "searchPlaceholder": "Nom ou ID...",
+    "type": "Type",
+    "stone": "Pierre",
+    "allStones": "Toutes les pierres",
+    "length": "Longueur",
+    "width": "Largeur",
+    "height": "Hauteur",
+    "clearFilters": "Effacer les filtres"
+  },
+  "productTypes": {
+    "bloco": "Blocs",
+    "chapa": "Dalles",
+    "ladrilho": "Carreaux",
+    "banda": "Bandes"
+  },
+  "product": {
+    "noPhoto": "Sans photo",
+    "edit": "Modifier",
+    "slabs": "dalles",
+    "requestQuote": "Demander un Devis",
+    "quote": "Devis",
+    "inCart": "Dans le Panier",
+    "addToCart": "Ajouter au Panier",
+    "addedToCart": "{{name}} ajouté au panier",
+    "removedFromCart": "{{name}} retiré du panier",
+    "viewHD": "Voir en HD",
+    "quantity": "Quantité",
+    "dimensions": "Dimensions",
+    "numSlabs": "Nº Dalles",
+    "bundle": "Bundle",
+    "blockOrigin": "Bloc d'Origine",
+    "volume": "Volume",
+    "numPieces": "Nº Pièces",
+    "weight": "Poids",
+    "sections": "Sections (Pargas)",
+    "qty": "Qté",
+    "observations": "Observations"
+  },
+  "grid": {
+    "noProducts": "Aucun produit trouvé",
+    "noProductsHint": "Essayez d'ajuster les filtres pour trouver ce que vous cherchez."
+  },
+  "cart": {
+    "title": "Panier",
+    "empty": "Votre panier est vide",
+    "emptyHint": "Ajoutez des produits pour demander un devis",
+    "requestQuote": "Demander un Devis",
+    "clear": "Vider le panier"
+  },
+  "quoteModal": {
+    "title": "Demander un Devis",
+    "description": "Remplissez vos coordonnées et nous vous contacterons.",
+    "selectedProduct": "Produit sélectionné",
+    "selectedProducts": "{{count}} produits sélectionnés",
+    "name": "Nom",
+    "namePlaceholder": "Votre nom",
+    "email": "Email",
+    "emailPlaceholder": "email@exemple.com",
+    "phone": "Téléphone",
+    "phonePlaceholder": "+33 6 12 34 56 78",
+    "message": "Message",
+    "messagePlaceholder": "Décrivez vos besoins, quantités, finition, délai...",
+    "submit": "Envoyer la Demande de Devis",
+    "sending": "Envoi en cours...",
+    "or": "ou",
+    "whatsapp": "Contacter via WhatsApp",
+    "successTitle": "Demande Envoyée !",
+    "successMessage": "Votre demande de devis a été enregistrée. Notre équipe vous contactera sous peu.",
+    "close": "Fermer",
+    "errorName": "Veuillez entrer votre nom",
+    "errorEmail": "Veuillez entrer un email valide",
+    "errorNoProducts": "Aucun produit sélectionné",
+    "successToast": "Demande de devis envoyée avec succès !",
+    "errorToast": "Erreur lors de l'envoi. Veuillez réessayer ou utiliser WhatsApp."
+  },
+  "footer": {
+    "certifiedQuality": "Qualité Certifiée",
+    "premiumExcellence": "Excellence Premium",
+    "globalDelivery": "Livraison Mondiale",
+    "dedicatedSupport": "Support Dédié",
+    "contacts": "Contacts",
+    "address": "Adresse",
+    "rights": "Marbres, Granits & Calcaires. Tous droits réservés."
+  }
+}

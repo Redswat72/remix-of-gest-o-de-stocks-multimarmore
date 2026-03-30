@@ -1,0 +1,122 @@
+{
+  "header": {
+    "catalog": "Katalog",
+    "contact": "Kontakt"
+  },
+  "hero": {
+    "viewCatalog": "Katalog Ansehen"
+  },
+  "store": {
+    "multimarmore": {
+      "tagline": "Crafting Iconic Elegance",
+      "heroTitle": "Marmor, Granit & Kalkstein der Spitzenklasse",
+      "heroSubtitle": "Entdecken Sie unsere Premium-Natursteinkollektion. Zertifizierte Qualität mit über 25 Jahren Erfahrung.",
+      "stat1": "Premium-Produkte",
+      "stat2": "Jahre Erfahrung",
+      "stat3": "Belieferte Länder"
+    },
+    "magratex": {
+      "tagline": "Natural Stone Excellence",
+      "heroTitle": "Naturstein in Höchster Qualität",
+      "heroSubtitle": "Blöcke, Platten und Fliesen aus Marmor, Granit und Kalkstein. Weltweite Lieferung mit Qualitätsgarantie.",
+      "stat1": "Artikel auf Lager",
+      "stat2": "Jahre Erfahrung",
+      "stat3": "Sorten"
+    }
+  },
+  "catalog": {
+    "title": "Katalog",
+    "subtitle": "Entdecken Sie unsere Premium-Natursteinkollektion.",
+    "productsFound": "{{count}} Produkt(e) gefunden",
+    "filters": "Filter",
+    "hiddenProducts": "{{count}} Produkt(e) ohne Foto ausgeblendet",
+    "showAll": "Alle anzeigen",
+    "hideNoPhoto": "Ohne Foto ausblenden"
+  },
+  "filters": {
+    "search": "Suchen",
+    "searchPlaceholder": "Name oder ID...",
+    "type": "Typ",
+    "stone": "Stein",
+    "allStones": "Alle Steine",
+    "length": "Länge",
+    "width": "Breite",
+    "height": "Höhe",
+    "clearFilters": "Filter löschen"
+  },
+  "productTypes": {
+    "bloco": "Blöcke",
+    "chapa": "Platten",
+    "ladrilho": "Fliesen",
+    "banda": "Bänder"
+  },
+  "product": {
+    "noPhoto": "Kein Foto",
+    "edit": "Bearbeiten",
+    "slabs": "Platten",
+    "requestQuote": "Angebot Anfordern",
+    "quote": "Angebot",
+    "inCart": "Im Warenkorb",
+    "addToCart": "In den Warenkorb",
+    "addedToCart": "{{name}} zum Warenkorb hinzugefügt",
+    "removedFromCart": "{{name}} aus dem Warenkorb entfernt",
+    "viewHD": "In HD ansehen",
+    "quantity": "Menge",
+    "dimensions": "Abmessungen",
+    "numSlabs": "Anz. Platten",
+    "bundle": "Bundle",
+    "blockOrigin": "Ursprungsblock",
+    "volume": "Volumen",
+    "numPieces": "Anz. Stücke",
+    "weight": "Gewicht",
+    "sections": "Abschnitte (Pargas)",
+    "qty": "Anz.",
+    "observations": "Bemerkungen"
+  },
+  "grid": {
+    "noProducts": "Keine Produkte gefunden",
+    "noProductsHint": "Versuchen Sie, die Filter anzupassen, um das Gewünschte zu finden."
+  },
+  "cart": {
+    "title": "Warenkorb",
+    "empty": "Ihr Warenkorb ist leer",
+    "emptyHint": "Fügen Sie Produkte hinzu, um ein Angebot anzufordern",
+    "requestQuote": "Angebot Anfordern",
+    "clear": "Warenkorb leeren"
+  },
+  "quoteModal": {
+    "title": "Angebot Anfordern",
+    "description": "Füllen Sie Ihre Daten aus und wir melden uns bei Ihnen.",
+    "selectedProduct": "Ausgewähltes Produkt",
+    "selectedProducts": "{{count}} Produkte ausgewählt",
+    "name": "Name",
+    "namePlaceholder": "Ihr Name",
+    "email": "E-Mail",
+    "emailPlaceholder": "email@beispiel.de",
+    "phone": "Telefon",
+    "phonePlaceholder": "+49 170 123 4567",
+    "message": "Nachricht",
+    "messagePlaceholder": "Beschreiben Sie Ihren Bedarf, Mengen, Oberfläche, Zeitrahmen...",
+    "submit": "Angebotsanfrage Senden",
+    "sending": "Wird gesendet...",
+    "or": "oder",
+    "whatsapp": "Über WhatsApp kontaktieren",
+    "successTitle": "Anfrage Gesendet!",
+    "successMessage": "Ihre Angebotsanfrage wurde registriert. Unser Team wird sich in Kürze bei Ihnen melden.",
+    "close": "Schließen",
+    "errorName": "Bitte geben Sie Ihren Namen ein",
+    "errorEmail": "Bitte geben Sie eine gültige E-Mail ein",
+    "errorNoProducts": "Keine Produkte ausgewählt",
+    "successToast": "Angebotsanfrage erfolgreich gesendet!",
+    "errorToast": "Fehler beim Senden. Bitte versuchen Sie es erneut oder nutzen Sie WhatsApp."
+  },
+  "footer": {
+    "certifiedQuality": "Zertifizierte Qualität",
+    "premiumExcellence": "Premium-Exzellenz",
+    "globalDelivery": "Weltweite Lieferung",
+    "dedicatedSupport": "Persönlicher Support",
+    "contacts": "Kontakte",
+    "address": "Adresse",
+    "rights": "Marmor, Granit & Kalkstein. Alle Rechte vorbehalten."
+  }
+}
