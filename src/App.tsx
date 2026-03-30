@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/hooks/useTheme";
 import { EmpresaProvider } from "@/context/EmpresaContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AppLayout } from "@/components/layout/AppLayout";
+import { StoreDomainRedirect } from "@/components/StoreDomainRedirect";
 import { OfflineIndicator } from "@/components/pwa/OfflineIndicator";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import { UpdatePrompt } from "@/components/pwa/UpdatePrompt";
@@ -56,6 +57,7 @@ const App = () => (
             <Toaster />
             <Sonner />
             <BrowserRouter>
+              <StoreDomainRedirect>
               <Routes>
                 {/* Entrada — selecionar empresa */}
                 <Route path="/selecionar-empresa" element={<SelecionarEmpresa />} />
@@ -95,6 +97,7 @@ const App = () => (
                 {/* Redirecionar raiz para selecionar empresa se não autenticado */}
                 <Route path="*" element={<Navigate to="/selecionar-empresa" replace />} />
               </Routes>
+              </StoreDomainRedirect>
             </BrowserRouter>
           </TooltipProvider>
         </AuthProvider>
