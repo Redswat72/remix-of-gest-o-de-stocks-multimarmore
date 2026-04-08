@@ -32,7 +32,7 @@ import { exportToExcel } from '@/lib/exportExcel';
 
 export default function Historico() {
   const { toast } = useToast();
-  const { isAdmin } = useAuth();
+  const { isAdmin, userLocal } = useAuth();
   const cancelMovimento = useCancelMovimento();
 
   // Filtros
@@ -40,6 +40,7 @@ export default function Historico() {
   const [dataFim, setDataFim] = useState('');
   const [tipoFilter, setTipoFilter] = useState<string>('__all__');
   const [localFilter, setLocalFilter] = useState<string>('__all__');
+  const [idMmFilter, setIdMmFilter] = useState('');
   const [showCancelados, setShowCancelados] = useState<string>('todos');
   const [currentPage, setCurrentPage] = useState(0);
   const PAGE_SIZE = 50;
@@ -50,12 +51,16 @@ export default function Historico() {
   const [selectedMovimento, setSelectedMovimento] = useState<MovimentoComDetalhes | null>(null);
   const [motivoCancelamento, setMotivoCancelamento] = useState('');
 
+  // For non-admin users, always filter by their local
+  const effectiveLocalFilter = !isAdmin && userLocal ? userLocal.id : (localFilter === '__all__' ? undefined : localFilter);
+
   // Data
   const { data: result, isLoading } = useMovimentos({
     dataInicio: dataInicio || undefined,
     dataFim: dataFim || undefined,
     tipo: tipoFilter === '__all__' ? undefined : tipoFilter,
-    localId: localFilter === '__all__' ? undefined : localFilter,
+    localId: effectiveLocalFilter,
+    idMm: idMmFilter.trim() || undefined,
     cancelados: showCancelados === 'todos' ? undefined : showCancelados === 'sim',
     limit: PAGE_SIZE,
     page: currentPage,
