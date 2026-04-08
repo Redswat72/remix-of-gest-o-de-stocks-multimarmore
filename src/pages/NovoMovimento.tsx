@@ -38,10 +38,9 @@ const PEDREIRAS = ['Del Rey', 'Mol', 'Olival do Pires'];
 export default function NovoMovimento() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { empresaConfig } = useEmpresa();
   const { user, userLocal, isAdmin } = useAuth();
   const createMovimento = useCreateMovimento();
-  const createProduto = useCreateProduto();
+  const supabaseEmpresa = useSupabaseEmpresa();
 
   const [step, setStep] = useState(1);
 
