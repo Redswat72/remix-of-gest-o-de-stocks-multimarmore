@@ -363,10 +363,10 @@ export default function Historico() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <span className="font-mono font-medium">{mov.id_mm || mov.produto?.idmm || '-'}</span>
+                            <span className="font-mono font-medium">{mov.id_mm || mov.produto?.idmm || '—'}</span>
                           </TableCell>
                           <TableCell>
-                            <Badge variant="outline" className="capitalize">{mov.tipo_produto || mov.produto?.forma || '-'}</Badge>
+                            <Badge variant="outline" className="capitalize">{mov.tipo_produto || mov.produto?.forma || '—'}</Badge>
                           </TableCell>
                           <TableCell className="text-right font-semibold">
                             {mov.quantidade}
