@@ -46,15 +46,19 @@ interface UseMovimentosOptions {
   operadorId?: string;
   cancelados?: boolean;
   limit?: number;
+  page?: number;
 }
 
 export function useMovimentos(options: UseMovimentosOptions = {}) {
   const supabase = useSupabaseEmpresa();
-  const { dataInicio, dataFim, tipo, localId, produtoId, operadorId, cancelados, limit = 100 } = options;
+  const { dataInicio, dataFim, tipo, localId, produtoId, operadorId, cancelados, limit = 50, page = 0 } = options;
 
   return useQuery({
     queryKey: ['movimentos', options],
     queryFn: async () => {
+      const from = page * limit;
+      const to = from + limit - 1;
+
       let query = supabase
         .from('movimentos')
         .select(`
@@ -64,9 +68,9 @@ export function useMovimentos(options: UseMovimentosOptions = {}) {
           local_destino:locais!movimentos_local_destino_id_fkey(id, nome, codigo),
           cliente:clientes(id, nome),
           operador:profiles!movimentos_operador_id_fkey(id, nome, email)
-        `)
+        `, { count: 'exact' })
         .order('data_movimento', { ascending: false })
-        .limit(limit);
+        .range(from, to);
 
       if (dataInicio) {
         query = query.gte('data_movimento', dataInicio);
@@ -90,10 +94,10 @@ export function useMovimentos(options: UseMovimentosOptions = {}) {
         query = query.eq('cancelado', cancelados);
       }
 
-      const { data, error } = await query;
+      const { data, error, count } = await query;
 
       if (error) throw error;
-      return data as unknown as MovimentoComDetalhes[];
+      return { data: data as unknown as MovimentoComDetalhes[], count: count ?? 0 };
     },
   });
 }
