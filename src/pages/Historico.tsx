@@ -156,8 +156,8 @@ export default function Historico() {
     const exportData = movimentos.map(mov => ({
       'Data': format(new Date(mov.data_movimento), 'dd/MM/yyyy HH:mm', { locale: pt }),
       'Tipo': mov.tipo === 'entrada' ? 'Entrada' : mov.tipo === 'saida' ? 'Saída' : 'Transferência',
-      'IDMM': mov.produto?.idmm,
-      'Tipo de Pedra': mov.produto?.tipo_pedra,
+      'ID MM': mov.id_mm || mov.produto?.idmm || '-',
+      'Tipo Produto': mov.tipo_produto || mov.produto?.forma || '-',
       'Quantidade': mov.quantidade,
       'Origem': mov.local_origem?.nome || '-',
       'Destino': mov.local_destino?.nome || '-',
@@ -178,6 +178,7 @@ export default function Historico() {
     setDataFim('');
     setTipoFilter('__all__');
     setLocalFilter('__all__');
+    setIdMmFilter('');
     setShowCancelados('todos');
     setCurrentPage(0);
   };
@@ -188,7 +189,7 @@ export default function Historico() {
     setCurrentPage(0);
   };
 
-  const hasFilters = dataInicio || dataFim || tipoFilter !== '__all__' || localFilter !== '__all__' || showCancelados !== 'todos';
+  const hasFilters = dataInicio || dataFim || tipoFilter !== '__all__' || localFilter !== '__all__' || idMmFilter || showCancelados !== 'todos';
   return (
     <div className="space-y-6">
       {/* Header */}
