@@ -174,6 +174,13 @@ export default function Historico() {
     setTipoFilter('__all__');
     setLocalFilter('__all__');
     setShowCancelados('todos');
+    setCurrentPage(0);
+  };
+
+  // Reset page when filters change
+  const handleFilterChange = <T,>(setter: React.Dispatch<React.SetStateAction<T>>) => (value: T) => {
+    setter(value);
+    setCurrentPage(0);
   };
 
   const hasFilters = dataInicio || dataFim || tipoFilter !== '__all__' || localFilter !== '__all__' || showCancelados !== 'todos';
@@ -438,10 +445,39 @@ export default function Historico() {
         </CardContent>
       </Card>
 
-      {/* Resumo */}
-      {movimentos && movimentos.length > 0 && (
+      {/* Paginação */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            A mostrar {currentPage * PAGE_SIZE + 1}–{Math.min((currentPage + 1) * PAGE_SIZE, totalCount)} de {totalCount} movimentos
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage === 0}
+              onClick={() => setCurrentPage(p => p - 1)}
+            >
+              Anterior
+            </Button>
+            <span className="flex items-center px-3 text-sm text-muted-foreground">
+              Página {currentPage + 1} de {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage >= totalPages - 1}
+              onClick={() => setCurrentPage(p => p + 1)}
+            >
+              Seguinte
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {movimentos && movimentos.length > 0 && totalPages <= 1 && (
         <div className="text-sm text-muted-foreground text-center">
-          A mostrar {movimentos.length} movimento{movimentos.length !== 1 ? 's' : ''}
+          A mostrar {movimentos.length} de {totalCount} movimento{totalCount !== 1 ? 's' : ''}
         </div>
       )}
 
