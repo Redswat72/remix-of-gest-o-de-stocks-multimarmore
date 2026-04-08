@@ -13,7 +13,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { useProdutos } from '@/hooks/useProdutos';
+import { useSearchInventario, type InventarioItem } from '@/hooks/useSearchInventario';
 import { useClientes } from '@/hooks/useClientes';
 import { useLocaisAtivos } from '@/hooks/useLocais';
 import { useStockProdutoLocal } from '@/hooks/useStock';
@@ -58,9 +58,10 @@ export default function NovoMovimento() {
   const [matriculaViatura, setMatriculaViatura] = useState('');
   const [observacoes, setObservacoes] = useState('');
   const [searchProduto, setSearchProduto] = useState('');
+  const [selectedItem, setSelectedItem] = useState<InventarioItem | null>(null);
 
   // Data queries
-  const { data: produtos } = useProdutos({ idmm: searchProduto || undefined });
+  const { data: inventarioResults } = useSearchInventario(searchProduto || undefined);
   const { data: clientes } = useClientes();
   const { data: locais } = useLocaisAtivos();
   
@@ -70,7 +71,6 @@ export default function NovoMovimento() {
     tipo === 'entrada' ? undefined : localOrigemId
   );
 
-  const selectedProduto = produtos?.find(p => p.id === produtoId);
   const selectedLocalOrigem = locais?.find(l => l.id === localOrigemId);
   const selectedLocalDestino = locais?.find(l => l.id === localDestinoId);
   const selectedCliente = clientes?.find(c => c.id === clienteId);
@@ -380,27 +380,33 @@ export default function NovoMovimento() {
           {step === 3 && (
             <div className="space-y-6">
               <div className="space-y-2">
-                <Label>Pesquisar Produto ({empresaConfig?.idPrefix ?? 'IDMM'})</Label>
+                <Label>Pesquisar Produto (ID MM)</Label>
                 <Input 
-                  placeholder={`Digite o ${empresaConfig?.idPrefix ?? 'IDMM'} para pesquisar...`}
+                  placeholder="Digite o ID MM para pesquisar (mín. 2 caracteres)..."
                   value={searchProduto}
                   onChange={(e) => setSearchProduto(e.target.value)}
                 />
               </div>
 
-              {produtos && produtos.length > 0 && (
+              {inventarioResults && inventarioResults.length > 0 && (
                 <div className="space-y-2">
                   <Label>Selecionar Produto</Label>
-                  <Select value={produtoId} onValueChange={setProdutoId}>
+                  <Select value={produtoId} onValueChange={(val) => {
+                    setProdutoId(val);
+                    const item = inventarioResults.find(r => r.id === val);
+                    setSelectedItem(item || null);
+                  }}>
                     <SelectTrigger>
                       <SelectValue placeholder="Escolha um produto" />
                     </SelectTrigger>
                     <SelectContent>
-                      {produtos.map(p => (
-                        <SelectItem key={p.id} value={p.id}>
-                          <span className="font-mono">{p.idmm}</span>
+                      {inventarioResults.map(item => (
+                        <SelectItem key={item.id} value={item.id}>
+                          <span className="font-mono">{item.id_mm}</span>
                           <span className="ml-2 text-muted-foreground">
-                            - {p.tipo_pedra} ({p.forma})
+                            — {item.tipo === 'bloco' ? 'Bloco' : item.tipo === 'chapa' ? 'Chapa' : 'Ladrilho'}
+                            {item.variedade ? ` (${item.variedade})` : ''}
+                            {` — ${item.parque}`}
                           </span>
                         </SelectItem>
                       ))}
@@ -409,26 +415,28 @@ export default function NovoMovimento() {
                 </div>
               )}
 
-              {selectedProduto && (
+              {selectedItem && (
                 <Card className="bg-muted/50">
                   <CardContent className="pt-4">
                     <div className="grid gap-2 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">IDMM:</span>
-                        <span className="font-mono font-medium">{selectedProduto.idmm}</span>
+                        <span className="text-muted-foreground">ID MM:</span>
+                        <span className="font-mono font-medium">{selectedItem.id_mm}</span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Tipo:</span>
-                        <span>{selectedProduto.tipo_pedra}</span>
+                        <Badge variant="outline">
+                          {selectedItem.tipo === 'bloco' ? 'Bloco' : selectedItem.tipo === 'chapa' ? 'Chapa' : 'Ladrilho'}
+                        </Badge>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Forma:</span>
-                        <Badge variant="outline">{selectedProduto.forma}</Badge>
+                        <span className="text-muted-foreground">Parque:</span>
+                        <span>{selectedItem.parque}</span>
                       </div>
-                      {selectedProduto.nome_comercial && (
+                      {selectedItem.variedade && (
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Nome:</span>
-                          <span>{selectedProduto.nome_comercial}</span>
+                          <span className="text-muted-foreground">Variedade:</span>
+                          <span>{selectedItem.variedade}</span>
                         </div>
                       )}
                     </div>
@@ -622,7 +630,7 @@ export default function NovoMovimento() {
                   
                   <div className="flex justify-between py-2 border-b">
                     <span className="text-muted-foreground">Produto:</span>
-                    <span className="font-mono font-medium">{selectedProduto?.idmm}</span>
+                    <span className="font-mono font-medium">{selectedItem?.id_mm}</span>
                   </div>
                   
                   <div className="flex justify-between py-2 border-b">

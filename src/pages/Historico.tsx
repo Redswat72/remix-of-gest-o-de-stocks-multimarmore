@@ -41,6 +41,8 @@ export default function Historico() {
   const [tipoFilter, setTipoFilter] = useState<string>('__all__');
   const [localFilter, setLocalFilter] = useState<string>('__all__');
   const [showCancelados, setShowCancelados] = useState<string>('todos');
+  const [currentPage, setCurrentPage] = useState(0);
+  const PAGE_SIZE = 50;
   
   // UI State
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
@@ -49,14 +51,19 @@ export default function Historico() {
   const [motivoCancelamento, setMotivoCancelamento] = useState('');
 
   // Data
-  const { data: movimentos, isLoading } = useMovimentos({
+  const { data: result, isLoading } = useMovimentos({
     dataInicio: dataInicio || undefined,
     dataFim: dataFim || undefined,
     tipo: tipoFilter === '__all__' ? undefined : tipoFilter,
     localId: localFilter === '__all__' ? undefined : localFilter,
     cancelados: showCancelados === 'todos' ? undefined : showCancelados === 'sim',
-    limit: 200,
+    limit: PAGE_SIZE,
+    page: currentPage,
   });
+
+  const movimentos = result?.data;
+  const totalCount = result?.count ?? 0;
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   const { data: locais } = useLocaisAtivos();
 
@@ -167,6 +174,13 @@ export default function Historico() {
     setTipoFilter('__all__');
     setLocalFilter('__all__');
     setShowCancelados('todos');
+    setCurrentPage(0);
+  };
+
+  // Reset page when filters change
+  const handleFilterChange = <T,>(setter: React.Dispatch<React.SetStateAction<T>>) => (value: T) => {
+    setter(value);
+    setCurrentPage(0);
   };
 
   const hasFilters = dataInicio || dataFim || tipoFilter !== '__all__' || localFilter !== '__all__' || showCancelados !== 'todos';
@@ -207,7 +221,7 @@ export default function Historico() {
               <Input
                 type="date"
                 value={dataInicio}
-                onChange={(e) => setDataInicio(e.target.value)}
+                onChange={(e) => handleFilterChange(setDataInicio)(e.target.value)}
               />
             </div>
 
@@ -217,14 +231,14 @@ export default function Historico() {
               <Input
                 type="date"
                 value={dataFim}
-                onChange={(e) => setDataFim(e.target.value)}
+                onChange={(e) => handleFilterChange(setDataFim)(e.target.value)}
               />
             </div>
 
             {/* Tipo */}
             <div className="space-y-2">
               <Label className="text-sm">Tipo</Label>
-              <Select value={tipoFilter} onValueChange={setTipoFilter}>
+              <Select value={tipoFilter} onValueChange={handleFilterChange(setTipoFilter)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Todos" />
                 </SelectTrigger>
@@ -240,7 +254,7 @@ export default function Historico() {
             {/* Parque */}
             <div className="space-y-2">
               <Label className="text-sm">Parque</Label>
-              <Select value={localFilter} onValueChange={setLocalFilter}>
+              <Select value={localFilter} onValueChange={handleFilterChange(setLocalFilter)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Todos" />
                 </SelectTrigger>
@@ -256,7 +270,7 @@ export default function Historico() {
             {/* Cancelados */}
             <div className="space-y-2">
               <Label className="text-sm">Cancelados</Label>
-              <Select value={showCancelados} onValueChange={setShowCancelados}>
+              <Select value={showCancelados} onValueChange={handleFilterChange(setShowCancelados)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -431,10 +445,39 @@ export default function Historico() {
         </CardContent>
       </Card>
 
-      {/* Resumo */}
-      {movimentos && movimentos.length > 0 && (
+      {/* Paginação */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            A mostrar {currentPage * PAGE_SIZE + 1}–{Math.min((currentPage + 1) * PAGE_SIZE, totalCount)} de {totalCount} movimentos
+          </p>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage === 0}
+              onClick={() => setCurrentPage(p => p - 1)}
+            >
+              Anterior
+            </Button>
+            <span className="flex items-center px-3 text-sm text-muted-foreground">
+              Página {currentPage + 1} de {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage >= totalPages - 1}
+              onClick={() => setCurrentPage(p => p + 1)}
+            >
+              Seguinte
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {movimentos && movimentos.length > 0 && totalPages <= 1 && (
         <div className="text-sm text-muted-foreground text-center">
-          A mostrar {movimentos.length} movimento{movimentos.length !== 1 ? 's' : ''}
+          A mostrar {movimentos.length} de {totalCount} movimento{totalCount !== 1 ? 's' : ''}
         </div>
       )}
 
