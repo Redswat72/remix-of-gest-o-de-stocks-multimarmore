@@ -632,7 +632,6 @@ export default function NovoMovimento() {
                     <span className="text-muted-foreground">Produto:</span>
                     <span className="font-mono font-medium">{selectedItem?.id_mm}</span>
                   </div>
-                  </div>
                   
                   <div className="flex justify-between py-2 border-b">
                     <span className="text-muted-foreground">Quantidade:</span>
