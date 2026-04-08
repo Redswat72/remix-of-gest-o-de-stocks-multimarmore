@@ -410,7 +410,7 @@ export default function Historico() {
                         </TableRow>
                         <CollapsibleContent asChild>
                           <TableRow className="bg-muted/30">
-                            <TableCell colSpan={isAdmin ? 8 : 7} className="py-4">
+                            <TableCell colSpan={isAdmin ? 9 : 8} className="py-4">
                               <div className="pl-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 text-sm">
                                 <div>
                                   <span className="text-muted-foreground">Documento:</span>
