@@ -221,7 +221,7 @@ export default function Historico() {
               <Input
                 type="date"
                 value={dataInicio}
-                onChange={(e) => setDataInicio(e.target.value)}
+                onChange={(e) => handleFilterChange(setDataInicio)(e.target.value)}
               />
             </div>
 
@@ -231,14 +231,14 @@ export default function Historico() {
               <Input
                 type="date"
                 value={dataFim}
-                onChange={(e) => setDataFim(e.target.value)}
+                onChange={(e) => handleFilterChange(setDataFim)(e.target.value)}
               />
             </div>
 
             {/* Tipo */}
             <div className="space-y-2">
               <Label className="text-sm">Tipo</Label>
-              <Select value={tipoFilter} onValueChange={setTipoFilter}>
+              <Select value={tipoFilter} onValueChange={handleFilterChange(setTipoFilter)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Todos" />
                 </SelectTrigger>
@@ -254,7 +254,7 @@ export default function Historico() {
             {/* Parque */}
             <div className="space-y-2">
               <Label className="text-sm">Parque</Label>
-              <Select value={localFilter} onValueChange={setLocalFilter}>
+              <Select value={localFilter} onValueChange={handleFilterChange(setLocalFilter)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Todos" />
                 </SelectTrigger>
@@ -270,7 +270,7 @@ export default function Historico() {
             {/* Cancelados */}
             <div className="space-y-2">
               <Label className="text-sm">Cancelados</Label>
-              <Select value={showCancelados} onValueChange={setShowCancelados}>
+              <Select value={showCancelados} onValueChange={handleFilterChange(setShowCancelados)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
