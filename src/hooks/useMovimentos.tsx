@@ -9,7 +9,9 @@ export interface MovimentoComDetalhes {
   tipo_documento: TipoDocumento;
   numero_documento: string | null;
   origem_material: OrigemMaterial | null;
-  produto_id: string;
+  produto_id: string | null;
+  id_mm: string | null;
+  tipo_produto: string | null;
   quantidade: number;
   local_origem_id: string | null;
   local_destino_id: string | null;
@@ -30,7 +32,7 @@ export interface MovimentoComDetalhes {
     tipo_pedra: string;
     nome_comercial: string | null;
     forma: string;
-  };
+  } | null;
   local_origem: { id: string; nome: string; codigo: string } | null;
   local_destino: { id: string; nome: string; codigo: string } | null;
   cliente: { id: string; nome: string } | null;
@@ -43,6 +45,7 @@ interface UseMovimentosOptions {
   tipo?: string;
   localId?: string;
   produtoId?: string;
+  idMm?: string;
   operadorId?: string;
   cancelados?: boolean;
   limit?: number;
@@ -51,7 +54,7 @@ interface UseMovimentosOptions {
 
 export function useMovimentos(options: UseMovimentosOptions = {}) {
   const supabase = useSupabaseEmpresa();
-  const { dataInicio, dataFim, tipo, localId, produtoId, operadorId, cancelados, limit = 50, page = 0 } = options;
+  const { dataInicio, dataFim, tipo, localId, produtoId, idMm, operadorId, cancelados, limit = 50, page = 0 } = options;
 
   return useQuery({
     queryKey: ['movimentos', options],
@@ -86,6 +89,9 @@ export function useMovimentos(options: UseMovimentosOptions = {}) {
       }
       if (produtoId) {
         query = query.eq('produto_id', produtoId);
+      }
+      if (idMm) {
+        query = query.eq('id_mm', idMm);
       }
       if (operadorId) {
         query = query.eq('operador_id', operadorId);
@@ -125,9 +131,9 @@ export function useCreateMovimento() {
           operador_id: user.id,
         };
 
-      // New fields: id_mm and tipo_produto replace produto_id
-      if (formData.id_mm) insertPayload.id_mm = formData.id_mm;
-      if (formData.tipo_produto) insertPayload.tipo_produto = formData.tipo_produto;
+      // Always include id_mm and tipo_produto
+      insertPayload.id_mm = formData.id_mm || null;
+      insertPayload.tipo_produto = formData.tipo_produto || null;
       if (formData.produto_id) insertPayload.produto_id = formData.produto_id;
 
       const { data, error } = await supabase

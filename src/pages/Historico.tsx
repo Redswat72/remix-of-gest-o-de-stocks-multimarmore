@@ -32,7 +32,7 @@ import { exportToExcel } from '@/lib/exportExcel';
 
 export default function Historico() {
   const { toast } = useToast();
-  const { isAdmin } = useAuth();
+  const { isAdmin, userLocal } = useAuth();
   const cancelMovimento = useCancelMovimento();
 
   // Filtros
@@ -40,6 +40,7 @@ export default function Historico() {
   const [dataFim, setDataFim] = useState('');
   const [tipoFilter, setTipoFilter] = useState<string>('__all__');
   const [localFilter, setLocalFilter] = useState<string>('__all__');
+  const [idMmFilter, setIdMmFilter] = useState('');
   const [showCancelados, setShowCancelados] = useState<string>('todos');
   const [currentPage, setCurrentPage] = useState(0);
   const PAGE_SIZE = 50;
@@ -50,12 +51,16 @@ export default function Historico() {
   const [selectedMovimento, setSelectedMovimento] = useState<MovimentoComDetalhes | null>(null);
   const [motivoCancelamento, setMotivoCancelamento] = useState('');
 
+  // For non-admin users, always filter by their local
+  const effectiveLocalFilter = !isAdmin && userLocal ? userLocal.id : (localFilter === '__all__' ? undefined : localFilter);
+
   // Data
   const { data: result, isLoading } = useMovimentos({
     dataInicio: dataInicio || undefined,
     dataFim: dataFim || undefined,
     tipo: tipoFilter === '__all__' ? undefined : tipoFilter,
-    localId: localFilter === '__all__' ? undefined : localFilter,
+    localId: effectiveLocalFilter,
+    idMm: idMmFilter.trim() || undefined,
     cancelados: showCancelados === 'todos' ? undefined : showCancelados === 'sim',
     limit: PAGE_SIZE,
     page: currentPage,
@@ -151,8 +156,8 @@ export default function Historico() {
     const exportData = movimentos.map(mov => ({
       'Data': format(new Date(mov.data_movimento), 'dd/MM/yyyy HH:mm', { locale: pt }),
       'Tipo': mov.tipo === 'entrada' ? 'Entrada' : mov.tipo === 'saida' ? 'Saída' : 'Transferência',
-      'IDMM': mov.produto?.idmm,
-      'Tipo de Pedra': mov.produto?.tipo_pedra,
+      'ID MM': mov.id_mm || mov.produto?.idmm || '-',
+      'Tipo Produto': mov.tipo_produto || mov.produto?.forma || '-',
       'Quantidade': mov.quantidade,
       'Origem': mov.local_origem?.nome || '-',
       'Destino': mov.local_destino?.nome || '-',
@@ -173,6 +178,7 @@ export default function Historico() {
     setDataFim('');
     setTipoFilter('__all__');
     setLocalFilter('__all__');
+    setIdMmFilter('');
     setShowCancelados('todos');
     setCurrentPage(0);
   };
@@ -183,7 +189,7 @@ export default function Historico() {
     setCurrentPage(0);
   };
 
-  const hasFilters = dataInicio || dataFim || tipoFilter !== '__all__' || localFilter !== '__all__' || showCancelados !== 'todos';
+  const hasFilters = dataInicio || dataFim || tipoFilter !== '__all__' || localFilter !== '__all__' || idMmFilter || showCancelados !== 'todos';
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -251,21 +257,33 @@ export default function Historico() {
               </Select>
             </div>
 
-            {/* Parque */}
+            {/* ID MM */}
             <div className="space-y-2">
-              <Label className="text-sm">Parque</Label>
-              <Select value={localFilter} onValueChange={handleFilterChange(setLocalFilter)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Todos" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__all__">Todos</SelectItem>
-                  {locais?.map(l => (
-                    <SelectItem key={l.id} value={l.id}>{l.nome}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label className="text-sm">ID MM</Label>
+              <Input
+                placeholder="Pesquisar ID MM..."
+                value={idMmFilter}
+                onChange={(e) => handleFilterChange(setIdMmFilter)(e.target.value)}
+              />
             </div>
+
+            {/* Parque - only for admins */}
+            {isAdmin && (
+              <div className="space-y-2">
+                <Label className="text-sm">Parque</Label>
+                <Select value={localFilter} onValueChange={handleFilterChange(setLocalFilter)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Todos" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__all__">Todos</SelectItem>
+                    {locais?.map(l => (
+                      <SelectItem key={l.id} value={l.id}>{l.nome}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             {/* Cancelados */}
             <div className="space-y-2">
@@ -306,7 +324,8 @@ export default function Historico() {
                     <TableHead className="w-[50px]"></TableHead>
                     <TableHead>Data</TableHead>
                     <TableHead>Tipo</TableHead>
-                    <TableHead>Produto</TableHead>
+                    <TableHead>ID MM</TableHead>
+                    <TableHead>Tipo Produto</TableHead>
                     <TableHead className="text-right">Qtd</TableHead>
                     <TableHead>Origem → Destino</TableHead>
                     <TableHead>Estado</TableHead>
@@ -344,10 +363,10 @@ export default function Historico() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <div>
-                              <span className="font-mono font-medium">{mov.produto?.idmm}</span>
-                              <p className="text-sm text-muted-foreground">{mov.produto?.tipo_pedra}</p>
-                            </div>
+                            <span className="font-mono font-medium">{mov.id_mm || mov.produto?.idmm || '-'}</span>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="capitalize">{mov.tipo_produto || mov.produto?.forma || '-'}</Badge>
                           </TableCell>
                           <TableCell className="text-right font-semibold">
                             {mov.quantidade}
@@ -391,7 +410,7 @@ export default function Historico() {
                         </TableRow>
                         <CollapsibleContent asChild>
                           <TableRow className="bg-muted/30">
-                            <TableCell colSpan={isAdmin ? 8 : 7} className="py-4">
+                            <TableCell colSpan={isAdmin ? 9 : 8} className="py-4">
                               <div className="pl-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 text-sm">
                                 <div>
                                   <span className="text-muted-foreground">Documento:</span>
