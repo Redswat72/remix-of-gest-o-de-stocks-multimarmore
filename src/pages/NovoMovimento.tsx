@@ -551,9 +551,8 @@ export default function NovoMovimento() {
                 <Input
                   value={novoProdutoIdMM}
                   onChange={(e) => setNovoProdutoIdMM(e.target.value)}
-                  placeholder="IDMM-XXXXX"
+                  placeholder="Introduza o ID MM do produto"
                 />
-                <p className="text-sm text-muted-foreground">Gerado automaticamente, pode editar</p>
               </div>
 
               <div className="space-y-2">
@@ -566,15 +565,17 @@ export default function NovoMovimento() {
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>Comprimento (cm)</Label>
-                  <Input
-                    type="number"
-                    value={novoProdutoComprimento}
-                    onChange={(e) => setNovoProdutoComprimento(e.target.value ? Number(e.target.value) : '')}
-                    placeholder="cm"
-                  />
-                </div>
+                {(novoProdutoForma === 'bloco' || novoProdutoForma === 'ladrilho') && (
+                  <div className="space-y-2">
+                    <Label>Comprimento (cm)</Label>
+                    <Input
+                      type="number"
+                      value={novoProdutoComprimento}
+                      onChange={(e) => setNovoProdutoComprimento(e.target.value ? Number(e.target.value) : '')}
+                      placeholder="cm"
+                    />
+                  </div>
+                )}
                 <div className="space-y-2">
                   <Label>Largura (cm)</Label>
                   <Input
@@ -593,16 +594,42 @@ export default function NovoMovimento() {
                     placeholder="cm"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label>Peso (Toneladas)</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={novoProdutoPeso}
-                    onChange={(e) => setNovoProdutoPeso(e.target.value ? Number(e.target.value) : '')}
-                    placeholder="ton"
-                  />
-                </div>
+                {novoProdutoForma === 'bloco' && (
+                  <div className="space-y-2">
+                    <Label>Peso (Toneladas)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={novoProdutoPeso}
+                      onChange={(e) => setNovoProdutoPeso(e.target.value ? Number(e.target.value) : '')}
+                      placeholder="ton"
+                    />
+                  </div>
+                )}
+                {novoProdutoForma === 'chapa' && (
+                  <div className="space-y-2">
+                    <Label>Nº de Chapas</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      value={novoProdutoNumChapas}
+                      onChange={(e) => setNovoProdutoNumChapas(e.target.value ? Number(e.target.value) : '')}
+                      placeholder="Quantidade de chapas"
+                    />
+                  </div>
+                )}
+                {novoProdutoForma === 'ladrilho' && (
+                  <div className="space-y-2">
+                    <Label>Nº de Peças</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      value={novoProdutoNumPecas}
+                      onChange={(e) => setNovoProdutoNumPecas(e.target.value ? Number(e.target.value) : '')}
+                      placeholder="Quantidade de peças"
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
