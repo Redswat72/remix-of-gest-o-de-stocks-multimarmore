@@ -59,17 +59,18 @@ export function useStockProduto(idMm?: string, tipoProduto?: string) {
   });
 }
 
-export function useStockProdutoLocal(produtoId?: string, localId?: string) {
+export function useStockProdutoLocal(idMm?: string, tipoProduto?: string, localId?: string) {
   const supabase = useSupabaseEmpresa();
 
   return useQuery({
-    queryKey: ['stock-produto-local', produtoId, localId ?? null],
-    enabled: !!produtoId,
+    queryKey: ['stock-produto-local', idMm, tipoProduto, localId ?? null],
+    enabled: !!idMm && !!tipoProduto,
     queryFn: async () => {
       let query = supabase
         .from('stock')
         .select('quantidade')
-        .eq('produto_id', produtoId!);
+        .eq('id_mm', idMm!)
+        .eq('tipo_produto', tipoProduto!);
 
       if (localId) {
         query = query.eq('local_id', localId);
