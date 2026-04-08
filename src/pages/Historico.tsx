@@ -257,21 +257,33 @@ export default function Historico() {
               </Select>
             </div>
 
-            {/* Parque */}
+            {/* ID MM */}
             <div className="space-y-2">
-              <Label className="text-sm">Parque</Label>
-              <Select value={localFilter} onValueChange={handleFilterChange(setLocalFilter)}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Todos" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="__all__">Todos</SelectItem>
-                  {locais?.map(l => (
-                    <SelectItem key={l.id} value={l.id}>{l.nome}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label className="text-sm">ID MM</Label>
+              <Input
+                placeholder="Pesquisar ID MM..."
+                value={idMmFilter}
+                onChange={(e) => handleFilterChange(setIdMmFilter)(e.target.value)}
+              />
             </div>
+
+            {/* Parque - only for admins */}
+            {isAdmin && (
+              <div className="space-y-2">
+                <Label className="text-sm">Parque</Label>
+                <Select value={localFilter} onValueChange={handleFilterChange(setLocalFilter)}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Todos" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__all__">Todos</SelectItem>
+                    {locais?.map(l => (
+                      <SelectItem key={l.id} value={l.id}>{l.nome}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
 
             {/* Cancelados */}
             <div className="space-y-2">
@@ -312,7 +324,8 @@ export default function Historico() {
                     <TableHead className="w-[50px]"></TableHead>
                     <TableHead>Data</TableHead>
                     <TableHead>Tipo</TableHead>
-                    <TableHead>Produto</TableHead>
+                    <TableHead>ID MM</TableHead>
+                    <TableHead>Tipo Produto</TableHead>
                     <TableHead className="text-right">Qtd</TableHead>
                     <TableHead>Origem → Destino</TableHead>
                     <TableHead>Estado</TableHead>
@@ -350,10 +363,10 @@ export default function Historico() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <div>
-                              <span className="font-mono font-medium">{mov.produto?.idmm}</span>
-                              <p className="text-sm text-muted-foreground">{mov.produto?.tipo_pedra}</p>
-                            </div>
+                            <span className="font-mono font-medium">{mov.id_mm || mov.produto?.idmm || '-'}</span>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline" className="capitalize">{mov.tipo_produto || mov.produto?.forma || '-'}</Badge>
                           </TableCell>
                           <TableCell className="text-right font-semibold">
                             {mov.quantidade}
