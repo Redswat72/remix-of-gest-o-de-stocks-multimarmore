@@ -124,6 +124,9 @@ export function useCreateProduto() {
         altura_cm: formData.altura_cm || null,
         espessura_cm: formData.espessura_cm || null,
         observacoes: formData.observacoes || null,
+        variedade: formData.variedade ?? null,
+        peso_ton: formData.peso_ton ?? null,
+        origem_bloco: formData.origem_bloco ?? null,
       };
 
       const { data, error } = await supabase
