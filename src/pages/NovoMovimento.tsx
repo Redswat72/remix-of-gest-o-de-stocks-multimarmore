@@ -350,56 +350,24 @@ export default function NovoMovimento() {
       const itemParque = selectedItem?.parque || '';
 
       if (tipo === 'transferencia') {
-        // Update parque on the product table
+        // UPDATE parque on the product table — never insert/upsert
         const table = itemTipo === 'bloco' ? 'blocos' : itemTipo === 'chapa' ? 'chapas' : 'ladrilho';
         const destCodigo = locais?.find(l => l.id === localDestinoId)?.codigo || '';
         const { error: updateErr } = await supabaseEmpresa
           .from(table)
           .update({ parque: destCodigo } as any)
-          .eq('id', selectedItem!.id);
+          .eq('id_mm', itemIdMm);
         if (updateErr) throw updateErr;
-
-        // Stock: -1 at origin, +1 at destination
-        const { error: stockOut } = await supabaseEmpresa
-          .from('stock')
-          .insert({
-            id_mm: itemIdMm,
-            tipo_produto: itemTipo,
-            local_id: localOrigemId,
-            quantidade: -1,
-          } as any);
-        if (stockOut) throw stockOut;
-
-        const { error: stockIn } = await supabaseEmpresa
-          .from('stock')
-          .insert({
-            id_mm: itemIdMm,
-            tipo_produto: itemTipo,
-            local_id: localDestinoId,
-            quantidade: 1,
-          } as any);
-        if (stockIn) throw stockIn;
       }
 
       if (tipo === 'saida') {
-        // Set ativo = false on the product
+        // Set ativo = false on the product — update by id_mm
         const table = itemTipo === 'bloco' ? 'blocos' : itemTipo === 'chapa' ? 'chapas' : 'ladrilho';
         const { error: updateErr } = await supabaseEmpresa
           .from(table)
           .update({ ativo: false } as any)
-          .eq('id', selectedItem!.id);
+          .eq('id_mm', itemIdMm);
         if (updateErr) throw updateErr;
-
-        // Stock: -1 at origin
-        const { error: stockOut } = await supabaseEmpresa
-          .from('stock')
-          .insert({
-            id_mm: itemIdMm,
-            tipo_produto: itemTipo,
-            local_id: localOrigemId,
-            quantidade: -1,
-          } as any);
-        if (stockOut) throw stockOut;
       }
 
       // Create movement record
