@@ -867,6 +867,19 @@ export type Database = {
         Returns: boolean
       }
       is_admin_or_above: { Args: { _user_id: string }; Returns: boolean }
+      registar_transferencia: {
+        Args: {
+          p_id_mm: string
+          p_local_destino_id: string
+          p_local_origem_id: string
+          p_numero_documento: string
+          p_operador_id: string
+          p_parque_destino: string
+          p_tipo: string
+          p_tipo_documento: string
+        }
+        Returns: undefined
+      }
       transferir_produto: {
         Args: { p_id_mm: string; p_parque_destino: string; p_tipo: string }
         Returns: undefined
