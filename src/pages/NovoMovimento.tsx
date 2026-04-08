@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useEmpresa } from '@/context/EmpresaContext';
 import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
 import { ArrowLeft, ArrowRight, Check, ArrowDownToLine, ArrowRightLeft, Package, AlertCircle, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -19,7 +18,6 @@ import { useClientes } from '@/hooks/useClientes';
 import { useLocaisAtivos } from '@/hooks/useLocais';
 import { useStockProdutoLocal } from '@/hooks/useStock';
 import { useCreateMovimento } from '@/hooks/useMovimentos';
-import { useCreateProduto } from '@/hooks/useProdutos';
 import type { TipoMovimento, TipoDocumento, OrigemMaterial, FormaProduto, MovimentoFormData } from '@/types/database';
 
 const STEPS = [
