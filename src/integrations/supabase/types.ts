@@ -65,8 +65,10 @@ export type Database = {
       blocos: {
         Row: {
           altura: number | null
+          ativo: boolean | null
           bloco_origem: string | null
           comprimento: number | null
+          corte_parcial: boolean | null
           created_at: string
           entrada_stock: string | null
           fornecedor: string | null
@@ -76,18 +78,23 @@ export type Database = {
           id_mm: string
           largura: number | null
           linha: string | null
+          medicao_pendente: boolean | null
           observacoes: string | null
           parque: string
+          pedreira_origem: string | null
           preco_unitario: number | null
           quantidade_kg: number | null
           quantidade_tons: number
+          sem_documento: boolean | null
           valor_inventario: number | null
           variedade: string | null
         }
         Insert: {
           altura?: number | null
+          ativo?: boolean | null
           bloco_origem?: string | null
           comprimento?: number | null
+          corte_parcial?: boolean | null
           created_at?: string
           entrada_stock?: string | null
           fornecedor?: string | null
@@ -97,18 +104,23 @@ export type Database = {
           id_mm: string
           largura?: number | null
           linha?: string | null
+          medicao_pendente?: boolean | null
           observacoes?: string | null
           parque: string
+          pedreira_origem?: string | null
           preco_unitario?: number | null
           quantidade_kg?: number | null
           quantidade_tons?: number
+          sem_documento?: boolean | null
           valor_inventario?: number | null
           variedade?: string | null
         }
         Update: {
           altura?: number | null
+          ativo?: boolean | null
           bloco_origem?: string | null
           comprimento?: number | null
+          corte_parcial?: boolean | null
           created_at?: string
           entrada_stock?: string | null
           fornecedor?: string | null
@@ -118,11 +130,14 @@ export type Database = {
           id_mm?: string
           largura?: number | null
           linha?: string | null
+          medicao_pendente?: boolean | null
           observacoes?: string | null
           parque?: string
+          pedreira_origem?: string | null
           preco_unitario?: number | null
           quantidade_kg?: number | null
           quantidade_tons?: number
+          sem_documento?: boolean | null
           valor_inventario?: number | null
           variedade?: string | null
         }
@@ -143,24 +158,28 @@ export type Database = {
           observacoes: string | null
           parga1_altura: number | null
           parga1_comprimento: number | null
+          parga1_espessura: number | null
           parga1_foto_primeira: string | null
           parga1_foto_ultima: string | null
           parga1_nome: string | null
           parga1_quantidade: number | null
           parga2_altura: number | null
           parga2_comprimento: number | null
+          parga2_espessura: number | null
           parga2_foto_primeira: string | null
           parga2_foto_ultima: string | null
           parga2_nome: string | null
           parga2_quantidade: number | null
           parga3_altura: number | null
           parga3_comprimento: number | null
+          parga3_espessura: number | null
           parga3_foto_primeira: string | null
           parga3_foto_ultima: string | null
           parga3_nome: string | null
           parga3_quantidade: number | null
           parga4_altura: number | null
           parga4_comprimento: number | null
+          parga4_espessura: number | null
           parga4_foto_primeira: string | null
           parga4_foto_ultima: string | null
           parga4_nome: string | null
@@ -185,24 +204,28 @@ export type Database = {
           observacoes?: string | null
           parga1_altura?: number | null
           parga1_comprimento?: number | null
+          parga1_espessura?: number | null
           parga1_foto_primeira?: string | null
           parga1_foto_ultima?: string | null
           parga1_nome?: string | null
           parga1_quantidade?: number | null
           parga2_altura?: number | null
           parga2_comprimento?: number | null
+          parga2_espessura?: number | null
           parga2_foto_primeira?: string | null
           parga2_foto_ultima?: string | null
           parga2_nome?: string | null
           parga2_quantidade?: number | null
           parga3_altura?: number | null
           parga3_comprimento?: number | null
+          parga3_espessura?: number | null
           parga3_foto_primeira?: string | null
           parga3_foto_ultima?: string | null
           parga3_nome?: string | null
           parga3_quantidade?: number | null
           parga4_altura?: number | null
           parga4_comprimento?: number | null
+          parga4_espessura?: number | null
           parga4_foto_primeira?: string | null
           parga4_foto_ultima?: string | null
           parga4_nome?: string | null
@@ -227,24 +250,28 @@ export type Database = {
           observacoes?: string | null
           parga1_altura?: number | null
           parga1_comprimento?: number | null
+          parga1_espessura?: number | null
           parga1_foto_primeira?: string | null
           parga1_foto_ultima?: string | null
           parga1_nome?: string | null
           parga1_quantidade?: number | null
           parga2_altura?: number | null
           parga2_comprimento?: number | null
+          parga2_espessura?: number | null
           parga2_foto_primeira?: string | null
           parga2_foto_ultima?: string | null
           parga2_nome?: string | null
           parga2_quantidade?: number | null
           parga3_altura?: number | null
           parga3_comprimento?: number | null
+          parga3_espessura?: number | null
           parga3_foto_primeira?: string | null
           parga3_foto_ultima?: string | null
           parga3_nome?: string | null
           parga3_quantidade?: number | null
           parga4_altura?: number | null
           parga4_comprimento?: number | null
+          parga4_espessura?: number | null
           parga4_foto_primeira?: string | null
           parga4_foto_ultima?: string | null
           parga4_nome?: string | null

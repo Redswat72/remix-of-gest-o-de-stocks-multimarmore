@@ -27,6 +27,7 @@ import Superadmin from "./pages/Superadmin";
 import Auditoria from "./pages/Auditoria";
 import Produtos from "./pages/Produtos";
 import ImportarStock from "./pages/ImportarStock";
+import Producao from "./pages/Producao";
 import ImportarInventario from "./pages/ImportarInventario";
 import Perfil from "./pages/Perfil";
 import ProdutoPublico from "./pages/ProdutoPublico";
@@ -80,6 +81,7 @@ const App = () => (
                 <Route path="/chapas" element={<ProtectedRoute><AppLayout><Chapas /></AppLayout></ProtectedRoute>} />
                 <Route path="/ladrilho" element={<ProtectedRoute><AppLayout><LadrilhoPage /></AppLayout></ProtectedRoute>} />
                 <Route path="/bandas" element={<ProtectedRoute><AppLayout><Bandas /></AppLayout></ProtectedRoute>} />
+                <Route path="/producao" element={<ProtectedRoute adminOnly><AppLayout><Producao /></AppLayout></ProtectedRoute>} />
                 <Route path="/stock" element={<ProtectedRoute><AppLayout><Stock /></AppLayout></ProtectedRoute>} />
                 <Route path="/movimento/novo" element={<ProtectedRoute><AppLayout><NovoMovimento /></AppLayout></ProtectedRoute>} />
                 <Route path="/historico" element={<ProtectedRoute><AppLayout><Historico /></AppLayout></ProtectedRoute>} />

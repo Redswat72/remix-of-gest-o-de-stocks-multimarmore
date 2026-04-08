@@ -20,6 +20,12 @@ export interface Bloco {
   foto4_url: string | null;
   observacoes: string | null;
   created_at: string;
+  // Novos campos
+  sem_documento: boolean | null;
+  pedreira_origem: string | null;
+  ativo: boolean | null;
+  corte_parcial: boolean | null;
+  medicao_pendente: boolean | null;
 }
 
 export interface Chapa {
@@ -61,6 +67,10 @@ export interface Chapa {
   parga4_altura: number | null;
   parga4_foto_primeira: string | null;
   parga4_foto_ultima: string | null;
+  parga1_espessura: number | null;
+  parga2_espessura: number | null;
+  parga3_espessura: number | null;
+  parga4_espessura: number | null;
   acabamento: string | null;
   observacoes: string | null;
   created_at: string;

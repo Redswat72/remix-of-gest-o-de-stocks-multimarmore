@@ -1,31 +1,42 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useBlocos } from "@/hooks/useBlocos";
 import { useSupabaseEmpresa } from "@/hooks/useSupabaseEmpresa";
 import { useEmpresa } from "@/context/EmpresaContext";
 import { usePermissoes } from "@/hooks/usePermissoes";
+import { useAuth } from "@/hooks/useAuth";
 import { ExportExcelButton } from "@/components/ExportExcelButton";
 import { exportBlocos } from "@/utils/exportExcel";
-import { Search } from "lucide-react";
+import { Search, Scissors, Ruler } from "lucide-react";
 import { PARQUES_OPTIONS } from "@/lib/parques";
 import InventarioDetailModal from "@/components/inventario/InventarioDetailModal";
+import MedicaoPendenteModal from "@/components/inventario/MedicaoPendenteModal";
 
 export default function Blocos() {
+  const navigate = useNavigate();
   const [parqueFiltro, setParqueFiltro] = useState("__all__");
   const [busca, setBusca] = useState("");
   const supabase = useSupabaseEmpresa();
   const { empresaConfig } = useEmpresa();
   const { podeVerValores } = usePermissoes();
+  const { isAdmin, isSuperadmin } = useAuth();
+  const canProduce = isAdmin || isSuperadmin;
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [medicaoBloco, setMedicaoBloco] = useState<{ id: string; id_mm: string } | null>(null);
 
   const { data: blocos, isLoading } = useBlocos(parqueFiltro === "__all__" ? undefined : parqueFiltro);
 
-  const blocosFiltrados = blocos?.filter((bloco) => {
+  // Filter only active blocos (ativo !== false)
+  const blocosAtivos = blocos?.filter(b => (b as any).ativo !== false);
+
+  const blocosFiltrados = blocosAtivos?.filter((bloco) => {
     const searchLower = busca.toLowerCase();
     return (
       bloco.id_mm.toLowerCase().includes(searchLower) ||
@@ -101,20 +112,58 @@ export default function Blocos() {
               <TableHead className="text-right">Toneladas</TableHead>
               {podeVerValores && <TableHead className="text-right">Preço/ton</TableHead>}
               {podeVerValores && <TableHead className="text-right">Valor</TableHead>}
+              <TableHead>Estado</TableHead>
+              {canProduce && <TableHead className="text-center">Ações</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
-            {blocosFiltrados?.map((bloco) => (
-              <TableRow key={bloco.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedId(bloco.id)}>
-                <TableCell className="font-medium">{bloco.id_mm}</TableCell>
-                <TableCell><Badge variant="outline">{bloco.parque}</Badge></TableCell>
-                <TableCell>{bloco.variedade || "—"}</TableCell>
-                <TableCell>{bloco.bloco_origem || "—"}</TableCell>
-                <TableCell className="text-right">{formatNumber(bloco.quantidade_tons)}</TableCell>
-                {podeVerValores && <TableCell className="text-right">{formatCurrency(bloco.preco_unitario)}</TableCell>}
-                {podeVerValores && <TableCell className="text-right font-medium">{formatCurrency(bloco.valor_inventario)}</TableCell>}
-              </TableRow>
-            ))}
+            {blocosFiltrados?.map((bloco) => {
+              const isMedicaoPendente = (bloco as any).medicao_pendente === true;
+              const isCorteParcial = (bloco as any).corte_parcial === true;
+
+              return (
+                <TableRow key={bloco.id} className="cursor-pointer hover:bg-muted/50">
+                  <TableCell className="font-medium" onClick={() => setSelectedId(bloco.id)}>{bloco.id_mm}</TableCell>
+                  <TableCell onClick={() => setSelectedId(bloco.id)}><Badge variant="outline">{bloco.parque}</Badge></TableCell>
+                  <TableCell onClick={() => setSelectedId(bloco.id)}>{bloco.variedade || "—"}</TableCell>
+                  <TableCell onClick={() => setSelectedId(bloco.id)}>{bloco.bloco_origem || "—"}</TableCell>
+                  <TableCell className="text-right" onClick={() => setSelectedId(bloco.id)}>{formatNumber(bloco.quantidade_tons)}</TableCell>
+                  {podeVerValores && <TableCell className="text-right" onClick={() => setSelectedId(bloco.id)}>{formatCurrency(bloco.preco_unitario)}</TableCell>}
+                  {podeVerValores && <TableCell className="text-right font-medium" onClick={() => setSelectedId(bloco.id)}>{formatCurrency(bloco.valor_inventario)}</TableCell>}
+                  <TableCell>
+                    {isMedicaoPendente && (
+                      <Badge
+                        className="bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200 cursor-pointer hover:bg-orange-200"
+                        onClick={() => setMedicaoBloco({ id: bloco.id, id_mm: bloco.id_mm })}
+                      >
+                        <Ruler className="h-3 w-3 mr-1" />
+                        Medição Pendente
+                      </Badge>
+                    )}
+                    {isCorteParcial && !isMedicaoPendente && (
+                      <Badge variant="secondary">Corte Parcial</Badge>
+                    )}
+                  </TableCell>
+                  {canProduce && (
+                    <TableCell className="text-center">
+                      {!isMedicaoPendente && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            navigate(`/producao?bloco=${bloco.id_mm}`);
+                          }}
+                        >
+                          <Scissors className="h-3.5 w-3.5 mr-1" />
+                          Produzir Chapa
+                        </Button>
+                      )}
+                    </TableCell>
+                  )}
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       </div>
@@ -144,6 +193,15 @@ export default function Blocos() {
           onOpenChange={(v) => { if (!v) setSelectedId(null); }}
           forma="bloco"
           itemId={selectedId}
+        />
+      )}
+
+      {medicaoBloco && (
+        <MedicaoPendenteModal
+          open={!!medicaoBloco}
+          onOpenChange={(v) => { if (!v) setMedicaoBloco(null); }}
+          blocoId={medicaoBloco.id}
+          idMm={medicaoBloco.id_mm}
         />
       )}
     </div>
