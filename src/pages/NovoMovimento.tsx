@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useEmpresa } from '@/context/EmpresaContext';
+import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
 import { ArrowLeft, ArrowRight, Check, ArrowDownToLine, ArrowRightLeft, Package, AlertCircle, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -18,7 +18,6 @@ import { useClientes } from '@/hooks/useClientes';
 import { useLocaisAtivos } from '@/hooks/useLocais';
 import { useStockProdutoLocal } from '@/hooks/useStock';
 import { useCreateMovimento } from '@/hooks/useMovimentos';
-import { useCreateProduto } from '@/hooks/useProdutos';
 import type { TipoMovimento, TipoDocumento, OrigemMaterial, FormaProduto, MovimentoFormData } from '@/types/database';
 
 const STEPS = [
@@ -32,18 +31,14 @@ const STEPS = [
 
 const PEDREIRAS = ['Del Rey', 'Mol', 'Olival do Pires'];
 
-function generateIdMM(prefix: string) {
-  const ts = Date.now().toString(36).toUpperCase();
-  return `${prefix}-${ts}`;
-}
+// Removed auto-generation of ID MM — user fills it in manually
 
 export default function NovoMovimento() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { empresaConfig } = useEmpresa();
   const { user, userLocal, isAdmin } = useAuth();
   const createMovimento = useCreateMovimento();
-  const createProduto = useCreateProduto();
+  const supabaseEmpresa = useSupabaseEmpresa();
 
   const [step, setStep] = useState(1);
 
@@ -73,6 +68,8 @@ export default function NovoMovimento() {
   const [novoProdutoAltura, setNovoProdutoAltura] = useState<number | ''>('');
   const [novoProdutoPeso, setNovoProdutoPeso] = useState<number | ''>('');
   const [novoProdutoParqueDestinoId, setNovoProdutoParqueDestinoId] = useState('');
+  const [novoProdutoNumChapas, setNovoProdutoNumChapas] = useState<number | ''>('');
+  const [novoProdutoNumPecas, setNovoProdutoNumPecas] = useState<number | ''>('');
 
   // Data queries
   const { data: inventarioResults } = useSearchInventario(
@@ -91,13 +88,7 @@ export default function NovoMovimento() {
   const selectedLocalDestino = locais?.find(l => l.id === (tipo === 'entrada' ? novoProdutoParqueDestinoId : localDestinoId));
   const selectedCliente = clientes?.find(c => c.id === clienteId);
 
-  // Auto-generate ID MM when entering
-  useEffect(() => {
-    if (tipo === 'entrada' && !novoProdutoIdMM) {
-      const prefix = empresaConfig?.idPrefix ?? 'IDMM';
-      setNovoProdutoIdMM(generateIdMM(prefix));
-    }
-  }, [tipo, empresaConfig]);
+  // Removed: auto-generate ID MM is no longer needed
 
   // Set default local for entrada
   useEffect(() => {
@@ -190,27 +181,68 @@ export default function NovoMovimento() {
     try {
       let finalProdutoId = produtoId;
 
-      // For entrada, create the product first
+      // For entrada, insert into the specific table (blocos/chapas/ladrilho)
       if (tipo === 'entrada') {
-        const tipoPedraMap: Record<FormaProduto, string> = {
-          bloco: 'Bloco',
-          chapa: 'Chapa',
-          ladrilho: 'Ladrilho',
-        };
+        const parqueNome = locais?.find(l => l.id === novoProdutoParqueDestinoId)?.nome || '';
+        const today = new Date().toISOString().split('T')[0];
 
-        const newProduct = await createProduto.mutateAsync({
-          idmm: novoProdutoIdMM,
-          tipo_pedra: tipoPedraMap[novoProdutoForma],
-          forma: novoProdutoForma,
-          variedade: novoProdutoVariedade || null,
-          comprimento_cm: novoProdutoComprimento || null,
-          largura_cm: novoProdutoLargura || null,
-          altura_cm: novoProdutoAltura || null,
-          peso_ton: novoProdutoPeso || null,
-          origem_bloco: origemMaterial === 'producao_propria' ? pedreiraOrigem : null,
-        });
-
-        finalProdutoId = (newProduct as any).id;
+        if (novoProdutoForma === 'bloco') {
+          const { data: newBloco, error: blocoErr } = await supabaseEmpresa
+            .from('blocos')
+            .insert({
+              id_mm: novoProdutoIdMM,
+              parque: parqueNome,
+              variedade: novoProdutoVariedade || null,
+              comprimento: novoProdutoComprimento || null,
+              largura: novoProdutoLargura || null,
+              altura: novoProdutoAltura || null,
+              quantidade_tons: novoProdutoPeso || 0,
+              fornecedor: origemMaterial === 'adquirido' ? fornecedor || null : null,
+              pedreira_origem: origemMaterial === 'producao_propria' ? pedreiraOrigem : null,
+              sem_documento: origemMaterial === 'producao_propria',
+              entrada_stock: today,
+              ativo: true,
+            })
+            .select('id')
+            .single();
+          if (blocoErr) throw blocoErr;
+          finalProdutoId = newBloco.id;
+        } else if (novoProdutoForma === 'chapa') {
+          const { data: newChapa, error: chapaErr } = await supabaseEmpresa
+            .from('chapas')
+            .insert({
+              id_mm: novoProdutoIdMM,
+              parque: parqueNome,
+              variedade: novoProdutoVariedade || null,
+              largura: novoProdutoLargura || null,
+              altura: novoProdutoAltura || null,
+              num_chapas: novoProdutoNumChapas || null,
+              fornecedor: origemMaterial === 'adquirido' ? fornecedor || null : null,
+              entrada_stock: today,
+            })
+            .select('id')
+            .single();
+          if (chapaErr) throw chapaErr;
+          finalProdutoId = newChapa.id;
+        } else if (novoProdutoForma === 'ladrilho') {
+          const { data: newLadrilho, error: ladrilhoErr } = await supabaseEmpresa
+            .from('ladrilho')
+            .insert({
+              id_mm: novoProdutoIdMM,
+              parque: parqueNome,
+              variedade: novoProdutoVariedade || null,
+              comprimento: novoProdutoComprimento || null,
+              largura: novoProdutoLargura || null,
+              altura: novoProdutoAltura || null,
+              num_pecas: novoProdutoNumPecas || null,
+              fornecedor: origemMaterial === 'adquirido' ? fornecedor || null : null,
+              entrada_stock: today,
+            })
+            .select('id')
+            .single();
+          if (ladrilhoErr) throw ladrilhoErr;
+          finalProdutoId = newLadrilho.id;
+        }
       }
 
       if (!finalProdutoId) throw new Error('Produto não definido');
@@ -275,7 +307,7 @@ export default function NovoMovimento() {
     if (newTipo === 'entrada') {
       setOrigemMaterial('adquirido');
       setTipoDocumento('guia_transporte');
-      setNovoProdutoIdMM(generateIdMM(empresaConfig?.idPrefix ?? 'IDMM'));
+      setNovoProdutoIdMM('');
     } else {
       setTipoDocumento('sem_documento');
     }
@@ -519,9 +551,8 @@ export default function NovoMovimento() {
                 <Input
                   value={novoProdutoIdMM}
                   onChange={(e) => setNovoProdutoIdMM(e.target.value)}
-                  placeholder="IDMM-XXXXX"
+                  placeholder="Introduza o ID MM do produto"
                 />
-                <p className="text-sm text-muted-foreground">Gerado automaticamente, pode editar</p>
               </div>
 
               <div className="space-y-2">
@@ -534,15 +565,17 @@ export default function NovoMovimento() {
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="space-y-2">
-                  <Label>Comprimento (cm)</Label>
-                  <Input
-                    type="number"
-                    value={novoProdutoComprimento}
-                    onChange={(e) => setNovoProdutoComprimento(e.target.value ? Number(e.target.value) : '')}
-                    placeholder="cm"
-                  />
-                </div>
+                {(novoProdutoForma === 'bloco' || novoProdutoForma === 'ladrilho') && (
+                  <div className="space-y-2">
+                    <Label>Comprimento (cm)</Label>
+                    <Input
+                      type="number"
+                      value={novoProdutoComprimento}
+                      onChange={(e) => setNovoProdutoComprimento(e.target.value ? Number(e.target.value) : '')}
+                      placeholder="cm"
+                    />
+                  </div>
+                )}
                 <div className="space-y-2">
                   <Label>Largura (cm)</Label>
                   <Input
@@ -561,16 +594,42 @@ export default function NovoMovimento() {
                     placeholder="cm"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label>Peso (Toneladas)</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={novoProdutoPeso}
-                    onChange={(e) => setNovoProdutoPeso(e.target.value ? Number(e.target.value) : '')}
-                    placeholder="ton"
-                  />
-                </div>
+                {novoProdutoForma === 'bloco' && (
+                  <div className="space-y-2">
+                    <Label>Peso (Toneladas)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={novoProdutoPeso}
+                      onChange={(e) => setNovoProdutoPeso(e.target.value ? Number(e.target.value) : '')}
+                      placeholder="ton"
+                    />
+                  </div>
+                )}
+                {novoProdutoForma === 'chapa' && (
+                  <div className="space-y-2">
+                    <Label>Nº de Chapas</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      value={novoProdutoNumChapas}
+                      onChange={(e) => setNovoProdutoNumChapas(e.target.value ? Number(e.target.value) : '')}
+                      placeholder="Quantidade de chapas"
+                    />
+                  </div>
+                )}
+                {novoProdutoForma === 'ladrilho' && (
+                  <div className="space-y-2">
+                    <Label>Nº de Peças</Label>
+                    <Input
+                      type="number"
+                      min={1}
+                      value={novoProdutoNumPecas}
+                      onChange={(e) => setNovoProdutoNumPecas(e.target.value ? Number(e.target.value) : '')}
+                      placeholder="Quantidade de peças"
+                    />
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
