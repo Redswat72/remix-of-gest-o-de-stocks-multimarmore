@@ -67,7 +67,7 @@ export function useDashboardStats() {
 
       const { count: produtosComStock } = await supabase
         .from('stock')
-        .select('produto_id', { count: 'exact', head: true })
+        .select('id_mm', { count: 'exact', head: true })
         .gt('quantidade', 0);
 
       const { count: locaisAtivos } = await supabase
