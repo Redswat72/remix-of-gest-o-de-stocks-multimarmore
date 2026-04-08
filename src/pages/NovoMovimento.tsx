@@ -195,15 +195,14 @@ export default function NovoMovimento() {
     setIsSubmitting(true);
 
     try {
-      // For entrada, insert into the specific table (blocos/chapas/ladrilho)
-
-      // For entrada, insert into the specific table (blocos/chapas/ladrilho)
+      // For entrada, insert into the specific table then movement — atomic: rollback on failure
       if (tipo === 'entrada') {
         const parqueNome = locais?.find(l => l.id === novoProdutoParqueDestinoId)?.codigo || '';
         const today = new Date().toISOString().split('T')[0];
+        let insertedId: string | null = null;
 
         if (novoProdutoForma === 'bloco') {
-          const { error: blocoErr } = await supabaseEmpresa
+          const { data: blocoData, error: blocoErr } = await supabaseEmpresa
             .from('blocos')
             .insert({
               id_mm: novoProdutoIdMM,
@@ -218,28 +217,40 @@ export default function NovoMovimento() {
               sem_documento: origemMaterial === 'producao_propria',
               entrada_stock: today,
               ativo: true,
-            })
-            .select()
+              foto1_url: blocoFoto1 || null,
+              foto2_url: blocoFoto2 || null,
+              foto3_url: blocoFoto3 || null,
+            } as any)
+            .select('id')
             .single();
           if (blocoErr) throw blocoErr;
+          insertedId = blocoData?.id;
         } else if (novoProdutoForma === 'chapa') {
-          const { error: chapaErr } = await supabaseEmpresa
+          const chapaInsert: Record<string, unknown> = {
+            id_mm: novoProdutoIdMM,
+            parque: parqueNome,
+            variedade: novoProdutoVariedade || null,
+            largura: novoProdutoLargura || null,
+            altura: novoProdutoAltura || null,
+            num_chapas: novoProdutoNumChapas || null,
+            fornecedor: origemMaterial === 'adquirido' ? fornecedor || null : null,
+            entrada_stock: today,
+          };
+          // Add parga photos
+          for (let i = 0; i < 4; i++) {
+            const n = i + 1;
+            if (pargaFotos[i].primeira) chapaInsert[`parga${n}_foto_primeira`] = pargaFotos[i].primeira;
+            if (pargaFotos[i].ultima) chapaInsert[`parga${n}_foto_ultima`] = pargaFotos[i].ultima;
+          }
+          const { data: chapaData, error: chapaErr } = await supabaseEmpresa
             .from('chapas')
-            .insert({
-              id_mm: novoProdutoIdMM,
-              parque: parqueNome,
-              variedade: novoProdutoVariedade || null,
-              largura: novoProdutoLargura || null,
-              altura: novoProdutoAltura || null,
-              num_chapas: novoProdutoNumChapas || null,
-              fornecedor: origemMaterial === 'adquirido' ? fornecedor || null : null,
-              entrada_stock: today,
-            })
-            .select()
+            .insert(chapaInsert as any)
+            .select('id')
             .single();
           if (chapaErr) throw chapaErr;
+          insertedId = chapaData?.id;
         } else if (novoProdutoForma === 'ladrilho') {
-          const { error: ladrilhoErr } = await supabaseEmpresa
+          const { data: ladrilhoData, error: ladrilhoErr } = await supabaseEmpresa
             .from('ladrilho')
             .insert({
               id_mm: novoProdutoIdMM,
@@ -251,14 +262,48 @@ export default function NovoMovimento() {
               num_pecas: novoProdutoNumPecas || null,
               fornecedor: origemMaterial === 'adquirido' ? fornecedor || null : null,
               entrada_stock: today,
-            })
-            .select()
+              foto1_url: ladrilhoFoto1 || null,
+              foto2_url: ladrilhoFoto2 || null,
+            } as any)
+            .select('id')
             .single();
           if (ladrilhoErr) throw ladrilhoErr;
+          insertedId = ladrilhoData?.id;
         }
+
+        // Now create the movement — if this fails, delete the inserted item
+        try {
+          const formData: MovimentoFormData = {
+            tipo,
+            tipo_documento: tipoDocumento,
+            numero_documento: numeroDocumento || undefined,
+            origem_material: origemMaterial,
+            id_mm: novoProdutoIdMM,
+            tipo_produto: novoProdutoForma,
+            quantidade,
+            local_destino_id: novoProdutoParqueDestinoId,
+            matricula_viatura: matriculaViatura || undefined,
+            observacoes: observacoes || undefined,
+          };
+          await createMovimento.mutateAsync(formData);
+        } catch (movErr) {
+          // Rollback: delete the just-inserted item
+          if (insertedId) {
+            const table = novoProdutoForma === 'bloco' ? 'blocos' : novoProdutoForma === 'chapa' ? 'chapas' : 'ladrilho';
+            await supabaseEmpresa.from(table).delete().eq('id', insertedId);
+          }
+          throw movErr;
+        }
+
+        toast({
+          title: 'Movimento registado!',
+          description: 'O movimento foi registado com sucesso e o stock foi atualizado.',
+        });
+        navigate('/historico');
+        return;
       }
 
-      if (isStockInsuficiente()) {
+      // Transferência / Saída flow
         toast({
           title: 'Stock insuficiente',
           description: `Não há stock suficiente para esta operação. Disponível: ${stockDisponivel}`,
