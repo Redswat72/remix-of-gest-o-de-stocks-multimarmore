@@ -32,10 +32,7 @@ const STEPS = [
 
 const PEDREIRAS = ['Del Rey', 'Mol', 'Olival do Pires'];
 
-function generateIdMM(prefix: string) {
-  const ts = Date.now().toString(36).toUpperCase();
-  return `${prefix}-${ts}`;
-}
+// Removed auto-generation of ID MM — user fills it in manually
 
 export default function NovoMovimento() {
   const navigate = useNavigate();
