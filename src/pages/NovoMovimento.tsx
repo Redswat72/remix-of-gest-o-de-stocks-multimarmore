@@ -179,7 +179,7 @@ export default function NovoMovimento() {
     setIsSubmitting(true);
 
     try {
-      let finalProdutoId = produtoId;
+      // For entrada, insert into the specific table (blocos/chapas/ladrilho)
 
       // For entrada, insert into the specific table (blocos/chapas/ladrilho)
       if (tipo === 'entrada') {
