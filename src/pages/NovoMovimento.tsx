@@ -71,6 +71,22 @@ export default function NovoMovimento() {
   const [novoProdutoNumChapas, setNovoProdutoNumChapas] = useState<number | ''>('');
   const [novoProdutoNumPecas, setNovoProdutoNumPecas] = useState<number | ''>('');
 
+  // Photo URL fields
+  // Blocos: foto1_url, foto2_url, foto3_url
+  const [blocoFoto1, setBlocoFoto1] = useState('');
+  const [blocoFoto2, setBlocoFoto2] = useState('');
+  const [blocoFoto3, setBlocoFoto3] = useState('');
+  // Ladrilho: foto1_url, foto2_url
+  const [ladrilhoFoto1, setLadrilhoFoto1] = useState('');
+  const [ladrilhoFoto2, setLadrilhoFoto2] = useState('');
+  // Chapas pargas: foto_primeira, foto_ultima per parga (up to 4)
+  const [pargaFotos, setPargaFotos] = useState<{ primeira: string; ultima: string }[]>([
+    { primeira: '', ultima: '' },
+    { primeira: '', ultima: '' },
+    { primeira: '', ultima: '' },
+    { primeira: '', ultima: '' },
+  ]);
+
   // Data queries
   const { data: inventarioResults } = useSearchInventario(
     tipo !== 'entrada' ? searchProduto || undefined : undefined
@@ -179,15 +195,14 @@ export default function NovoMovimento() {
     setIsSubmitting(true);
 
     try {
-      // For entrada, insert into the specific table (blocos/chapas/ladrilho)
-
-      // For entrada, insert into the specific table (blocos/chapas/ladrilho)
+      // For entrada, insert into the specific table then movement — atomic: rollback on failure
       if (tipo === 'entrada') {
         const parqueNome = locais?.find(l => l.id === novoProdutoParqueDestinoId)?.codigo || '';
         const today = new Date().toISOString().split('T')[0];
+        let insertedId: string | null = null;
 
         if (novoProdutoForma === 'bloco') {
-          const { error: blocoErr } = await supabaseEmpresa
+          const { data: blocoData, error: blocoErr } = await supabaseEmpresa
             .from('blocos')
             .insert({
               id_mm: novoProdutoIdMM,
@@ -202,28 +217,40 @@ export default function NovoMovimento() {
               sem_documento: origemMaterial === 'producao_propria',
               entrada_stock: today,
               ativo: true,
-            })
-            .select()
+              foto1_url: blocoFoto1 || null,
+              foto2_url: blocoFoto2 || null,
+              foto3_url: blocoFoto3 || null,
+            } as any)
+            .select('id')
             .single();
           if (blocoErr) throw blocoErr;
+          insertedId = blocoData?.id;
         } else if (novoProdutoForma === 'chapa') {
-          const { error: chapaErr } = await supabaseEmpresa
+          const chapaInsert: Record<string, unknown> = {
+            id_mm: novoProdutoIdMM,
+            parque: parqueNome,
+            variedade: novoProdutoVariedade || null,
+            largura: novoProdutoLargura || null,
+            altura: novoProdutoAltura || null,
+            num_chapas: novoProdutoNumChapas || null,
+            fornecedor: origemMaterial === 'adquirido' ? fornecedor || null : null,
+            entrada_stock: today,
+          };
+          // Add parga photos
+          for (let i = 0; i < 4; i++) {
+            const n = i + 1;
+            if (pargaFotos[i].primeira) chapaInsert[`parga${n}_foto_primeira`] = pargaFotos[i].primeira;
+            if (pargaFotos[i].ultima) chapaInsert[`parga${n}_foto_ultima`] = pargaFotos[i].ultima;
+          }
+          const { data: chapaData, error: chapaErr } = await supabaseEmpresa
             .from('chapas')
-            .insert({
-              id_mm: novoProdutoIdMM,
-              parque: parqueNome,
-              variedade: novoProdutoVariedade || null,
-              largura: novoProdutoLargura || null,
-              altura: novoProdutoAltura || null,
-              num_chapas: novoProdutoNumChapas || null,
-              fornecedor: origemMaterial === 'adquirido' ? fornecedor || null : null,
-              entrada_stock: today,
-            })
-            .select()
+            .insert(chapaInsert as any)
+            .select('id')
             .single();
           if (chapaErr) throw chapaErr;
+          insertedId = chapaData?.id;
         } else if (novoProdutoForma === 'ladrilho') {
-          const { error: ladrilhoErr } = await supabaseEmpresa
+          const { data: ladrilhoData, error: ladrilhoErr } = await supabaseEmpresa
             .from('ladrilho')
             .insert({
               id_mm: novoProdutoIdMM,
@@ -235,13 +262,48 @@ export default function NovoMovimento() {
               num_pecas: novoProdutoNumPecas || null,
               fornecedor: origemMaterial === 'adquirido' ? fornecedor || null : null,
               entrada_stock: today,
-            })
-            .select()
+              foto1_url: ladrilhoFoto1 || null,
+              foto2_url: ladrilhoFoto2 || null,
+            } as any)
+            .select('id')
             .single();
           if (ladrilhoErr) throw ladrilhoErr;
+          insertedId = ladrilhoData?.id;
         }
+
+        // Now create the movement — if this fails, delete the inserted item
+        try {
+          const formData: MovimentoFormData = {
+            tipo,
+            tipo_documento: tipoDocumento,
+            numero_documento: numeroDocumento || undefined,
+            origem_material: origemMaterial,
+            id_mm: novoProdutoIdMM,
+            tipo_produto: novoProdutoForma,
+            quantidade,
+            local_destino_id: novoProdutoParqueDestinoId,
+            matricula_viatura: matriculaViatura || undefined,
+            observacoes: observacoes || undefined,
+          };
+          await createMovimento.mutateAsync(formData);
+        } catch (movErr) {
+          // Rollback: delete the just-inserted item
+          if (insertedId) {
+            const table = novoProdutoForma === 'bloco' ? 'blocos' : novoProdutoForma === 'chapa' ? 'chapas' : 'ladrilho';
+            await supabaseEmpresa.from(table).delete().eq('id', insertedId);
+          }
+          throw movErr;
+        }
+
+        toast({
+          title: 'Movimento registado!',
+          description: 'O movimento foi registado com sucesso e o stock foi atualizado.',
+        });
+        navigate('/historico');
+        return;
       }
 
+      // Transferência / Saída flow
       if (isStockInsuficiente()) {
         toast({
           title: 'Stock insuficiente',
@@ -256,12 +318,11 @@ export default function NovoMovimento() {
         tipo,
         tipo_documento: tipoDocumento,
         numero_documento: numeroDocumento || undefined,
-        origem_material: tipo === 'entrada' ? origemMaterial : undefined,
-        id_mm: tipo === 'entrada' ? novoProdutoIdMM : selectedItem?.id_mm,
-        tipo_produto: tipo === 'entrada' ? novoProdutoForma : selectedItem?.tipo,
+        id_mm: selectedItem?.id_mm,
+        tipo_produto: selectedItem?.tipo,
         quantidade,
-        local_origem_id: tipo !== 'entrada' ? localOrigemId : undefined,
-        local_destino_id: tipo === 'entrada' ? novoProdutoParqueDestinoId : (tipo !== 'saida' ? localDestinoId : undefined),
+        local_origem_id: localOrigemId || undefined,
+        local_destino_id: tipo !== 'saida' ? localDestinoId : undefined,
         cliente_id: tipo === 'saida' ? clienteId : undefined,
         matricula_viatura: matriculaViatura || undefined,
         observacoes: observacoes || undefined,
@@ -628,6 +689,79 @@ export default function NovoMovimento() {
                 )}
               </div>
 
+              {/* Photo URL fields */}
+              {novoProdutoForma === 'bloco' && (
+                <div className="space-y-3">
+                  <Label className="text-base font-semibold">Fotografias (URL)</Label>
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <div className="space-y-1">
+                      <Label className="text-sm">Foto 1</Label>
+                      <Input placeholder="URL da foto 1" value={blocoFoto1} onChange={(e) => setBlocoFoto1(e.target.value)} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-sm">Foto 2</Label>
+                      <Input placeholder="URL da foto 2" value={blocoFoto2} onChange={(e) => setBlocoFoto2(e.target.value)} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-sm">Foto 3</Label>
+                      <Input placeholder="URL da foto 3" value={blocoFoto3} onChange={(e) => setBlocoFoto3(e.target.value)} />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {novoProdutoForma === 'chapa' && (
+                <div className="space-y-3">
+                  <Label className="text-base font-semibold">Fotografias das Pargas (URL)</Label>
+                  {[1, 2, 3, 4].map((n) => (
+                    <div key={n} className="space-y-2 border rounded-lg p-3">
+                      <Label className="text-sm font-medium">Parga {n}</Label>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Foto Primeira</Label>
+                          <Input
+                            placeholder="URL da foto primeira"
+                            value={pargaFotos[n - 1].primeira}
+                            onChange={(e) => {
+                              const updated = [...pargaFotos];
+                              updated[n - 1] = { ...updated[n - 1], primeira: e.target.value };
+                              setPargaFotos(updated);
+                            }}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Foto Última</Label>
+                          <Input
+                            placeholder="URL da foto última"
+                            value={pargaFotos[n - 1].ultima}
+                            onChange={(e) => {
+                              const updated = [...pargaFotos];
+                              updated[n - 1] = { ...updated[n - 1], ultima: e.target.value };
+                              setPargaFotos(updated);
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {novoProdutoForma === 'ladrilho' && (
+                <div className="space-y-3">
+                  <Label className="text-base font-semibold">Fotografias (URL)</Label>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="space-y-1">
+                      <Label className="text-sm">Foto 1</Label>
+                      <Input placeholder="URL da foto 1" value={ladrilhoFoto1} onChange={(e) => setLadrilhoFoto1(e.target.value)} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-sm">Foto 2</Label>
+                      <Input placeholder="URL da foto 2" value={ladrilhoFoto2} onChange={(e) => setLadrilhoFoto2(e.target.value)} />
+                    </div>
+                  </div>
+                </div>
+              )}
               <div className="space-y-2">
                 <Label>Parque de Destino <span className="text-destructive">*</span></Label>
                 <Select
