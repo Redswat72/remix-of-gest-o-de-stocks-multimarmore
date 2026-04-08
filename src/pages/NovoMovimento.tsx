@@ -203,10 +203,9 @@ export default function NovoMovimento() {
               entrada_stock: today,
               ativo: true,
             })
-            .select('id')
+            .select()
             .single();
           if (blocoErr) throw blocoErr;
-          finalProdutoId = newBloco.id;
         } else if (novoProdutoForma === 'chapa') {
           const { data: newChapa, error: chapaErr } = await supabaseEmpresa
             .from('chapas')
@@ -220,10 +219,9 @@ export default function NovoMovimento() {
               fornecedor: origemMaterial === 'adquirido' ? fornecedor || null : null,
               entrada_stock: today,
             })
-            .select('id')
+            .select()
             .single();
           if (chapaErr) throw chapaErr;
-          finalProdutoId = newChapa.id;
         } else if (novoProdutoForma === 'ladrilho') {
           const { data: newLadrilho, error: ladrilhoErr } = await supabaseEmpresa
             .from('ladrilho')
@@ -238,10 +236,9 @@ export default function NovoMovimento() {
               fornecedor: origemMaterial === 'adquirido' ? fornecedor || null : null,
               entrada_stock: today,
             })
-            .select('id')
+            .select()
             .single();
           if (ladrilhoErr) throw ladrilhoErr;
-          finalProdutoId = newLadrilho.id;
         }
       }
 
