@@ -207,7 +207,8 @@ export function useProdutosStockBaixo(limite: number = 5) {
         .from('stock')
         .select(`
           quantidade,
-          produto:produtos(id, idmm, tipo_pedra, forma),
+          id_mm,
+          tipo_produto,
           local:locais(nome)
         `)
         .gt('quantidade', 0)
@@ -218,16 +219,14 @@ export function useProdutosStockBaixo(limite: number = 5) {
       if (!data) return [];
 
       return data.map(item => {
-        const produtoData = item.produto as unknown;
-        const produto = (Array.isArray(produtoData) ? produtoData[0] : produtoData) as { id: string; idmm: string; tipo_pedra: string; forma: string } | null;
         const localData = item.local as unknown;
         const local = (Array.isArray(localData) ? localData[0] : localData) as { nome: string } | null;
         
         return {
-          produtoId: produto?.id || '',
-          idmm: produto?.idmm || '',
-          tipoPedra: produto?.tipo_pedra || '',
-          forma: produto?.forma || '',
+          produtoId: '',
+          idmm: (item as any).id_mm || '',
+          tipoPedra: '',
+          forma: (item as any).tipo_produto || '',
           localNome: local?.nome || '',
           quantidade: item.quantidade,
         };
