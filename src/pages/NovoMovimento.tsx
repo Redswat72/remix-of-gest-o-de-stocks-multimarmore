@@ -246,9 +246,15 @@ export default function NovoMovimento() {
       });
       navigate('/historico');
     } catch (error) {
+      const msg = error instanceof Error
+        ? error.message
+        : typeof error === 'object' && error !== null && 'message' in error
+          ? String((error as any).message)
+          : JSON.stringify(error);
+      console.error('Erro ao registar movimento:', error);
       toast({
         title: 'Erro ao registar movimento',
-        description: error instanceof Error ? error.message : 'Ocorreu um erro inesperado',
+        description: msg,
         variant: 'destructive',
       });
     } finally {
