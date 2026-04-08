@@ -197,7 +197,7 @@ export default function NovoMovimento() {
     try {
       // For entrada, insert into the specific table then movement — atomic: rollback on failure
       if (tipo === 'entrada') {
-        const parqueNome = locais?.find(l => l.id === novoProdutoParqueDestinoId)?.codigo || '';
+        const parqueCodigo = locais?.find(l => l.id === novoProdutoParqueDestinoId)?.codigo || '';
         const today = new Date().toISOString().split('T')[0];
         let insertedId: string | null = null;
 
@@ -206,7 +206,7 @@ export default function NovoMovimento() {
             .from('blocos')
             .insert({
               id_mm: novoProdutoIdMM,
-              parque: parqueNome,
+              parque: parqueCodigo,
               variedade: novoProdutoVariedade || null,
               comprimento: novoProdutoComprimento || null,
               largura: novoProdutoLargura || null,
@@ -228,7 +228,7 @@ export default function NovoMovimento() {
         } else if (novoProdutoForma === 'chapa') {
           const chapaInsert: Record<string, unknown> = {
             id_mm: novoProdutoIdMM,
-            parque: parqueNome,
+            parque: parqueCodigo,
             variedade: novoProdutoVariedade || null,
             largura: novoProdutoLargura || null,
             altura: novoProdutoAltura || null,
@@ -236,7 +236,6 @@ export default function NovoMovimento() {
             fornecedor: origemMaterial === 'adquirido' ? fornecedor || null : null,
             entrada_stock: today,
           };
-          // Add parga photos
           for (let i = 0; i < 4; i++) {
             const n = i + 1;
             if (pargaFotos[i].primeira) chapaInsert[`parga${n}_foto_primeira`] = pargaFotos[i].primeira;
@@ -254,7 +253,7 @@ export default function NovoMovimento() {
             .from('ladrilho')
             .insert({
               id_mm: novoProdutoIdMM,
-              parque: parqueNome,
+              parque: parqueCodigo,
               variedade: novoProdutoVariedade || null,
               comprimento: novoProdutoComprimento || null,
               largura: novoProdutoLargura || null,
@@ -271,7 +270,29 @@ export default function NovoMovimento() {
           insertedId = ladrilhoData?.id;
         }
 
-        // Now create the movement — if this fails, delete the inserted item
+        // Insert stock record: quantidade = 1 at destination
+        let stockInserted = false;
+        try {
+          const { error: stockErr } = await supabaseEmpresa
+            .from('stock')
+            .insert({
+              id_mm: novoProdutoIdMM,
+              tipo_produto: novoProdutoForma,
+              local_id: novoProdutoParqueDestinoId,
+              quantidade: 1,
+            } as any);
+          if (stockErr) throw stockErr;
+          stockInserted = true;
+        } catch (stockErr) {
+          // Rollback: delete the just-inserted product
+          if (insertedId) {
+            const table = novoProdutoForma === 'bloco' ? 'blocos' : novoProdutoForma === 'chapa' ? 'chapas' : 'ladrilho';
+            await supabaseEmpresa.from(table).delete().eq('id', insertedId);
+          }
+          throw stockErr;
+        }
+
+        // Now create the movement — if this fails, delete stock and product
         try {
           const formData: MovimentoFormData = {
             tipo,
@@ -287,7 +308,16 @@ export default function NovoMovimento() {
           };
           await createMovimento.mutateAsync(formData);
         } catch (movErr) {
-          // Rollback: delete the just-inserted item
+          // Rollback: delete stock record
+          if (stockInserted) {
+            await supabaseEmpresa
+              .from('stock')
+              .delete()
+              .eq('id_mm', novoProdutoIdMM)
+              .eq('tipo_produto', novoProdutoForma)
+              .eq('local_id', novoProdutoParqueDestinoId);
+          }
+          // Rollback: delete the just-inserted product
           if (insertedId) {
             const table = novoProdutoForma === 'bloco' ? 'blocos' : novoProdutoForma === 'chapa' ? 'chapas' : 'ladrilho';
             await supabaseEmpresa.from(table).delete().eq('id', insertedId);
@@ -314,12 +344,70 @@ export default function NovoMovimento() {
         return;
       }
 
+      const itemIdMm = selectedItem?.id_mm || '';
+      const itemTipo = selectedItem?.tipo || '';
+      const itemParque = selectedItem?.parque || '';
+
+      if (tipo === 'transferencia') {
+        // Update parque on the product table
+        const table = itemTipo === 'bloco' ? 'blocos' : itemTipo === 'chapa' ? 'chapas' : 'ladrilho';
+        const destCodigo = locais?.find(l => l.id === localDestinoId)?.codigo || '';
+        const { error: updateErr } = await supabaseEmpresa
+          .from(table)
+          .update({ parque: destCodigo } as any)
+          .eq('id', selectedItem!.id);
+        if (updateErr) throw updateErr;
+
+        // Stock: -1 at origin, +1 at destination
+        const { error: stockOut } = await supabaseEmpresa
+          .from('stock')
+          .insert({
+            id_mm: itemIdMm,
+            tipo_produto: itemTipo,
+            local_id: localOrigemId,
+            quantidade: -1,
+          } as any);
+        if (stockOut) throw stockOut;
+
+        const { error: stockIn } = await supabaseEmpresa
+          .from('stock')
+          .insert({
+            id_mm: itemIdMm,
+            tipo_produto: itemTipo,
+            local_id: localDestinoId,
+            quantidade: 1,
+          } as any);
+        if (stockIn) throw stockIn;
+      }
+
+      if (tipo === 'saida') {
+        // Set ativo = false on the product
+        const table = itemTipo === 'bloco' ? 'blocos' : itemTipo === 'chapa' ? 'chapas' : 'ladrilho';
+        const { error: updateErr } = await supabaseEmpresa
+          .from(table)
+          .update({ ativo: false } as any)
+          .eq('id', selectedItem!.id);
+        if (updateErr) throw updateErr;
+
+        // Stock: -1 at origin
+        const { error: stockOut } = await supabaseEmpresa
+          .from('stock')
+          .insert({
+            id_mm: itemIdMm,
+            tipo_produto: itemTipo,
+            local_id: localOrigemId,
+            quantidade: -1,
+          } as any);
+        if (stockOut) throw stockOut;
+      }
+
+      // Create movement record
       const formData: MovimentoFormData = {
         tipo,
         tipo_documento: tipoDocumento,
         numero_documento: numeroDocumento || undefined,
-        id_mm: selectedItem?.id_mm,
-        tipo_produto: selectedItem?.tipo,
+        id_mm: itemIdMm,
+        tipo_produto: itemTipo,
         quantidade,
         local_origem_id: localOrigemId || undefined,
         local_destino_id: tipo !== 'saida' ? localDestinoId : undefined,
