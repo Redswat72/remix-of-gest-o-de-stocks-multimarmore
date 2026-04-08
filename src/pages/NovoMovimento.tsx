@@ -304,6 +304,7 @@ export default function NovoMovimento() {
       }
 
       // Transferência / Saída flow
+      if (isStockInsuficiente()) {
         toast({
           title: 'Stock insuficiente',
           description: `Não há stock suficiente para esta operação. Disponível: ${stockDisponivel}`,
@@ -317,12 +318,11 @@ export default function NovoMovimento() {
         tipo,
         tipo_documento: tipoDocumento,
         numero_documento: numeroDocumento || undefined,
-        origem_material: tipo === 'entrada' ? origemMaterial : undefined,
-        id_mm: tipo === 'entrada' ? novoProdutoIdMM : selectedItem?.id_mm,
-        tipo_produto: tipo === 'entrada' ? novoProdutoForma : selectedItem?.tipo,
+        id_mm: selectedItem?.id_mm,
+        tipo_produto: selectedItem?.tipo,
         quantidade,
-        local_origem_id: tipo !== 'entrada' ? localOrigemId : undefined,
-        local_destino_id: tipo === 'entrada' ? novoProdutoParqueDestinoId : (tipo !== 'saida' ? localDestinoId : undefined),
+        local_origem_id: localOrigemId || undefined,
+        local_destino_id: tipo !== 'saida' ? localDestinoId : undefined,
         cliente_id: tipo === 'saida' ? clienteId : undefined,
         matricula_viatura: matriculaViatura || undefined,
         observacoes: observacoes || undefined,
