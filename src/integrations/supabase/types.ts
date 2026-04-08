@@ -74,6 +74,7 @@ export type Database = {
           fornecedor: string | null
           foto1_url: string | null
           foto2_url: string | null
+          foto3_url: string | null
           id: string
           id_mm: string
           largura: number | null
@@ -100,6 +101,7 @@ export type Database = {
           fornecedor?: string | null
           foto1_url?: string | null
           foto2_url?: string | null
+          foto3_url?: string | null
           id?: string
           id_mm: string
           largura?: number | null
@@ -126,6 +128,7 @@ export type Database = {
           fornecedor?: string | null
           foto1_url?: string | null
           foto2_url?: string | null
+          foto3_url?: string | null
           id?: string
           id_mm?: string
           largura?: number | null
@@ -337,6 +340,8 @@ export type Database = {
           entrada_stock: string | null
           espessura: number | null
           foto_amostra_url: string | null
+          foto1_url: string | null
+          foto2_url: string | null
           id: string
           id_mm: string | null
           largura: number | null
@@ -361,6 +366,8 @@ export type Database = {
           entrada_stock?: string | null
           espessura?: number | null
           foto_amostra_url?: string | null
+          foto1_url?: string | null
+          foto2_url?: string | null
           id?: string
           id_mm?: string | null
           largura?: number | null
@@ -385,6 +392,8 @@ export type Database = {
           entrada_stock?: string | null
           espessura?: number | null
           foto_amostra_url?: string | null
+          foto1_url?: string | null
+          foto2_url?: string | null
           id?: string
           id_mm?: string | null
           largura?: number | null
