@@ -80,7 +80,10 @@ export function useStockUnificado(options: UseStockUnificadoOptions = {}) {
 
   const blocosQuery = useQuery({
     queryKey: ['blocos-unificado', empresa],
-    queryFn: () => fetchAll<Bloco>(supabase, 'blocos'),
+    queryFn: async () => {
+      const all = await fetchAll<Bloco>(supabase, 'blocos');
+      return all.filter(b => b.ativo !== false);
+    },
     enabled: !!empresa && (!forma || forma === 'bloco'),
   });
 

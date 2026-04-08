@@ -7,7 +7,7 @@ export interface InventarioItem {
   tipo: 'bloco' | 'chapa' | 'ladrilho';
   variedade: string | null;
   parque: string;
-  label: string; // for display
+  label: string;
 }
 
 export function useSearchInventario(search?: string) {
@@ -20,7 +20,7 @@ export function useSearchInventario(search?: string) {
 
       const results: InventarioItem[] = [];
 
-      // Search blocos
+      // Search blocos — only ativo = true
       const { data: blocos } = await supabase
         .from('blocos')
         .select('id, id_mm, variedade, parque')
@@ -41,7 +41,7 @@ export function useSearchInventario(search?: string) {
         }
       }
 
-      // Search chapas
+      // Search chapas (no ativo column, but filter via stock > 0 implicitly)
       const { data: chapas } = await supabase
         .from('chapas')
         .select('id, id_mm, variedade, parque')
@@ -82,7 +82,6 @@ export function useSearchInventario(search?: string) {
         }
       }
 
-      // Sort by id_mm
       results.sort((a, b) => a.id_mm.localeCompare(b.id_mm));
 
       return results;

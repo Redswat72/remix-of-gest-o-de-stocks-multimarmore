@@ -449,6 +449,7 @@ export type Database = {
           created_at: string
           data_movimento: string
           id: string
+          id_mm: string | null
           local_destino_id: string | null
           local_origem_id: string | null
           matricula_viatura: string | null
@@ -457,10 +458,11 @@ export type Database = {
           observacoes: string | null
           operador_id: string
           origem_material: Database["public"]["Enums"]["origem_material"] | null
-          produto_id: string
+          produto_id: string | null
           quantidade: number
           tipo: Database["public"]["Enums"]["tipo_movimento"]
           tipo_documento: Database["public"]["Enums"]["tipo_documento"]
+          tipo_produto: string | null
           updated_at: string
         }
         Insert: {
@@ -471,6 +473,7 @@ export type Database = {
           created_at?: string
           data_movimento?: string
           id?: string
+          id_mm?: string | null
           local_destino_id?: string | null
           local_origem_id?: string | null
           matricula_viatura?: string | null
@@ -481,10 +484,11 @@ export type Database = {
           origem_material?:
             | Database["public"]["Enums"]["origem_material"]
             | null
-          produto_id: string
+          produto_id?: string | null
           quantidade: number
           tipo: Database["public"]["Enums"]["tipo_movimento"]
           tipo_documento: Database["public"]["Enums"]["tipo_documento"]
+          tipo_produto?: string | null
           updated_at?: string
         }
         Update: {
@@ -495,6 +499,7 @@ export type Database = {
           created_at?: string
           data_movimento?: string
           id?: string
+          id_mm?: string | null
           local_destino_id?: string | null
           local_origem_id?: string | null
           matricula_viatura?: string | null
@@ -505,10 +510,11 @@ export type Database = {
           origem_material?:
             | Database["public"]["Enums"]["origem_material"]
             | null
-          produto_id?: string
+          produto_id?: string | null
           quantidade?: number
           tipo?: Database["public"]["Enums"]["tipo_movimento"]
           tipo_documento?: Database["public"]["Enums"]["tipo_documento"]
+          tipo_produto?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -787,23 +793,29 @@ export type Database = {
       stock: {
         Row: {
           id: string
+          id_mm: string | null
           local_id: string
-          produto_id: string
+          produto_id: string | null
           quantidade: number
+          tipo_produto: string | null
           updated_at: string
         }
         Insert: {
           id?: string
+          id_mm?: string | null
           local_id: string
-          produto_id: string
+          produto_id?: string | null
           quantidade?: number
+          tipo_produto?: string | null
           updated_at?: string
         }
         Update: {
           id?: string
+          id_mm?: string | null
           local_id?: string
-          produto_id?: string
+          produto_id?: string | null
           quantidade?: number
+          tipo_produto?: string | null
           updated_at?: string
         }
         Relationships: [
