@@ -90,13 +90,7 @@ export default function NovoMovimento() {
   const selectedLocalDestino = locais?.find(l => l.id === (tipo === 'entrada' ? novoProdutoParqueDestinoId : localDestinoId));
   const selectedCliente = clientes?.find(c => c.id === clienteId);
 
-  // Auto-generate ID MM when entering
-  useEffect(() => {
-    if (tipo === 'entrada' && !novoProdutoIdMM) {
-      const prefix = empresaConfig?.idPrefix ?? 'IDMM';
-      setNovoProdutoIdMM(generateIdMM(prefix));
-    }
-  }, [tipo, empresaConfig]);
+  // Removed: auto-generate ID MM is no longer needed
 
   // Set default local for entrada
   useEffect(() => {
