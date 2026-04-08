@@ -96,7 +96,8 @@ export default function NovoMovimento() {
 
   // Stock validation
   const { data: stockDisponivel } = useStockProdutoLocal(
-    produtoId,
+    selectedItem?.id_mm,
+    selectedItem?.tipo,
     tipo === 'entrada' ? undefined : localOrigemId
   );
 
