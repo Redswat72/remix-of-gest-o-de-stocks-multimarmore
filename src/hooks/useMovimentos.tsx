@@ -102,6 +102,14 @@ export function useMovimentos(options: UseMovimentosOptions = {}) {
 
       const { data, error, count } = await query;
 
+      console.log('[useMovimentos] Query result:', { 
+        dataLength: data?.length, 
+        count, 
+        error, 
+        filters: { dataInicio, dataFim, tipo, localId, produtoId, idMm, operadorId, cancelados },
+        firstRow: data?.[0] ?? null 
+      });
+
       if (error) throw error;
       return { data: data as unknown as MovimentoComDetalhes[], count: count ?? 0 };
     },
