@@ -70,6 +70,8 @@ export default function NovoMovimento() {
   const [novoProdutoAltura, setNovoProdutoAltura] = useState<number | ''>('');
   const [novoProdutoPeso, setNovoProdutoPeso] = useState<number | ''>('');
   const [novoProdutoParqueDestinoId, setNovoProdutoParqueDestinoId] = useState('');
+  const [novoProdutoNumChapas, setNovoProdutoNumChapas] = useState<number | ''>('');
+  const [novoProdutoNumPecas, setNovoProdutoNumPecas] = useState<number | ''>('');
 
   // Data queries
   const { data: inventarioResults } = useSearchInventario(
