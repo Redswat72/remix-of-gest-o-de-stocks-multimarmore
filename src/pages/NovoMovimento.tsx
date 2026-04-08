@@ -245,8 +245,6 @@ export default function NovoMovimento() {
         }
       }
 
-      if (!finalProdutoId) throw new Error('Produto não definido');
-
       if (isStockInsuficiente()) {
         toast({
           title: 'Stock insuficiente',
@@ -262,7 +260,8 @@ export default function NovoMovimento() {
         tipo_documento: tipoDocumento,
         numero_documento: numeroDocumento || undefined,
         origem_material: tipo === 'entrada' ? origemMaterial : undefined,
-        produto_id: finalProdutoId,
+        id_mm: tipo === 'entrada' ? novoProdutoIdMM : selectedItem?.id_mm,
+        tipo_produto: tipo === 'entrada' ? novoProdutoForma : selectedItem?.tipo,
         quantidade,
         local_origem_id: tipo !== 'entrada' ? localOrigemId : undefined,
         local_destino_id: tipo === 'entrada' ? novoProdutoParqueDestinoId : (tipo !== 'saida' ? localDestinoId : undefined),
