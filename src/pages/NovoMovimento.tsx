@@ -350,13 +350,12 @@ export default function NovoMovimento() {
       const itemParque = selectedItem?.parque || '';
 
       if (tipo === 'transferencia') {
-        // UPDATE parque on the product table — never insert/upsert
-        const table = itemTipo === 'bloco' ? 'blocos' : itemTipo === 'chapa' ? 'chapas' : 'ladrilho';
         const destCodigo = locais?.find(l => l.id === localDestinoId)?.codigo || '';
-        const { error: updateErr } = await supabaseEmpresa
-          .from(table)
-          .update({ parque: destCodigo } as any)
-          .eq('id_mm', itemIdMm);
+        const { error: updateErr } = await supabaseEmpresa.rpc('transferir_produto', {
+          p_id_mm: itemIdMm,
+          p_tipo: itemTipo,
+          p_parque_destino: destCodigo,
+        });
         if (updateErr) throw updateErr;
       }
 
