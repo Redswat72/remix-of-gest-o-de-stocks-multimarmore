@@ -41,6 +41,8 @@ export default function Historico() {
   const [tipoFilter, setTipoFilter] = useState<string>('__all__');
   const [localFilter, setLocalFilter] = useState<string>('__all__');
   const [showCancelados, setShowCancelados] = useState<string>('todos');
+  const [currentPage, setCurrentPage] = useState(0);
+  const PAGE_SIZE = 50;
   
   // UI State
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
@@ -49,14 +51,19 @@ export default function Historico() {
   const [motivoCancelamento, setMotivoCancelamento] = useState('');
 
   // Data
-  const { data: movimentos, isLoading } = useMovimentos({
+  const { data: result, isLoading } = useMovimentos({
     dataInicio: dataInicio || undefined,
     dataFim: dataFim || undefined,
     tipo: tipoFilter === '__all__' ? undefined : tipoFilter,
     localId: localFilter === '__all__' ? undefined : localFilter,
     cancelados: showCancelados === 'todos' ? undefined : showCancelados === 'sim',
-    limit: 200,
+    limit: PAGE_SIZE,
+    page: currentPage,
   });
+
+  const movimentos = result?.data;
+  const totalCount = result?.count ?? 0;
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   const { data: locais } = useLocaisAtivos();
 
