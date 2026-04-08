@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useEmpresa } from '@/context/EmpresaContext';
+import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
 import { ArrowLeft, ArrowRight, Check, ArrowDownToLine, ArrowRightLeft, Package, AlertCircle, Loader2 } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -183,27 +184,68 @@ export default function NovoMovimento() {
     try {
       let finalProdutoId = produtoId;
 
-      // For entrada, create the product first
+      // For entrada, insert into the specific table (blocos/chapas/ladrilho)
       if (tipo === 'entrada') {
-        const tipoPedraMap: Record<FormaProduto, string> = {
-          bloco: 'Bloco',
-          chapa: 'Chapa',
-          ladrilho: 'Ladrilho',
-        };
+        const parqueNome = locais?.find(l => l.id === novoProdutoParqueDestinoId)?.nome || '';
+        const today = new Date().toISOString().split('T')[0];
 
-        const newProduct = await createProduto.mutateAsync({
-          idmm: novoProdutoIdMM,
-          tipo_pedra: tipoPedraMap[novoProdutoForma],
-          forma: novoProdutoForma,
-          variedade: novoProdutoVariedade || null,
-          comprimento_cm: novoProdutoComprimento || null,
-          largura_cm: novoProdutoLargura || null,
-          altura_cm: novoProdutoAltura || null,
-          peso_ton: novoProdutoPeso || null,
-          origem_bloco: origemMaterial === 'producao_propria' ? pedreiraOrigem : null,
-        });
-
-        finalProdutoId = (newProduct as any).id;
+        if (novoProdutoForma === 'bloco') {
+          const { data: newBloco, error: blocoErr } = await supabaseEmpresa
+            .from('blocos')
+            .insert({
+              id_mm: novoProdutoIdMM,
+              parque: parqueNome,
+              variedade: novoProdutoVariedade || null,
+              comprimento: novoProdutoComprimento || null,
+              largura: novoProdutoLargura || null,
+              altura: novoProdutoAltura || null,
+              quantidade_tons: novoProdutoPeso || 0,
+              fornecedor: origemMaterial === 'adquirido' ? fornecedor || null : null,
+              pedreira_origem: origemMaterial === 'producao_propria' ? pedreiraOrigem : null,
+              sem_documento: origemMaterial === 'producao_propria',
+              entrada_stock: today,
+              ativo: true,
+            })
+            .select('id')
+            .single();
+          if (blocoErr) throw blocoErr;
+          finalProdutoId = newBloco.id;
+        } else if (novoProdutoForma === 'chapa') {
+          const { data: newChapa, error: chapaErr } = await supabaseEmpresa
+            .from('chapas')
+            .insert({
+              id_mm: novoProdutoIdMM,
+              parque: parqueNome,
+              variedade: novoProdutoVariedade || null,
+              largura: novoProdutoLargura || null,
+              altura: novoProdutoAltura || null,
+              num_chapas: novoProdutoNumChapas || null,
+              fornecedor: origemMaterial === 'adquirido' ? fornecedor || null : null,
+              entrada_stock: today,
+            })
+            .select('id')
+            .single();
+          if (chapaErr) throw chapaErr;
+          finalProdutoId = newChapa.id;
+        } else if (novoProdutoForma === 'ladrilho') {
+          const { data: newLadrilho, error: ladrilhoErr } = await supabaseEmpresa
+            .from('ladrilho')
+            .insert({
+              id_mm: novoProdutoIdMM,
+              parque: parqueNome,
+              variedade: novoProdutoVariedade || null,
+              comprimento: novoProdutoComprimento || null,
+              largura: novoProdutoLargura || null,
+              altura: novoProdutoAltura || null,
+              num_pecas: novoProdutoNumPecas || null,
+              fornecedor: origemMaterial === 'adquirido' ? fornecedor || null : null,
+              entrada_stock: today,
+            })
+            .select('id')
+            .single();
+          if (ladrilhoErr) throw ladrilhoErr;
+          finalProdutoId = newLadrilho.id;
+        }
       }
 
       if (!finalProdutoId) throw new Error('Produto não definido');
