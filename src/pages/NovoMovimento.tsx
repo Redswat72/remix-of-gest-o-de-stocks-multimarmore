@@ -13,7 +13,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { useProdutos } from '@/hooks/useProdutos';
+import { useSearchInventario, type InventarioItem } from '@/hooks/useSearchInventario';
 import { useClientes } from '@/hooks/useClientes';
 import { useLocaisAtivos } from '@/hooks/useLocais';
 import { useStockProdutoLocal } from '@/hooks/useStock';
@@ -58,9 +58,10 @@ export default function NovoMovimento() {
   const [matriculaViatura, setMatriculaViatura] = useState('');
   const [observacoes, setObservacoes] = useState('');
   const [searchProduto, setSearchProduto] = useState('');
+  const [selectedItem, setSelectedItem] = useState<InventarioItem | null>(null);
 
   // Data queries
-  const { data: produtos } = useProdutos({ idmm: searchProduto || undefined });
+  const { data: inventarioResults } = useSearchInventario(searchProduto || undefined);
   const { data: clientes } = useClientes();
   const { data: locais } = useLocaisAtivos();
   
@@ -70,7 +71,6 @@ export default function NovoMovimento() {
     tipo === 'entrada' ? undefined : localOrigemId
   );
 
-  const selectedProduto = produtos?.find(p => p.id === produtoId);
   const selectedLocalOrigem = locais?.find(l => l.id === localOrigemId);
   const selectedLocalDestino = locais?.find(l => l.id === localDestinoId);
   const selectedCliente = clientes?.find(c => c.id === clienteId);
