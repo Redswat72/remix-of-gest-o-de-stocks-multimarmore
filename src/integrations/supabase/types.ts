@@ -867,6 +867,10 @@ export type Database = {
         Returns: boolean
       }
       is_admin_or_above: { Args: { _user_id: string }; Returns: boolean }
+      transferir_produto: {
+        Args: { p_id_mm: string; p_parque_destino: string; p_tipo: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "operador" | "admin" | "superadmin"
