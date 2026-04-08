@@ -158,7 +158,9 @@ export interface MovimentoFormData {
   tipo_documento: TipoDocumento;
   numero_documento?: string;
   origem_material?: OrigemMaterial;
-  produto_id: string;
+  produto_id?: string;
+  id_mm?: string;
+  tipo_produto?: string;
   quantidade: number;
   local_origem_id?: string;
   local_destino_id?: string;
