@@ -156,8 +156,8 @@ export default function Historico() {
     const exportData = movimentos.map(mov => ({
       'Data': format(new Date(mov.data_movimento), 'dd/MM/yyyy HH:mm', { locale: pt }),
       'Tipo': mov.tipo === 'entrada' ? 'Entrada' : mov.tipo === 'saida' ? 'Saída' : 'Transferência',
-      'ID MM': mov.id_mm || mov.produto?.idmm || '-',
-      'Tipo Produto': mov.tipo_produto || mov.produto?.forma || '-',
+      'ID MM': mov.id_mm || mov.produto?.idmm || '—',
+      'Tipo Produto': mov.tipo_produto || mov.produto?.forma || '—',
       'Quantidade': mov.quantidade,
       'Origem': mov.local_origem?.nome || '-',
       'Destino': mov.local_destino?.nome || '-',
