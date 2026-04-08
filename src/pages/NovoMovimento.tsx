@@ -268,7 +268,7 @@ export default function NovoMovimento() {
     if (newTipo === 'entrada') {
       setOrigemMaterial('adquirido');
       setTipoDocumento('guia_transporte');
-      setNovoProdutoIdMM(generateIdMM(empresaConfig?.idPrefix ?? 'IDMM'));
+      setNovoProdutoIdMM('');
     } else {
       setTipoDocumento('sem_documento');
     }
