@@ -689,6 +689,79 @@ export default function NovoMovimento() {
                 )}
               </div>
 
+              {/* Photo URL fields */}
+              {novoProdutoForma === 'bloco' && (
+                <div className="space-y-3">
+                  <Label className="text-base font-semibold">Fotografias (URL)</Label>
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <div className="space-y-1">
+                      <Label className="text-sm">Foto 1</Label>
+                      <Input placeholder="URL da foto 1" value={blocoFoto1} onChange={(e) => setBlocoFoto1(e.target.value)} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-sm">Foto 2</Label>
+                      <Input placeholder="URL da foto 2" value={blocoFoto2} onChange={(e) => setBlocoFoto2(e.target.value)} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-sm">Foto 3</Label>
+                      <Input placeholder="URL da foto 3" value={blocoFoto3} onChange={(e) => setBlocoFoto3(e.target.value)} />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {novoProdutoForma === 'chapa' && (
+                <div className="space-y-3">
+                  <Label className="text-base font-semibold">Fotografias das Pargas (URL)</Label>
+                  {[1, 2, 3, 4].map((n) => (
+                    <div key={n} className="space-y-2 border rounded-lg p-3">
+                      <Label className="text-sm font-medium">Parga {n}</Label>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Foto Primeira</Label>
+                          <Input
+                            placeholder="URL da foto primeira"
+                            value={pargaFotos[n - 1].primeira}
+                            onChange={(e) => {
+                              const updated = [...pargaFotos];
+                              updated[n - 1] = { ...updated[n - 1], primeira: e.target.value };
+                              setPargaFotos(updated);
+                            }}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Foto Última</Label>
+                          <Input
+                            placeholder="URL da foto última"
+                            value={pargaFotos[n - 1].ultima}
+                            onChange={(e) => {
+                              const updated = [...pargaFotos];
+                              updated[n - 1] = { ...updated[n - 1], ultima: e.target.value };
+                              setPargaFotos(updated);
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {novoProdutoForma === 'ladrilho' && (
+                <div className="space-y-3">
+                  <Label className="text-base font-semibold">Fotografias (URL)</Label>
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="space-y-1">
+                      <Label className="text-sm">Foto 1</Label>
+                      <Input placeholder="URL da foto 1" value={ladrilhoFoto1} onChange={(e) => setLadrilhoFoto1(e.target.value)} />
+                    </div>
+                    <div className="space-y-1">
+                      <Label className="text-sm">Foto 2</Label>
+                      <Input placeholder="URL da foto 2" value={ladrilhoFoto2} onChange={(e) => setLadrilhoFoto2(e.target.value)} />
+                    </div>
+                  </div>
+                </div>
+              )}
               <div className="space-y-2">
                 <Label>Parque de Destino <span className="text-destructive">*</span></Label>
                 <Select
