@@ -187,7 +187,7 @@ export default function NovoMovimento() {
         const today = new Date().toISOString().split('T')[0];
 
         if (novoProdutoForma === 'bloco') {
-          const { data: newBloco, error: blocoErr } = await supabaseEmpresa
+          const { error: blocoErr } = await supabaseEmpresa
             .from('blocos')
             .insert({
               id_mm: novoProdutoIdMM,
@@ -207,7 +207,7 @@ export default function NovoMovimento() {
             .single();
           if (blocoErr) throw blocoErr;
         } else if (novoProdutoForma === 'chapa') {
-          const { data: newChapa, error: chapaErr } = await supabaseEmpresa
+          const { error: chapaErr } = await supabaseEmpresa
             .from('chapas')
             .insert({
               id_mm: novoProdutoIdMM,
@@ -223,7 +223,7 @@ export default function NovoMovimento() {
             .single();
           if (chapaErr) throw chapaErr;
         } else if (novoProdutoForma === 'ladrilho') {
-          const { data: newLadrilho, error: ladrilhoErr } = await supabaseEmpresa
+          const { error: ladrilhoErr } = await supabaseEmpresa
             .from('ladrilho')
             .insert({
               id_mm: novoProdutoIdMM,
