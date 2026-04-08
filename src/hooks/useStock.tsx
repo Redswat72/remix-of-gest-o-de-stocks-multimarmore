@@ -7,21 +7,14 @@ interface LocalResumo {
   codigo: string;
 }
 
-interface ProdutoResumo {
-  id: string;
-  idmm: string;
-  tipo_pedra: string;
-  nome_comercial: string | null;
-  forma: 'bloco' | 'chapa' | 'ladrilho';
-}
-
 export interface StockProdutoItem {
   quantidade: number;
   local: LocalResumo;
 }
 
 export interface StockAgregadoItem {
-  produto: ProdutoResumo;
+  id_mm: string;
+  tipo_produto: string;
   stockPorLocal: StockProdutoItem[];
   stockTotal: number;
 }
@@ -32,12 +25,12 @@ function normalizeSingleRelation<T>(value: unknown): T | null {
   return value as T;
 }
 
-export function useStockProduto(produtoId?: string) {
+export function useStockProduto(idMm?: string, tipoProduto?: string) {
   const supabase = useSupabaseEmpresa();
 
   return useQuery({
-    queryKey: ['stock-produto', produtoId],
-    enabled: !!produtoId,
+    queryKey: ['stock-produto', idMm, tipoProduto],
+    enabled: !!idMm && !!tipoProduto,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('stock')
@@ -45,7 +38,8 @@ export function useStockProduto(produtoId?: string) {
           quantidade,
           local:locais(id, nome, codigo)
         `)
-        .eq('produto_id', produtoId!)
+        .eq('id_mm', idMm!)
+        .eq('tipo_produto', tipoProduto!)
         .gt('quantidade', 0)
         .order('quantidade', { ascending: false });
 
@@ -99,7 +93,8 @@ export function useStockAgregado() {
         .from('stock')
         .select(`
           quantidade,
-          produto:produtos(id, idmm, tipo_pedra, nome_comercial, forma),
+          id_mm,
+          tipo_produto,
           local:locais(id, nome, codigo)
         `)
         .gt('quantidade', 0);
@@ -109,16 +104,19 @@ export function useStockAgregado() {
       const agrupado = new Map<string, StockAgregadoItem>();
 
       for (const row of data ?? []) {
-        const produto = normalizeSingleRelation<ProdutoResumo>(row.produto);
+        const idMm = (row as any).id_mm as string;
+        const tipoProduto = (row as any).tipo_produto as string;
         const local = normalizeSingleRelation<LocalResumo>(row.local);
 
-        if (!produto || !local) continue;
+        if (!idMm || !local) continue;
 
-        const existente = agrupado.get(produto.id);
+        const key = `${idMm}__${tipoProduto}`;
+        const existente = agrupado.get(key);
 
         if (!existente) {
-          agrupado.set(produto.id, {
-            produto,
+          agrupado.set(key, {
+            id_mm: idMm,
+            tipo_produto: tipoProduto,
             stockPorLocal: [{ local, quantidade: row.quantidade }],
             stockTotal: row.quantidade,
           });
@@ -129,9 +127,9 @@ export function useStockAgregado() {
         existente.stockTotal += row.quantidade;
       }
 
-      return Array.from(agrupado.values()).sort((a, b) =>
-        a.produto.idmm.localeCompare(b.produto.idmm),
-      );
+      return Array.from(agrupado.values())
+        .filter(item => item.stockTotal > 0)
+        .sort((a, b) => a.id_mm.localeCompare(b.id_mm));
     },
   });
 }
