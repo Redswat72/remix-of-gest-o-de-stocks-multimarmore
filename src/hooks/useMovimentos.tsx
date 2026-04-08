@@ -111,14 +111,11 @@ export function useCreateMovimento() {
     mutationFn: async (formData: MovimentoFormData) => {
       if (!user) throw new Error('Utilizador não autenticado');
 
-      const { data, error } = await supabase
-        .from('movimentos')
-        .insert({
+      const insertPayload: Record<string, unknown> = {
           tipo: formData.tipo,
           tipo_documento: formData.tipo_documento,
           numero_documento: formData.numero_documento || null,
           origem_material: formData.origem_material || null,
-          produto_id: formData.produto_id,
           quantidade: formData.quantidade,
           local_origem_id: formData.local_origem_id || null,
           local_destino_id: formData.local_destino_id || null,
@@ -126,7 +123,16 @@ export function useCreateMovimento() {
           matricula_viatura: formData.matricula_viatura || null,
           observacoes: formData.observacoes || null,
           operador_id: user.id,
-        })
+        };
+
+      // New fields: id_mm and tipo_produto replace produto_id
+      if (formData.id_mm) insertPayload.id_mm = formData.id_mm;
+      if (formData.tipo_produto) insertPayload.tipo_produto = formData.tipo_produto;
+      if (formData.produto_id) insertPayload.produto_id = formData.produto_id;
+
+      const { data, error } = await supabase
+        .from('movimentos')
+        .insert(insertPayload as any)
         .select()
         .single();
 

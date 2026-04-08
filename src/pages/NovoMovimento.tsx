@@ -179,7 +179,7 @@ export default function NovoMovimento() {
     setIsSubmitting(true);
 
     try {
-      let finalProdutoId = produtoId;
+      // For entrada, insert into the specific table (blocos/chapas/ladrilho)
 
       // For entrada, insert into the specific table (blocos/chapas/ladrilho)
       if (tipo === 'entrada') {
@@ -187,7 +187,7 @@ export default function NovoMovimento() {
         const today = new Date().toISOString().split('T')[0];
 
         if (novoProdutoForma === 'bloco') {
-          const { data: newBloco, error: blocoErr } = await supabaseEmpresa
+          const { error: blocoErr } = await supabaseEmpresa
             .from('blocos')
             .insert({
               id_mm: novoProdutoIdMM,
@@ -203,12 +203,11 @@ export default function NovoMovimento() {
               entrada_stock: today,
               ativo: true,
             })
-            .select('id')
+            .select()
             .single();
           if (blocoErr) throw blocoErr;
-          finalProdutoId = newBloco.id;
         } else if (novoProdutoForma === 'chapa') {
-          const { data: newChapa, error: chapaErr } = await supabaseEmpresa
+          const { error: chapaErr } = await supabaseEmpresa
             .from('chapas')
             .insert({
               id_mm: novoProdutoIdMM,
@@ -220,12 +219,11 @@ export default function NovoMovimento() {
               fornecedor: origemMaterial === 'adquirido' ? fornecedor || null : null,
               entrada_stock: today,
             })
-            .select('id')
+            .select()
             .single();
           if (chapaErr) throw chapaErr;
-          finalProdutoId = newChapa.id;
         } else if (novoProdutoForma === 'ladrilho') {
-          const { data: newLadrilho, error: ladrilhoErr } = await supabaseEmpresa
+          const { error: ladrilhoErr } = await supabaseEmpresa
             .from('ladrilho')
             .insert({
               id_mm: novoProdutoIdMM,
@@ -238,14 +236,11 @@ export default function NovoMovimento() {
               fornecedor: origemMaterial === 'adquirido' ? fornecedor || null : null,
               entrada_stock: today,
             })
-            .select('id')
+            .select()
             .single();
           if (ladrilhoErr) throw ladrilhoErr;
-          finalProdutoId = newLadrilho.id;
         }
       }
-
-      if (!finalProdutoId) throw new Error('Produto não definido');
 
       if (isStockInsuficiente()) {
         toast({
@@ -262,7 +257,8 @@ export default function NovoMovimento() {
         tipo_documento: tipoDocumento,
         numero_documento: numeroDocumento || undefined,
         origem_material: tipo === 'entrada' ? origemMaterial : undefined,
-        produto_id: finalProdutoId,
+        id_mm: tipo === 'entrada' ? novoProdutoIdMM : selectedItem?.id_mm,
+        tipo_produto: tipo === 'entrada' ? novoProdutoForma : selectedItem?.tipo,
         quantidade,
         local_origem_id: tipo !== 'entrada' ? localOrigemId : undefined,
         local_destino_id: tipo === 'entrada' ? novoProdutoParqueDestinoId : (tipo !== 'saida' ? localDestinoId : undefined),
