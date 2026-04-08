@@ -71,6 +71,22 @@ export default function NovoMovimento() {
   const [novoProdutoNumChapas, setNovoProdutoNumChapas] = useState<number | ''>('');
   const [novoProdutoNumPecas, setNovoProdutoNumPecas] = useState<number | ''>('');
 
+  // Photo URL fields
+  // Blocos: foto1_url, foto2_url, foto3_url
+  const [blocoFoto1, setBlocoFoto1] = useState('');
+  const [blocoFoto2, setBlocoFoto2] = useState('');
+  const [blocoFoto3, setBlocoFoto3] = useState('');
+  // Ladrilho: foto1_url, foto2_url
+  const [ladrilhoFoto1, setLadrilhoFoto1] = useState('');
+  const [ladrilhoFoto2, setLadrilhoFoto2] = useState('');
+  // Chapas pargas: foto_primeira, foto_ultima per parga (up to 4)
+  const [pargaFotos, setPargaFotos] = useState<{ primeira: string; ultima: string }[]>([
+    { primeira: '', ultima: '' },
+    { primeira: '', ultima: '' },
+    { primeira: '', ultima: '' },
+    { primeira: '', ultima: '' },
+  ]);
+
   // Data queries
   const { data: inventarioResults } = useSearchInventario(
     tipo !== 'entrada' ? searchProduto || undefined : undefined
