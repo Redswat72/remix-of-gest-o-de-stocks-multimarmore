@@ -183,7 +183,7 @@ export default function NovoMovimento() {
 
       // For entrada, insert into the specific table (blocos/chapas/ladrilho)
       if (tipo === 'entrada') {
-        const parqueNome = locais?.find(l => l.id === novoProdutoParqueDestinoId)?.nome || '';
+        const parqueNome = locais?.find(l => l.id === novoProdutoParqueDestinoId)?.codigo || '';
         const today = new Date().toISOString().split('T')[0];
 
         if (novoProdutoForma === 'bloco') {
