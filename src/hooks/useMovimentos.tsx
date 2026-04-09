@@ -26,9 +26,9 @@ export interface MovimentoComDetalhes {
   data_movimento: string;
   created_at: string;
   updated_at: string;
-  local_origem: { id: string; nome: string; codigo: string } | null;
-  local_destino: { id: string; nome: string; codigo: string } | null;
-  operador: { id: string; nome: string; email: string } | null;
+  local_origem?: { id: string; nome: string; codigo: string } | null;
+  local_destino?: { id: string; nome: string; codigo: string } | null;
+  operador?: { id: string; nome: string; email: string } | null;
 }
 
 interface UseMovimentosOptions {
@@ -51,19 +51,11 @@ export function useMovimentos(options: UseMovimentosOptions = {}) {
   return useQuery({
     queryKey: ['movimentos', options],
     queryFn: async () => {
-      const from = page * limit;
-      const to = from + limit - 1;
-
       let query = supabase
         .from('movimentos')
-        .select(`
-          *,
-          local_origem:locais!movimentos_local_origem_id_fkey(id, nome, codigo),
-          local_destino:locais!movimentos_local_destino_id_fkey(id, nome, codigo),
-          operador:profiles!movimentos_operador_id_fkey(id, nome, email)
-        `, { count: 'exact' })
+        .select('*', { count: 'exact' })
         .order('data_movimento', { ascending: false })
-        .range(from, to);
+        .range(page * limit, page * limit + limit - 1);
 
       if (dataInicio) {
         query = query.gte('data_movimento', dataInicio);
