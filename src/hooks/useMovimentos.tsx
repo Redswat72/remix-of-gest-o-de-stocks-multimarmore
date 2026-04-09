@@ -66,10 +66,8 @@ export function useMovimentos(options: UseMovimentosOptions = {}) {
         .from('movimentos')
         .select(`
           *,
-          produto:produtos(id, idmm, tipo_pedra, nome_comercial, forma),
           local_origem:locais!movimentos_local_origem_id_fkey(id, nome, codigo),
           local_destino:locais!movimentos_local_destino_id_fkey(id, nome, codigo),
-          cliente:clientes(id, nome),
           operador:profiles!movimentos_operador_id_fkey(id, nome, email)
         `, { count: 'exact' })
         .order('data_movimento', { ascending: false })
