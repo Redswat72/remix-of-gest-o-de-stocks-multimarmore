@@ -28,6 +28,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useMovimentos, useCancelMovimento, type MovimentoComDetalhes } from '@/hooks/useMovimentos';
 import { useLocaisAtivos } from '@/hooks/useLocais';
+import { useProfiles } from '@/hooks/useProfiles';
 import { exportToExcel } from '@/lib/exportExcel';
 
 export default function Historico() {
