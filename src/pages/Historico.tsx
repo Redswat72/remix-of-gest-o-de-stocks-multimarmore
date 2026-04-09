@@ -156,12 +156,12 @@ export default function Historico() {
     const exportData = movimentos.map(mov => ({
       'Data': format(new Date(mov.data_movimento), 'dd/MM/yyyy HH:mm', { locale: pt }),
       'Tipo': mov.tipo === 'entrada' ? 'Entrada' : mov.tipo === 'saida' ? 'Saída' : 'Transferência',
-      'ID MM': mov.id_mm || mov.produto?.idmm || '—',
-      'Tipo Produto': mov.tipo_produto || mov.produto?.forma || '—',
+      'ID MM': mov.id_mm || '—',
+      'Tipo Produto': mov.tipo_produto || '—',
       'Quantidade': mov.quantidade,
       'Origem': mov.local_origem?.nome || '-',
       'Destino': mov.local_destino?.nome || '-',
-      'Cliente': mov.cliente?.nome || '-',
+      'Cliente': '-',
       'Documento': mov.tipo_documento,
       'Nº Documento': mov.numero_documento || '-',
       'Matrícula': mov.matricula_viatura || '-',
@@ -363,10 +363,10 @@ export default function Historico() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <span className="font-mono font-medium">{mov.id_mm || mov.produto?.idmm || '—'}</span>
+                            <span className="font-mono font-medium">{mov.id_mm || '—'}</span>
                           </TableCell>
                           <TableCell>
-                            <Badge variant="outline" className="capitalize">{mov.tipo_produto || mov.produto?.forma || '—'}</Badge>
+                            <Badge variant="outline" className="capitalize">{mov.tipo_produto || '—'}</Badge>
                           </TableCell>
                           <TableCell className="text-right font-semibold">
                             {mov.quantidade}
@@ -376,7 +376,7 @@ export default function Historico() {
                               <span>→ {mov.local_destino?.nome}</span>
                             )}
                             {mov.tipo === 'saida' && (
-                              <span>{mov.local_origem?.nome} → {mov.cliente?.nome}</span>
+                              <span>{mov.local_origem?.nome} →</span>
                             )}
                             {mov.tipo === 'transferencia' && (
                               <span>{mov.local_origem?.nome} → {mov.local_destino?.nome}</span>
@@ -515,7 +515,7 @@ export default function Historico() {
 
           {selectedMovimento && (
             <div className="bg-muted rounded-lg p-4 text-sm space-y-2">
-              <p><strong>Produto:</strong> {selectedMovimento.produto?.idmm}</p>
+              <p><strong>Produto:</strong> {selectedMovimento.id_mm || '—'}</p>
               <p><strong>Quantidade:</strong> {selectedMovimento.quantidade}</p>
               <p><strong>Data:</strong> {format(new Date(selectedMovimento.data_movimento), 'dd/MM/yyyy HH:mm', { locale: pt })}</p>
             </div>
