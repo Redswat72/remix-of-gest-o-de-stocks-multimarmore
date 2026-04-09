@@ -26,16 +26,8 @@ export interface MovimentoComDetalhes {
   data_movimento: string;
   created_at: string;
   updated_at: string;
-  produto: {
-    id: string;
-    idmm: string;
-    tipo_pedra: string;
-    nome_comercial: string | null;
-    forma: string;
-  } | null;
   local_origem: { id: string; nome: string; codigo: string } | null;
   local_destino: { id: string; nome: string; codigo: string } | null;
-  cliente: { id: string; nome: string } | null;
   operador: { id: string; nome: string; email: string } | null;
 }
 
