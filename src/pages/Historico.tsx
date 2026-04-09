@@ -115,6 +115,21 @@ export default function Historico() {
     );
   };
 
+  const getLocalLabel = (localId?: string | null, localNome?: string | null) => localNome || localId || '-';
+
+  const getOperadorLabel = (mov: MovimentoComDetalhes) => mov.operador?.nome || mov.operador_id || '-';
+
+  const getPercursoLabel = (mov: MovimentoComDetalhes) => {
+    const origem = getLocalLabel(mov.local_origem_id, mov.local_origem?.nome);
+    const destino = getLocalLabel(mov.local_destino_id, mov.local_destino?.nome);
+
+    if (mov.tipo === 'entrada') return `→ ${destino}`;
+    if (mov.tipo === 'saida') return `${origem} →`;
+    if (mov.tipo === 'transferencia') return `${origem} → ${destino}`;
+
+    return '-';
+  };
+
   const handleCancelClick = (mov: MovimentoComDetalhes) => {
     setSelectedMovimento(mov);
     setMotivoCancelamento('');
@@ -159,13 +174,13 @@ export default function Historico() {
       'ID MM': mov.id_mm || '—',
       'Tipo Produto': mov.tipo_produto || '—',
       'Quantidade': mov.quantidade,
-      'Origem': mov.local_origem?.nome || '-',
-      'Destino': mov.local_destino?.nome || '-',
+      'Origem': getLocalLabel(mov.local_origem_id, mov.local_origem?.nome),
+      'Destino': getLocalLabel(mov.local_destino_id, mov.local_destino?.nome),
       'Cliente': '-',
       'Documento': mov.tipo_documento,
       'Nº Documento': mov.numero_documento || '-',
       'Matrícula': mov.matricula_viatura || '-',
-      'Operador': mov.operador?.nome || '-',
+      'Operador': getOperadorLabel(mov),
       'Cancelado': mov.cancelado ? 'Sim' : 'Não',
       'Motivo Cancelamento': mov.motivo_cancelamento || '-',
     }));
@@ -372,15 +387,7 @@ export default function Historico() {
                             {mov.quantidade}
                           </TableCell>
                           <TableCell>
-                            {mov.tipo === 'entrada' && (
-                              <span>→ {mov.local_destino?.nome}</span>
-                            )}
-                            {mov.tipo === 'saida' && (
-                              <span>{mov.local_origem?.nome} →</span>
-                            )}
-                            {mov.tipo === 'transferencia' && (
-                              <span>{mov.local_origem?.nome} → {mov.local_destino?.nome}</span>
-                            )}
+                            <span>{getPercursoLabel(mov)}</span>
                           </TableCell>
                           <TableCell>
                             {mov.cancelado ? (
@@ -421,7 +428,7 @@ export default function Historico() {
                                 </div>
                                 <div>
                                   <span className="text-muted-foreground">Operador:</span>
-                                  <p className="font-medium">{mov.operador?.nome || '-'}</p>
+                                  <p className="font-medium">{getOperadorLabel(mov)}</p>
                                 </div>
                                 {mov.matricula_viatura && (
                                   <div>
