@@ -72,6 +72,20 @@ export default function Historico() {
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   const { data: locais } = useLocaisAtivos();
+  const { data: profiles } = useProfiles();
+
+  // Build lookup maps
+  const locaisMap = useMemo(() => {
+    const map = new Map<string, string>();
+    locais?.forEach(l => map.set(l.id, l.nome));
+    return map;
+  }, [locais]);
+
+  const profilesMap = useMemo(() => {
+    const map = new Map<string, string>();
+    profiles?.forEach(p => map.set(p.user_id, p.nome));
+    return map;
+  }, [profiles]);
 
   const toggleRow = (id: string) => {
     setExpandedRows(prev => {
@@ -116,13 +130,18 @@ export default function Historico() {
     );
   };
 
-  const getLocalLabel = (localId?: string | null, localNome?: string | null) => localNome || localId || '-';
+  const getLocalNome = (localId?: string | null) => {
+    if (!localId) return '-';
+    return locaisMap.get(localId) || localId.substring(0, 8) + '…';
+  };
 
-  const getOperadorLabel = (mov: MovimentoComDetalhes) => mov.operador?.nome || mov.operador_id || '-';
+  const getOperadorNome = (operadorId: string) => {
+    return profilesMap.get(operadorId) || operadorId.substring(0, 8) + '…';
+  };
 
   const getPercursoLabel = (mov: MovimentoComDetalhes) => {
-    const origem = getLocalLabel(mov.local_origem_id, mov.local_origem?.nome);
-    const destino = getLocalLabel(mov.local_destino_id, mov.local_destino?.nome);
+    const origem = getLocalNome(mov.local_origem_id);
+    const destino = getLocalNome(mov.local_destino_id);
 
     if (mov.tipo === 'entrada') return `→ ${destino}`;
     if (mov.tipo === 'saida') return `${origem} →`;
