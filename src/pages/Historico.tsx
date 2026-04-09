@@ -448,7 +448,7 @@ export default function Historico() {
                                 </div>
                                 <div>
                                   <span className="text-muted-foreground">Operador:</span>
-                                  <p className="font-medium">{getOperadorLabel(mov)}</p>
+                                  <p className="font-medium">{getOperadorNome(mov.operador_id)}</p>
                                 </div>
                                 {mov.matricula_viatura && (
                                   <div>
