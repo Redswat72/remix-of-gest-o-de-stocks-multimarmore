@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { format } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { 
@@ -28,6 +28,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useMovimentos, useCancelMovimento, type MovimentoComDetalhes } from '@/hooks/useMovimentos';
 import { useLocaisAtivos } from '@/hooks/useLocais';
+import { useProfiles } from '@/hooks/useProfiles';
 import { exportToExcel } from '@/lib/exportExcel';
 
 export default function Historico() {
@@ -71,6 +72,20 @@ export default function Historico() {
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   const { data: locais } = useLocaisAtivos();
+  const { data: profiles } = useProfiles();
+
+  // Build lookup maps
+  const locaisMap = useMemo(() => {
+    const map = new Map<string, string>();
+    locais?.forEach(l => map.set(l.id, l.nome));
+    return map;
+  }, [locais]);
+
+  const profilesMap = useMemo(() => {
+    const map = new Map<string, string>();
+    profiles?.forEach(p => map.set(p.user_id, p.nome));
+    return map;
+  }, [profiles]);
 
   const toggleRow = (id: string) => {
     setExpandedRows(prev => {
@@ -115,13 +130,18 @@ export default function Historico() {
     );
   };
 
-  const getLocalLabel = (localId?: string | null, localNome?: string | null) => localNome || localId || '-';
+  const getLocalNome = (localId?: string | null) => {
+    if (!localId) return '-';
+    return locaisMap.get(localId) || localId.substring(0, 8) + '…';
+  };
 
-  const getOperadorLabel = (mov: MovimentoComDetalhes) => mov.operador?.nome || mov.operador_id || '-';
+  const getOperadorNome = (operadorId: string) => {
+    return profilesMap.get(operadorId) || operadorId.substring(0, 8) + '…';
+  };
 
   const getPercursoLabel = (mov: MovimentoComDetalhes) => {
-    const origem = getLocalLabel(mov.local_origem_id, mov.local_origem?.nome);
-    const destino = getLocalLabel(mov.local_destino_id, mov.local_destino?.nome);
+    const origem = getLocalNome(mov.local_origem_id);
+    const destino = getLocalNome(mov.local_destino_id);
 
     if (mov.tipo === 'entrada') return `→ ${destino}`;
     if (mov.tipo === 'saida') return `${origem} →`;
@@ -174,13 +194,13 @@ export default function Historico() {
       'ID MM': mov.id_mm || '—',
       'Tipo Produto': mov.tipo_produto || '—',
       'Quantidade': mov.quantidade,
-      'Origem': getLocalLabel(mov.local_origem_id, mov.local_origem?.nome),
-      'Destino': getLocalLabel(mov.local_destino_id, mov.local_destino?.nome),
+      'Origem': getLocalNome(mov.local_origem_id),
+      'Destino': getLocalNome(mov.local_destino_id),
       'Cliente': '-',
       'Documento': mov.tipo_documento,
       'Nº Documento': mov.numero_documento || '-',
       'Matrícula': mov.matricula_viatura || '-',
-      'Operador': getOperadorLabel(mov),
+      'Operador': getOperadorNome(mov.operador_id),
       'Cancelado': mov.cancelado ? 'Sim' : 'Não',
       'Motivo Cancelamento': mov.motivo_cancelamento || '-',
     }));
@@ -428,7 +448,7 @@ export default function Historico() {
                                 </div>
                                 <div>
                                   <span className="text-muted-foreground">Operador:</span>
-                                  <p className="font-medium">{getOperadorLabel(mov)}</p>
+                                  <p className="font-medium">{getOperadorNome(mov.operador_id)}</p>
                                 </div>
                                 {mov.matricula_viatura && (
                                   <div>
