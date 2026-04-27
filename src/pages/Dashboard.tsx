@@ -1,10 +1,11 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { useBlocos, useResumoBlocos } from "@/hooks/useBlocos";
-import { useChapas, useResumoChapas } from "@/hooks/useChapas";
-import { useLadrilho, useResumoLadrilho } from "@/hooks/useLadrilho";
+import { useResumoBlocos } from "@/hooks/useBlocos";
+import { useResumoChapas } from "@/hooks/useChapas";
+import { useResumoLadrilho } from "@/hooks/useLadrilho";
 import { useResumoBandas } from "@/hooks/useBandas";
+import { useDashboardBreakdown } from "@/hooks/useDashboardBreakdown";
 import { Package, Grid3x3, Square, Layers } from "lucide-react";
 import { useEmpresa } from "@/context/EmpresaContext";
 import { usePermissoes } from "@/hooks/usePermissoes";
@@ -20,9 +21,10 @@ export default function Dashboard() {
   const { data: resumoLadrilho, isLoading: loadingLadrilho } = useResumoLadrilho();
   const { data: resumoBandas, isLoading: loadingBandas } = useResumoBandas();
 
-  const { data: allBlocos } = useBlocos();
-  const { data: allChapas } = useChapas();
-  const { data: allLadrilhos } = useLadrilho();
+  const { data: breakdown } = useDashboardBreakdown();
+  const allBlocos = breakdown?.blocos;
+  const allChapas = breakdown?.chapas;
+  const allLadrilhos = breakdown?.ladrilhos;
 
   const isLoading = loadingBlocos || loadingChapas || loadingLadrilho || loadingBandas;
 
