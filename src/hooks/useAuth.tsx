@@ -60,7 +60,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (rolesError) {
         console.error('Erro ao buscar roles:', rolesError);
       } else {
-        setRoles((rolesData ?? []).map(r => r.role as AppRole));
+        const fetchedRoles = (rolesData ?? []).map(r => r.role as AppRole);
+        console.log('[useAuth] Roles carregadas para', userId, ':', fetchedRoles);
+        setRoles(fetchedRoles);
       }
     } catch (error) {
       console.error('Erro ao buscar dados do utilizador:', error);
