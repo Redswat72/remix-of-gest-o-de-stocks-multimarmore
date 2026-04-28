@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { useRegisterSW } from 'virtual:pwa-register/react';
+import { createContext, ReactNode, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { registerSW } from 'virtual:pwa-register';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -10,27 +10,44 @@ interface NavigatorWithStandalone extends Navigator {
   standalone?: boolean;
 }
 
-export function usePWA() {
+interface PWAContextValue {
+  isOnline: boolean;
+  isInstallable: boolean;
+  isInstalled: boolean;
+  needRefresh: boolean;
+  installApp: () => Promise<boolean>;
+  updateApp: () => Promise<void>;
+  isIOS: boolean;
+  isAndroid: boolean;
+}
+
+const VERSION_STORAGE_KEY = 'stockflow-app-version';
+
+const PWAContext = createContext<PWAContextValue | null>(null);
+
+const isInIframe = () => {
+  try {
+    return window.self !== window.top;
+  } catch {
+    return true;
+  }
+};
+
+const isPreviewHost = () =>
+  window.location.hostname.includes('id-preview--') ||
+  window.location.hostname.includes('lovableproject.com');
+
+const canRegisterServiceWorker = () =>
+  !import.meta.env.DEV && !isInIframe() && !isPreviewHost() && 'serviceWorker' in navigator;
+
+export function PWAProvider({ children }: { children: ReactNode }) {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [isInstallable, setIsInstallable] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const {
-    needRefresh: [needRefresh],
-    updateServiceWorker,
-  } = useRegisterSW({
-    immediate: true,
-    onRegisteredSW(_swUrl, registration) {
-      if (!registration) return;
-
-      registration.update().catch(() => {});
-      setInterval(() => {
-        if (navigator.onLine) {
-          registration.update().catch(() => {});
-        }
-      }, 5 * 60 * 1000);
-    },
-  });
+  const [serviceWorkerNeedRefresh, setServiceWorkerNeedRefresh] = useState(false);
+  const [versionNeedRefresh, setVersionNeedRefresh] = useState(false);
+  const updateServiceWorkerRef = useRef<((reloadPage?: boolean) => Promise<void>) | null>(null);
 
   useEffect(() => {
     // Check if already installed
@@ -74,6 +91,87 @@ export function usePWA() {
     };
   }, []);
 
+  useEffect(() => {
+    if (!('serviceWorker' in navigator)) return;
+
+    if (!canRegisterServiceWorker()) {
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        registrations.forEach((registration) => registration.unregister());
+      });
+      return;
+    }
+
+    updateServiceWorkerRef.current = registerSW({
+      immediate: true,
+      onNeedRefresh() {
+        setServiceWorkerNeedRefresh(true);
+      },
+      onRegisteredSW(_swUrl, registration) {
+        if (!registration) return;
+
+        registration.update().catch(() => {});
+        const interval = window.setInterval(() => {
+          if (navigator.onLine) {
+            registration.update().catch(() => {});
+          }
+        }, 5 * 60 * 1000);
+
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          newWorker?.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              setServiceWorkerNeedRefresh(true);
+            }
+          });
+        });
+
+        return () => window.clearInterval(interval);
+      },
+    });
+  }, []);
+
+  const checkPublishedVersion = useCallback(async () => {
+    if (import.meta.env.DEV || isPreviewHost()) return;
+
+    try {
+      const response = await fetch(`/app-version.json?_=${Date.now()}`, {
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache' },
+      });
+
+      if (!response.ok) return;
+
+      const data = (await response.json()) as { version?: string };
+      if (!data.version) return;
+
+      const currentVersion = localStorage.getItem(VERSION_STORAGE_KEY);
+      if (!currentVersion) {
+        localStorage.setItem(VERSION_STORAGE_KEY, data.version);
+        return;
+      }
+
+      if (currentVersion !== data.version) {
+        setVersionNeedRefresh(true);
+      }
+    } catch (error) {
+      console.error('Erro ao verificar versão publicada:', error);
+    }
+  }, []);
+
+  useEffect(() => {
+    checkPublishedVersion();
+
+    const interval = window.setInterval(checkPublishedVersion, 60 * 1000);
+    window.addEventListener('focus', checkPublishedVersion);
+    document.addEventListener('visibilitychange', checkPublishedVersion);
+
+    return () => {
+      window.clearInterval(interval);
+      window.removeEventListener('focus', checkPublishedVersion);
+      document.removeEventListener('visibilitychange', checkPublishedVersion);
+    };
+  }, [checkPublishedVersion]);
+
   const installApp = useCallback(async () => {
     if (!deferredPrompt) return false;
     
@@ -96,13 +194,14 @@ export function usePWA() {
   const updateApp = useCallback(async () => {
     try {
       if ('serviceWorker' in navigator) {
-        await updateServiceWorker(true);
+        await updateServiceWorkerRef.current?.(false);
       }
       // Clear all caches to guarantee fresh assets
       if ('caches' in window) {
         const keys = await caches.keys();
         await Promise.all(keys.map((k) => caches.delete(k)));
       }
+      localStorage.removeItem(VERSION_STORAGE_KEY);
     } catch (e) {
       console.error('Erro ao atualizar app:', e);
     } finally {
@@ -110,19 +209,29 @@ export function usePWA() {
       url.searchParams.set('_v', Date.now().toString());
       window.location.replace(url.toString());
     }
-  }, [updateServiceWorker]);
+  }, []);
 
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
   const isAndroid = /Android/.test(navigator.userAgent);
 
-  return {
+  const value: PWAContextValue = {
     isOnline,
     isInstallable,
     isInstalled,
-    needRefresh,
+    needRefresh: serviceWorkerNeedRefresh || versionNeedRefresh,
     installApp,
     updateApp,
     isIOS,
     isAndroid,
   };
+
+  return <PWAContext.Provider value={value}>{children}</PWAContext.Provider>;
+}
+
+export function usePWA() {
+  const context = useContext(PWAContext);
+  if (!context) {
+    throw new Error('usePWA must be used within PWAProvider');
+  }
+  return context;
 }
