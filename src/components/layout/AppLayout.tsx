@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 import { Sidebar } from './Sidebar';
 import { MobileNav } from './MobileNav';
 import { Header } from './Header';
+import { UpdateBanner } from '@/components/pwa/UpdateBanner';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -15,6 +16,9 @@ export function AppLayout({ children }: AppLayoutProps) {
 
       {/* Main content area */}
       <div className="flex flex-col flex-1 min-w-0">
+        {/* Update banner (only when new version detected) */}
+        <UpdateBanner />
+
         {/* Header */}
         <Header />
 
