@@ -16,6 +16,17 @@ export default defineConfig(({ mode }) => ({
   plugins: [
     react(),
     mode === "development" && componentTagger(),
+    {
+      name: "app-version",
+      apply: "build" as const,
+      generateBundle() {
+        this.emitFile({
+          type: "asset",
+          fileName: "app-version.json",
+          source: JSON.stringify({ version: Date.now().toString() }),
+        });
+      },
+    },
     VitePWA({
       registerType: "prompt",
       devOptions: {
