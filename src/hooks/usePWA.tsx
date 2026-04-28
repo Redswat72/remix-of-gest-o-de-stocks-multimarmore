@@ -91,12 +91,26 @@ export function usePWA() {
     }
   }, [deferredPrompt]);
 
-  const updateApp = useCallback(() => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.ready.then((registration) => {
+  const updateApp = useCallback(async () => {
+    try {
+      if ('serviceWorker' in navigator) {
+        const registration = await navigator.serviceWorker.ready;
+        // Tell waiting SW to take control
         registration.waiting?.postMessage({ type: 'SKIP_WAITING' });
-        window.location.reload();
-      });
+        // Try to fetch a new SW
+        await registration.update().catch(() => {});
+      }
+      // Clear all caches to guarantee fresh assets
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map((k) => caches.delete(k)));
+      }
+    } catch (e) {
+      console.error('Erro ao atualizar app:', e);
+    } finally {
+      const url = new URL(window.location.href);
+      url.searchParams.set('_v', Date.now().toString());
+      window.location.replace(url.toString());
     }
   }, []);
 
