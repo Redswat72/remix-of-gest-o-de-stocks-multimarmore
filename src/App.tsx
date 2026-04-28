@@ -9,6 +9,7 @@ import { EmpresaProvider } from "@/context/EmpresaContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { StoreDomainRedirect } from "@/components/StoreDomainRedirect";
+import { PWAProvider } from "@/hooks/usePWA";
 import { OfflineIndicator } from "@/components/pwa/OfflineIndicator";
 import { InstallPrompt } from "@/components/pwa/InstallPrompt";
 import { UpdatePrompt } from "@/components/pwa/UpdatePrompt";
@@ -52,6 +53,7 @@ const App = () => (
       <EmpresaProvider>
         <AuthProvider>
           <TooltipProvider>
+            <PWAProvider>
             <OfflineIndicator />
             <UpdatePrompt />
             <InstallPrompt />
@@ -101,6 +103,7 @@ const App = () => (
               </Routes>
               </StoreDomainRedirect>
             </BrowserRouter>
+            </PWAProvider>
           </TooltipProvider>
         </AuthProvider>
       </EmpresaProvider>
