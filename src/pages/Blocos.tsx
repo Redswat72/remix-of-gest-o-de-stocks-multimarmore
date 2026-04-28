@@ -26,8 +26,8 @@ export default function Blocos() {
   const supabase = useSupabaseEmpresa();
   const { empresaConfig } = useEmpresa();
   const { podeVerValores } = usePermissoes();
-  const { isAdmin, isSuperadmin } = useAuth();
-  const canProduce = isAdmin || isSuperadmin;
+  const { isAdmin, isSuperadmin, user } = useAuth();
+  const canProduce = !!user;
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [medicaoBloco, setMedicaoBloco] = useState<{ id: string; id_mm: string } | null>(null);
 

@@ -41,7 +41,7 @@ const navItems: NavItem[] = [
   { href: '/chapas', label: 'Chapas', icon: Grid3x3 },
   { href: '/ladrilho', label: 'Ladrilho', icon: Square },
   { href: '/bandas', label: 'Bandas', icon: Layers },
-  { href: '/producao', label: 'Produção', icon: Scissors, adminOnly: true },
+  { href: '/producao', label: 'Produção', icon: Scissors },
   { href: '/stock', label: 'Consultar Stock', icon: Boxes },
   { href: '/movimento/novo', label: 'Registar Movimento', icon: PlusCircle },
   { href: '/historico', label: 'Histórico', icon: History },
