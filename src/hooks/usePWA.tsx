@@ -1,8 +1,13 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useRegisterSW } from 'virtual:pwa-register/react';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
+
+interface NavigatorWithStandalone extends Navigator {
+  standalone?: boolean;
 }
 
 export function usePWA() {
@@ -10,13 +15,28 @@ export function usePWA() {
   const [isInstallable, setIsInstallable] = useState(false);
   const [isInstalled, setIsInstalled] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [needRefresh, setNeedRefresh] = useState(false);
+  const {
+    needRefresh: [needRefresh],
+    updateServiceWorker,
+  } = useRegisterSW({
+    immediate: true,
+    onRegisteredSW(_swUrl, registration) {
+      if (!registration) return;
+
+      registration.update().catch(() => {});
+      setInterval(() => {
+        if (navigator.onLine) {
+          registration.update().catch(() => {});
+        }
+      }, 5 * 60 * 1000);
+    },
+  });
 
   useEffect(() => {
     // Check if already installed
     const checkInstalled = () => {
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
-      const isIOSStandalone = (window.navigator as any).standalone === true;
+      const isIOSStandalone = (window.navigator as NavigatorWithStandalone).standalone === true;
       setIsInstalled(isStandalone || isIOSStandalone);
     };
     checkInstalled();
@@ -54,24 +74,6 @@ export function usePWA() {
     };
   }, []);
 
-  // Register service worker update listener
-  useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.ready.then((registration) => {
-        registration.addEventListener('updatefound', () => {
-          const newWorker = registration.installing;
-          if (newWorker) {
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                setNeedRefresh(true);
-              }
-            });
-          }
-        });
-      });
-    }
-  }, []);
-
   const installApp = useCallback(async () => {
     if (!deferredPrompt) return false;
     
@@ -94,11 +96,7 @@ export function usePWA() {
   const updateApp = useCallback(async () => {
     try {
       if ('serviceWorker' in navigator) {
-        const registration = await navigator.serviceWorker.ready;
-        // Tell waiting SW to take control
-        registration.waiting?.postMessage({ type: 'SKIP_WAITING' });
-        // Try to fetch a new SW
-        await registration.update().catch(() => {});
+        await updateServiceWorker(true);
       }
       // Clear all caches to guarantee fresh assets
       if ('caches' in window) {
@@ -112,7 +110,7 @@ export function usePWA() {
       url.searchParams.set('_v', Date.now().toString());
       window.location.replace(url.toString());
     }
-  }, []);
+  }, [updateServiceWorker]);
 
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
   const isAndroid = /Android/.test(navigator.userAgent);
