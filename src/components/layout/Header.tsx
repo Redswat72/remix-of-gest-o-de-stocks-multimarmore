@@ -1,4 +1,5 @@
-import { Bell, Search, LogOut, Sun, Moon, Monitor } from 'lucide-react';
+import { Bell, Search, LogOut, Sun, Moon, Monitor, RefreshCw } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
@@ -41,6 +42,29 @@ export function Header() {
   };
 
   const roleBadge = getRoleBadge();
+
+  const forceRefresh = async () => {
+    try {
+      toast.loading('A limpar cache e atualizar...', { id: 'force-refresh' });
+      // Unregister all service workers
+      if ('serviceWorker' in navigator) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        await Promise.all(regs.map((r) => r.unregister()));
+      }
+      // Clear all caches
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        await Promise.all(keys.map((k) => caches.delete(k)));
+      }
+    } catch (e) {
+      console.error('Erro ao limpar cache:', e);
+    } finally {
+      // Hard reload bypassing cache
+      const url = new URL(window.location.href);
+      url.searchParams.set('_t', Date.now().toString());
+      window.location.replace(url.toString());
+    }
+  };
 
   return (
     <header className="h-16 border-b border-border bg-card px-4 lg:px-6 flex items-center justify-between">
@@ -105,6 +129,17 @@ export function Header() {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+
+        {/* Force Refresh / Update App */}
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={forceRefresh}
+          title="Atualizar app (limpar cache)"
+          className="text-muted-foreground hover:text-foreground"
+        >
+          <RefreshCw className="w-5 h-5" />
+        </Button>
 
         {/* Notifications */}
         <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:text-foreground">
