@@ -10,6 +10,7 @@ import {
   History, 
   PlusCircle, 
   User,
+  Scissors,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
@@ -19,6 +20,7 @@ const inventarioItems = [
   { href: '/chapas', label: 'Chapas', icon: Grid3x3 },
   { href: '/ladrilho', label: 'Ladrilho', icon: Square },
   { href: '/bandas', label: 'Bandas', icon: Layers },
+  { href: '/producao', label: 'Produção', icon: Scissors },
   { href: '/stock', label: 'Consultar Stock', icon: Boxes },
 ];
 
