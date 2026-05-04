@@ -246,6 +246,7 @@ function PhotoUploadSlot({ label, currentUrl, onUpload, onRemove, isUploading }:
   isUploading: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
 
   return (
     <div className="space-y-2">
@@ -261,19 +262,43 @@ function PhotoUploadSlot({ label, currentUrl, onUpload, onRemove, isUploading }:
           </button>
         </div>
       ) : (
-        <button
-          onClick={() => inputRef.current?.click()}
-          disabled={isUploading}
-          className="w-full h-32 border-2 border-dashed rounded-md flex flex-col items-center justify-center gap-2 text-muted-foreground hover:border-primary hover:text-primary transition-colors"
-        >
-          {isUploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Upload className="h-5 w-5" />}
-          <span className="text-xs">Carregar foto</span>
-        </button>
+        <div className="grid grid-cols-2 gap-2 h-32">
+          <button
+            type="button"
+            onClick={() => cameraRef.current?.click()}
+            disabled={isUploading}
+            className="border-2 border-dashed rounded-md flex flex-col items-center justify-center gap-1 text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+          >
+            {isUploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Camera className="h-5 w-5" />}
+            <span className="text-xs">Câmara</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => inputRef.current?.click()}
+            disabled={isUploading}
+            className="border-2 border-dashed rounded-md flex flex-col items-center justify-center gap-1 text-muted-foreground hover:border-primary hover:text-primary transition-colors"
+          >
+            <Upload className="h-5 w-5" />
+            <span className="text-xs">Galeria</span>
+          </button>
+        </div>
       )}
       <input
         ref={inputRef}
         type="file"
         accept="image/*"
+        className="hidden"
+        onChange={e => {
+          const file = e.target.files?.[0];
+          if (file) onUpload(file);
+          e.target.value = '';
+        }}
+      />
+      <input
+        ref={cameraRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
         className="hidden"
         onChange={e => {
           const file = e.target.files?.[0];
