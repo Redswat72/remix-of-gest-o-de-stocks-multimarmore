@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Pencil, Upload, X, Loader2, Image as ImageIcon, Trash2 } from 'lucide-react';
+import { Pencil, Upload, X, Loader2, Image as ImageIcon, Trash2, Camera } from 'lucide-react';
 import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
