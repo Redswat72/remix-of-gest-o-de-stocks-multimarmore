@@ -1,4 +1,4 @@
-import { Camera, X } from 'lucide-react';
+import { Camera, X, ImagePlus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -219,17 +219,31 @@ export function PargaCard({
                   </Button>
                 </div>
               ) : (
-                <label className="flex flex-col items-center justify-center aspect-[4/3] rounded-md border-2 border-dashed border-muted-foreground/30 cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-colors">
-                  <Camera className="h-5 w-5 text-muted-foreground mb-1" />
-                  <span className="text-xs text-muted-foreground">Upload</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => handlePhotoUpload(e, 1)}
-                    disabled={isUploading}
-                  />
-                </label>
+                <div className="grid grid-cols-2 gap-1 aspect-[4/3]">
+                  <label className="flex flex-col items-center justify-center rounded-md border-2 border-dashed border-muted-foreground/30 cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-colors">
+                    <Camera className="h-4 w-4 text-muted-foreground mb-1" />
+                    <span className="text-[10px] text-muted-foreground">Câmara</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      className="hidden"
+                      onChange={(e) => handlePhotoUpload(e, 1)}
+                      disabled={isUploading}
+                    />
+                  </label>
+                  <label className="flex flex-col items-center justify-center rounded-md border-2 border-dashed border-muted-foreground/30 cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-colors">
+                    <ImagePlus className="h-4 w-4 text-muted-foreground mb-1" />
+                    <span className="text-[10px] text-muted-foreground">Galeria</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handlePhotoUpload(e, 1)}
+                      disabled={isUploading}
+                    />
+                  </label>
+                </div>
               )}
             </div>
 
@@ -254,17 +268,31 @@ export function PargaCard({
                   </Button>
                 </div>
               ) : (
-                <label className="flex flex-col items-center justify-center aspect-[4/3] rounded-md border-2 border-dashed border-muted-foreground/30 cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-colors">
-                  <Camera className="h-5 w-5 text-muted-foreground mb-1" />
-                  <span className="text-xs text-muted-foreground">Upload</span>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={(e) => handlePhotoUpload(e, 2)}
-                    disabled={isUploading}
-                  />
-                </label>
+                <div className="grid grid-cols-2 gap-1 aspect-[4/3]">
+                  <label className="flex flex-col items-center justify-center rounded-md border-2 border-dashed border-muted-foreground/30 cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-colors">
+                    <Camera className="h-4 w-4 text-muted-foreground mb-1" />
+                    <span className="text-[10px] text-muted-foreground">Câmara</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      className="hidden"
+                      onChange={(e) => handlePhotoUpload(e, 2)}
+                      disabled={isUploading}
+                    />
+                  </label>
+                  <label className="flex flex-col items-center justify-center rounded-md border-2 border-dashed border-muted-foreground/30 cursor-pointer hover:border-primary/50 hover:bg-primary/5 transition-colors">
+                    <ImagePlus className="h-4 w-4 text-muted-foreground mb-1" />
+                    <span className="text-[10px] text-muted-foreground">Galeria</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => handlePhotoUpload(e, 2)}
+                      disabled={isUploading}
+                    />
+                  </label>
+                </div>
               )}
             </div>
           </div>
