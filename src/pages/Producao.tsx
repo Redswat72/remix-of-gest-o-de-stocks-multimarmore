@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, Search, MapPin, Scissors } from 'lucide-react';
+import { Loader2, Search, MapPin, Scissors, Camera, Upload } from 'lucide-react';
 import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
 import { useEmpresa } from '@/context/EmpresaContext';
 import { useImageUpload } from '@/hooks/useImageUpload';
