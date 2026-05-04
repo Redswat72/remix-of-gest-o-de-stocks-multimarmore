@@ -391,10 +391,16 @@ export default function Producao() {
                           <button onClick={() => updateParga(idx, 'foto_primeira', null)} className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 text-xs">✕</button>
                         </div>
                       ) : (
-                        <label className="flex items-center justify-center h-24 border-2 border-dashed rounded cursor-pointer hover:border-primary text-muted-foreground text-xs">
-                          {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Carregar foto'}
-                          <input type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handlePhotoUpload(idx, 'foto_primeira', f); e.target.value = ''; }} />
-                        </label>
+                        <div className="grid grid-cols-2 gap-1 h-24">
+                          <label className="flex flex-col items-center justify-center border-2 border-dashed rounded cursor-pointer hover:border-primary text-muted-foreground text-xs gap-1">
+                            {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Camera className="h-4 w-4" /><span>Câmara</span></>}
+                            <input type="file" accept="image/*" capture="environment" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handlePhotoUpload(idx, 'foto_primeira', f); e.target.value = ''; }} />
+                          </label>
+                          <label className="flex flex-col items-center justify-center border-2 border-dashed rounded cursor-pointer hover:border-primary text-muted-foreground text-xs gap-1">
+                            <Upload className="h-4 w-4" /><span>Galeria</span>
+                            <input type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handlePhotoUpload(idx, 'foto_primeira', f); e.target.value = ''; }} />
+                          </label>
+                        </div>
                       )}
                     </div>
                     <div className="space-y-1">
