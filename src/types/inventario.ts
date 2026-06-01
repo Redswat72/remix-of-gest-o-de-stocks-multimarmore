@@ -8,7 +8,7 @@ export interface Bloco {
   largura: number | null;
   altura: number | null;
   variedade: string | null;
-  quantidade_tons: number;
+  quantidade_kg: number | null;
   quantidade_kg: number | null;
   fornecedor: string | null;
   preco_unitario: number | null;
