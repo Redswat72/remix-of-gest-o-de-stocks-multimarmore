@@ -213,7 +213,7 @@ export default function NovoMovimento() {
               comprimento: novoProdutoComprimento || null,
               largura: novoProdutoLargura || null,
               altura: novoProdutoAltura || null,
-              quantidade_tons: novoProdutoPeso || 0,
+              quantidade_kg: novoProdutoPeso || null,
               fornecedor: origemMaterial === 'adquirido' ? fornecedor || null : null,
               pedreira_origem: origemMaterial === 'producao_propria' ? pedreiraOrigem : null,
               sem_documento: origemMaterial === 'producao_propria',
@@ -710,13 +710,13 @@ export default function NovoMovimento() {
                 </div>
                 {novoProdutoForma === 'bloco' && (
                   <div className="space-y-2">
-                    <Label>Peso (Toneladas)</Label>
+                    <Label>Peso (kg)</Label>
                     <Input
                       type="number"
                       step="0.01"
                       value={novoProdutoPeso}
                       onChange={(e) => setNovoProdutoPeso(e.target.value ? Number(e.target.value) : '')}
-                      placeholder="ton"
+                      placeholder="kg"
                     />
                   </div>
                 )}

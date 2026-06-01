@@ -81,14 +81,14 @@ export function useStoreProducts(company: CompanySlug) {
           volume: b.comprimento && b.largura && b.altura
             ? Math.round((b.comprimento * b.largura * b.altura) / 1e6 * 1000) / 1000
             : null,
-          weight: b.quantidade_tons ? Math.round(b.quantidade_tons * 1000) : null,
+          weight: b.quantidade_kg ?? null,
           observations: null,
           images: images.length > 0 ? images : ['/placeholder.svg'],
           variety: b.variedade ?? null,
           finish: null,
           line: b.linha ?? null,
-          quantidade: b.quantidade_tons,
-          unidade: 'ton',
+          quantidade: b.quantidade_kg ?? 0,
+          unidade: 'kg',
           blocoOrigem: b.bloco_origem ?? null,
           bundleId: null,
           numChapas: null,
@@ -97,7 +97,7 @@ export function useStoreProducts(company: CompanySlug) {
             : null,
           butchNo: null,
           numPecas: null,
-          peso: b.quantidade_tons ?? null,
+          peso: b.quantidade_kg ?? null,
           acabamento: null,
           pargas: [],
         });

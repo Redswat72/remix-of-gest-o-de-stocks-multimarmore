@@ -119,7 +119,7 @@ export interface Banda {
 
 export interface ResumoInventario {
   total_blocos: number;
-  total_tons: number;
+  total_kg: number;
   total_chapas: number;
   total_m2_chapas: number;
   total_ladrilho: number;

@@ -34,7 +34,7 @@ async function fetchAllLight<T>(
 
 export interface BreakdownBloco {
   parque: string;
-  quantidade_tons: number | null;
+  quantidade_kg: number | null;
   valor_inventario: number | null;
 }
 export interface BreakdownChapa {
@@ -59,7 +59,7 @@ export function useDashboardBreakdown() {
         fetchAllLight<BreakdownBloco>(
           supabase,
           'blocos',
-          'parque, quantidade_tons, valor_inventario'
+          'parque, quantidade_kg, valor_inventario'
         ),
         fetchAllLight<BreakdownChapa>(
           supabase,

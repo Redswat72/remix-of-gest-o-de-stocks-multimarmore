@@ -68,19 +68,19 @@ function downloadWorkbook(wb: XLSX.WorkBook, tipo: string, empresaNome: string) 
 export async function exportBlocos(supabase: SupabaseClient, opts: ExportOptions) {
   const { data, error } = await supabase
     .from('blocos')
-    .select('id_mm, parque, variedade, bloco_origem, quantidade_tons, preco_unitario, valor_inventario')
+    .select('id_mm, parque, variedade, bloco_origem, quantidade_kg, preco_unitario, valor_inventario')
     .order('created_at', { ascending: false });
 
   if (error) throw error;
   if (!data || data.length === 0) throw new Error('Sem dados para exportar');
 
-  const rows = data.map((b: Bloco) => ({
+  const rows = data.map((b: any) => ({
     'ID MM': b.id_mm,
     'Parque': b.parque,
     'Variedade': b.variedade ?? '',
     'Origem': b.bloco_origem ?? '',
-    'Toneladas': b.quantidade_tons,
-    'Preço/ton (€)': b.preco_unitario ?? 0,
+    'Peso (kg)': b.quantidade_kg ?? 0,
+    'Preço/kg (€)': b.preco_unitario ?? 0,
     'Valor (€)': b.valor_inventario ?? 0,
   }));
 
@@ -90,9 +90,9 @@ export async function exportBlocos(supabase: SupabaseClient, opts: ExportOptions
   autoWidth(ws, rows, headers);
 
   // Totals row
-  const totalTons = data.reduce((s, b) => s + (b.quantidade_tons || 0), 0);
-  const totalValor = data.reduce((s, b) => s + (b.valor_inventario || 0), 0);
-  addTotalsRow(ws, data.length + 1, { 0: 'TOTAIS', 4: totalTons, 6: totalValor }, headers.length);
+  const totalKg = data.reduce((s, b: any) => s + (b.quantidade_kg || 0), 0);
+  const totalValor = data.reduce((s, b: any) => s + (b.valor_inventario || 0), 0);
+  addTotalsRow(ws, data.length + 1, { 0: 'TOTAIS', 4: totalKg, 6: totalValor }, headers.length);
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Blocos');

@@ -56,15 +56,15 @@ export default function Dashboard() {
 
   // Aggregate by parque
   const parqueBreakdown = useMemo(() => {
-    const map: Record<string, { blocos_tons: number; chapas_m2: number; ladrilho_m2: number; valor: number; blocos_count: number; chapas_count: number; ladrilho_count: number }> = {};
+    const map: Record<string, { blocos_kg: number; chapas_m2: number; ladrilho_m2: number; valor: number; blocos_count: number; chapas_count: number; ladrilho_count: number }> = {};
 
     const ensure = (p: string) => {
-      if (!map[p]) map[p] = { blocos_tons: 0, chapas_m2: 0, ladrilho_m2: 0, valor: 0, blocos_count: 0, chapas_count: 0, ladrilho_count: 0 };
+      if (!map[p]) map[p] = { blocos_kg: 0, chapas_m2: 0, ladrilho_m2: 0, valor: 0, blocos_count: 0, chapas_count: 0, ladrilho_count: 0 };
     };
 
     allBlocos?.forEach((b) => {
       ensure(b.parque);
-      map[b.parque].blocos_tons += b.quantidade_tons || 0;
+      map[b.parque].blocos_kg += b.quantidade_kg || 0;
       map[b.parque].blocos_count += 1;
       map[b.parque].valor += b.valor_inventario || 0;
     });
@@ -149,7 +149,7 @@ export default function Dashboard() {
           <CardContent>
             <p className="text-2xl font-bold">{resumoBlocos?.total_blocos || 0}</p>
             <p className="text-xs text-muted-foreground">
-              {formatNumber(resumoBlocos?.total_tons || 0, 2)} toneladas
+              {formatNumber(resumoBlocos?.total_kg || 0)} kg
             </p>
             {podeVerValores && (
               <p className="text-sm font-medium text-primary mt-1">
@@ -229,7 +229,7 @@ export default function Dashboard() {
                 <TableRow>
                   <TableHead>Parque</TableHead>
                   <TableHead>Nome</TableHead>
-                  <TableHead className="text-right">Blocos (tons)</TableHead>
+                  <TableHead className="text-right">Blocos (kg)</TableHead>
                   <TableHead className="text-right">Chapas (m²)</TableHead>
                   <TableHead className="text-right">Ladrilho (m²)</TableHead>
                   {podeVerValores && <TableHead className="text-right">Valor Total (€)</TableHead>}
@@ -240,7 +240,7 @@ export default function Dashboard() {
                   <TableRow key={row.parque}>
                     <TableCell className="font-medium">{row.parque}</TableCell>
                     <TableCell>{row.nome}</TableCell>
-                    <TableCell className="text-right">{formatNumber(row.blocos_tons, 2)}</TableCell>
+                    <TableCell className="text-right">{formatNumber(row.blocos_kg)}</TableCell>
                     <TableCell className="text-right">{formatNumber(row.chapas_m2, 2)}</TableCell>
                     <TableCell className="text-right">{formatNumber(row.ladrilho_m2, 2)}</TableCell>
                     {podeVerValores && <TableCell className="text-right font-medium">{formatCurrency(row.valor)}</TableCell>}
@@ -250,7 +250,7 @@ export default function Dashboard() {
                 <TableRow className="border-t-2 font-bold">
                   <TableCell colSpan={2}>TOTAL</TableCell>
                   <TableCell className="text-right">
-                    {formatNumber(parqueBreakdown.reduce((s, r) => s + r.blocos_tons, 0), 2)}
+                    {formatNumber(parqueBreakdown.reduce((s, r) => s + r.blocos_kg, 0))}
                   </TableCell>
                   <TableCell className="text-right">
                     {formatNumber(parqueBreakdown.reduce((s, r) => s + r.chapas_m2, 0), 2)}

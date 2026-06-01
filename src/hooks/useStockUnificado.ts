@@ -46,8 +46,8 @@ export interface ItemUnificado {
   idMm?: string | null;     // id_mm direto da BD (quando existir)
   variedade: string | null;
   parque: string;
-  quantidade: number;       // tons for blocos, m² for chapas/ladrilho
-  unidade: string;          // 'ton' | 'm²'
+  quantidade: number;       // kg for blocos, m² for chapas/ladrilho
+  unidade: string;          // 'kg' | 'm²'
   valor: number | null;
   precoUnitario: number | null;
   // Campos extras por forma
@@ -55,7 +55,7 @@ export interface ItemUnificado {
   comprimento?: number | null;
   largura?: number | null;
   altura?: number | null;
-  toneladas?: number | null;
+  pesoKg?: number | null;
   bundleId?: string | null;
   numChapas?: number | null;
   dimensoes?: string | null;
@@ -114,15 +114,15 @@ export function useStockUnificado(options: UseStockUnificadoOptions = {}) {
         idMm: b.id_mm,
         variedade: b.variedade,
         parque: b.parque,
-        quantidade: b.quantidade_tons,
-        unidade: 'ton',
+        quantidade: b.quantidade_kg ?? 0,
+        unidade: 'kg',
         valor: b.valor_inventario,
         precoUnitario: b.preco_unitario,
         blocoOrigem: b.bloco_origem,
         comprimento: b.comprimento,
         largura: b.largura,
         altura: b.altura,
-        toneladas: b.quantidade_tons,
+        pesoKg: b.quantidade_kg,
         raw: b,
       });
     }
