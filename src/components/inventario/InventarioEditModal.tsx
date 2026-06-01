@@ -1,14 +1,16 @@
 import { useState, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Pencil, Upload, X, Loader2, Image as ImageIcon, Trash2, Camera } from 'lucide-react';
+import { Pencil, Upload, X, Loader2, Image as ImageIcon, Trash2, Camera, Lock } from 'lucide-react';
 import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
 import { useImageUpload } from '@/hooks/useImageUpload';
+import { useAuth } from '@/hooks/useAuth';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 import type { Bloco, Chapa, Ladrilho } from '@/types/inventario';
 
 type FormaInventario = 'bloco' | 'chapa' | 'ladrilho';
