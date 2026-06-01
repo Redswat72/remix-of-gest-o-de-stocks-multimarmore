@@ -33,6 +33,7 @@ interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
   adminOnly?: boolean;
   superadminOnly?: boolean;
+  producaoOnly?: boolean;
 }
 
 const navItems: NavItem[] = [
@@ -41,7 +42,7 @@ const navItems: NavItem[] = [
   { href: '/chapas', label: 'Chapas', icon: Grid3x3 },
   { href: '/ladrilho', label: 'Ladrilho', icon: Square },
   { href: '/bandas', label: 'Bandas', icon: Layers },
-  { href: '/producao', label: 'Produção', icon: Scissors },
+  { href: '/producao', label: 'Produção', icon: Scissors, producaoOnly: true },
   { href: '/stock', label: 'Consultar Stock', icon: Boxes },
   { href: '/movimento/novo', label: 'Registar Movimento', icon: PlusCircle },
   { href: '/historico', label: 'Histórico', icon: History },
@@ -56,13 +57,14 @@ const navItems: NavItem[] = [
 export function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { profile, isAdmin, isSuperadmin, signOut } = useAuth();
+  const { profile, isAdmin, isSuperadmin, podeVerProducao, signOut } = useAuth();
   const { empresaConfig } = useEmpresa();
   const [collapsed, setCollapsed] = useState(false);
 
   const filteredItems = navItems.filter((item) => {
     if (item.superadminOnly && !isSuperadmin) return false;
     if (item.adminOnly && !isAdmin) return false;
+    if (item.producaoOnly && !podeVerProducao) return false;
     return true;
   });
 

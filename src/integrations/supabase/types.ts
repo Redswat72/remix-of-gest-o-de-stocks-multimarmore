@@ -754,6 +754,7 @@ export type Database = {
           local_id: string | null
           nome: string
           telefone: string | null
+          tem_producao: boolean
           updated_at: string
           user_id: string
         }
@@ -767,6 +768,7 @@ export type Database = {
           local_id?: string | null
           nome: string
           telefone?: string | null
+          tem_producao?: boolean
           updated_at?: string
           user_id: string
         }
@@ -780,6 +782,7 @@ export type Database = {
           local_id?: string | null
           nome?: string
           telefone?: string | null
+          tem_producao?: boolean
           updated_at?: string
           user_id?: string
         }

@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS tem_producao boolean NOT NULL DEFAULT false;

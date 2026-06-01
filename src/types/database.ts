@@ -24,6 +24,7 @@ export interface Profile {
   local_id: string | null;
   ativo: boolean;
   deve_alterar_password: boolean | null;
+  tem_producao: boolean | null;
   created_at: string;
   updated_at: string;
   local?: Local;
