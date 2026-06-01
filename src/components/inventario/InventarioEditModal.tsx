@@ -1,14 +1,16 @@
 import { useState, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Pencil, Upload, X, Loader2, Image as ImageIcon, Trash2, Camera } from 'lucide-react';
+import { Pencil, Upload, X, Loader2, Image as ImageIcon, Trash2, Camera, Lock } from 'lucide-react';
 import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
 import { useImageUpload } from '@/hooks/useImageUpload';
+import { useAuth } from '@/hooks/useAuth';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 import type { Bloco, Chapa, Ladrilho } from '@/types/inventario';
 
 type FormaInventario = 'bloco' | 'chapa' | 'ladrilho';
@@ -56,7 +58,9 @@ function getPhotoSlots(forma: FormaInventario, data: Bloco | Chapa | Ladrilho): 
   ];
 }
 
-function getEditableFields(forma: FormaInventario, data: Bloco | Chapa | Ladrilho): { label: string; field: string; value: string | number | null; type: 'text' | 'number' }[] {
+type EditableField = { label: string; field: string; value: string | number | null; type: 'text' | 'number'; operadorEditable?: boolean };
+
+function getEditableFields(forma: FormaInventario, data: Bloco | Chapa | Ladrilho): EditableField[] {
   if (forma === 'bloco') {
     const d = data as Bloco;
     return [
@@ -64,7 +68,10 @@ function getEditableFields(forma: FormaInventario, data: Bloco | Chapa | Ladrilh
       { label: 'Parque', field: 'parque', value: d.parque, type: 'text' },
       { label: 'Origem', field: 'bloco_origem', value: d.bloco_origem, type: 'text' },
       { label: 'Fornecedor', field: 'fornecedor', value: d.fornecedor, type: 'text' },
-      { label: 'Toneladas', field: 'quantidade_tons', value: d.quantidade_tons, type: 'number' },
+      { label: 'Comprimento (cm)', field: 'comprimento', value: d.comprimento, type: 'number', operadorEditable: true },
+      { label: 'Largura (cm)', field: 'largura', value: d.largura, type: 'number', operadorEditable: true },
+      { label: 'Altura (cm)', field: 'altura', value: d.altura, type: 'number', operadorEditable: true },
+      { label: 'Toneladas', field: 'quantidade_tons', value: d.quantidade_tons, type: 'number', operadorEditable: true },
       { label: 'Preço/ton', field: 'preco_unitario', value: d.preco_unitario, type: 'number' },
     ];
   }
@@ -101,6 +108,8 @@ export default function InventarioEditModal({ forma, data, itemId }: InventarioE
   const supabase = useSupabaseEmpresa();
   const queryClient = useQueryClient();
   const { uploadImage, isUploading } = useImageUpload();
+  const { hasRole } = useAuth();
+  const isOperador = hasRole('operador') && forma === 'bloco';
 
   const tableName = forma === 'bloco' ? 'blocos' : forma === 'chapa' ? 'chapas' : 'ladrilho';
 
@@ -155,8 +164,9 @@ export default function InventarioEditModal({ forma, data, itemId }: InventarioE
 
   const handleSave = () => {
     const updates: Record<string, unknown> = {};
-    
+
     editableFields.forEach(f => {
+      if (isOperador && !f.operadorEditable) return;
       const newVal = fieldValues[f.field];
       if (f.type === 'number') {
         updates[f.field] = newVal != null && newVal !== '' ? Number(newVal) : null;
@@ -165,9 +175,11 @@ export default function InventarioEditModal({ forma, data, itemId }: InventarioE
       }
     });
 
-    photoSlots.forEach(s => {
-      updates[s.field] = photoUrls[s.field] || null;
-    });
+    if (!isOperador) {
+      photoSlots.forEach(s => {
+        updates[s.field] = photoUrls[s.field] || null;
+      });
+    }
 
     updateMutation.mutate(updates);
   };
@@ -183,24 +195,37 @@ export default function InventarioEditModal({ forma, data, itemId }: InventarioE
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Editar {forma === 'bloco' ? 'Bloco' : forma === 'chapa' ? 'Chapa' : 'Ladrilho'}</DialogTitle>
+          {isOperador && (
+            <p className="text-xs text-muted-foreground">
+              Podes editar apenas as dimensões e o peso deste bloco.
+            </p>
+          )}
         </DialogHeader>
 
         <div className="space-y-6">
           {/* Editable fields */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {editableFields.map(f => (
-              <div key={f.field} className="space-y-1">
-                <Label>{f.label}</Label>
-                <Input
-                  type={f.type}
-                  value={fieldValues[f.field] ?? ''}
-                  onChange={e => setFieldValues(prev => ({
-                    ...prev,
-                    [f.field]: f.type === 'number' ? (e.target.value === '' ? null : e.target.value) : e.target.value,
-                  }))}
-                />
-              </div>
-            ))}
+            {editableFields.map(f => {
+              const locked = isOperador && !f.operadorEditable;
+              return (
+                <div key={f.field} className="space-y-1">
+                  <Label className="flex items-center gap-1">
+                    {f.label}
+                    {locked && <Lock className="h-3 w-3 text-muted-foreground" />}
+                  </Label>
+                  <Input
+                    type={f.type}
+                    value={fieldValues[f.field] ?? ''}
+                    disabled={locked}
+                    className={cn(locked && 'bg-muted cursor-not-allowed opacity-60')}
+                    onChange={e => setFieldValues(prev => ({
+                      ...prev,
+                      [f.field]: f.type === 'number' ? (e.target.value === '' ? null : e.target.value) : e.target.value,
+                    }))}
+                  />
+                </div>
+              );
+            })}
           </div>
 
           <Separator />
@@ -210,19 +235,41 @@ export default function InventarioEditModal({ forma, data, itemId }: InventarioE
             <h3 className="font-semibold mb-3 flex items-center gap-2">
               <ImageIcon className="h-4 w-4" />
               Fotografias
+              {isOperador && <Lock className="h-3 w-3 text-muted-foreground" />}
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {photoSlots.map(slot => (
-                <PhotoUploadSlot
-                  key={slot.field}
-                  label={slot.label}
-                  currentUrl={photoUrls[slot.field]}
-                  onUpload={(file) => handlePhotoUpload(slot.field, file)}
-                  onRemove={() => setPhotoUrls(prev => ({ ...prev, [slot.field]: null }))}
-                  isUploading={isUploading}
-                />
-              ))}
-            </div>
+            {isOperador ? (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {photoSlots.filter(s => photoUrls[s.field]).length === 0 ? (
+                  <p className="text-sm text-muted-foreground col-span-full">Sem fotografias.</p>
+                ) : (
+                  photoSlots
+                    .filter(s => photoUrls[s.field])
+                    .map(slot => (
+                      <div key={slot.field} className="space-y-1">
+                        <Label className="text-xs">{slot.label}</Label>
+                        <img
+                          src={photoUrls[slot.field] as string}
+                          alt={slot.label}
+                          className="w-full h-24 object-cover rounded-md border"
+                        />
+                      </div>
+                    ))
+                )}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {photoSlots.map(slot => (
+                  <PhotoUploadSlot
+                    key={slot.field}
+                    label={slot.label}
+                    currentUrl={photoUrls[slot.field]}
+                    onUpload={(file) => handlePhotoUpload(slot.field, file)}
+                    onRemove={() => setPhotoUrls(prev => ({ ...prev, [slot.field]: null }))}
+                    isUploading={isUploading}
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="flex justify-end gap-2 pt-4">
