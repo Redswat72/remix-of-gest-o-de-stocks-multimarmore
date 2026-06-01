@@ -58,7 +58,9 @@ function getPhotoSlots(forma: FormaInventario, data: Bloco | Chapa | Ladrilho): 
   ];
 }
 
-function getEditableFields(forma: FormaInventario, data: Bloco | Chapa | Ladrilho): { label: string; field: string; value: string | number | null; type: 'text' | 'number' }[] {
+type EditableField = { label: string; field: string; value: string | number | null; type: 'text' | 'number'; operadorEditable?: boolean };
+
+function getEditableFields(forma: FormaInventario, data: Bloco | Chapa | Ladrilho): EditableField[] {
   if (forma === 'bloco') {
     const d = data as Bloco;
     return [
@@ -66,7 +68,10 @@ function getEditableFields(forma: FormaInventario, data: Bloco | Chapa | Ladrilh
       { label: 'Parque', field: 'parque', value: d.parque, type: 'text' },
       { label: 'Origem', field: 'bloco_origem', value: d.bloco_origem, type: 'text' },
       { label: 'Fornecedor', field: 'fornecedor', value: d.fornecedor, type: 'text' },
-      { label: 'Toneladas', field: 'quantidade_tons', value: d.quantidade_tons, type: 'number' },
+      { label: 'Comprimento (cm)', field: 'comprimento', value: d.comprimento, type: 'number', operadorEditable: true },
+      { label: 'Largura (cm)', field: 'largura', value: d.largura, type: 'number', operadorEditable: true },
+      { label: 'Altura (cm)', field: 'altura', value: d.altura, type: 'number', operadorEditable: true },
+      { label: 'Toneladas', field: 'quantidade_tons', value: d.quantidade_tons, type: 'number', operadorEditable: true },
       { label: 'Preço/ton', field: 'preco_unitario', value: d.preco_unitario, type: 'number' },
     ];
   }
