@@ -108,6 +108,8 @@ export default function InventarioEditModal({ forma, data, itemId }: InventarioE
   const supabase = useSupabaseEmpresa();
   const queryClient = useQueryClient();
   const { uploadImage, isUploading } = useImageUpload();
+  const { hasRole } = useAuth();
+  const isOperador = hasRole('operador') && forma === 'bloco';
 
   const tableName = forma === 'bloco' ? 'blocos' : forma === 'chapa' ? 'chapas' : 'ladrilho';
 
