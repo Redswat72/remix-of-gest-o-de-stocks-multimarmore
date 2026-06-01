@@ -16,6 +16,7 @@ interface AuthContextType {
   hasRole: (role: AppRole) => boolean;
   isAdmin: boolean;
   isSuperadmin: boolean;
+  podeVerProducao: boolean;
   refreshProfile: () => Promise<void>;
 }
 
@@ -126,11 +127,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const hasRole = (role: AppRole) => roles.includes(role);
   const isAdmin = hasRole('admin') || hasRole('superadmin');
   const isSuperadmin = hasRole('superadmin');
+  const podeVerProducao = isAdmin || profile?.tem_producao === true;
 
   return (
     <AuthContext.Provider value={{
       user, session, profile, roles, userLocal, loading,
-      signIn, signUp, signOut, hasRole, isAdmin, isSuperadmin, refreshProfile,
+      signIn, signUp, signOut, hasRole, isAdmin, isSuperadmin, podeVerProducao, refreshProfile,
     }}>
       {children}
     </AuthContext.Provider>
