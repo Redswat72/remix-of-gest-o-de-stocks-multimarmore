@@ -19,6 +19,7 @@ import { useLocaisAtivos } from '@/hooks/useLocais';
 import { useStockProdutoLocal } from '@/hooks/useStock';
 import { useCreateMovimento } from '@/hooks/useMovimentos';
 import type { TipoMovimento, TipoDocumento, OrigemMaterial, FormaProduto, MovimentoFormData } from '@/types/database';
+import { PhotoUploadField } from '@/components/movimentos/PhotoUploadField';
 
 const STEPS = [
   { id: 1, title: 'Tipo', description: 'Tipo de movimento' },
@@ -745,22 +746,22 @@ export default function NovoMovimento() {
                 )}
               </div>
 
-              {/* Photo URL fields */}
+              {/* Photo upload fields */}
               {novoProdutoForma === 'bloco' && (
                 <div className="space-y-3">
-                  <Label className="text-base font-semibold">Fotografias (URL)</Label>
+                  <Label className="text-base font-semibold">Fotografias</Label>
                   <div className="grid gap-3 sm:grid-cols-3">
                     <div className="space-y-1">
                       <Label className="text-sm">Foto 1</Label>
-                      <Input placeholder="URL da foto 1" value={blocoFoto1} onChange={(e) => setBlocoFoto1(e.target.value)} />
+                      <PhotoUploadField value={blocoFoto1} onChange={setBlocoFoto1} idMM={novoProdutoIdMM} fileLabel="foto1" />
                     </div>
                     <div className="space-y-1">
                       <Label className="text-sm">Foto 2</Label>
-                      <Input placeholder="URL da foto 2" value={blocoFoto2} onChange={(e) => setBlocoFoto2(e.target.value)} />
+                      <PhotoUploadField value={blocoFoto2} onChange={setBlocoFoto2} idMM={novoProdutoIdMM} fileLabel="foto2" />
                     </div>
                     <div className="space-y-1">
                       <Label className="text-sm">Foto 3</Label>
-                      <Input placeholder="URL da foto 3" value={blocoFoto3} onChange={(e) => setBlocoFoto3(e.target.value)} />
+                      <PhotoUploadField value={blocoFoto3} onChange={setBlocoFoto3} idMM={novoProdutoIdMM} fileLabel="foto3" />
                     </div>
                   </div>
                 </div>
@@ -768,33 +769,35 @@ export default function NovoMovimento() {
 
               {novoProdutoForma === 'chapa' && (
                 <div className="space-y-3">
-                  <Label className="text-base font-semibold">Fotografias das Pargas (URL)</Label>
+                  <Label className="text-base font-semibold">Fotografias das Pargas</Label>
                   {[1, 2, 3, 4].map((n) => (
                     <div key={n} className="space-y-2 border rounded-lg p-3">
                       <Label className="text-sm font-medium">Parga {n}</Label>
                       <div className="grid gap-3 sm:grid-cols-2">
                         <div className="space-y-1">
                           <Label className="text-xs text-muted-foreground">Foto Primeira</Label>
-                          <Input
-                            placeholder="URL da foto primeira"
+                          <PhotoUploadField
                             value={pargaFotos[n - 1].primeira}
-                            onChange={(e) => {
+                            onChange={(url) => {
                               const updated = [...pargaFotos];
-                              updated[n - 1] = { ...updated[n - 1], primeira: e.target.value };
+                              updated[n - 1] = { ...updated[n - 1], primeira: url };
                               setPargaFotos(updated);
                             }}
+                            idMM={novoProdutoIdMM}
+                            fileLabel={`parga${n}_primeira`}
                           />
                         </div>
                         <div className="space-y-1">
                           <Label className="text-xs text-muted-foreground">Foto Última</Label>
-                          <Input
-                            placeholder="URL da foto última"
+                          <PhotoUploadField
                             value={pargaFotos[n - 1].ultima}
-                            onChange={(e) => {
+                            onChange={(url) => {
                               const updated = [...pargaFotos];
-                              updated[n - 1] = { ...updated[n - 1], ultima: e.target.value };
+                              updated[n - 1] = { ...updated[n - 1], ultima: url };
                               setPargaFotos(updated);
                             }}
+                            idMM={novoProdutoIdMM}
+                            fileLabel={`parga${n}_ultima`}
                           />
                         </div>
                       </div>
@@ -805,15 +808,15 @@ export default function NovoMovimento() {
 
               {novoProdutoForma === 'ladrilho' && (
                 <div className="space-y-3">
-                  <Label className="text-base font-semibold">Fotografias (URL)</Label>
+                  <Label className="text-base font-semibold">Fotografias</Label>
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div className="space-y-1">
                       <Label className="text-sm">Foto 1</Label>
-                      <Input placeholder="URL da foto 1" value={ladrilhoFoto1} onChange={(e) => setLadrilhoFoto1(e.target.value)} />
+                      <PhotoUploadField value={ladrilhoFoto1} onChange={setLadrilhoFoto1} idMM={novoProdutoIdMM} fileLabel="foto1" />
                     </div>
                     <div className="space-y-1">
                       <Label className="text-sm">Foto 2</Label>
-                      <Input placeholder="URL da foto 2" value={ladrilhoFoto2} onChange={(e) => setLadrilhoFoto2(e.target.value)} />
+                      <PhotoUploadField value={ladrilhoFoto2} onChange={setLadrilhoFoto2} idMM={novoProdutoIdMM} fileLabel="foto2" />
                     </div>
                   </div>
                 </div>
