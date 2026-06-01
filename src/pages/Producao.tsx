@@ -43,7 +43,7 @@ export default function Producao() {
   const queryClient = useQueryClient();
   const { uploadImage, isUploading } = useImageUpload();
 
-  const [idMm, setIdMm] = useState(searchParams.get('bloco') || '');
+  const [idMm, setIdMm] = useState(searchParams.get('id_mm') || searchParams.get('bloco') || '');
   const [bloco, setBloco] = useState<Bloco | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [notFound, setNotFound] = useState(false);
@@ -52,7 +52,7 @@ export default function Producao() {
   const [data, setData] = useState(new Date().toISOString().split('T')[0]);
   const [latitude, setLatitude] = useState('');
   const [longitude, setLongitude] = useState('');
-  const [linha, setLinha] = useState('');
+  const [linha, setLinha] = useState(searchParams.get('linha') || '');
   const [tipoCorte, setTipoCorte] = useState<'total' | 'parcial' | ''>('');
   const [pargas, setPargas] = useState<PargaData[]>([emptyParga(), emptyParga(), emptyParga(), emptyParga()]);
 
@@ -83,9 +83,9 @@ export default function Producao() {
     }
   };
 
-  // Auto-search on mount if bloco param exists
+  // Auto-search on mount if bloco/id_mm param exists
   useEffect(() => {
-    if (searchParams.get('bloco')) {
+    if (searchParams.get('bloco') || searchParams.get('id_mm')) {
       searchBloco();
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps

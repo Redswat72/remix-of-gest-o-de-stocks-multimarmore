@@ -14,7 +14,7 @@ import { usePermissoes } from "@/hooks/usePermissoes";
 import { useAuth } from "@/hooks/useAuth";
 import { ExportExcelButton } from "@/components/ExportExcelButton";
 import { exportBlocos } from "@/utils/exportExcel";
-import { Search, Scissors, Ruler } from "lucide-react";
+import { Search, Scissors, Ruler, Factory } from "lucide-react";
 import { PARQUES_OPTIONS } from "@/lib/parques";
 import InventarioDetailModal from "@/components/inventario/InventarioDetailModal";
 import MedicaoPendenteModal from "@/components/inventario/MedicaoPendenteModal";
@@ -26,8 +26,8 @@ export default function Blocos() {
   const supabase = useSupabaseEmpresa();
   const { empresaConfig } = useEmpresa();
   const { podeVerValores } = usePermissoes();
-  const { isAdmin, isSuperadmin, user } = useAuth();
-  const canProduce = !!user;
+  const { isAdmin, isSuperadmin, user, podeVerProducao } = useAuth();
+  const canProduce = podeVerProducao;
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [medicaoBloco, setMedicaoBloco] = useState<{ id: string; id_mm: string } | null>(null);
 
@@ -147,17 +147,41 @@ export default function Blocos() {
                   {canProduce && (
                     <TableCell className="text-center">
                       {!isMedicaoPendente && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            navigate(`/producao?bloco=${bloco.id_mm}`);
-                          }}
-                        >
-                          <Scissors className="h-3.5 w-3.5 mr-1" />
-                          Produzir Chapa
-                        </Button>
+                        <div className="flex items-center justify-center gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              navigate(`/producao?bloco=${bloco.id_mm}`);
+                            }}
+                          >
+                            <Scissors className="h-3.5 w-3.5 mr-1" />
+                            Produzir Chapa
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            title="Enviar para Produção"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const params = new URLSearchParams({
+                                novo: 'true',
+                                id_mm: bloco.id_mm,
+                                variedade: bloco.variedade || '',
+                                comp: String(bloco.comprimento ?? ''),
+                                larg: String(bloco.largura ?? ''),
+                                alt: String(bloco.altura ?? ''),
+                                peso: String(bloco.quantidade_tons ?? ''),
+                                linha: (bloco as any).linha || '',
+                              });
+                              navigate(`/producao?${params.toString()}`);
+                            }}
+                          >
+                            <Factory className="h-3.5 w-3.5 mr-1" />
+                            → Produção
+                          </Button>
+                        </div>
                       )}
                     </TableCell>
                   )}
