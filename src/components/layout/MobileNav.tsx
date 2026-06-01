@@ -14,13 +14,14 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { useAuth } from '@/hooks/useAuth';
 
-const inventarioItems = [
+const inventarioItemsBase = [
   { href: '/blocos', label: 'Blocos', icon: Package },
   { href: '/chapas', label: 'Chapas', icon: Grid3x3 },
   { href: '/ladrilho', label: 'Ladrilho', icon: Square },
   { href: '/bandas', label: 'Bandas', icon: Layers },
-  { href: '/producao', label: 'Produção', icon: Scissors },
+  { href: '/producao', label: 'Produção', icon: Scissors, producaoOnly: true },
   { href: '/stock', label: 'Consultar Stock', icon: Boxes },
 ];
 
@@ -36,6 +37,11 @@ export function MobileNav() {
   const location = useLocation();
   const navigate = useNavigate();
   const [inventarioOpen, setInventarioOpen] = useState(false);
+  const { podeVerProducao } = useAuth();
+
+  const inventarioItems = inventarioItemsBase.filter(
+    (i) => !('producaoOnly' in i && i.producaoOnly) || podeVerProducao
+  );
 
   const inventarioActive = inventarioItems.some(i => location.pathname === i.href);
 
