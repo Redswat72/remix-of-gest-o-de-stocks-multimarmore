@@ -19,6 +19,7 @@ import { useLocaisAtivos } from '@/hooks/useLocais';
 import { useStockProdutoLocal } from '@/hooks/useStock';
 import { useCreateMovimento } from '@/hooks/useMovimentos';
 import type { TipoMovimento, TipoDocumento, OrigemMaterial, FormaProduto, MovimentoFormData } from '@/types/database';
+import { PhotoUploadField } from '@/components/movimentos/PhotoUploadField';
 
 const STEPS = [
   { id: 1, title: 'Tipo', description: 'Tipo de movimento' },
