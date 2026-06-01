@@ -54,8 +54,10 @@ export default function InventarioDetailModal({ open, onOpenChange, forma, itemI
   const supabase = useSupabaseEmpresa();
   const { empresa } = useEmpresa();
   const { podeVerValores } = usePermissoes();
-  const { isSuperadmin, isAdmin } = useAuth();
-  const canEdit = isSuperadmin || isAdmin;
+  const { isSuperadmin, isAdmin, hasRole } = useAuth();
+  const isOperador = hasRole('operador');
+  // Operadores podem editar blocos (apenas dimensões/peso — modal restringe internamente)
+  const canEdit = isSuperadmin || isAdmin || (isOperador && forma === 'bloco');
   const queryClient = useQueryClient();
 
   const tableName = forma === 'bloco' ? 'blocos' : forma === 'chapa' ? 'chapas' : forma === 'banda' ? 'produtos' : 'ladrilho';
