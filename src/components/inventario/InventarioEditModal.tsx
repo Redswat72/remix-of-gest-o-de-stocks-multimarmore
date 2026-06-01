@@ -164,8 +164,9 @@ export default function InventarioEditModal({ forma, data, itemId }: InventarioE
 
   const handleSave = () => {
     const updates: Record<string, unknown> = {};
-    
+
     editableFields.forEach(f => {
+      if (isOperador && !f.operadorEditable) return;
       const newVal = fieldValues[f.field];
       if (f.type === 'number') {
         updates[f.field] = newVal != null && newVal !== '' ? Number(newVal) : null;
@@ -174,9 +175,11 @@ export default function InventarioEditModal({ forma, data, itemId }: InventarioE
       }
     });
 
-    photoSlots.forEach(s => {
-      updates[s.field] = photoUrls[s.field] || null;
-    });
+    if (!isOperador) {
+      photoSlots.forEach(s => {
+        updates[s.field] = photoUrls[s.field] || null;
+      });
+    }
 
     updateMutation.mutate(updates);
   };
