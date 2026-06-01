@@ -228,7 +228,7 @@ export default function Stock() {
                     <TableHead>Parque</TableHead>
                     <TableHead>Acabamento</TableHead>
                     <TableHead>Dimensões</TableHead>
-                    <TableHead className="text-right">Toneladas</TableHead>
+                    <TableHead className="text-right">Peso (kg)</TableHead>
                     <TableHead className="text-right cursor-pointer hover:bg-muted/50" onClick={() => toggleSort('quantidade')}>
                       <div className="flex items-center justify-end gap-1">Quantidade <SortIcon field="quantidade" /></div>
                     </TableHead>
@@ -263,7 +263,7 @@ export default function Stock() {
                           : '—'}
                       </TableCell>
                       <TableCell className="text-right text-muted-foreground">
-                        {item.forma === 'bloco' && item.toneladas ? `${formatNumber(item.toneladas)} t` : '—'}
+                        {item.forma === 'bloco' && item.pesoKg ? `${formatNumber(item.pesoKg)} kg` : '—'}
                       </TableCell>
                       <TableCell className="text-right">
                         {formatNumber(item.quantidade)} {item.unidade}

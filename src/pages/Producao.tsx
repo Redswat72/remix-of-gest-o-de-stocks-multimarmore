@@ -189,7 +189,7 @@ export default function Producao() {
             comprimento: null,
             largura: null,
             altura: null,
-            quantidade_tons: 0,
+            quantidade_kg: null,
           })
           .eq('id', bloco.id);
         if (blocoError) throw blocoError;
@@ -276,8 +276,8 @@ export default function Producao() {
                   <p className="font-medium">{bloco.altura ?? '—'}</p>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Peso (ton)</span>
-                  <p className="font-medium">{bloco.quantidade_tons ?? '—'}</p>
+                  <span className="text-muted-foreground">Peso (kg)</span>
+                  <p className="font-medium">{bloco.quantidade_kg != null ? `${bloco.quantidade_kg} kg` : '—'}</p>
                 </div>
               </div>
               {(bloco.foto1_url || bloco.foto2_url) && (

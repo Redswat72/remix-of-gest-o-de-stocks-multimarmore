@@ -8,7 +8,6 @@ export interface Bloco {
   largura: number | null;
   altura: number | null;
   variedade: string | null;
-  quantidade_tons: number;
   quantidade_kg: number | null;
   fornecedor: string | null;
   preco_unitario: number | null;
@@ -120,7 +119,7 @@ export interface Banda {
 
 export interface ResumoInventario {
   total_blocos: number;
-  total_tons: number;
+  total_kg: number;
   total_chapas: number;
   total_m2_chapas: number;
   total_ladrilho: number;

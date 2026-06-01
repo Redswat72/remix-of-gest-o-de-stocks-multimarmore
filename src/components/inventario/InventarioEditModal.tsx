@@ -71,8 +71,8 @@ function getEditableFields(forma: FormaInventario, data: Bloco | Chapa | Ladrilh
       { label: 'Comprimento (cm)', field: 'comprimento', value: d.comprimento, type: 'number', operadorEditable: true },
       { label: 'Largura (cm)', field: 'largura', value: d.largura, type: 'number', operadorEditable: true },
       { label: 'Altura (cm)', field: 'altura', value: d.altura, type: 'number', operadorEditable: true },
-      { label: 'Toneladas', field: 'quantidade_tons', value: d.quantidade_tons, type: 'number', operadorEditable: true },
-      { label: 'Preço/ton', field: 'preco_unitario', value: d.preco_unitario, type: 'number' },
+      { label: 'Peso (kg)', field: 'quantidade_kg', value: d.quantidade_kg, type: 'number', operadorEditable: true },
+      { label: 'Preço/kg', field: 'preco_unitario', value: d.preco_unitario, type: 'number' },
     ];
   }
   if (forma === 'chapa') {

@@ -109,8 +109,8 @@ export default function Blocos() {
               <TableHead>Parque</TableHead>
               <TableHead>Variedade</TableHead>
               <TableHead>Origem</TableHead>
-              <TableHead className="text-right">Toneladas</TableHead>
-              {podeVerValores && <TableHead className="text-right">Preço/ton</TableHead>}
+              <TableHead className="text-right">Peso (kg)</TableHead>
+              {podeVerValores && <TableHead className="text-right">Preço/kg</TableHead>}
               {podeVerValores && <TableHead className="text-right">Valor</TableHead>}
               <TableHead>Estado</TableHead>
               {canProduce && <TableHead className="text-center">Ações</TableHead>}
@@ -127,7 +127,7 @@ export default function Blocos() {
                   <TableCell onClick={() => setSelectedId(bloco.id)}><Badge variant="outline">{bloco.parque}</Badge></TableCell>
                   <TableCell onClick={() => setSelectedId(bloco.id)}>{bloco.variedade || "—"}</TableCell>
                   <TableCell onClick={() => setSelectedId(bloco.id)}>{bloco.bloco_origem || "—"}</TableCell>
-                  <TableCell className="text-right" onClick={() => setSelectedId(bloco.id)}>{formatNumber(bloco.quantidade_tons)}</TableCell>
+                  <TableCell className="text-right" onClick={() => setSelectedId(bloco.id)}>{bloco.quantidade_kg != null ? `${formatNumber(bloco.quantidade_kg)} kg` : '—'}</TableCell>
                   {podeVerValores && <TableCell className="text-right" onClick={() => setSelectedId(bloco.id)}>{formatCurrency(bloco.preco_unitario)}</TableCell>}
                   {podeVerValores && <TableCell className="text-right font-medium" onClick={() => setSelectedId(bloco.id)}>{formatCurrency(bloco.valor_inventario)}</TableCell>}
                   <TableCell>
@@ -172,7 +172,7 @@ export default function Blocos() {
                                 comp: String(bloco.comprimento ?? ''),
                                 larg: String(bloco.largura ?? ''),
                                 alt: String(bloco.altura ?? ''),
-                                peso: String(bloco.quantidade_tons ?? ''),
+                                peso: String(bloco.quantidade_kg ?? ''),
                                 linha: (bloco as any).linha || '',
                               });
                               navigate(`/producao?${params.toString()}`);
@@ -200,7 +200,7 @@ export default function Blocos() {
               Total de blocos: <strong>{blocosFiltrados?.length || 0}</strong>
             </span>
             <span className="text-muted-foreground">
-              Total: <strong>{formatNumber(blocosFiltrados?.reduce((sum, b) => sum + b.quantidade_tons, 0) || 0)} tons</strong>
+              Total: <strong>{formatNumber(blocosFiltrados?.reduce((sum, b) => sum + (b.quantidade_kg || 0), 0) || 0)} kg</strong>
             </span>
             {podeVerValores && (
               <span className="text-muted-foreground">

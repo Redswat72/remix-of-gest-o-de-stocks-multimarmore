@@ -70,17 +70,17 @@ export async function exportStockCompleto(supabase: SupabaseClient, opts: Export
       'Parque': b.parque,
       'Variedade': b.variedade ?? '',
       'Origem': b.bloco_origem ?? '',
-      'Toneladas': b.quantidade_tons,
-      'Preço/ton (€)': b.preco_unitario ?? 0,
+      'Peso (kg)': b.quantidade_kg ?? 0,
+      'Preço/kg (€)': b.preco_unitario ?? 0,
       'Valor (€)': b.valor_inventario ?? 0,
     }));
     const headers = Object.keys(blocosRows[0]);
     const ws = XLSX.utils.json_to_sheet(blocosRows);
     applyHeaderStyle(ws, headers.length, opts.corHeader);
     autoWidth(ws, blocosRows, headers);
-    const totalTons = blocosData.reduce((s, b) => s + (b.quantidade_tons || 0), 0);
+    const totalKg = blocosData.reduce((s, b) => s + (b.quantidade_kg || 0), 0);
     const totalValor = blocosData.reduce((s, b) => s + (b.valor_inventario || 0), 0);
-    addTotalsRow(ws, blocosData.length + 1, { 0: 'TOTAIS', 4: totalTons, 6: totalValor }, headers.length);
+    addTotalsRow(ws, blocosData.length + 1, { 0: 'TOTAIS', 4: totalKg, 6: totalValor }, headers.length);
     XLSX.utils.book_append_sheet(wb, ws, 'Blocos');
   }
 

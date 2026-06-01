@@ -44,15 +44,15 @@ export function useResumoBlocos() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('blocos')
-        .select('quantidade_tons, valor_inventario');
+        .select('quantidade_kg, valor_inventario');
 
       if (error) throw error;
 
       const total_blocos = data.length;
-      const total_tons = data.reduce((sum, b) => sum + (b.quantidade_tons || 0), 0);
+      const total_kg = data.reduce((sum, b) => sum + (b.quantidade_kg || 0), 0);
       const valor_total = data.reduce((sum, b) => sum + (b.valor_inventario || 0), 0);
 
-      return { total_blocos, total_tons, valor_total };
+      return { total_blocos, total_kg, valor_total };
     },
     enabled: !!empresa,
   });

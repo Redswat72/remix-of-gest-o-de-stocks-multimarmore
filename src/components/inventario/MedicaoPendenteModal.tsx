@@ -22,7 +22,7 @@ export default function MedicaoPendenteModal({ open, onOpenChange, blocoId, idMm
   const [comprimento, setComprimento] = useState('');
   const [largura, setLargura] = useState('');
   const [altura, setAltura] = useState('');
-  const [quantidadeTons, setQuantidadeTons] = useState('');
+  const [quantidadeKg, setQuantidadeKg] = useState('');
 
   const mutation = useMutation({
     mutationFn: async () => {
@@ -31,7 +31,7 @@ export default function MedicaoPendenteModal({ open, onOpenChange, blocoId, idMm
         comprimento: comprimento ? Number(comprimento) : null,
         largura: largura ? Number(largura) : null,
         altura: altura ? Number(altura) : null,
-        quantidade_tons: quantidadeTons ? Number(quantidadeTons) : 0,
+        quantidade_kg: quantidadeKg ? Number(quantidadeKg) : null,
       };
 
       const { error } = await supabase
@@ -51,7 +51,7 @@ export default function MedicaoPendenteModal({ open, onOpenChange, blocoId, idMm
     },
   });
 
-  const canSave = comprimento || largura || altura || quantidadeTons;
+  const canSave = comprimento || largura || altura || quantidadeKg;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -82,8 +82,8 @@ export default function MedicaoPendenteModal({ open, onOpenChange, blocoId, idMm
               <Input type="number" min={0} value={altura} onChange={e => setAltura(e.target.value)} placeholder="cm" />
             </div>
             <div className="space-y-1">
-              <Label>Toneladas</Label>
-              <Input type="number" min={0} step="0.01" value={quantidadeTons} onChange={e => setQuantidadeTons(e.target.value)} />
+              <Label>Peso (kg)</Label>
+              <Input type="number" min={0} step="0.01" value={quantidadeKg} onChange={e => setQuantidadeKg(e.target.value)} />
             </div>
           </div>
 

@@ -208,7 +208,7 @@ function BlocoFields({ data, podeVerValores }: { data: Bloco; podeVerValores: bo
       <DetailRow label="Origem" value={data.bloco_origem} />
       <DetailRow label="Fornecedor" value={data.fornecedor} />
       <Separator />
-      <DetailRow label="Toneladas" value={formatNumber(data.quantidade_tons)} />
+      <DetailRow label="Peso" value={data.quantidade_kg != null ? `${formatNumber(data.quantidade_kg)} kg` : null} />
       {data.comprimento && <DetailRow label="Comprimento" value={`${data.comprimento}`} />}
       {data.largura && <DetailRow label="Largura" value={`${data.largura}`} />}
       {data.altura && <DetailRow label="Altura" value={`${data.altura}`} />}
