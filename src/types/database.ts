@@ -23,6 +23,7 @@ export interface Profile {
   email: string;
   local_id: string | null;
   ativo: boolean;
+  deve_alterar_password: boolean | null;
   created_at: string;
   updated_at: string;
   local?: Local;

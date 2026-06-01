@@ -51,6 +51,14 @@ export default function AlterarPassword() {
 
       if (error) throw error;
 
+      // Clear the force-password-change flag in profiles
+      if (user) {
+        await supabaseEmpresa
+          .from('profiles')
+          .update({ deve_alterar_password: false })
+          .eq('user_id', user.id);
+      }
+
       toast({
         title: 'Password alterada!',
         description: 'A sua password foi alterada com sucesso.',

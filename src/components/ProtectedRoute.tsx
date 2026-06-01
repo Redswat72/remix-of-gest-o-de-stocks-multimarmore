@@ -78,13 +78,12 @@ export function ProtectedRoute({
     );
   }
 
-  // Force password change for operators on first login
+  // Force password change when profile flag is set
   if (
     !skipPasswordCheck &&
     !isAdmin &&
     !isSuperadmin &&
-    roles.includes('operador') &&
-    !user.user_metadata?.password_changed
+    profile?.deve_alterar_password
   ) {
     return <Navigate to="/alterar-password" replace />;
   }
