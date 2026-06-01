@@ -308,8 +308,8 @@ function BlocoDetails({ data }: { data: Bloco }) {
       <DetailRow label="Variedade" value={data.variedade} />
       <DetailRow label="Origem" value={data.bloco_origem} />
       <Separator />
-      <DetailRow label="Toneladas" value={formatNumber(data.quantidade_tons)} />
-      {podeVerValores && <DetailRow label="Preço/ton" value={formatCurrency(data.preco_unitario)} />}
+      <DetailRow label="Peso" value={data.quantidade_kg != null ? `${formatNumber(data.quantidade_kg)} kg` : null} />
+      {podeVerValores && <DetailRow label="Preço/kg" value={formatCurrency(data.preco_unitario)} />}
       {podeVerValores && <DetailRow label="Valor de Inventário" value={formatCurrency(data.valor_inventario)} />}
       {(data.comprimento || data.largura || data.altura) && (
         <>
