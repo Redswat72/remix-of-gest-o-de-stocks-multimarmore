@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useEmpresa } from '@/context/EmpresaContext';
 import { Button } from '@/components/ui/button';
@@ -10,13 +10,18 @@ import { useToast } from '@/hooks/use-toast';
 import { Loader2, Lock } from 'lucide-react';
 
 export default function AlterarPassword() {
-  const { user, refreshProfile } = useAuth();
-  const { supabaseEmpresa } = useEmpresa();
+  const { user, profile, refreshProfile, loading } = useAuth();
+  const { supabaseEmpresa, empresaConfig } = useEmpresa();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+
+  // Se a flag não está ativa, não deve estar nesta página
+  if (!loading && profile && profile.deve_alterar_password === false) {
+    return <Navigate to="/" replace />;
+  }
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -30,10 +35,10 @@ export default function AlterarPassword() {
       return;
     }
 
-    if (newPassword.length < 6) {
+    if (newPassword.length < 8) {
       toast({
         title: 'Erro',
-        description: 'A password deve ter pelo menos 6 caracteres.',
+        description: 'A password deve ter pelo menos 8 caracteres.',
         variant: 'destructive',
       });
       return;
@@ -43,25 +48,25 @@ export default function AlterarPassword() {
 
     try {
       if (!supabaseEmpresa) throw new Error('Sem conexão');
+      if (!user) throw new Error('Sessão inválida');
 
-      const { error } = await supabaseEmpresa.auth.updateUser({
+      const { error: authError } = await supabaseEmpresa.auth.updateUser({
         password: newPassword,
         data: { password_changed: true },
       });
 
-      if (error) throw error;
+      if (authError) throw authError;
 
-      // Clear the force-password-change flag in profiles
-      if (user) {
-        await supabaseEmpresa
-          .from('profiles')
-          .update({ deve_alterar_password: false })
-          .eq('user_id', user.id);
-      }
+      const { error: profileError } = await supabaseEmpresa
+        .from('profiles')
+        .update({ deve_alterar_password: false })
+        .eq('user_id', user.id);
+
+      if (profileError) throw profileError;
 
       toast({
-        title: 'Password alterada!',
-        description: 'A sua password foi alterada com sucesso.',
+        title: 'Password definida!',
+        description: 'Já podes aceder à aplicação.',
       });
 
       await refreshProfile();
@@ -69,7 +74,7 @@ export default function AlterarPassword() {
     } catch (error: any) {
       toast({
         title: 'Erro',
-        description: error.message || 'Não foi possível alterar a password.',
+        description: error.message || 'Não foi possível definir a password.',
         variant: 'destructive',
       });
     } finally {
@@ -78,22 +83,32 @@ export default function AlterarPassword() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <div className="min-h-screen flex items-center justify-center bg-[#030712] p-4">
       <div className="w-full max-w-md">
-        <Card className="shadow-lg border-border">
+        <div className="flex flex-col items-center mb-8">
+          {empresaConfig?.logo && (
+            <img
+              src={empresaConfig.logo}
+              alt={empresaConfig?.nome ?? 'Empresa'}
+              className="h-32 w-auto object-contain mb-4"
+            />
+          )}
+        </div>
+
+        <Card className="shadow-2xl border-border/40 bg-card/95 backdrop-blur">
           <CardHeader className="text-center">
             <div className="mx-auto p-3 rounded-full bg-primary/10 w-fit mb-2">
               <Lock className="w-6 h-6 text-primary" />
             </div>
-            <CardTitle>Alterar Password</CardTitle>
+            <CardTitle className="text-xl">Definir nova password</CardTitle>
             <CardDescription>
-              É necessário alterar a sua password antes de continuar.
+              Por segurança, define uma password pessoal antes de continuar.
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleChangePassword} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="new-password">Nova Password</Label>
+                <Label htmlFor="new-password">Nova password</Label>
                 <Input
                   id="new-password"
                   type="password"
@@ -101,13 +116,13 @@ export default function AlterarPassword() {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   required
-                  minLength={6}
+                  minLength={8}
                   autoComplete="new-password"
                   className="h-11"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="confirm-password">Confirmar Nova Password</Label>
+                <Label htmlFor="confirm-password">Confirmar password</Label>
                 <Input
                   id="confirm-password"
                   type="password"
@@ -115,7 +130,7 @@ export default function AlterarPassword() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   required
-                  minLength={6}
+                  minLength={8}
                   autoComplete="new-password"
                   className="h-11"
                 />
@@ -128,15 +143,19 @@ export default function AlterarPassword() {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    A alterar...
+                    A guardar...
                   </>
                 ) : (
-                  'Alterar Password'
+                  'Guardar password'
                 )}
               </Button>
             </form>
           </CardContent>
         </Card>
+
+        <p className="text-center text-xs text-muted-foreground mt-6">
+          Crafting Iconic Elegance
+        </p>
       </div>
     </div>
   );

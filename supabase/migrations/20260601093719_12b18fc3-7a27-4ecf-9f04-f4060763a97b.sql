@@ -1,0 +1,1 @@
+ALTER TABLE public.profiles ADD COLUMN IF NOT EXISTS deve_alterar_password boolean NOT NULL DEFAULT false;
