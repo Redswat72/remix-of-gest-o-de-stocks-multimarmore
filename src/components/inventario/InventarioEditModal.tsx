@@ -195,24 +195,37 @@ export default function InventarioEditModal({ forma, data, itemId }: InventarioE
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Editar {forma === 'bloco' ? 'Bloco' : forma === 'chapa' ? 'Chapa' : 'Ladrilho'}</DialogTitle>
+          {isOperador && (
+            <p className="text-xs text-muted-foreground">
+              Podes editar apenas as dimensões e o peso deste bloco.
+            </p>
+          )}
         </DialogHeader>
 
         <div className="space-y-6">
           {/* Editable fields */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {editableFields.map(f => (
-              <div key={f.field} className="space-y-1">
-                <Label>{f.label}</Label>
-                <Input
-                  type={f.type}
-                  value={fieldValues[f.field] ?? ''}
-                  onChange={e => setFieldValues(prev => ({
-                    ...prev,
-                    [f.field]: f.type === 'number' ? (e.target.value === '' ? null : e.target.value) : e.target.value,
-                  }))}
-                />
-              </div>
-            ))}
+            {editableFields.map(f => {
+              const locked = isOperador && !f.operadorEditable;
+              return (
+                <div key={f.field} className="space-y-1">
+                  <Label className="flex items-center gap-1">
+                    {f.label}
+                    {locked && <Lock className="h-3 w-3 text-muted-foreground" />}
+                  </Label>
+                  <Input
+                    type={f.type}
+                    value={fieldValues[f.field] ?? ''}
+                    disabled={locked}
+                    className={cn(locked && 'bg-muted cursor-not-allowed opacity-60')}
+                    onChange={e => setFieldValues(prev => ({
+                      ...prev,
+                      [f.field]: f.type === 'number' ? (e.target.value === '' ? null : e.target.value) : e.target.value,
+                    }))}
+                  />
+                </div>
+              );
+            })}
           </div>
 
           <Separator />
@@ -222,19 +235,41 @@ export default function InventarioEditModal({ forma, data, itemId }: InventarioE
             <h3 className="font-semibold mb-3 flex items-center gap-2">
               <ImageIcon className="h-4 w-4" />
               Fotografias
+              {isOperador && <Lock className="h-3 w-3 text-muted-foreground" />}
             </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {photoSlots.map(slot => (
-                <PhotoUploadSlot
-                  key={slot.field}
-                  label={slot.label}
-                  currentUrl={photoUrls[slot.field]}
-                  onUpload={(file) => handlePhotoUpload(slot.field, file)}
-                  onRemove={() => setPhotoUrls(prev => ({ ...prev, [slot.field]: null }))}
-                  isUploading={isUploading}
-                />
-              ))}
-            </div>
+            {isOperador ? (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {photoSlots.filter(s => photoUrls[s.field]).length === 0 ? (
+                  <p className="text-sm text-muted-foreground col-span-full">Sem fotografias.</p>
+                ) : (
+                  photoSlots
+                    .filter(s => photoUrls[s.field])
+                    .map(slot => (
+                      <div key={slot.field} className="space-y-1">
+                        <Label className="text-xs">{slot.label}</Label>
+                        <img
+                          src={photoUrls[slot.field] as string}
+                          alt={slot.label}
+                          className="w-full h-24 object-cover rounded-md border"
+                        />
+                      </div>
+                    ))
+                )}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {photoSlots.map(slot => (
+                  <PhotoUploadSlot
+                    key={slot.field}
+                    label={slot.label}
+                    currentUrl={photoUrls[slot.field]}
+                    onUpload={(file) => handlePhotoUpload(slot.field, file)}
+                    onRemove={() => setPhotoUrls(prev => ({ ...prev, [slot.field]: null }))}
+                    isUploading={isUploading}
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="flex justify-end gap-2 pt-4">
