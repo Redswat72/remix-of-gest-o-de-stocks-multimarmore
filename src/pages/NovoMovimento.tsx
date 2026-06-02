@@ -647,7 +647,9 @@ export default function NovoMovimento() {
                       onChange={(e) => setNumeroDocumento(e.target.value)}
                     />
                     {!numeroDocumento.trim() && (
-                      <p className="text-sm text-destructive">Número do documento é obrigatório</p>
+                      <p className="text-sm text-destructive">
+                        {tipo === 'saida' ? 'Indique o número do documento.' : 'Número do documento é obrigatório'}
+                      </p>
                     )}
                   </div>
                 </>
