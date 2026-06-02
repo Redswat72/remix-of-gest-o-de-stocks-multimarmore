@@ -372,17 +372,9 @@ export default function NovoMovimento() {
         if (updateErr) throw updateErr;
       }
 
-      if (tipo === 'saida') {
-        // Set ativo = false on the product — update by id_mm
-        const table = itemTipo === 'bloco' ? 'blocos' : itemTipo === 'chapa' ? 'chapas' : 'ladrilho';
-        const { error: updateErr } = await supabaseEmpresa
-          .from(table)
-          .update({ ativo: false } as any)
-          .eq('id_mm', itemIdMm);
-        if (updateErr) throw updateErr;
-      }
-
-      // Create movement record
+      // Create movement record FIRST (trigger updates stock).
+      // For "saida", only mark product as inactive AFTER the movement is successfully inserted,
+      // otherwise a failed insert would leave the product hidden without any movement/audit trail.
       const formData: MovimentoFormData = {
         tipo,
         tipo_documento: tipoDocumento,
@@ -398,11 +390,24 @@ export default function NovoMovimento() {
       };
 
       await createMovimento.mutateAsync(formData);
+
+      if (tipo === 'saida') {
+        const table = itemTipo === 'bloco' ? 'blocos' : itemTipo === 'chapa' ? 'chapas' : 'ladrilho';
+        const { error: updateErr } = await supabaseEmpresa
+          .from(table)
+          .update({ ativo: false } as any)
+          .eq('id_mm', itemIdMm);
+        if (updateErr) {
+          console.error('Movimento registado, mas falhou marcar produto como inactivo:', updateErr);
+        }
+      }
+
       toast({
         title: 'Movimento registado!',
         description: 'O movimento foi registado com sucesso e o stock foi atualizado.',
       });
       navigate('/historico');
+
     } catch (error) {
       const msg = error instanceof Error
         ? error.message
