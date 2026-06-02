@@ -104,7 +104,7 @@ export default function NovoMovimento() {
 
   const selectedLocalOrigem = locais?.find(l => l.id === localOrigemId);
   const selectedLocalDestino = locais?.find(l => l.id === (tipo === 'entrada' ? novoProdutoParqueDestinoId : localDestinoId));
-  const selectedCliente = clientes?.find(c => c.id === clienteId);
+  // cliente é texto livre — sem ligação ao ERP
 
   // Removed: auto-generate ID MM is no longer needed
 
