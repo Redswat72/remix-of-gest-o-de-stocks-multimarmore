@@ -1025,17 +1025,12 @@ export default function NovoMovimento() {
                   )}
 
                   <div className="space-y-2">
-                    <Label>Cliente</Label>
-                    <Select value={clienteId} onValueChange={setClienteId}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o cliente" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {clientes?.map(c => (
-                          <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Label>Cliente <span className="text-destructive">*</span></Label>
+                    <Input
+                      placeholder="Escreva o nome do cliente"
+                      value={clienteNome}
+                      onChange={(e) => setClienteNome(e.target.value)}
+                    />
                   </div>
                 </>
               )}
