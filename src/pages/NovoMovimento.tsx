@@ -54,7 +54,7 @@ export default function NovoMovimento() {
   const [quantidade, setQuantidade] = useState<number>(1);
   const [localOrigemId, setLocalOrigemId] = useState('');
   const [localDestinoId, setLocalDestinoId] = useState('');
-  const [clienteId, setClienteId] = useState('');
+  const [clienteNome, setClienteNome] = useState('');
   const [matriculaViatura, setMatriculaViatura] = useState('');
   const [observacoes, setObservacoes] = useState('');
   const [searchProduto, setSearchProduto] = useState('');
@@ -104,7 +104,7 @@ export default function NovoMovimento() {
 
   const selectedLocalOrigem = locais?.find(l => l.id === localOrigemId);
   const selectedLocalDestino = locais?.find(l => l.id === (tipo === 'entrada' ? novoProdutoParqueDestinoId : localDestinoId));
-  const selectedCliente = clientes?.find(c => c.id === clienteId);
+  // cliente é texto livre — sem ligação ao ERP
 
   // Removed: auto-generate ID MM is no longer needed
 
@@ -150,7 +150,7 @@ export default function NovoMovimento() {
           return !!localOrigemId && !!localDestinoId && localOrigemId !== localDestinoId;
         }
         if (tipo === 'saida') {
-          return !!localOrigemId && !!clienteId;
+          return !!localOrigemId && !!clienteNome.trim();
         }
         return false;
       case 5:
@@ -174,7 +174,19 @@ export default function NovoMovimento() {
       setStep(5);
       return;
     }
-    if (canProceed() && step < 6) {
+    if (!canProceed()) {
+      // Mensagens amigáveis para Saída
+      if (tipo === 'saida' && step === 2 && !numeroDocumento.trim()) {
+        toast({ title: 'Campo obrigatório', description: 'Indique o número do documento.', variant: 'destructive' });
+        return;
+      }
+      if (tipo === 'saida' && step === 4 && !clienteNome.trim()) {
+        toast({ title: 'Campo obrigatório', description: 'Indique o nome do cliente.', variant: 'destructive' });
+        return;
+      }
+      return;
+    }
+    if (step < 6) {
       setStep(step + 1);
     }
   };
@@ -380,7 +392,7 @@ export default function NovoMovimento() {
         quantidade,
         local_origem_id: localOrigemId || undefined,
         local_destino_id: tipo !== 'saida' ? localDestinoId : undefined,
-        cliente_id: tipo === 'saida' ? clienteId : undefined,
+        cliente_nome: tipo === 'saida' ? clienteNome.trim() : undefined,
         matricula_viatura: matriculaViatura || undefined,
         observacoes: observacoes || undefined,
       };
@@ -412,7 +424,7 @@ export default function NovoMovimento() {
     setTipo(newTipo);
     setLocalOrigemId('');
     setLocalDestinoId('');
-    setClienteId('');
+    setClienteNome('');
     setProdutoId('');
     setSelectedItem(null);
     setSearchProduto('');
@@ -635,7 +647,9 @@ export default function NovoMovimento() {
                       onChange={(e) => setNumeroDocumento(e.target.value)}
                     />
                     {!numeroDocumento.trim() && (
-                      <p className="text-sm text-destructive">Número do documento é obrigatório</p>
+                      <p className="text-sm text-destructive">
+                        {tipo === 'saida' ? 'Indique o número do documento.' : 'Número do documento é obrigatório'}
+                      </p>
                     )}
                   </div>
                 </>
@@ -1025,17 +1039,15 @@ export default function NovoMovimento() {
                   )}
 
                   <div className="space-y-2">
-                    <Label>Cliente</Label>
-                    <Select value={clienteId} onValueChange={setClienteId}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione o cliente" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {clientes?.map(c => (
-                          <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <Label>Cliente <span className="text-destructive">*</span></Label>
+                    <Input
+                      placeholder="Escreva o nome do cliente"
+                      value={clienteNome}
+                      onChange={(e) => setClienteNome(e.target.value)}
+                    />
+                    {!clienteNome.trim() && (
+                      <p className="text-sm text-destructive">Indique o nome do cliente.</p>
+                    )}
                   </div>
                 </>
               )}
@@ -1132,7 +1144,7 @@ export default function NovoMovimento() {
                       </div>
                       <div className="flex justify-between py-2 border-b">
                         <span className="text-muted-foreground">Cliente:</span>
-                        <span>{selectedCliente?.nome}</span>
+                        <span>{clienteNome}</span>
                       </div>
                     </>
                   )}

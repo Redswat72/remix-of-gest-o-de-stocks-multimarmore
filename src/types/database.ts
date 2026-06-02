@@ -137,6 +137,7 @@ export interface Movimento {
   local_origem_id: string | null;
   local_destino_id: string | null;
   cliente_id: string | null;
+  cliente_nome: string | null;
   matricula_viatura: string | null;
   operador_id: string;
   cancelado: boolean;
@@ -167,6 +168,7 @@ export interface MovimentoFormData {
   local_origem_id?: string;
   local_destino_id?: string;
   cliente_id?: string;
+  cliente_nome?: string;
   matricula_viatura?: string;
   observacoes?: string;
 }

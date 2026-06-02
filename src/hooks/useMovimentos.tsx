@@ -16,6 +16,7 @@ export interface MovimentoComDetalhes {
   local_origem_id: string | null;
   local_destino_id: string | null;
   cliente_id: string | null;
+  cliente_nome: string | null;
   matricula_viatura: string | null;
   operador_id: string;
   cancelado: boolean;
@@ -116,6 +117,7 @@ export function useCreateMovimento() {
           local_origem_id: formData.local_origem_id || null,
           local_destino_id: formData.local_destino_id || null,
           cliente_id: formData.cliente_id || null,
+          cliente_nome: formData.cliente_nome || null,
           matricula_viatura: formData.matricula_viatura || null,
           observacoes: formData.observacoes || null,
           operador_id: user.id,
