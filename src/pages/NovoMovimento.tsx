@@ -380,7 +380,7 @@ export default function NovoMovimento() {
         quantidade,
         local_origem_id: localOrigemId || undefined,
         local_destino_id: tipo !== 'saida' ? localDestinoId : undefined,
-        cliente_id: tipo === 'saida' ? clienteId : undefined,
+        cliente_nome: tipo === 'saida' ? clienteNome.trim() : undefined,
         matricula_viatura: matriculaViatura || undefined,
         observacoes: observacoes || undefined,
       };
