@@ -97,7 +97,7 @@ export function PWAProvider({ children }: { children: ReactNode }) {
     updateServiceWorkerRef.current = registerSW({
       immediate: true,
       onNeedRefresh() {
-        setServiceWorkerNeedRefresh(true);
+        updateApp().catch(() => setServiceWorkerNeedRefresh(true));
       },
       onRegisteredSW(_swUrl, registration) {
         if (!registration) return;
@@ -113,7 +113,7 @@ export function PWAProvider({ children }: { children: ReactNode }) {
           const newWorker = registration.installing;
           newWorker?.addEventListener('statechange', () => {
             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              setServiceWorkerNeedRefresh(true);
+              updateApp().catch(() => setServiceWorkerNeedRefresh(true));
             }
           });
         });
