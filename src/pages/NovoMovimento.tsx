@@ -54,7 +54,7 @@ export default function NovoMovimento() {
   const [quantidade, setQuantidade] = useState<number>(1);
   const [localOrigemId, setLocalOrigemId] = useState('');
   const [localDestinoId, setLocalDestinoId] = useState('');
-  const [clienteId, setClienteId] = useState('');
+  const [clienteNome, setClienteNome] = useState('');
   const [matriculaViatura, setMatriculaViatura] = useState('');
   const [observacoes, setObservacoes] = useState('');
   const [searchProduto, setSearchProduto] = useState('');
