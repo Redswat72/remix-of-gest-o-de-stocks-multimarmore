@@ -168,6 +168,7 @@ export interface MovimentoFormData {
   local_origem_id?: string;
   local_destino_id?: string;
   cliente_id?: string;
+  cliente_nome?: string;
   matricula_viatura?: string;
   observacoes?: string;
 }
