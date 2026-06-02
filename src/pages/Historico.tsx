@@ -150,6 +150,8 @@ export default function Historico() {
     return '-';
   };
 
+  const getClienteNome = (mov: MovimentoComDetalhes) => mov.cliente_nome?.trim() || '-';
+
   const handleCancelClick = (mov: MovimentoComDetalhes) => {
     setSelectedMovimento(mov);
     setMotivoCancelamento('');
@@ -196,7 +198,7 @@ export default function Historico() {
       'Quantidade': mov.quantidade,
       'Origem': getLocalNome(mov.local_origem_id),
       'Destino': getLocalNome(mov.local_destino_id),
-      'Cliente': '-',
+      'Cliente': getClienteNome(mov),
       'Documento': mov.tipo_documento,
       'Nº Documento': mov.numero_documento || '-',
       'Matrícula': mov.matricula_viatura || '-',
@@ -450,6 +452,12 @@ export default function Historico() {
                                   <span className="text-muted-foreground">Operador:</span>
                                   <p className="font-medium">{getOperadorNome(mov.operador_id)}</p>
                                 </div>
+                                {mov.tipo === 'saida' && (
+                                  <div>
+                                    <span className="text-muted-foreground">Cliente:</span>
+                                    <p className="font-medium">{getClienteNome(mov)}</p>
+                                  </div>
+                                )}
                                 {mov.matricula_viatura && (
                                   <div>
                                     <span className="text-muted-foreground">Matrícula:</span>
