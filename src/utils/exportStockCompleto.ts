@@ -65,23 +65,15 @@ export async function exportStockCompleto(supabase: SupabaseClient, opts: Export
   // ─── BLOCOS SHEET ──────────────────────────────
   const blocosData = (blocosRes.data || []) as Bloco[];
   if (blocosData.length > 0) {
-    const blocosRows = blocosData.map(b => {
-      const peso = b.quantidade_kg ?? 0;
-      const preco = b.preco_unitario ?? 0;
-      const valor = b.valor_inventario && b.valor_inventario > 0
-        ? b.valor_inventario
-        : peso * preco;
-      const precoFinal = preco > 0 ? preco : (peso > 0 && valor > 0 ? valor / peso : 0);
-      return {
-        'ID MM': b.id_mm,
-        'Parque': b.parque,
-        'Variedade': b.variedade ?? '',
-        'Origem': b.bloco_origem ?? '',
-        'Peso (kg)': peso,
-        'Preço/kg (€)': precoFinal,
-        'Valor (€)': valor,
-      };
-    });
+    const blocosRows = blocosData.map(b => ({
+      'ID MM': b.id_mm,
+      'Parque': b.parque,
+      'Variedade': b.variedade ?? '',
+      'Origem': b.bloco_origem ?? '',
+      'Peso (kg)': b.quantidade_kg ?? 0,
+      'Preço/kg (€)': b.preco_unitario ?? 0,
+      'Valor (€)': b.valor_inventario ?? 0,
+    }));
     const headers = Object.keys(blocosRows[0]);
     const ws = XLSX.utils.json_to_sheet(blocosRows);
     applyHeaderStyle(ws, headers.length, opts.corHeader);
@@ -95,24 +87,16 @@ export async function exportStockCompleto(supabase: SupabaseClient, opts: Export
   // ─── CHAPAS SHEET ──────────────────────────────
   const chapasData = (chapasRes.data || []) as Chapa[];
   if (chapasData.length > 0) {
-    const chapasRows = chapasData.map(c => {
-      const m2 = c.quantidade_m2 ?? 0;
-      const preco = c.preco_unitario ?? 0;
-      const valor = c.valor_inventario && c.valor_inventario > 0
-        ? c.valor_inventario
-        : m2 * preco;
-      const precoFinal = preco > 0 ? preco : (m2 > 0 && valor > 0 ? valor / m2 : 0);
-      return {
-        'ID MM': c.id_mm,
-        'Bundle/Parga': c.bundle_id ?? '',
-        'Parque': c.parque,
-        'Variedade': c.variedade ?? '',
-        'Chapas': c.num_chapas ?? 0,
-        'm²': m2,
-        'Preço/m² (€)': precoFinal,
-        'Valor (€)': valor,
-      };
-    });
+    const chapasRows = chapasData.map(c => ({
+      'ID MM': c.id_mm,
+      'Bundle/Parga': c.bundle_id ?? '',
+      'Parque': c.parque,
+      'Variedade': c.variedade ?? '',
+      'Chapas': c.num_chapas ?? 0,
+      'm²': c.quantidade_m2 ?? 0,
+      'Preço/m² (€)': c.preco_unitario ?? 0,
+      'Valor (€)': c.valor_inventario ?? 0,
+    }));
     const headers = Object.keys(chapasRows[0]);
     const ws = XLSX.utils.json_to_sheet(chapasRows);
     applyHeaderStyle(ws, headers.length, opts.corHeader);
@@ -127,24 +111,16 @@ export async function exportStockCompleto(supabase: SupabaseClient, opts: Export
   // ─── LADRILHOS SHEET ───────────────────────────
   const ladrilhoData = (ladrilhoRes.data || []) as Ladrilho[];
   if (ladrilhoData.length > 0) {
-    const ladrilhoRows = ladrilhoData.map(l => {
-      const m2 = l.quantidade_m2 ?? 0;
-      const preco = l.preco_unitario ?? 0;
-      const valor = l.valor_inventario && l.valor_inventario > 0
-        ? l.valor_inventario
-        : m2 * preco;
-      const precoFinal = preco > 0 ? preco : (m2 > 0 && valor > 0 ? valor / m2 : 0);
-      return {
-        'Variedade': l.variedade ?? '',
-        'Dimensões': l.dimensoes ?? '',
-        'Butch No': l.butch_no ?? '',
-        'Peças': l.num_pecas ?? 0,
-        'm²': m2,
-        'Peso (kg)': l.peso ?? 0,
-        'Preço/m² (€)': precoFinal,
-        'Valor (€)': valor,
-      };
-    });
+    const ladrilhoRows = ladrilhoData.map(l => ({
+      'Variedade': l.variedade ?? '',
+      'Dimensões': l.dimensoes ?? '',
+      'Butch No': l.butch_no ?? '',
+      'Peças': l.num_pecas ?? 0,
+      'm²': l.quantidade_m2 ?? 0,
+      'Peso (kg)': l.peso ?? 0,
+      'Preço/m² (€)': l.preco_unitario ?? 0,
+      'Valor (€)': l.valor_inventario ?? 0,
+    }));
     const headers = Object.keys(ladrilhoRows[0]);
     const ws = XLSX.utils.json_to_sheet(ladrilhoRows);
     applyHeaderStyle(ws, headers.length, opts.corHeader);
