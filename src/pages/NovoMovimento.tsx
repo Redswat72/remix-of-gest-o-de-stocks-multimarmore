@@ -174,7 +174,19 @@ export default function NovoMovimento() {
       setStep(5);
       return;
     }
-    if (canProceed() && step < 6) {
+    if (!canProceed()) {
+      // Mensagens amigáveis para Saída
+      if (tipo === 'saida' && step === 2 && !numeroDocumento.trim()) {
+        toast({ title: 'Campo obrigatório', description: 'Indique o número do documento.', variant: 'destructive' });
+        return;
+      }
+      if (tipo === 'saida' && step === 4 && !clienteNome.trim()) {
+        toast({ title: 'Campo obrigatório', description: 'Indique o nome do cliente.', variant: 'destructive' });
+        return;
+      }
+      return;
+    }
+    if (step < 6) {
       setStep(step + 1);
     }
   };
