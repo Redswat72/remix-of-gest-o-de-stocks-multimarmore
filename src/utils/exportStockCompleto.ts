@@ -65,21 +65,29 @@ export async function exportStockCompleto(supabase: SupabaseClient, opts: Export
   // ─── BLOCOS SHEET ──────────────────────────────
   const blocosData = (blocosRes.data || []) as Bloco[];
   if (blocosData.length > 0) {
-    const blocosRows = blocosData.map(b => ({
-      'ID MM': b.id_mm,
-      'Parque': b.parque,
-      'Variedade': b.variedade ?? '',
-      'Origem': b.bloco_origem ?? '',
-      'Peso (kg)': b.quantidade_kg ?? 0,
-      'Preço/kg (€)': b.preco_unitario ?? 0,
-      'Valor (€)': b.valor_inventario ?? 0,
-    }));
+    const blocosRows = blocosData.map(b => {
+      const peso = b.quantidade_kg ?? 0;
+      const preco = b.preco_unitario ?? 0;
+      const valor = b.valor_inventario && b.valor_inventario > 0
+        ? b.valor_inventario
+        : peso * preco;
+      const precoFinal = preco > 0 ? preco : (peso > 0 && valor > 0 ? valor / peso : 0);
+      return {
+        'ID MM': b.id_mm,
+        'Parque': b.parque,
+        'Variedade': b.variedade ?? '',
+        'Origem': b.bloco_origem ?? '',
+        'Peso (kg)': peso,
+        'Preço/kg (€)': precoFinal,
+        'Valor (€)': valor,
+      };
+    });
     const headers = Object.keys(blocosRows[0]);
     const ws = XLSX.utils.json_to_sheet(blocosRows);
     applyHeaderStyle(ws, headers.length, opts.corHeader);
     autoWidth(ws, blocosRows, headers);
-    const totalKg = blocosData.reduce((s, b) => s + (b.quantidade_kg || 0), 0);
-    const totalValor = blocosData.reduce((s, b) => s + (b.valor_inventario || 0), 0);
+    const totalKg = blocosRows.reduce((s, b) => s + (b['Peso (kg)'] || 0), 0);
+    const totalValor = blocosRows.reduce((s, b) => s + (b['Valor (€)'] || 0), 0);
     addTotalsRow(ws, blocosData.length + 1, { 0: 'TOTAIS', 4: totalKg, 6: totalValor }, headers.length);
     XLSX.utils.book_append_sheet(wb, ws, 'Blocos');
   }
@@ -87,23 +95,31 @@ export async function exportStockCompleto(supabase: SupabaseClient, opts: Export
   // ─── CHAPAS SHEET ──────────────────────────────
   const chapasData = (chapasRes.data || []) as Chapa[];
   if (chapasData.length > 0) {
-    const chapasRows = chapasData.map(c => ({
-      'ID MM': c.id_mm,
-      'Bundle/Parga': c.bundle_id ?? '',
-      'Parque': c.parque,
-      'Variedade': c.variedade ?? '',
-      'Chapas': c.num_chapas ?? 0,
-      'm²': c.quantidade_m2,
-      'Preço/m² (€)': c.preco_unitario ?? 0,
-      'Valor (€)': c.valor_inventario ?? 0,
-    }));
+    const chapasRows = chapasData.map(c => {
+      const m2 = c.quantidade_m2 ?? 0;
+      const preco = c.preco_unitario ?? 0;
+      const valor = c.valor_inventario && c.valor_inventario > 0
+        ? c.valor_inventario
+        : m2 * preco;
+      const precoFinal = preco > 0 ? preco : (m2 > 0 && valor > 0 ? valor / m2 : 0);
+      return {
+        'ID MM': c.id_mm,
+        'Bundle/Parga': c.bundle_id ?? '',
+        'Parque': c.parque,
+        'Variedade': c.variedade ?? '',
+        'Chapas': c.num_chapas ?? 0,
+        'm²': m2,
+        'Preço/m² (€)': precoFinal,
+        'Valor (€)': valor,
+      };
+    });
     const headers = Object.keys(chapasRows[0]);
     const ws = XLSX.utils.json_to_sheet(chapasRows);
     applyHeaderStyle(ws, headers.length, opts.corHeader);
     autoWidth(ws, chapasRows, headers);
-    const totalChapas = chapasData.reduce((s, c) => s + (c.num_chapas || 0), 0);
-    const totalM2 = chapasData.reduce((s, c) => s + (c.quantidade_m2 || 0), 0);
-    const totalValor = chapasData.reduce((s, c) => s + (c.valor_inventario || 0), 0);
+    const totalChapas = chapasRows.reduce((s, c) => s + (c['Chapas'] || 0), 0);
+    const totalM2 = chapasRows.reduce((s, c) => s + (c['m²'] || 0), 0);
+    const totalValor = chapasRows.reduce((s, c) => s + (c['Valor (€)'] || 0), 0);
     addTotalsRow(ws, chapasData.length + 1, { 0: 'TOTAIS', 4: totalChapas, 5: totalM2, 7: totalValor }, headers.length);
     XLSX.utils.book_append_sheet(wb, ws, 'Chapas');
   }
@@ -111,27 +127,36 @@ export async function exportStockCompleto(supabase: SupabaseClient, opts: Export
   // ─── LADRILHOS SHEET ───────────────────────────
   const ladrilhoData = (ladrilhoRes.data || []) as Ladrilho[];
   if (ladrilhoData.length > 0) {
-    const ladrilhoRows = ladrilhoData.map(l => ({
-      'Variedade': l.variedade ?? '',
-      'Dimensões': l.dimensoes ?? '',
-      'Butch No': l.butch_no ?? '',
-      'Peças': l.num_pecas ?? 0,
-      'm²': l.quantidade_m2,
-      'Peso (kg)': l.peso ?? 0,
-      'Preço/m² (€)': l.preco_unitario ?? 0,
-      'Valor (€)': l.valor_inventario ?? 0,
-    }));
+    const ladrilhoRows = ladrilhoData.map(l => {
+      const m2 = l.quantidade_m2 ?? 0;
+      const preco = l.preco_unitario ?? 0;
+      const valor = l.valor_inventario && l.valor_inventario > 0
+        ? l.valor_inventario
+        : m2 * preco;
+      const precoFinal = preco > 0 ? preco : (m2 > 0 && valor > 0 ? valor / m2 : 0);
+      return {
+        'Variedade': l.variedade ?? '',
+        'Dimensões': l.dimensoes ?? '',
+        'Butch No': l.butch_no ?? '',
+        'Peças': l.num_pecas ?? 0,
+        'm²': m2,
+        'Peso (kg)': l.peso ?? 0,
+        'Preço/m² (€)': precoFinal,
+        'Valor (€)': valor,
+      };
+    });
     const headers = Object.keys(ladrilhoRows[0]);
     const ws = XLSX.utils.json_to_sheet(ladrilhoRows);
     applyHeaderStyle(ws, headers.length, opts.corHeader);
     autoWidth(ws, ladrilhoRows, headers);
-    const totalPecas = ladrilhoData.reduce((s, l) => s + (l.num_pecas || 0), 0);
-    const totalM2 = ladrilhoData.reduce((s, l) => s + (l.quantidade_m2 || 0), 0);
-    const totalPeso = ladrilhoData.reduce((s, l) => s + (l.peso || 0), 0);
-    const totalValor = ladrilhoData.reduce((s, l) => s + (l.valor_inventario || 0), 0);
+    const totalPecas = ladrilhoRows.reduce((s, l) => s + (l['Peças'] || 0), 0);
+    const totalM2 = ladrilhoRows.reduce((s, l) => s + (l['m²'] || 0), 0);
+    const totalPeso = ladrilhoRows.reduce((s, l) => s + (l['Peso (kg)'] || 0), 0);
+    const totalValor = ladrilhoRows.reduce((s, l) => s + (l['Valor (€)'] || 0), 0);
     addTotalsRow(ws, ladrilhoData.length + 1, { 0: 'TOTAIS', 3: totalPecas, 4: totalM2, 5: totalPeso, 7: totalValor }, headers.length);
     XLSX.utils.book_append_sheet(wb, ws, 'Ladrilhos');
   }
+
 
   if (wb.SheetNames.length === 0) {
     throw new Error('Sem dados para exportar');
