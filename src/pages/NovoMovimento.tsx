@@ -412,7 +412,7 @@ export default function NovoMovimento() {
     setTipo(newTipo);
     setLocalOrigemId('');
     setLocalDestinoId('');
-    setClienteId('');
+    setClienteNome('');
     setProdutoId('');
     setSelectedItem(null);
     setSearchProduto('');
