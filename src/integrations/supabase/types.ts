@@ -446,6 +446,7 @@ export type Database = {
           cancelado_em: string | null
           cancelado_por: string | null
           cliente_id: string | null
+          cliente_nome: string | null
           created_at: string
           data_movimento: string
           id: string
@@ -470,6 +471,7 @@ export type Database = {
           cancelado_em?: string | null
           cancelado_por?: string | null
           cliente_id?: string | null
+          cliente_nome?: string | null
           created_at?: string
           data_movimento?: string
           id?: string
@@ -496,6 +498,7 @@ export type Database = {
           cancelado_em?: string | null
           cancelado_por?: string | null
           cliente_id?: string | null
+          cliente_nome?: string | null
           created_at?: string
           data_movimento?: string
           id?: string
