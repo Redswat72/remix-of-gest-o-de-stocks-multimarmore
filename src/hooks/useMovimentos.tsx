@@ -117,6 +117,7 @@ export function useCreateMovimento() {
           local_origem_id: formData.local_origem_id || null,
           local_destino_id: formData.local_destino_id || null,
           cliente_id: formData.cliente_id || null,
+          cliente_nome: formData.cliente_nome || null,
           matricula_viatura: formData.matricula_viatura || null,
           observacoes: formData.observacoes || null,
           operador_id: user.id,
