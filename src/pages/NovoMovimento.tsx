@@ -1045,6 +1045,9 @@ export default function NovoMovimento() {
                       value={clienteNome}
                       onChange={(e) => setClienteNome(e.target.value)}
                     />
+                    {!clienteNome.trim() && (
+                      <p className="text-sm text-destructive">Indique o nome do cliente.</p>
+                    )}
                   </div>
                 </>
               )}
