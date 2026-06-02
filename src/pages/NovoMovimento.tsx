@@ -150,7 +150,7 @@ export default function NovoMovimento() {
           return !!localOrigemId && !!localDestinoId && localOrigemId !== localDestinoId;
         }
         if (tipo === 'saida') {
-          return !!localOrigemId && !!clienteId;
+          return !!localOrigemId && !!clienteNome.trim();
         }
         return false;
       case 5:
