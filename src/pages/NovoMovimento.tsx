@@ -1201,7 +1201,6 @@ export default function NovoMovimento() {
         {step < 6 ? (
           <Button
             onClick={nextStep}
-            disabled={!canProceed()}
             className="gap-2"
           >
             Seguinte
