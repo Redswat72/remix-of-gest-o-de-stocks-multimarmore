@@ -109,33 +109,6 @@ export function useCreateMovimento() {
       if (!user) throw new Error('Utilizador não autenticado');
 
       const clienteNome = formData.cliente_nome?.trim() || '';
-      let clienteId = formData.cliente_id || null;
-
-      // Compatibilidade com a regra antiga da BD: algumas instâncias ainda exigem cliente_id em saídas.
-      // O utilizador continua a escrever texto livre; a app associa/cria o cliente por trás.
-      if (formData.tipo === 'saida' && clienteNome && !clienteId) {
-        const { data: clienteExistente } = await supabase
-          .from('clientes')
-          .select('id')
-          .eq('ativo', true)
-          .ilike('nome', clienteNome)
-          .limit(1)
-          .maybeSingle();
-
-        clienteId = clienteExistente?.id ?? null;
-
-        if (!clienteId) {
-          const { data: clienteCriado, error: clienteError } = await supabase
-            .from('clientes')
-            .insert({ nome: clienteNome })
-            .select('id')
-            .single();
-
-          if (!clienteError) {
-            clienteId = clienteCriado?.id ?? null;
-          }
-        }
-      }
 
       const insertPayload: Record<string, unknown> = {
           tipo: formData.tipo,
@@ -145,7 +118,7 @@ export function useCreateMovimento() {
           quantidade: formData.quantidade,
           local_origem_id: formData.local_origem_id || null,
           local_destino_id: formData.local_destino_id || null,
-          cliente_id: clienteId,
+          cliente_id: formData.cliente_id || null,
           cliente_nome: clienteNome || null,
           matricula_viatura: formData.matricula_viatura || null,
           observacoes: formData.observacoes || null,
@@ -179,7 +152,7 @@ export function useCreateMovimento() {
       if (error) {
         const msg = error.message || '';
         if (formData.tipo === 'saida' && msg.includes('movimento_saida_cliente')) {
-          throw new Error('Não foi possível associar o cliente à saída. Confirme que o cliente já existe ou peça a um administrador para o criar.');
+          throw new Error('Indique o nome do cliente em texto livre antes de registar a saída.');
         }
         throw error;
       }
