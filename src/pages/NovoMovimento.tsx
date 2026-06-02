@@ -1127,7 +1127,7 @@ export default function NovoMovimento() {
                       </div>
                       <div className="flex justify-between py-2 border-b">
                         <span className="text-muted-foreground">Cliente:</span>
-                        <span>{selectedCliente?.nome}</span>
+                        <span>{clienteNome}</span>
                       </div>
                     </>
                   )}
