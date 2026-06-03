@@ -41,6 +41,11 @@ export default function NovoMovimento() {
   const createMovimento = useCreateMovimento();
   const supabaseEmpresa = useSupabaseEmpresa();
 
+  // Admins/Superadmins não podem registar movimentos — apenas consulta
+  if (isAdmin) {
+    return <Navigate to="/" replace />;
+  }
+
   const [step, setStep] = useState(1);
 
   // Form state
