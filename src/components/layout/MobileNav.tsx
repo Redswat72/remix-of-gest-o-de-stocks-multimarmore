@@ -37,14 +37,14 @@ export function MobileNav() {
   const location = useLocation();
   const navigate = useNavigate();
   const [inventarioOpen, setInventarioOpen] = useState(false);
-  const { podeVerProducao, isAdmin } = useAuth();
+  const { podeVerProducao, isAdmin, isSuperadmin } = useAuth();
 
   const inventarioItems = inventarioItemsBase.filter(
     (i) => !('producaoOnly' in i && i.producaoOnly) || podeVerProducao
   );
 
   const navItems = navItemsBase.filter(
-    (i) => !('operadorOnly' in i && i.operadorOnly) || !isAdmin
+    (i) => !('operadorOnly' in i && i.operadorOnly) || !isAdmin || isSuperadmin
   );
 
   const inventarioActive = inventarioItems.some(i => location.pathname === i.href);
