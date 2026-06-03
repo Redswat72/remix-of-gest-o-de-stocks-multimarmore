@@ -65,7 +65,7 @@ export function Sidebar() {
   const filteredItems = navItems.filter((item) => {
     if (item.superadminOnly && !isSuperadmin) return false;
     if (item.adminOnly && !isAdmin) return false;
-    if (item.operadorOnly && isAdmin) return false;
+    if (item.operadorOnly && isAdmin && !isSuperadmin) return false;
     if (item.producaoOnly && !podeVerProducao) return false;
     return true;
   });
