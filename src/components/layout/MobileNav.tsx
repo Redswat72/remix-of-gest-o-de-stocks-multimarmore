@@ -25,10 +25,10 @@ const inventarioItemsBase = [
   { href: '/stock', label: 'Consultar Stock', icon: Boxes },
 ];
 
-const navItems = [
+const navItemsBase = [
   { href: '/', label: 'Início', icon: Home },
   { type: 'inventario' as const, label: 'Inventário', icon: Package },
-  { href: '/movimento/novo', label: 'Novo', icon: PlusCircle, primary: true },
+  { href: '/movimento/novo', label: 'Novo', icon: PlusCircle, primary: true, operadorOnly: true },
   { href: '/historico', label: 'Histórico', icon: History },
   { href: '/perfil', label: 'Perfil', icon: User },
 ];
@@ -37,10 +37,14 @@ export function MobileNav() {
   const location = useLocation();
   const navigate = useNavigate();
   const [inventarioOpen, setInventarioOpen] = useState(false);
-  const { podeVerProducao } = useAuth();
+  const { podeVerProducao, isAdmin } = useAuth();
 
   const inventarioItems = inventarioItemsBase.filter(
     (i) => !('producaoOnly' in i && i.producaoOnly) || podeVerProducao
+  );
+
+  const navItems = navItemsBase.filter(
+    (i) => !('operadorOnly' in i && i.operadorOnly) || !isAdmin
   );
 
   const inventarioActive = inventarioItems.some(i => location.pathname === i.href);

@@ -34,6 +34,7 @@ interface NavItem {
   adminOnly?: boolean;
   superadminOnly?: boolean;
   producaoOnly?: boolean;
+  operadorOnly?: boolean;
 }
 
 const navItems: NavItem[] = [
@@ -44,7 +45,7 @@ const navItems: NavItem[] = [
   { href: '/bandas', label: 'Bandas', icon: Layers },
   { href: '/producao', label: 'Produção', icon: Scissors, producaoOnly: true },
   { href: '/stock', label: 'Consultar Stock', icon: Boxes },
-  { href: '/movimento/novo', label: 'Registar Movimento', icon: PlusCircle },
+  { href: '/movimento/novo', label: 'Registar Movimento', icon: PlusCircle, operadorOnly: true },
   { href: '/historico', label: 'Histórico', icon: History },
   { href: '/produtos', label: 'Produtos', icon: Boxes },
   { href: '/clientes', label: 'Clientes', icon: Users, adminOnly: true },
@@ -64,6 +65,7 @@ export function Sidebar() {
   const filteredItems = navItems.filter((item) => {
     if (item.superadminOnly && !isSuperadmin) return false;
     if (item.adminOnly && !isAdmin) return false;
+    if (item.operadorOnly && isAdmin) return false;
     if (item.producaoOnly && !podeVerProducao) return false;
     return true;
   });

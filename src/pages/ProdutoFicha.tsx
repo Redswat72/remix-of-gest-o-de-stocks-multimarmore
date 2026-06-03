@@ -61,7 +61,7 @@ export default function ProdutoFicha() {
 
   const canEdit = isAdmin || isSuperadmin;
   const canUploadHd = isAdmin || isSuperadmin;
-  const canCreateMovimento = roles.length > 0; // Qualquer utilizador autenticado
+  const canCreateMovimento = roles.length > 0 && !isAdmin && !isSuperadmin; // Apenas operadores
 
   const handleUpdate = async (
     data: any, 
