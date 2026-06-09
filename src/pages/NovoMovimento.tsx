@@ -37,12 +37,12 @@ const PEDREIRAS = ['Del Rey', 'Mol', 'Olival do Pires'];
 export default function NovoMovimento() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, userLocal, isAdmin, isSuperadmin } = useAuth();
+  const { user, userLocal, hasRole, isAdmin, isSuperadmin } = useAuth();
   const createMovimento = useCreateMovimento();
   const supabaseEmpresa = useSupabaseEmpresa();
 
-  // Admins (não superadmins) não podem registar movimentos — apenas consulta
-  if (isAdmin && !isSuperadmin) {
+  // Apenas operadores e superadmins podem registar movimentos
+  if (!hasRole('operador') && !isSuperadmin) {
     return <Navigate to="/" replace />;
   }
 

@@ -15,7 +15,7 @@ interface AddUserModalProps {
 export default function AddUserModal({ open, onClose }: AddUserModalProps) {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState<"admin" | "operador">("operador");
+  const [role, setRole] = useState<"admin" | "operador" | "area_comercial">("operador");
 
   const { convidarUser } = useUsers();
 
@@ -65,18 +65,20 @@ export default function AddUserModal({ open, onClose }: AddUserModalProps) {
 
           <div className="space-y-2">
             <Label>Permissão *</Label>
-            <Select value={role} onValueChange={(value: "admin" | "operador") => setRole(value)}>
+            <Select value={role} onValueChange={(value: "admin" | "operador" | "area_comercial") => setRole(value)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="operador">Operador</SelectItem>
                 <SelectItem value="admin">Administrador</SelectItem>
+                <SelectItem value="area_comercial">Área Comercial</SelectItem>
               </SelectContent>
             </Select>
             <div className="text-xs text-muted-foreground space-y-0.5">
               <p>Operador: Acesso básico à sua empresa</p>
               <p>Administrador: Pode gerir utilizadores da sua empresa</p>
+              <p>Área Comercial: Apenas consultas e valores do inventário</p>
             </div>
           </div>
 
