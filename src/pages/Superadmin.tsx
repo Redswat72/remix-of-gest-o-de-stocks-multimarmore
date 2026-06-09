@@ -689,6 +689,7 @@ function GestaoUtilizadoresTab() {
                                   <SelectContent>
                                     <SelectItem value="operador">Operador</SelectItem>
                                     <SelectItem value="admin">Admin</SelectItem>
+                                    <SelectItem value="area_comercial">Área Comercial</SelectItem>
                                   </SelectContent>
                                 </Select>
                                 <Button
