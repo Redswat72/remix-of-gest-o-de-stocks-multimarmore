@@ -2,11 +2,11 @@ import { useAuth } from '@/hooks/useAuth';
 
 /**
  * Hook de permissões centralizado.
- * podeVerValores: true se o utilizador é admin ou superadmin.
+ * podeVerValores: true se o utilizador é admin, superadmin ou área comercial.
  */
 export function usePermissoes() {
-  const { isAdmin } = useAuth();
+  const { isAdmin, hasRole } = useAuth();
   return {
-    podeVerValores: isAdmin, // isAdmin já inclui superadmin
+    podeVerValores: isAdmin || hasRole('area_comercial'),
   };
 }

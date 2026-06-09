@@ -58,14 +58,14 @@ const navItems: NavItem[] = [
 export function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { profile, isAdmin, isSuperadmin, podeVerProducao, signOut } = useAuth();
+  const { profile, isAdmin, isSuperadmin, hasRole, podeVerProducao, signOut } = useAuth();
   const { empresaConfig } = useEmpresa();
   const [collapsed, setCollapsed] = useState(false);
 
   const filteredItems = navItems.filter((item) => {
     if (item.superadminOnly && !isSuperadmin) return false;
     if (item.adminOnly && !isAdmin) return false;
-    if (item.operadorOnly && isAdmin && !isSuperadmin) return false;
+    if (item.operadorOnly && !hasRole('operador') && !isSuperadmin) return false;
     if (item.producaoOnly && !podeVerProducao) return false;
     return true;
   });

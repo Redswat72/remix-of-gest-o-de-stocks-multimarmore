@@ -48,7 +48,7 @@ export default function ProdutoFicha() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { isAdmin, isSuperadmin, roles } = useAuth();
+  const { hasRole, isAdmin, isSuperadmin, roles } = useAuth();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -61,7 +61,7 @@ export default function ProdutoFicha() {
 
   const canEdit = isAdmin || isSuperadmin;
   const canUploadHd = isAdmin || isSuperadmin;
-  const canCreateMovimento = roles.length > 0 && (!isAdmin || isSuperadmin); // Operadores e superadmin
+  const canCreateMovimento = roles.length > 0 && (hasRole('operador') || isSuperadmin);
 
   const handleUpdate = async (
     data: any, 
