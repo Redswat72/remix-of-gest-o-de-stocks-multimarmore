@@ -545,6 +545,7 @@ function GestaoUtilizadoresTab() {
       superadmin: "bg-destructive text-destructive-foreground",
       admin: "bg-primary text-primary-foreground",
       operador: "bg-secondary text-secondary-foreground",
+      area_comercial: "bg-accent text-accent-foreground",
     };
     return <Badge className={variants[role]}>{role}</Badge>;
   };
