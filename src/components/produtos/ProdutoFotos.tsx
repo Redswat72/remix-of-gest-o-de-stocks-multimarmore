@@ -202,7 +202,7 @@ export function ProdutoFotos({
     
     if (isHd) {
       // Para HD, gerar preview com watermark
-      const lado = hdConfig.labels[index] || `HD${index + 1}`;
+      const lado = hdLabels[index] || `HD${index + 1}`;
       const currentIdmm = idmm || 'NOVO';
       
       try {
@@ -243,7 +243,7 @@ export function ProdutoFotos({
         return newFotos;
       });
     }
-  }, [idmm, hdConfig.labels]);
+  }, [idmm, hdLabels]);
 
   const handleConfirmUpload = async (index: number, isHd: boolean) => {
     const fotoList = isHd ? fotosHd : fotos;
@@ -635,7 +635,7 @@ export function ProdutoFotos({
                   💧 Watermark discreto aplicado automaticamente ({empresaNome} • {idPrefix} • Lado)
                 </p>
               </div>
-              {renderFotoGrid(fotosHd, true, maxFotosHd, hdConfig.labels)}
+              {renderFotoGrid(fotosHd, true, maxFotosHd, hdLabels)}
             </>
           ) : (
             <div className="py-8 text-center text-muted-foreground">
