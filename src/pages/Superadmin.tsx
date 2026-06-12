@@ -94,7 +94,7 @@ function StockGlobalTab() {
   const { toast } = useToast();
   const t = useAppT();
   const enumLabel = useEnumLabel();
-  const { formatNumber, formatCurrency } = useFormatters();
+  
   const { empresaConfig } = useEmpresa();
   const supabase = useSupabaseEmpresa();
   const queryClient = useQueryClient();
