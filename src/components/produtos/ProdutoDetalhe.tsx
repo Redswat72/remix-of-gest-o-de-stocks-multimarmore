@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useAuth } from '@/hooks/useAuth';
+import { useAppT } from '@/hooks/useAppT';
 import { 
   MapPin, 
   Package, 
@@ -39,12 +40,6 @@ import {
 import type { Produto } from '@/types/database';
 import type { FotoHdMetadata } from '@/types/crm';
 
-const FORMA_LABELS: Record<string, string> = {
-  bloco: 'Bloco',
-  chapa: 'Chapa',
-  ladrilho: 'Ladrilho',
-};
-
 const FORMA_COLORS: Record<string, string> = {
   bloco: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
   chapa: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
@@ -68,6 +63,12 @@ export function ProdutoDetalhe({
   showPartilha = true,
   onLightboxOpen 
 }: ProdutoDetalheProps) {
+  const t = useAppT();
+  const FORMA_LABELS: Record<string, string> = {
+    bloco: t('products.detalhe.formaBloco'),
+    chapa: t('products.detalhe.formaChapa'),
+    ladrilho: t('products.detalhe.formaLadrilho'),
+  };
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const { isAdmin } = useAuth();
@@ -136,10 +137,10 @@ export function ProdutoDetalhe({
       }
 
       setSignedUrls(urlsWithSigned);
-      toast.success('Links temporários gerados com sucesso');
+      toast.success(t('products.detalhe.linksGenerated'));
     } catch (error) {
       console.error('Erro ao gerar signed URLs:', error);
-      toast.error('Erro ao gerar links temporários');
+      toast.error(t('products.detalhe.linksGenerateError'));
     } finally {
       setIsGenerating(false);
     }
@@ -149,10 +150,10 @@ export function ProdutoDetalhe({
     try {
       await navigator.clipboard.writeText(url);
       setCopiedIndex(index);
-      toast.success('Link copiado!');
+      toast.success(t('products.detalhe.linkCopied'));
       setTimeout(() => setCopiedIndex(null), 2000);
     } catch {
-      toast.error('Erro ao copiar link');
+      toast.error(t('products.detalhe.linkCopyError'));
     }
   };
 
@@ -169,9 +170,9 @@ export function ProdutoDetalhe({
 
     try {
       await navigator.clipboard.writeText(fullText);
-      toast.success('Dados copiados para a área de transferência');
+      toast.success(t('products.detalhe.dataCopied'));
     } catch {
-      toast.error('Erro ao copiar dados');
+      toast.error(t('products.detalhe.dataCopyError'));
     }
   };
 
@@ -190,7 +191,7 @@ export function ProdutoDetalhe({
               </Badge>
               {!produto.ativo && (
                 <Badge variant="outline" className="text-destructive border-destructive">
-                  Inativo
+                  {t('products.detalhe.inactive')}
                 </Badge>
               )}
             </div>
@@ -290,31 +291,31 @@ export function ProdutoDetalhe({
           <div className="grid grid-cols-2 gap-4 text-sm">
             {produto.nome_comercial && (
               <div>
-                <span className="text-muted-foreground">Nome comercial</span>
+                <span className="text-muted-foreground">{t('products.detalhe.nomeComercial')}</span>
                 <p className="font-medium">{produto.nome_comercial}</p>
               </div>
             )}
             {produto.acabamento && (
               <div>
-                <span className="text-muted-foreground">Acabamento</span>
+                <span className="text-muted-foreground">{t('products.detalhe.acabamento')}</span>
                 <p className="font-medium">{produto.acabamento}</p>
               </div>
             )}
             {dimensoes && (
               <div>
-                <span className="text-muted-foreground">Dimensões</span>
+                <span className="text-muted-foreground">{t('products.detalhe.dimensoes')}</span>
                 <p className="font-medium">{dimensoes}</p>
               </div>
             )}
             {produto.area_m2 && (
               <div>
-                <span className="text-muted-foreground">Área</span>
+                <span className="text-muted-foreground">{t('products.detalhe.area')}</span>
                 <p className="font-medium">{produto.area_m2.toFixed(2)} m²</p>
               </div>
             )}
             {produto.volume_m3 && (
               <div>
-                <span className="text-muted-foreground">Volume</span>
+                <span className="text-muted-foreground">{t('products.detalhe.volume')}</span>
                 <p className="font-medium">{produto.volume_m3.toFixed(3)} m³</p>
               </div>
             )}
@@ -324,13 +325,13 @@ export function ProdutoDetalhe({
           {isAdmin && (produto as any).valorizacao && (
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
-                <span className="text-muted-foreground">Valorização</span>
+                <span className="text-muted-foreground">{t('products.detalhe.valorizacao')}</span>
                 <p className="font-medium">
                   {Number((produto as any).valorizacao).toFixed(2)} {produto.forma === 'bloco' ? '€/ton' : '€/m²'}
                 </p>
               </div>
               <div>
-                <span className="text-muted-foreground">Valor Inventário</span>
+                <span className="text-muted-foreground">{t('products.detalhe.valorInventario')}</span>
                 <p className="font-medium text-primary">
                   {(() => {
                     const val = Number((produto as any).valorizacao);
@@ -351,7 +352,7 @@ export function ProdutoDetalhe({
             <>
               <Separator />
               <div>
-                <span className="text-sm text-muted-foreground">Observações</span>
+                <span className="text-sm text-muted-foreground">{t('products.detalhe.observacoes')}</span>
                 <p className="text-sm mt-1">{produto.observacoes}</p>
               </div>
             </>
@@ -373,14 +374,14 @@ export function ProdutoDetalhe({
                     }}
                   >
                     <Share2 className="h-4 w-4 mr-2" />
-                    Partilhar fotos comerciais
+                    {t('products.detalhe.shareCommercial')}
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="max-w-md">
                   <DialogHeader>
-                    <DialogTitle>Partilhar fotos HD</DialogTitle>
+                    <DialogTitle>{t('products.detalhe.shareTitle')}</DialogTitle>
                     <DialogDescription>
-                      Links temporários válidos por 24 horas para partilha comercial.
+                      {t('products.detalhe.shareDesc')}
                     </DialogDescription>
                   </DialogHeader>
 
@@ -388,16 +389,16 @@ export function ProdutoDetalhe({
                     {/* Info do produto */}
                     <div className="bg-muted rounded-lg p-3 space-y-1 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">IDMM</span>
+                        <span className="text-muted-foreground">{t('products.detalhe.idmm')}</span>
                         <span className="font-medium">{produto.idmm}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Tipo</span>
+                        <span className="text-muted-foreground">{t('products.detalhe.type')}</span>
                         <span className="font-medium">{produto.tipo_pedra}</span>
                       </div>
                       {dimensoes && (
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Dimensões</span>
+                          <span className="text-muted-foreground">{t('products.detalhe.dimensoes')}</span>
                           <span className="font-medium">{dimensoes}</span>
                         </div>
                       )}
@@ -407,7 +408,7 @@ export function ProdutoDetalhe({
                     {isGenerating && (
                       <div className="flex items-center justify-center py-6">
                         <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                        <span className="ml-2 text-sm">A gerar links...</span>
+                        <span className="ml-2 text-sm">{t('products.detalhe.generating')}</span>
                       </div>
                     )}
 
@@ -417,9 +418,9 @@ export function ProdutoDetalhe({
                         <div className="flex items-center justify-between text-xs text-muted-foreground">
                           <div className="flex items-center gap-1">
                             <Clock className="h-3 w-3" />
-                            Válido por 24h
+                            {t('products.detalhe.validFor24h')}
                           </div>
-                          <span>{signedUrls.length} foto(s) HD</span>
+                          <span>{t('products.detalhe.hdPhotosCount', { count: signedUrls.length })}</span>
                         </div>
 
                         {signedUrls.map((foto, index) => (
@@ -445,7 +446,7 @@ export function ProdutoDetalhe({
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8"
-                                title="Ver QR Code"
+                                title={t('products.detalhe.viewQrCode')}
                                 onClick={() => {
                                   setQrCodeUrl(foto.signedUrl || foto.url);
                                   setQrCodeLabel(foto.label);
@@ -457,7 +458,7 @@ export function ProdutoDetalhe({
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8"
-                                title="Copiar link"
+                                title={t('products.detalhe.copyLink')}
                                 onClick={() => copyToClipboard(foto.signedUrl || foto.url, index)}
                               >
                                 {copiedIndex === index ? (
@@ -470,7 +471,7 @@ export function ProdutoDetalhe({
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8"
-                                title="Abrir em nova janela"
+                                title={t('products.detalhe.openInNewWindow')}
                                 asChild
                               >
                                 <a 
@@ -491,7 +492,7 @@ export function ProdutoDetalhe({
                           onClick={copyAllLinks}
                         >
                           <Copy className="h-4 w-4 mr-2" />
-                          Copiar todos os dados
+                          {t('products.detalhe.copyAll')}
                         </Button>
                       </div>
                     )}
@@ -504,7 +505,7 @@ export function ProdutoDetalhe({
                         className="w-full"
                         onClick={generateSignedUrls}
                       >
-                        Regenerar links
+                        {t('products.detalhe.regenerate')}
                       </Button>
                     )}
                   </div>
@@ -531,7 +532,7 @@ export function ProdutoDetalhe({
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <QrCode className="h-5 w-5" />
-              QR Code
+              {t('products.detalhe.qrCode')}
             </DialogTitle>
             <DialogDescription>
               {qrCodeLabel} • {produto.idmm}
@@ -551,7 +552,7 @@ export function ProdutoDetalhe({
             )}
             
             <p className="text-xs text-center text-muted-foreground">
-              Aponte a câmara do telemóvel para aceder à foto HD
+              {t('products.detalhe.qrInstruction')}
             </p>
 
             <div className="flex gap-2 w-full">
@@ -562,7 +563,7 @@ export function ProdutoDetalhe({
                 onClick={() => qrCodeUrl && copyToClipboard(qrCodeUrl, -1)}
               >
                 <Copy className="h-4 w-4 mr-2" />
-                Copiar link
+                {t('products.detalhe.copyLink')}
               </Button>
               <Button
                 variant="outline"
@@ -576,7 +577,7 @@ export function ProdutoDetalhe({
                   rel="noopener noreferrer"
                 >
                   <ExternalLink className="h-4 w-4 mr-2" />
-                  Abrir
+                  {t('products.detalhe.open')}
                 </a>
               </Button>
             </div>

@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { useToast } from '@/hooks/use-toast';
+import { useAppT } from '@/hooks/useAppT';
 import { cn } from '@/lib/utils';
 import type { FormaProduto } from '@/types/database';
 
@@ -29,21 +30,13 @@ interface ProdutoFotosProps {
   canUploadHd: boolean;
 }
 
-// Configuração de slots HD por forma de produto
-const HD_SLOTS_CONFIG: Record<FormaProduto, { count: number; labels: string[] }> = {
-  bloco: {
-    count: 4,
-    labels: ['Lado A', 'Lado B', 'Lado C', 'Lado D'],
-  },
-  chapa: {
-    count: 4,
-    labels: ['Foto 1', 'Foto 2', 'Foto 3', 'Foto 4'],
-  },
-  ladrilho: {
-    count: 4,
-    labels: ['Foto 1', 'Foto 2', 'Foto 3', 'Foto 4'],
-  },
+// Quantidade de slots HD por forma de produto
+const HD_SLOTS_COUNT: Record<FormaProduto, number> = {
+  bloco: 4,
+  chapa: 4,
+  ladrilho: 4,
 };
+
 
 // Função para aplicar watermark na imagem
 async function applyWatermark(
@@ -142,11 +135,16 @@ export function ProdutoFotos({
   const empresaNome = empresaConfig?.nome?.toUpperCase() ?? 'EMPRESA';
   const idPrefix = empresaConfig?.idPrefix ?? 'ID';
   const { toast } = useToast();
-  
+  const t = useAppT();
+
   // Configuração baseada na forma
-  const hdConfig = HD_SLOTS_CONFIG[forma];
   const maxFotosOperacionais = 4;
-  const maxFotosHd = hdConfig.count;
+  const maxFotosHd = HD_SLOTS_COUNT[forma];
+  const hdLabels =
+    forma === 'bloco'
+      ? [t('products.fotos.sideA'), t('products.fotos.sideB'), t('products.fotos.sideC'), t('products.fotos.sideD')]
+      : [1, 2, 3, 4].map((n) => t('products.fotos.slotPhoto', { n }));
+
   
   // Estado para fotos operacionais
   const [fotos, setFotos] = useState<FotoSlot[]>(
@@ -204,7 +202,7 @@ export function ProdutoFotos({
     
     if (isHd) {
       // Para HD, gerar preview com watermark
-      const lado = hdConfig.labels[index] || `HD${index + 1}`;
+      const lado = hdLabels[index] || `HD${index + 1}`;
       const currentIdmm = idmm || 'NOVO';
       
       try {
@@ -245,7 +243,7 @@ export function ProdutoFotos({
         return newFotos;
       });
     }
-  }, [idmm, hdConfig.labels]);
+  }, [idmm, hdLabels]);
 
   const handleConfirmUpload = async (index: number, isHd: boolean) => {
     const fotoList = isHd ? fotosHd : fotos;
@@ -314,19 +312,19 @@ export function ProdutoFotos({
         }
         
         toast({
-          title: '✅ Foto guardada',
-          description: 'A imagem foi carregada com sucesso para o armazenamento.',
+          title: t('products.fotos.savedToast'),
+          description: t('products.fotos.savedToastDesc'),
         });
       } else {
         // Upload falhou (ex: bucket não existe, permissões, etc.)
         console.error('[ProdutoFotos] Upload returned null - bucket ou permissões em falta');
         toast({
-          title: '❌ Upload falhou',
-          description:
-            `Não foi possível guardar a imagem. Verifique se o bucket "${isHd ? 'produtos_hd' : 'produtos'}" existe no Supabase externo e tem políticas de INSERT para utilizadores autenticados.`,
+          title: t('products.fotos.uploadFailed'),
+          description: t('products.fotos.uploadFailedDesc', { bucket: isHd ? 'produtos_hd' : 'produtos' }),
           variant: 'destructive',
           duration: 8000,
         });
+
         // Reverter para estado anterior - NÃO manter preview
         setter(prev => {
           const newFotos = [...prev];
@@ -341,10 +339,10 @@ export function ProdutoFotos({
         });
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+      const errorMessage = err instanceof Error ? err.message : t('products.fotos.unknownError');
       console.error('[ProdutoFotos] Upload error:', errorMessage, err);
       toast({
-        title: '❌ Erro no upload',
+        title: t('products.fotos.uploadError'),
         description: errorMessage,
         variant: 'destructive',
         duration: 8000,
@@ -429,9 +427,9 @@ export function ProdutoFotos({
           const hasPreview = !!foto?.preview;
           const isPending = foto?.file !== null;
           const isUploaded = !!foto?.url && !isPending; // Foto já guardada no storage
-          const label = isHd 
-            ? (slotLabels?.[index] || `HD ${index + 1}`)
-            : `Foto ${index + 1}`;
+          const label = isHd
+            ? (slotLabels?.[index] || t('products.fotos.slotHd', { n: index + 1 }))
+            : t('products.fotos.slotPhoto', { n: index + 1 });
 
           // Para HD com watermark, mostrar preview com watermark
           const displayPreview = isHd && foto?.previewWithWatermark 
@@ -471,7 +469,7 @@ export function ProdutoFotos({
                     {/* Indicador de watermark pendente */}
                     {isHd && isPending && foto.previewWithWatermark && (
                       <Badge variant="outline" className="absolute bottom-2 left-2 bg-background/80 text-xs">
-                        Watermark aplicado
+                        {t('products.fotos.watermarkApplied')}
                       </Badge>
                     )}
                     
@@ -492,7 +490,7 @@ export function ProdutoFotos({
                           variant="outline"
                           onClick={() => handleCancelPreview(index, isHd)}
                           className="h-12 w-12 border-destructive/50 hover:bg-destructive/10"
-                          title="Cancelar"
+                          title={t('products.fotos.cancel')}
                         >
                           <RotateCcw className="w-5 h-5 text-destructive" />
                         </Button>
@@ -502,7 +500,7 @@ export function ProdutoFotos({
                           size="icon"
                           onClick={() => handleConfirmUpload(index, isHd)}
                           className="h-12 w-12 bg-primary hover:bg-primary/90"
-                          title="Confirmar upload"
+                          title={t('products.fotos.confirmUpload')}
                         >
                           <Check className="w-5 h-5" />
                         </Button>
@@ -516,7 +514,7 @@ export function ProdutoFotos({
                         {isUploaded && (
                           <div className="absolute bottom-2 right-2 flex items-center gap-1 bg-success text-success-foreground rounded-full px-2 py-0.5 text-xs font-medium shadow-md">
                             <Check className="w-3 h-3" />
-                            Guardada
+                            {t('products.fotos.saved')}
                           </div>
                         )}
                         <Button
@@ -525,7 +523,7 @@ export function ProdutoFotos({
                           variant="destructive"
                           className="absolute top-2 right-2 h-8 w-8"
                           onClick={() => handleRemoveFoto(index, isHd)}
-                          title="Remover foto"
+                          title={t('products.fotos.removePhoto')}
                         >
                           <X className="w-4 h-4" />
                         </Button>
@@ -601,8 +599,8 @@ export function ProdutoFotos({
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="operacionais" className="gap-2">
             <Image className="w-4 h-4" />
-            <span className="hidden sm:inline">Operacionais</span>
-            <span className="sm:hidden">Op.</span>
+            <span className="hidden sm:inline">{t('products.fotos.operacionais')}</span>
+            <span className="sm:hidden">{t('products.fotos.operacionaisShort')}</span>
           </TabsTrigger>
           <TabsTrigger 
             value="hd" 
@@ -610,16 +608,15 @@ export function ProdutoFotos({
             className="gap-2"
           >
             <Sparkles className="w-4 h-4" />
-            <span className="hidden sm:inline">Alta Qualidade (HD)</span>
-            <span className="sm:hidden">HD</span>
+            <span className="hidden sm:inline">{t('products.fotos.hdTab')}</span>
+            <span className="sm:hidden">{t('products.fotos.hdTabShort')}</span>
           </TabsTrigger>
         </TabsList>
         
         <TabsContent value="operacionais" className="mt-4">
           <div className="mb-3">
             <p className="text-sm text-muted-foreground">
-              Fotos para uso operacional (listagens, histórico, mobile). 
-              Comprimidas até 2000px, ideal para rapidez.
+              {t('products.fotos.operacionaisDesc')}
             </p>
           </div>
           {renderFotoGrid(fotos, false, maxFotosOperacionais)}
@@ -630,21 +627,20 @@ export function ProdutoFotos({
             <>
               <div className="mb-3 space-y-1">
                 <p className="text-sm text-muted-foreground">
-                  Fotos de alta qualidade para visualização detalhada. 
-                  Sem compressão, preserva cores e detalhes da pedra.
+                  {t('products.fotos.hdTabDesc')}
                 </p>
                 <p className="text-xs text-muted-foreground/70">
-                  💧 Watermark discreto aplicado automaticamente ({empresaNome} • {idPrefix} • Lado)
+                  {t('products.fotos.watermarkInfo', { empresa: empresaNome, prefix: idPrefix })}
                 </p>
               </div>
-              {renderFotoGrid(fotosHd, true, maxFotosHd, hdConfig.labels)}
+              {renderFotoGrid(fotosHd, true, maxFotosHd, hdLabels)}
             </>
           ) : (
             <div className="py-8 text-center text-muted-foreground">
               <Sparkles className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p className="font-medium">Acesso restrito</p>
+              <p className="font-medium">{t('products.fotos.restrictedTitle')}</p>
               <p className="text-sm">
-                Apenas Admins e Superadmins podem carregar fotos HD
+                {t('products.fotos.restrictedDesc')}
               </p>
             </div>
           )}
@@ -653,7 +649,7 @@ export function ProdutoFotos({
       
       {hasPendingUploads() && (
         <p className="text-sm text-destructive">
-          ⚠️ Confirme ou cancele os uploads pendentes antes de guardar.
+          {t('products.fotos.pendingWarning')}
         </p>
       )}
     </div>

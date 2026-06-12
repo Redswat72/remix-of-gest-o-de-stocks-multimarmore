@@ -32,22 +32,13 @@ import { useToast } from '@/hooks/use-toast';
 import { ProdutoForm } from '@/components/produtos/ProdutoForm';
 import { ProdutoQrCode } from '@/components/produtos/ProdutoQrCode';
 import { FotoLightbox, createFotosList } from '@/components/produtos/FotoLightbox';
-
-const FORMA_LABELS: Record<string, string> = {
-  bloco: 'Bloco',
-  chapa: 'Chapa',
-  ladrilho: 'Ladrilho',
-};
-
-const ORIGEM_MATERIAL_LABELS: Record<string, string> = {
-  adquirido: 'Adquirido',
-  producao_propria: 'Produção própria',
-};
+import { useAppT } from '@/hooks/useAppT';
 
 export default function ProdutoFicha() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const t = useAppT();
   const { hasRole, isAdmin, isSuperadmin, roles } = useAuth();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -62,6 +53,17 @@ export default function ProdutoFicha() {
   const canEdit = isAdmin || isSuperadmin;
   const canUploadHd = isAdmin || isSuperadmin;
   const canCreateMovimento = roles.length > 0 && (hasRole('operador') || isSuperadmin);
+
+  const FORMA_LABELS: Record<string, string> = {
+    bloco: t('enums.tipoProduto.bloco'),
+    chapa: t('enums.tipoProduto.chapa'),
+    ladrilho: t('enums.tipoProduto.ladrilho'),
+  };
+
+  const ORIGEM_MATERIAL_LABELS: Record<string, string> = {
+    adquirido: t('products.originLabels.adquirido'),
+    producao_propria: t('products.originLabels.producao_propria'),
+  };
 
   const handleUpdate = async (
     data: any, 
@@ -93,19 +95,18 @@ export default function ProdutoFicha() {
         foto2_hd_url: fotoHdUrls[1] || null,
         foto3_hd_url: fotoHdUrls[2] || null,
         foto4_hd_url: fotoHdUrls[3] || null,
-        // Incluir fotos de pargas se fornecidas (para produtos tipo chapa)
         ...pargaFotos,
       });
 
       toast({
-        title: 'Produto atualizado',
-        description: `O produto ${data.idmm} foi atualizado com sucesso.`,
+        title: t('toasts.successTitle'),
+        description: `${data.idmm}`,
       });
       setIsEditDialogOpen(false);
     } catch (err: any) {
       toast({
-        title: 'Erro',
-        description: err.message || 'Ocorreu um erro ao atualizar o produto.',
+        title: t('toasts.errorTitle'),
+        description: err.message || t('errors.generic'),
         variant: 'destructive',
       });
     } finally {
@@ -118,19 +119,17 @@ export default function ProdutoFicha() {
     setLightboxOpen(true);
   };
 
-  // Loading
   if (isLoading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          <p className="text-muted-foreground">A carregar produto...</p>
+          <p className="text-muted-foreground">{t('products.loading')}</p>
         </div>
       </div>
     );
   }
 
-  // Erro
   if (error || !produto) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center p-4">
@@ -138,14 +137,14 @@ export default function ProdutoFicha() {
           <CardContent className="pt-6 text-center space-y-4">
             <AlertCircle className="w-12 h-12 mx-auto text-destructive" />
             <div>
-              <h1 className="text-xl font-bold mb-2">Produto não encontrado</h1>
+              <h1 className="text-xl font-bold mb-2">{t('products.notFound')}</h1>
               <p className="text-muted-foreground">
-                {error?.message || 'Não foi possível carregar os dados do produto.'}
+                {error?.message || t('products.notFoundDesc')}
               </p>
             </div>
             <Button onClick={() => navigate(-1)}>
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Voltar
+              {t('actions.back')}
             </Button>
           </CardContent>
         </Card>
@@ -153,7 +152,6 @@ export default function ProdutoFicha() {
     );
   }
 
-  // Usar createFotosList para preparar fotos para o lightbox
   const fotos = createFotosList(produto);
 
   const parqueMM =
@@ -176,7 +174,7 @@ export default function ProdutoFicha() {
               <h1 className="text-2xl font-bold">{produto.idmm}</h1>
               <Badge variant="outline">{FORMA_LABELS[produto.forma]}</Badge>
               {!produto.ativo && (
-                <Badge variant="destructive">Inativo</Badge>
+                <Badge variant="destructive">{t('products.inactive')}</Badge>
               )}
             </div>
             <p className="text-muted-foreground">{produto.tipo_pedra}</p>
@@ -191,7 +189,7 @@ export default function ProdutoFicha() {
               onClick={() => navigate(`/movimento/novo?produto=${produto.id}`)}
             >
               <Plus className="w-4 h-4 mr-2" />
-              Movimento
+              {t('products.movement')}
             </Button>
           )}
           {canEdit && (
@@ -200,13 +198,13 @@ export default function ProdutoFicha() {
               onClick={() => setIsEditDialogOpen(true)}
             >
               <Pencil className="w-4 h-4 mr-2" />
-              Editar
+              {t('actions.edit')}
             </Button>
           )}
         </div>
       </div>
 
-      {/* Conteúdo Principal - Mobile First */}
+      {/* Conteúdo Principal */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Coluna Principal */}
         <div className="lg:col-span-2 space-y-6">
@@ -214,7 +212,7 @@ export default function ProdutoFicha() {
           {fotos.length > 0 ? (
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-base">Fotografias</CardTitle>
+                <CardTitle className="text-base">{t('products.photos')}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-3">
@@ -245,14 +243,14 @@ export default function ProdutoFicha() {
             <Card>
               <CardContent className="py-12 text-center text-muted-foreground">
                 <Package className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p>Sem fotografias disponíveis</p>
+                <p>{t('products.noPhotos')}</p>
                 {canEdit && (
                   <Button 
                     variant="outline" 
                     className="mt-4"
                     onClick={() => setIsEditDialogOpen(true)}
                   >
-                    Adicionar Fotos
+                    {t('products.addPhotos')}
                   </Button>
                 )}
               </CardContent>
@@ -264,16 +262,15 @@ export default function ProdutoFicha() {
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
                 <Ruler className="h-5 w-5" />
-                Dados Técnicos
+                {t('products.technicalData')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              {/* Parque MM (derivado do stock) */}
               {stockProduto.length > 0 && (
                 <div>
                   <span className="text-sm text-muted-foreground flex items-center gap-1">
                     <Warehouse className="h-3.5 w-3.5" />
-                    Parque MM
+                    {t('products.yardMM')}
                   </span>
                   <div className="mt-1 flex flex-wrap gap-2">
                     {stockProduto.map((item) => (
@@ -288,103 +285,95 @@ export default function ProdutoFicha() {
                 </div>
               )}
 
-              {/* Linha */}
               {produto.linha && (
                 <div>
-                  <span className="text-sm text-muted-foreground">Linha</span>
+                  <span className="text-sm text-muted-foreground">{t('products.line')}</span>
                   <p className="font-medium">{produto.linha}</p>
                 </div>
               )}
 
-              {/* Variedade */}
               {produto.variedade && (
                 <div>
-                  <span className="text-sm text-muted-foreground">Variedade</span>
+                  <span className="text-sm text-muted-foreground">{t('products.variedade')}</span>
                   <p className="font-medium">{produto.variedade}</p>
                 </div>
               )}
 
-              {/* Origem do Bloco */}
               {produto.origem_bloco && (
                 <div>
-                  <span className="text-sm text-muted-foreground">Origem do Bloco</span>
+                  <span className="text-sm text-muted-foreground">{t('products.blockOrigin')}</span>
                   <p className="font-medium">{produto.origem_bloco}</p>
                 </div>
               )}
 
-              {/* Nome Comercial */}
               {produto.nome_comercial && (
                 <div>
-                  <span className="text-sm text-muted-foreground">Nome Comercial</span>
+                  <span className="text-sm text-muted-foreground">{t('products.commercialName')}</span>
                   <p className="font-medium">{produto.nome_comercial}</p>
                 </div>
               )}
 
-              {/* Acabamento */}
               {produto.acabamento && (
                 <div>
-                  <span className="text-sm text-muted-foreground">Acabamento</span>
+                  <span className="text-sm text-muted-foreground">{t('products.finish')}</span>
                   <p className="font-medium">{produto.acabamento}</p>
                 </div>
               )}
 
               <Separator />
 
-              {/* Dimensões */}
               <div>
-                <span className="text-sm text-muted-foreground">Dimensões</span>
+                <span className="text-sm text-muted-foreground">{t('products.dimensions')}</span>
                 <div className="mt-1 grid grid-cols-2 sm:grid-cols-4 gap-4">
                   {produto.comprimento_cm && (
                     <div>
-                      <span className="text-xs text-muted-foreground">Comprimento</span>
+                      <span className="text-xs text-muted-foreground">{t('products.comprimento')}</span>
                       <p className="font-medium">{produto.comprimento_cm} cm</p>
                     </div>
                   )}
                   {produto.largura_cm && (
                     <div>
-                      <span className="text-xs text-muted-foreground">Largura</span>
+                      <span className="text-xs text-muted-foreground">{t('products.largura')}</span>
                       <p className="font-medium">{produto.largura_cm} cm</p>
                     </div>
                   )}
                   {produto.forma === 'bloco' && produto.altura_cm && (
                     <div>
-                      <span className="text-xs text-muted-foreground">Altura</span>
+                      <span className="text-xs text-muted-foreground">{t('products.altura')}</span>
                       <p className="font-medium">{produto.altura_cm} cm</p>
                     </div>
                   )}
                   {produto.espessura_cm && (
                     <div>
-                      <span className="text-xs text-muted-foreground">Espessura</span>
+                      <span className="text-xs text-muted-foreground">{t('products.espessura')}</span>
                       <p className="font-medium">{produto.espessura_cm} cm</p>
                     </div>
                   )}
                 </div>
               </div>
 
-              {/* Peso - apenas para blocos */}
               {produto.forma === 'bloco' && produto.peso_ton && (
                 <>
                   <Separator />
                   <div>
-                    <span className="text-sm text-muted-foreground">Peso</span>
-                    <p className="font-medium text-lg">{produto.peso_ton} toneladas</p>
+                    <span className="text-sm text-muted-foreground">{t('products.weight')}</span>
+                    <p className="font-medium text-lg">{produto.peso_ton} {t('products.tons')}</p>
                   </div>
                 </>
               )}
 
-              {/* Valorização e Valor de Inventário - apenas para admin */}
               {isAdmin && (produto as any).valorizacao && (
                 <>
                   <Separator />
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <span className="text-xs text-muted-foreground">Valorização</span>
+                      <span className="text-xs text-muted-foreground">{t('products.valuation')}</span>
                       <p className="font-medium">
                         {Number((produto as any).valorizacao).toFixed(2)} {produto.forma === 'bloco' ? '€/ton' : '€/m²'}
                       </p>
                     </div>
                     <div>
-                      <span className="text-xs text-muted-foreground">Valor de Inventário</span>
+                      <span className="text-xs text-muted-foreground">{t('products.inventoryValue')}</span>
                       <p className="font-medium text-primary">
                         {(() => {
                           const val = Number((produto as any).valorizacao);
@@ -402,20 +391,19 @@ export default function ProdutoFicha() {
                 </>
               )}
 
-              {/* Área e Volume */}
               {(produto.area_m2 || produto.volume_m3) && (
                 <>
                   <Separator />
                   <div className="grid grid-cols-2 gap-4">
                     {produto.area_m2 && (
                       <div>
-                        <span className="text-xs text-muted-foreground">Área</span>
+                        <span className="text-xs text-muted-foreground">{t('products.area')}</span>
                         <p className="font-medium">{produto.area_m2.toFixed(2)} m²</p>
                       </div>
                     )}
                     {produto.volume_m3 && (
                       <div>
-                        <span className="text-xs text-muted-foreground">Volume</span>
+                        <span className="text-xs text-muted-foreground">{t('products.volume')}</span>
                         <p className="font-medium">{produto.volume_m3.toFixed(3)} m³</p>
                       </div>
                     )}
@@ -423,30 +411,25 @@ export default function ProdutoFicha() {
                 </>
               )}
 
-              {/* Localização GPS */}
               {(produto.latitude && produto.longitude) && (
                 <>
                   <Separator />
                   <div>
                     <span className="text-sm text-muted-foreground flex items-center gap-1">
                       <MapPin className="h-4 w-4" />
-                      Localização GPS
+                      {t('products.gpsLocation')}
                     </span>
                     <div className="mt-1 flex items-center gap-2">
                       <p className="font-mono text-sm">
                         {produto.latitude.toFixed(6)}, {produto.longitude.toFixed(6)}
                       </p>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        asChild
-                      >
+                      <Button variant="ghost" size="sm" asChild>
                         <a
                           href={`https://maps.google.com/?q=${produto.latitude},${produto.longitude}`}
                           target="_blank"
                           rel="noopener noreferrer"
                         >
-                          Ver no mapa
+                          {t('products.viewOnMap')}
                         </a>
                       </Button>
                     </div>
@@ -454,12 +437,11 @@ export default function ProdutoFicha() {
                 </>
               )}
 
-              {/* Observações */}
               {produto.observacoes && (
                 <>
                   <Separator />
                   <div>
-                    <span className="text-sm text-muted-foreground">Observações</span>
+                    <span className="text-sm text-muted-foreground">{t('products.observations')}</span>
                     <p className="mt-1 text-sm whitespace-pre-wrap">{produto.observacoes}</p>
                   </div>
                 </>
@@ -470,21 +452,19 @@ export default function ProdutoFicha() {
 
         {/* Coluna Lateral */}
         <div className="space-y-6">
-          {/* QR Code */}
           <ProdutoQrCode idmm={produto.idmm} tipoPedra={produto.tipo_pedra} />
 
-          {/* Metadados */}
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-base flex items-center gap-2">
                 <Calendar className="h-5 w-5" />
-                Informações
+                {t('products.information')}
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3 text-sm">
               {ultimoMovimento?.data_movimento && (
                 <div className="flex justify-between gap-4">
-                  <span className="text-muted-foreground">Data</span>
+                  <span className="text-muted-foreground">{t('products.date')}</span>
                   <span className="text-right">
                     {format(new Date(ultimoMovimento.data_movimento), "d 'de' MMM yyyy", { locale: pt })}
                   </span>
@@ -492,13 +472,13 @@ export default function ProdutoFicha() {
               )}
               {parqueMM && (
                 <div className="flex justify-between gap-4">
-                  <span className="text-muted-foreground">Parque MM</span>
+                  <span className="text-muted-foreground">{t('products.yardMM')}</span>
                   <span className="text-right">{parqueMM}</span>
                 </div>
               )}
               {ultimoMovimento?.origem_material && (
                 <div className="flex justify-between gap-4">
-                  <span className="text-muted-foreground">Origem material</span>
+                  <span className="text-muted-foreground">{t('products.materialOrigin')}</span>
                   <span className="text-right">
                     {ORIGEM_MATERIAL_LABELS[String(ultimoMovimento.origem_material)] || ultimoMovimento.origem_material}
                   </span>
@@ -506,18 +486,18 @@ export default function ProdutoFicha() {
               )}
               {(ultimoMovimento?.data_movimento || parqueMM || ultimoMovimento?.origem_material) && <Separator />}
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Criado em</span>
+                <span className="text-muted-foreground">{t('products.createdAt')}</span>
                 <span>{format(new Date(produto.created_at), "d 'de' MMM yyyy", { locale: pt })}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Atualizado</span>
+                <span className="text-muted-foreground">{t('products.updatedAt')}</span>
                 <span>{format(new Date(produto.updated_at), "d 'de' MMM yyyy", { locale: pt })}</span>
               </div>
               <Separator />
               <div className="flex justify-between">
-                <span className="text-muted-foreground">Estado</span>
+                <span className="text-muted-foreground">{t('products.status')}</span>
                 <Badge variant={produto.ativo ? 'secondary' : 'destructive'}>
-                  {produto.ativo ? 'Ativo' : 'Inativo'}
+                  {produto.ativo ? t('products.active') : t('products.inactive')}
                 </Badge>
               </div>
             </CardContent>
@@ -525,7 +505,6 @@ export default function ProdutoFicha() {
         </div>
       </div>
 
-      {/* Lightbox */}
       {fotos.length > 0 && (
         <FotoLightbox
           fotos={fotos}
@@ -537,11 +516,10 @@ export default function ProdutoFicha() {
         />
       )}
 
-      {/* Dialog de Edição */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Editar Produto</DialogTitle>
+            <DialogTitle>{t('products.editProductTitle')}</DialogTitle>
           </DialogHeader>
           <ProdutoForm
             produto={produto}
