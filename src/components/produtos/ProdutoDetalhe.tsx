@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { QRCodeSVG } from 'qrcode.react';
 import { useAuth } from '@/hooks/useAuth';
+import { useAppT } from '@/hooks/useAppT';
 import { 
   MapPin, 
   Package, 
@@ -38,12 +39,6 @@ import {
 } from '@/lib/crmHelpers';
 import type { Produto } from '@/types/database';
 import type { FotoHdMetadata } from '@/types/crm';
-
-const FORMA_LABELS: Record<string, string> = {
-  bloco: 'Bloco',
-  chapa: 'Chapa',
-  ladrilho: 'Ladrilho',
-};
 
 const FORMA_COLORS: Record<string, string> = {
   bloco: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
