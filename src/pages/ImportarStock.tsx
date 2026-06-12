@@ -23,11 +23,13 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useToast } from '@/hooks/use-toast';
-import { useParseExcel, useExecutarImportacao, LinhaExcel, LinhaExcelBlocos, LinhaExcelChapas, LinhaExcelLadrilhos, ResultadoImportacao, PargaExcel } from '@/hooks/useImportarExcel';
+import { useAppT } from '@/hooks/useAppT';
+import { useParseExcel, useExecutarImportacao, LinhaExcel, LinhaExcelBlocos, LinhaExcelChapas, LinhaExcelLadrilhos, ResultadoImportacao } from '@/hooks/useImportarExcel';
 import { gerarModeloExcel, TipoImportacao } from '@/lib/excelTemplateGenerator';
 import { cn } from '@/lib/utils';
 
 export default function ImportarStock() {
+  const t = useAppT();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { linhas, isLoading: isParsing, erro: parseErro, tipoAtual, parseFile, limpar } = useParseExcel();
@@ -48,8 +50,8 @@ export default function ImportarStock() {
 
     if (!tipoSelecionado) {
       toast({
-        title: 'Tipo não selecionado',
-        description: 'Por favor, selecione o tipo de importação (Blocos, Chapas ou Ladrilhos)',
+        title: t('import.tipoNaoSelecionado'),
+        description: t('import.tipoNaoSelecionadoDesc'),
         variant: 'destructive',
       });
       return;
@@ -62,8 +64,8 @@ export default function ImportarStock() {
 
     if (!validTypes.includes(file.type) && !file.name.match(/\.(xlsx|xls)$/i)) {
       toast({
-        title: 'Ficheiro inválido',
-        description: 'Por favor, selecione um ficheiro Excel (.xlsx ou .xls)',
+        title: t('import.ficheiroInvalido'),
+        description: t('import.ficheiroInvalidoDesc'),
         variant: 'destructive',
       });
       return;
@@ -76,8 +78,8 @@ export default function ImportarStock() {
     event.preventDefault();
     if (!tipoSelecionado) {
       toast({
-        title: 'Tipo não selecionado',
-        description: 'Por favor, selecione primeiro o tipo de importação',
+        title: t('import.tipoNaoSelecionado'),
+        description: t('import.tipoNaoSelecionadoDropDesc'),
         variant: 'destructive',
       });
       return;
@@ -107,13 +109,13 @@ export default function ImportarStock() {
       setResultado(result);
       setConfirmOpen(false);
       toast({
-        title: 'Importação concluída',
-        description: `${result.movimentosCriados} movimentos criados com sucesso`,
+        title: t('import.importacaoConcluida'),
+        description: t('import.movimentosCriadosDesc', { n: result.movimentosCriados }),
       });
     } catch (error) {
       toast({
-        title: 'Erro na importação',
-        description: error instanceof Error ? error.message : 'Ocorreu um erro inesperado',
+        title: t('import.erroImportacao'),
+        description: error instanceof Error ? error.message : t('errors.unexpectedError'),
         variant: 'destructive',
       });
     }
@@ -132,24 +134,24 @@ export default function ImportarStock() {
     try {
       gerarModeloExcel({ incluirExemplos: true, tipo });
       toast({
-        title: 'Modelo transferido',
-        description: `Modelo Excel para ${tipo} transferido com sucesso`,
+        title: t('import.modeloTransferido'),
+        description: t('import.modeloTransferidoDesc', { tipo }),
       });
     } catch (err) {
       console.error('Erro ao gerar modelo Excel:', err);
-      const msg = err instanceof Error ? err.message : 'Erro desconhecido';
+      const msg = err instanceof Error ? err.message : t('errors.unknown');
       toast({
-        title: 'Erro',
-        description: `Não foi possível gerar o modelo: ${msg}`,
+        title: t('errors.title'),
+        description: t('errors.generateTemplate', { msg }),
         variant: 'destructive',
       });
     }
   };
 
   const tiposImportacao: Array<{ id: TipoImportacao; nome: string; descricao: string; icon: React.ElementType }> = [
-    { id: 'blocos', nome: 'Blocos', descricao: 'Blocos de pedra brutos', icon: Box },
-    { id: 'chapas', nome: 'Chapas', descricao: 'Chapas serradas com pargas', icon: Layers },
-    { id: 'ladrilhos', nome: 'Ladrilhos', descricao: 'Ladrilhos acabados', icon: Grid3X3 },
+    { id: 'blocos', nome: t('import.blocos.nome'), descricao: t('import.blocos.desc'), icon: Box },
+    { id: 'chapas', nome: t('import.chapas.nome'), descricao: t('import.chapas.desc'), icon: Layers },
+    { id: 'ladrilhos', nome: t('import.ladrilhos.nome'), descricao: t('import.ladrilhos.desc'), icon: Grid3X3 },
   ];
 
   // Renderizar dimensões com base no tipo
@@ -209,8 +211,8 @@ export default function ImportarStock() {
               <TooltipContent side="bottom" className="max-w-xs">
                 <div className="space-y-1 text-xs">
                   <p className="font-medium">{p!.nome}</p>
-                  <p><span className="text-muted-foreground">1ª Chapa:</span> {p!.foto1 || <span className="text-destructive">Sem foto</span>}</p>
-                  <p><span className="text-muted-foreground">Última:</span> {p!.foto2 || <span className="text-muted-foreground italic">Não definida</span>}</p>
+                  <p><span className="text-muted-foreground">{t('import.primeiraChapa')}</span> {p!.foto1 || <span className="text-destructive">{t('import.semFoto')}</span>}</p>
+                  <p><span className="text-muted-foreground">{t('import.ultima')}</span> {p!.foto2 || <span className="text-muted-foreground italic">{t('import.naoDefinida')}</span>}</p>
                 </div>
               </TooltipContent>
             </Tooltip>
@@ -250,9 +252,9 @@ export default function ImportarStock() {
               </TooltipTrigger>
               <TooltipContent side="bottom">
                 <div className="text-xs space-y-0.5">
-                  <p>Comprimento: {p!.comprimento || '-'} cm</p>
-                  <p>Altura: {p!.altura || '-'} cm</p>
-                  <p>Espessura: {p!.espessura || '-'} cm</p>
+                  <p>{t('import.labelComprimento')}: {p!.comprimento || '-'} cm</p>
+                  <p>{t('import.labelAltura')}: {p!.altura || '-'} cm</p>
+                  <p>{t('import.labelEspessura')}: {p!.espessura || '-'} cm</p>
                 </div>
               </TooltipContent>
             </Tooltip>
@@ -270,8 +272,8 @@ export default function ImportarStock() {
           <FileSpreadsheet className="w-6 h-6 text-purple" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold">Importar Stock via Excel</h1>
-          <p className="text-muted-foreground">Importe inventário inicial a partir de ficheiros Excel</p>
+          <h1 className="text-2xl font-bold">{t('import.stockPageTitle')}</h1>
+          <p className="text-muted-foreground">{t('import.stockPageSubtitle')}</p>
         </div>
       </div>
 
@@ -281,45 +283,45 @@ export default function ImportarStock() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-success">
               <CheckCircle2 className="w-5 h-5" />
-              Importação Concluída
+              {t('import.importacaoConcluidaInline')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
               <div className="text-center p-4 bg-muted/50 rounded-lg">
                 <p className="text-2xl font-bold">{resultado.totalLinhas}</p>
-                <p className="text-sm text-muted-foreground">Linhas Total</p>
+                <p className="text-sm text-muted-foreground">{t('import.totalLinhas')}</p>
               </div>
               <div className="text-center p-4 bg-success/10 rounded-lg">
                 <p className="text-2xl font-bold text-success">{resultado.linhasProcessadas}</p>
-                <p className="text-sm text-muted-foreground">Processadas</p>
+                <p className="text-sm text-muted-foreground">{t('import.processadas')}</p>
               </div>
               <div className="text-center p-4 bg-info/10 rounded-lg">
                 <p className="text-2xl font-bold text-info">{resultado.produtosCriados}</p>
-                <p className="text-sm text-muted-foreground">Produtos Novos</p>
+                <p className="text-sm text-muted-foreground">{t('import.produtosNovosInline')}</p>
               </div>
               <div className="text-center p-4 bg-primary/10 rounded-lg">
                 <p className="text-2xl font-bold text-primary">{resultado.movimentosCriados}</p>
-                <p className="text-sm text-muted-foreground">Movimentos</p>
+                <p className="text-sm text-muted-foreground">{t('import.movimentosInline')}</p>
               </div>
             </div>
             {resultado.erros?.length > 0 && (
               <Alert variant="destructive" className="mb-4">
                 <AlertTriangle className="h-4 w-4" />
-                <AlertTitle>Atenção</AlertTitle>
+                <AlertTitle>{t('import.atencao')}</AlertTitle>
                 <AlertDescription className="space-y-1">
-                  <p>{resultado.erros.length} linhas não puderam ser processadas:</p>
+                  <p>{t('import.linhasNaoProcessadas', { n: resultado.erros.length })}</p>
                   <ul className="list-disc list-inside text-sm mt-2">
                     {resultado.erros.slice(0, 3).map((e, i) => (
-                      <li key={i}>Linha {e.linha}: {e.erro}</li>
+                      <li key={i}>{t('import.linhaErro', { n: e.linha, msg: e.erro })}</li>
                     ))}
-                    {resultado.erros.length > 3 && <li>...e mais {resultado.erros.length - 3} erros</li>}
+                    {resultado.erros.length > 3 && <li>{t('import.maisErrosInline', { n: resultado.erros.length - 3 })}</li>}
                   </ul>
                 </AlertDescription>
               </Alert>
             )}
             <Button onClick={handleReset} className="w-full">
-              Nova Importação
+              {t('import.novaImportacao')}
             </Button>
           </CardContent>
         </Card>
@@ -331,8 +333,8 @@ export default function ImportarStock() {
           {/* Seleção do Tipo de Importação */}
           <Card>
             <CardHeader>
-              <CardTitle>1. Selecione o Tipo de Importação</CardTitle>
-              <CardDescription>Escolha o tipo de produto que pretende importar</CardDescription>
+              <CardTitle>{t('import.selecionarTipoTitle')}</CardTitle>
+              <CardDescription>{t('import.selecionarTipoDesc')}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -376,12 +378,12 @@ export default function ImportarStock() {
                 <div className="mt-6 p-4 bg-muted/50 rounded-lg">
                   <div className="flex items-center justify-between flex-wrap gap-4">
                     <div>
-                      <h4 className="font-medium">Modelo Excel para {tiposImportacao.find(t => t.id === tipoSelecionado)?.nome}</h4>
-                      <p className="text-sm text-muted-foreground">Descarregue o modelo com a estrutura correta</p>
+                      <h4 className="font-medium">{t('import.modeloParaTipoTitle', { nome: tiposImportacao.find(t => t.id === tipoSelecionado)?.nome })}</h4>
+                      <p className="text-sm text-muted-foreground">{t('import.modeloParaTipoDesc')}</p>
                     </div>
                     <Button variant="outline" onClick={() => handleDownloadModelo(tipoSelecionado)} className="gap-2">
                       <Download className="w-4 h-4" />
-                      Descarregar Modelo
+                      {t('import.descarregarModelo')}
                     </Button>
                   </div>
                 </div>
@@ -392,11 +394,11 @@ export default function ImportarStock() {
           {/* Upload Area */}
           <Card>
             <CardHeader>
-              <CardTitle>2. Carregar Ficheiro Excel</CardTitle>
+              <CardTitle>{t('import.carregarFicheiroStepTitle')}</CardTitle>
               <CardDescription>
                 {tipoSelecionado 
-                  ? `Carregue um ficheiro Excel com dados de ${tiposImportacao.find(t => t.id === tipoSelecionado)?.nome.toLowerCase()}`
-                  : 'Selecione primeiro o tipo de importação acima'
+                  ? t('import.carregarFicheiroStepDescComTipo', { nome: tiposImportacao.find(t => t.id === tipoSelecionado)?.nome.toLowerCase() })
+                  : t('import.carregarFicheiroStepDescSemTipo')
                 }
               </CardDescription>
             </CardHeader>
@@ -424,23 +426,23 @@ export default function ImportarStock() {
                 {isParsing ? (
                   <div className="space-y-4">
                     <Loader2 className="w-12 h-12 mx-auto text-primary animate-spin" />
-                    <p className="text-muted-foreground">A processar ficheiro...</p>
+                    <p className="text-muted-foreground">{t('import.processando')}</p>
                   </div>
                 ) : (
                   <>
                     <Upload className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
                     <h3 className="text-lg font-semibold mb-2">
                       {tipoSelecionado 
-                        ? 'Arraste o ficheiro Excel ou clique para selecionar' 
-                        : 'Selecione o tipo de importação primeiro'
+                        ? t('import.arrastarOuClicar')
+                        : t('import.selecioneTipoPrimeiro')
                       }
                     </h3>
                     <p className="text-sm text-muted-foreground mb-4">
-                      Suporta ficheiros .xlsx e .xls
+                      {t('import.suportaFormatos')}
                     </p>
                     <Button variant="outline" className="gap-2" disabled={!tipoSelecionado}>
                       <FileSpreadsheet className="w-4 h-4" />
-                      Selecionar Ficheiro
+                      {t('import.selecionarFicheiro')}
                     </Button>
                   </>
                 )}
@@ -449,7 +451,7 @@ export default function ImportarStock() {
               {parseErro && (
                 <Alert variant="destructive" className="mt-4">
                   <XCircle className="h-4 w-4" />
-                  <AlertTitle>Erro ao processar ficheiro</AlertTitle>
+                  <AlertTitle>{t('import.erroProcesarFicheiro')}</AlertTitle>
                   <AlertDescription>{parseErro}</AlertDescription>
                 </Alert>
               )}
@@ -459,37 +461,37 @@ export default function ImportarStock() {
                 <div className="mt-6 p-4 bg-muted/50 rounded-lg">
                   <h4 className="font-medium mb-3 flex items-center gap-2">
                     <Info className="w-4 h-4" />
-                    Colunas Principais para {tiposImportacao.find(t => t.id === tipoSelecionado)?.nome}
+                    {t('import.colunasPrincipais', { nome: tiposImportacao.find(t => t.id === tipoSelecionado)?.nome })}
                   </h4>
                   <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-sm">
                     {tipoSelecionado === 'blocos' && (
                       <>
-                        <div><span className="font-medium">ID MM</span> → identificador</div>
-                        <div><span className="font-medium">Variedade</span> → tipo pedra</div>
-                        <div><span className="font-medium">Parque MM</span> → localização</div>
-                        <div><span className="font-medium">Peso (ton)</span> → obrigatório</div>
-                        <div><span className="font-medium">Dimensões</span> → C × L × A</div>
-                        <div><span className="font-medium">Fotos</span> → até 4 URLs</div>
+                        <div><span className="font-medium">{t('import.infoColsBlocos.idmm')}</span> → {t('import.infoColsBlocos.idmmDesc')}</div>
+                        <div><span className="font-medium">{t('import.infoColsBlocos.variedade')}</span> → {t('import.infoColsBlocos.variedadeDesc')}</div>
+                        <div><span className="font-medium">{t('import.infoColsBlocos.parqueMM')}</span> → {t('import.infoColsBlocos.parqueMMDesc')}</div>
+                        <div><span className="font-medium">{t('import.infoColsBlocos.peso')}</span> → {t('import.infoColsBlocos.pesoDesc')}</div>
+                        <div><span className="font-medium">{t('import.infoColsBlocos.dimensoes')}</span> → {t('import.infoColsBlocos.dimensoesDesc')}</div>
+                        <div><span className="font-medium">{t('import.infoColsBlocos.fotos')}</span> → {t('import.infoColsBlocos.fotosDesc')}</div>
                       </>
                     )}
                     {tipoSelecionado === 'chapas' && (
                       <>
-                        <div><span className="font-medium">ID MM Bloco</span> → origem</div>
-                        <div><span className="font-medium">Variedade</span> → tipo pedra</div>
-                        <div><span className="font-medium">Parque MM</span> → localização</div>
-                        <div><span className="font-medium">Pargas</span> → até 4</div>
-                        <div><span className="font-medium">Medidas</span> → por parga</div>
-                        <div><span className="font-medium">Fotos</span> → 2 por parga</div>
+                        <div><span className="font-medium">{t('import.infoColsChapas.idmmBloco')}</span> → {t('import.infoColsChapas.idmmBlocoDesc')}</div>
+                        <div><span className="font-medium">{t('import.infoColsChapas.variedade')}</span> → {t('import.infoColsChapas.variedadeDesc')}</div>
+                        <div><span className="font-medium">{t('import.infoColsChapas.parqueMM')}</span> → {t('import.infoColsChapas.parqueMMDesc')}</div>
+                        <div><span className="font-medium">{t('import.infoColsChapas.pargas')}</span> → {t('import.infoColsChapas.pargasDesc')}</div>
+                        <div><span className="font-medium">{t('import.infoColsChapas.medidas')}</span> → {t('import.infoColsChapas.medidasDesc')}</div>
+                        <div><span className="font-medium">{t('import.infoColsChapas.fotos')}</span> → {t('import.infoColsChapas.fotosDesc')}</div>
                       </>
                     )}
                     {tipoSelecionado === 'ladrilhos' && (
                       <>
-                        <div><span className="font-medium">ID MM</span> → identificador</div>
-                        <div><span className="font-medium">Variedade</span> → tipo pedra</div>
-                        <div><span className="font-medium">Parque MM</span> → localização</div>
-                        <div><span className="font-medium">Dimensões</span> → obrigatórias</div>
-                        <div><span className="font-medium">Quantidade</span> → obrigatória</div>
-                        <div><span className="font-medium">Acabamento</span> → opcional</div>
+                        <div><span className="font-medium">{t('import.infoColsLadrilhos.idmm')}</span> → {t('import.infoColsLadrilhos.idmmDesc')}</div>
+                        <div><span className="font-medium">{t('import.infoColsLadrilhos.variedade')}</span> → {t('import.infoColsLadrilhos.variedadeDesc')}</div>
+                        <div><span className="font-medium">{t('import.infoColsLadrilhos.parqueMM')}</span> → {t('import.infoColsLadrilhos.parqueMMDesc')}</div>
+                        <div><span className="font-medium">{t('import.infoColsLadrilhos.dimensoes')}</span> → {t('import.infoColsLadrilhos.dimensoesDesc')}</div>
+                        <div><span className="font-medium">{t('import.infoColsLadrilhos.quantidade')}</span> → {t('import.infoColsLadrilhos.quantidadeDesc')}</div>
+                        <div><span className="font-medium">{t('import.infoColsLadrilhos.acabamento')}</span> → {t('import.infoColsLadrilhos.acabamentoDesc')}</div>
                       </>
                     )}
                   </div>
@@ -511,25 +513,25 @@ export default function ImportarStock() {
                   {tiposImportacao.find(t => t.id === tipoAtual)?.nome}
                 </Badge>
                 <p className="text-3xl font-bold">{linhas.length}</p>
-                <p className="text-sm text-muted-foreground">Linhas Encontradas</p>
+                <p className="text-sm text-muted-foreground">{t('import.linhasEncontradasStats')}</p>
               </CardContent>
             </Card>
             <Card className="card-accent-top card-accent-success">
               <CardContent className="pt-6">
                 <p className="text-3xl font-bold text-success">{linhasValidas.length}</p>
-                <p className="text-sm text-muted-foreground">Prontas para Importar</p>
+                <p className="text-sm text-muted-foreground">{t('import.prontas')}</p>
               </CardContent>
             </Card>
             <Card className="card-accent-top card-accent-info">
               <CardContent className="pt-6">
                 <p className="text-3xl font-bold text-info">{produtosNovos.length}</p>
-                <p className="text-sm text-muted-foreground">Produtos Novos</p>
+                <p className="text-sm text-muted-foreground">{t('import.produtosNovosStats')}</p>
               </CardContent>
             </Card>
             <Card className="card-accent-top card-accent-destructive">
               <CardContent className="pt-6">
                 <p className="text-3xl font-bold text-destructive">{linhasComErros.length}</p>
-                <p className="text-sm text-muted-foreground">Com Erros</p>
+                <p className="text-sm text-muted-foreground">{t('import.statsComErros')}</p>
               </CardContent>
             </Card>
             <Card className="card-accent-top">
@@ -537,7 +539,7 @@ export default function ImportarStock() {
                 <p className="text-3xl font-bold">
                   {linhas.reduce((acc, l) => acc + renderQuantidade(l), 0)}
                 </p>
-                <p className="text-sm text-muted-foreground">Unidades Total</p>
+                <p className="text-sm text-muted-foreground">{t('import.unidadesTotal')}</p>
               </CardContent>
             </Card>
           </div>
@@ -546,13 +548,13 @@ export default function ImportarStock() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle>Pré-visualização dos Dados</CardTitle>
-                <CardDescription>Revise os dados antes de confirmar a importação</CardDescription>
+                <CardTitle>{t('import.preVisualizacaoTitle')}</CardTitle>
+                <CardDescription>{t('import.preVisualizacaoDesc')}</CardDescription>
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" onClick={handleReset} className="gap-2">
                   <Trash2 className="w-4 h-4" />
-                  Limpar
+                  {t('import.limpar')}
                 </Button>
                 <Button 
                   onClick={() => setConfirmOpen(true)} 
@@ -560,7 +562,7 @@ export default function ImportarStock() {
                   className="gap-2"
                 >
                   <ArrowRight className="w-4 h-4" />
-                  Importar ({linhasValidas.length})
+                  {t('import.importarN', { n: linhasValidas.length })}
                 </Button>
               </div>
             </CardHeader>
@@ -569,25 +571,25 @@ export default function ImportarStock() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-[60px]">Linha</TableHead>
-                      <TableHead>ID MM</TableHead>
-                      <TableHead>Variedade</TableHead>
+                      <TableHead className="w-[60px]">{t('import.colLinha')}</TableHead>
+                      <TableHead>{t('import.colIdmm')}</TableHead>
+                      <TableHead>{t('import.colVariedade')}</TableHead>
                       {tipoAtual === 'chapas' ? (
                         <>
-                          <TableHead>Pargas (Qtd)</TableHead>
-                          <TableHead>Dimensões Pargas</TableHead>
-                          <TableHead>Parque MM</TableHead>
-                          <TableHead className="text-center">Total Chapas</TableHead>
+                          <TableHead>{t('import.colPargas')}</TableHead>
+                          <TableHead>{t('import.colDimensoesPargas')}</TableHead>
+                          <TableHead>{t('import.colParqueMM')}</TableHead>
+                          <TableHead className="text-center">{t('import.colTotalChapas')}</TableHead>
                         </>
                       ) : (
                         <>
-                          <TableHead>Forma</TableHead>
-                          <TableHead>Dimensões</TableHead>
-                          <TableHead>Parque MM</TableHead>
-                          <TableHead className="text-center">Qtd</TableHead>
+                          <TableHead>{t('import.colForma')}</TableHead>
+                          <TableHead>{t('import.colDimensoes')}</TableHead>
+                          <TableHead>{t('import.colParqueMM')}</TableHead>
+                          <TableHead className="text-center">{t('import.colQtd')}</TableHead>
                         </>
                       )}
-                      <TableHead>Estado</TableHead>
+                      <TableHead>{t('import.colEstado')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -650,7 +652,7 @@ export default function ImportarStock() {
                               ))}
                               {linha.erros.length > 2 && (
                                 <Badge variant="destructive" className="text-xs block w-fit">
-                                  +{linha.erros.length - 2} erros
+                                  {t('import.maisNErros', { n: linha.erros.length - 2 })}
                                 </Badge>
                               )}
                             </div>
@@ -665,7 +667,7 @@ export default function ImportarStock() {
                           ) : (
                             <Badge variant="outline" className="badge-entrada">
                               <CheckCircle2 className="w-3 h-3 mr-1" />
-                              OK
+                              {t('import.okBadge')}
                             </Badge>
                           )}
                         </TableCell>
@@ -683,33 +685,33 @@ export default function ImportarStock() {
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Confirmar Importação de {tiposImportacao.find(t => t.id === tipoAtual)?.nome}</DialogTitle>
+            <DialogTitle>{t('import.confirmarDialogTitle', { nome: tiposImportacao.find(t => t.id === tipoAtual)?.nome })}</DialogTitle>
             <DialogDescription>
-              Esta ação irá criar movimentos de entrada para todas as linhas válidas.
+              {t('import.confirmarDialogDesc')}
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4">
             <div className="p-4 bg-muted/50 rounded-lg space-y-2">
               <div className="flex justify-between">
-                <span>Tipo de produto:</span>
+                <span>{t('import.tipoProduto')}</span>
                 <Badge>{tiposImportacao.find(t => t.id === tipoAtual)?.nome}</Badge>
               </div>
               <div className="flex justify-between">
-                <span>Linhas a processar:</span>
+                <span>{t('import.linhasProcessar')}</span>
                 <span className="font-bold">{linhasValidas.length}</span>
               </div>
               <div className="flex justify-between">
-                <span>Produtos novos a criar:</span>
+                <span>{t('import.produtosNovosDialog')}</span>
                 <span className="font-bold text-info">{produtosNovos.length}</span>
               </div>
               <div className="flex justify-between">
-                <span>Movimentos a criar:</span>
+                <span>{t('import.movimentosDialog')}</span>
                 <span className="font-bold text-success">{linhasValidas.length}</span>
               </div>
               {linhasComErros.length > 0 && (
                 <div className="flex justify-between text-destructive">
-                  <span>Linhas ignoradas (erros):</span>
+                  <span>{t('import.linhasIgnoradasDialog')}</span>
                   <span className="font-bold">{linhasComErros.length}</span>
                 </div>
               )}
@@ -717,17 +719,16 @@ export default function ImportarStock() {
 
             <Alert>
               <Info className="h-4 w-4" />
-              <AlertTitle>Informação</AlertTitle>
+              <AlertTitle>{t('import.infoTitle')}</AlertTitle>
               <AlertDescription>
-                O stock será atualizado automaticamente pelos triggers da base de dados. 
-                Esta operação não pode ser desfeita.
+                {t('import.infoDesc')}
               </AlertDescription>
             </Alert>
           </div>
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setConfirmOpen(false)}>
-              Cancelar
+              {t('actions.cancel')}
             </Button>
             <Button 
               onClick={handleConfirmImport} 
@@ -737,12 +738,12 @@ export default function ImportarStock() {
               {executarImportacao.isPending ? (
                 <>
                   <Loader2 className="w-4 h-4 animate-spin" />
-                  A importar...
+                  {t('import.aImportar')}
                 </>
               ) : (
                 <>
                   <CheckCircle2 className="w-4 h-4" />
-                  Confirmar Importação
+                  {t('import.confirmarImportacao')}
                 </>
               )}
             </Button>

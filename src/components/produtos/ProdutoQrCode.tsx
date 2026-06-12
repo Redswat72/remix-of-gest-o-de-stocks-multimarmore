@@ -12,6 +12,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
+import { useAppT } from '@/hooks/useAppT';
 import { generateProductUrl, svgToPngDataUrl, downloadQrCode, getQrCodeFilename } from '@/lib/qrCodeUtils';
 
 interface ProdutoQrCodeProps {
@@ -21,6 +22,7 @@ interface ProdutoQrCodeProps {
 }
 
 export function ProdutoQrCode({ idmm, tipoPedra, compact = false }: ProdutoQrCodeProps) {
+  const t = useAppT();
   const qrRef = useRef<SVGSVGElement>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -38,20 +40,20 @@ export function ProdutoQrCode({ idmm, tipoPedra, compact = false }: ProdutoQrCod
       const pngDataUrl = await svgToPngDataUrl(qrRef.current, 400, 40);
       downloadQrCode(pngDataUrl, getQrCodeFilename(idmm));
       toast({
-        title: 'QR Code descarregado',
-        description: `Ficheiro ${getQrCodeFilename(idmm)} guardado.`,
+        title: t('products.qr.downloaded'),
+        description: t('products.qr.downloadedDesc', { filename: getQrCodeFilename(idmm) }),
       });
     } catch (error) {
       console.error('Erro ao descarregar QR Code:', error);
       toast({
-        title: 'Erro',
-        description: 'Não foi possível descarregar o QR Code.',
+        title: t('errors.title'),
+        description: t('products.qr.downloadError'),
         variant: 'destructive',
       });
     } finally {
       setIsDownloading(false);
     }
-  }, [idmm, toast]);
+  }, [idmm, toast, t]);
 
   const handleCopyUrl = useCallback(async () => {
     try {
@@ -59,17 +61,17 @@ export function ProdutoQrCode({ idmm, tipoPedra, compact = false }: ProdutoQrCod
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
       toast({
-        title: 'Link copiado',
-        description: 'URL do produto copiada para a área de transferência.',
+        title: t('products.qr.linkCopied'),
+        description: t('products.qr.linkCopiedDesc'),
       });
     } catch {
       toast({
-        title: 'Erro',
-        description: 'Não foi possível copiar o link.',
+        title: t('errors.title'),
+        description: t('products.qr.linkCopyError'),
         variant: 'destructive',
       });
     }
-  }, [productUrl, toast]);
+  }, [productUrl, toast, t]);
 
   // Versão compacta - apenas botão para abrir modal
   if (compact) {
@@ -85,7 +87,7 @@ export function ProdutoQrCode({ idmm, tipoPedra, compact = false }: ProdutoQrCod
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <QrCode className="h-5 w-5" />
-              QR Code do Produto
+              {t('products.qr.title')}
             </DialogTitle>
             <DialogDescription>
               {idmm} {tipoPedra && `• ${tipoPedra}`}
@@ -104,7 +106,7 @@ export function ProdutoQrCode({ idmm, tipoPedra, compact = false }: ProdutoQrCod
             </div>
             
             <p className="text-xs text-center text-muted-foreground max-w-[200px]">
-              Aponte a câmara do telemóvel para aceder à ficha do produto
+              {t('products.qr.hint')}
             </p>
 
             <div className="flex gap-2 w-full">
@@ -119,7 +121,7 @@ export function ProdutoQrCode({ idmm, tipoPedra, compact = false }: ProdutoQrCod
                 ) : (
                   <Copy className="h-4 w-4 mr-2" />
                 )}
-                Copiar link
+                {t('products.qr.linkCopied')}
               </Button>
               <Button
                 size="sm"
@@ -132,7 +134,7 @@ export function ProdutoQrCode({ idmm, tipoPedra, compact = false }: ProdutoQrCod
                 ) : (
                   <Download className="h-4 w-4 mr-2" />
                 )}
-                Descarregar
+                {t('products.qr.download')}
               </Button>
             </div>
           </div>
@@ -162,7 +164,7 @@ export function ProdutoQrCode({ idmm, tipoPedra, compact = false }: ProdutoQrCod
         </div>
         
         <p className="text-xs text-center text-muted-foreground">
-          Aponte a câmara para aceder à ficha
+          {t('products.qr.hintShort')}
         </p>
 
         <div className="flex gap-2 w-full">
@@ -171,6 +173,7 @@ export function ProdutoQrCode({ idmm, tipoPedra, compact = false }: ProdutoQrCod
             size="sm"
             className="flex-1"
             onClick={handleCopyUrl}
+            title={t('products.qr.linkCopied')}
           >
             {copied ? (
               <Check className="h-4 w-4" />
@@ -193,6 +196,7 @@ export function ProdutoQrCode({ idmm, tipoPedra, compact = false }: ProdutoQrCod
             className="flex-1"
             onClick={handleDownload}
             disabled={isDownloading}
+            title={t('products.qr.download')}
           >
             {isDownloading ? (
               <Loader2 className="h-4 w-4 animate-spin" />
