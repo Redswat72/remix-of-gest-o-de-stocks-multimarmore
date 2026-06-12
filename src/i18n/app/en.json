@@ -155,14 +155,17 @@
     "yardDeactivated": "Yard deactivated"
   },
   "errors": {
+    "title": "Error",
     "generic": "An error occurred. Please try again.",
     "network": "Connection error. Check your internet.",
     "required": "This field is required.",
     "codeAndNameRequired": "Code and name are required.",
     "unexpectedError": "An unexpected error occurred",
+    "unknown": "Unknown error",
     "recalculateStock": "Error recalculating stock",
     "generateTemplate": "Could not generate the template: {{msg}}"
   },
+
   "empty": {
     "noResults": "No results",
     "noData": "No data available"
@@ -679,7 +682,61 @@
     "colDimensoesPargas": "Parga Dimensions",
     "colTotalChapas": "Total Slabs",
     "colDimensoes": "Dimensions",
-    "linhaErro": "Row {{n}}: {{msg}}"
+    "linhaErro": "Row {{n}}: {{msg}}",
+    "infoTitleStock": "Import Stock via Excel",
+    "infoSubtitleStock": "Import initial inventory from Excel files",
+    "okBadge": "OK",
+    "maisNErros": "+{{n}} errors",
+    "semFoto": "No photo",
+    "naoDefinida": "Not defined",
+    "primeiraChapa": "1st Slab:",
+    "ultima": "Last:",
+    "labelComprimento": "Length",
+    "labelAltura": "Height",
+    "labelEspessura": "Thickness",
+    "infoColsBlocos": {
+      "idmm": "ID MM",
+      "idmmDesc": "identifier",
+      "variedade": "Variety",
+      "variedadeDesc": "stone type",
+      "parqueMM": "Park MM",
+      "parqueMMDesc": "location",
+      "peso": "Weight (ton)",
+      "pesoDesc": "required",
+      "dimensoes": "Dimensions",
+      "dimensoesDesc": "L × W × H",
+      "fotos": "Photos",
+      "fotosDesc": "up to 4 URLs"
+    },
+    "infoColsChapas": {
+      "idmmBloco": "Block ID MM",
+      "idmmBlocoDesc": "origin",
+      "variedade": "Variety",
+      "variedadeDesc": "stone type",
+      "parqueMM": "Park MM",
+      "parqueMMDesc": "location",
+      "pargas": "Bundles",
+      "pargasDesc": "up to 4",
+      "medidas": "Measurements",
+      "medidasDesc": "per bundle",
+      "fotos": "Photos",
+      "fotosDesc": "2 per bundle"
+    },
+    "infoColsLadrilhos": {
+      "idmm": "ID MM",
+      "idmmDesc": "identifier",
+      "variedade": "Variety",
+      "variedadeDesc": "stone type",
+      "parqueMM": "Park MM",
+      "parqueMMDesc": "location",
+      "dimensoes": "Dimensions",
+      "dimensoesDesc": "required",
+      "quantidade": "Quantity",
+      "quantidadeDesc": "required",
+      "acabamento": "Finish",
+      "acabamentoDesc": "optional"
+    }
+
   },
   "inventory": {
     "allYards": "All yards",

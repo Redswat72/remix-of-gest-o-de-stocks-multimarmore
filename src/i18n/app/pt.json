@@ -155,14 +155,17 @@
     "yardDeactivated": "Parque desativado"
   },
   "errors": {
+    "title": "Erro",
     "generic": "Ocorreu um erro. Tente novamente.",
     "network": "Erro de ligação. Verifique a sua internet.",
     "required": "Este campo é obrigatório.",
     "codeAndNameRequired": "Código e nome são obrigatórios.",
     "unexpectedError": "Ocorreu um erro inesperado",
+    "unknown": "Erro desconhecido",
     "recalculateStock": "Erro ao recalcular stock",
     "generateTemplate": "Não foi possível gerar o modelo: {{msg}}"
   },
+
   "empty": {
     "noResults": "Sem resultados",
     "noData": "Sem dados disponíveis"
@@ -679,7 +682,61 @@
     "colDimensoesPargas": "Dimensões Pargas",
     "colTotalChapas": "Total Chapas",
     "colDimensoes": "Dimensões",
-    "linhaErro": "Linha {{n}}: {{msg}}"
+    "linhaErro": "Linha {{n}}: {{msg}}",
+    "infoTitleStock": "Importar Stock via Excel",
+    "infoSubtitleStock": "Importe inventário inicial a partir de ficheiros Excel",
+    "okBadge": "OK",
+    "maisNErros": "+{{n}} erros",
+    "semFoto": "Sem foto",
+    "naoDefinida": "Não definida",
+    "primeiraChapa": "1ª Chapa:",
+    "ultima": "Última:",
+    "labelComprimento": "Comprimento",
+    "labelAltura": "Altura",
+    "labelEspessura": "Espessura",
+    "infoColsBlocos": {
+      "idmm": "ID MM",
+      "idmmDesc": "identificador",
+      "variedade": "Variedade",
+      "variedadeDesc": "tipo pedra",
+      "parqueMM": "Parque MM",
+      "parqueMMDesc": "localização",
+      "peso": "Peso (ton)",
+      "pesoDesc": "obrigatório",
+      "dimensoes": "Dimensões",
+      "dimensoesDesc": "C × L × A",
+      "fotos": "Fotos",
+      "fotosDesc": "até 4 URLs"
+    },
+    "infoColsChapas": {
+      "idmmBloco": "ID MM Bloco",
+      "idmmBlocoDesc": "origem",
+      "variedade": "Variedade",
+      "variedadeDesc": "tipo pedra",
+      "parqueMM": "Parque MM",
+      "parqueMMDesc": "localização",
+      "pargas": "Pargas",
+      "pargasDesc": "até 4",
+      "medidas": "Medidas",
+      "medidasDesc": "por parga",
+      "fotos": "Fotos",
+      "fotosDesc": "2 por parga"
+    },
+    "infoColsLadrilhos": {
+      "idmm": "ID MM",
+      "idmmDesc": "identificador",
+      "variedade": "Variedade",
+      "variedadeDesc": "tipo pedra",
+      "parqueMM": "Parque MM",
+      "parqueMMDesc": "localização",
+      "dimensoes": "Dimensões",
+      "dimensoesDesc": "obrigatórias",
+      "quantidade": "Quantidade",
+      "quantidadeDesc": "obrigatória",
+      "acabamento": "Acabamento",
+      "acabamentoDesc": "opcional"
+    }
+
   },
   "inventory": {
     "allYards": "Todos os parques",
