@@ -771,7 +771,11 @@
       "finish": "Finish",
       "type": "Type",
       "obsSavedOk": "Observations saved successfully",
-      "obsErrorPrefix": "Error saving observations: "
+      "obsErrorPrefix": "Error saving observations: ",
+      "photoSample": "Sample Photo",
+      "pargaFirst": "Bundle {{n}} - First",
+      "pargaLast": "Bundle {{n}} - Last",
+      "pargaQtyLabel": "Bundle {{n}} Qty"
     },
     "edit": {
       "editBlock": "Edit Block",
@@ -956,7 +960,8 @@
       "gallery": "Gallery",
       "uploadSuccess1": "First slab photo uploaded",
       "uploadSuccess2": "Last slab photo uploaded",
-      "uploadError": "Upload failed: could not save to storage (check the \"produtos\" bucket and permissions)."
+      "uploadError": "Upload failed: could not save to storage (check the \"produtos\" bucket and permissions).",
+      "weightTon": "Weight (ton)"
     },
     "fotos": {
       "operacional": "Operational",
@@ -988,7 +993,8 @@
       "downloadError": "Could not download the QR Code.",
       "copySuccess": "Link copied",
       "copySuccessDesc": "Product URL copied to clipboard.",
-      "copyError": "Could not copy the link."
+      "copyError": "Could not copy the link.",
+      "cardTitle": "QR Code"
     }
   },
   "dashboard": {

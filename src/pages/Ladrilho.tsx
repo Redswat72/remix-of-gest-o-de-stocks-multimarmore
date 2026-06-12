@@ -3,7 +3,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLadrilho } from "@/hooks/useLadrilho";
 import { useSupabaseEmpresa } from "@/hooks/useSupabaseEmpresa";
@@ -14,8 +13,11 @@ import { exportLadrilhos } from "@/utils/exportExcel";
 import { Search } from "lucide-react";
 import { PARQUES_OPTIONS } from "@/lib/parques";
 import InventarioDetailModal from "@/components/inventario/InventarioDetailModal";
+import { useAppT } from "@/hooks/useAppT";
+import { formatCurrency, formatNumber } from "@/lib/format";
 
 export default function Ladrilho() {
+  const t = useAppT();
   const [parqueFiltro, setParqueFiltro] = useState("__all__");
   const [busca, setBusca] = useState("");
   const { data: ladrilhos, isLoading } = useLadrilho(parqueFiltro === "__all__" ? undefined : parqueFiltro);
@@ -37,16 +39,6 @@ export default function Ladrilho() {
     );
   });
 
-  const formatCurrency = (value: number | null) => {
-    if (!value) return "—";
-    return new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(value);
-  };
-
-  const formatNumber = (value: number | null, decimals: number = 2) => {
-    if (!value) return "—";
-    return new Intl.NumberFormat('pt-PT', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(value);
-  };
-
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -60,28 +52,27 @@ export default function Ladrilho() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Ladrilho</h1>
-          <p className="text-muted-foreground">Gestão de ladrilho</p>
+          <h1 className="text-2xl font-bold">{t('inventory.tiles.title')}</h1>
+          <p className="text-muted-foreground">{t('inventory.tiles.subtitle')}</p>
         </div>
         {podeVerValores && (
           <ExportExcelButton onExport={() => exportLadrilhos(supabase, { empresaNome: empresaConfig!.nome, corHeader: empresaConfig!.cor })} />
         )}
       </div>
 
-      {/* FILTROS */}
       <Card>
         <CardContent className="pt-6">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Pesquisar por ID, variedade, tipo, dimensões ou butch..." value={busca} onChange={(e) => setBusca(e.target.value)} className="pl-10" />
+              <Input placeholder={t('inventory.tiles.searchPlaceholder')} value={busca} onChange={(e) => setBusca(e.target.value)} className="pl-10" />
             </div>
             <Select value={parqueFiltro} onValueChange={setParqueFiltro}>
               <SelectTrigger className="w-full sm:w-[200px]">
-                <SelectValue placeholder="Filtrar por parque" />
+                <SelectValue placeholder={t('inventory.filterByYard')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="__all__">Todos os parques</SelectItem>
+                <SelectItem value="__all__">{t('inventory.allYards')}</SelectItem>
                 {PARQUES_OPTIONS.map(({ value, label }) => (
                   <SelectItem key={value} value={value}>{label}</SelectItem>
                 ))}
@@ -91,22 +82,21 @@ export default function Ladrilho() {
         </CardContent>
       </Card>
 
-      {/* TABELA */}
       <div className="rounded-md border overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>ID MM</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead>Variedade</TableHead>
-              <TableHead>Acabamento</TableHead>
-              <TableHead className="text-right">Comp</TableHead>
-              <TableHead className="text-right">Larg</TableHead>
-              <TableHead className="text-right">Esp (cm)</TableHead>
-              <TableHead className="text-right">Peças</TableHead>
-              <TableHead className="text-right">m²</TableHead>
-              {podeVerValores && <TableHead>Nota</TableHead>}
-              {podeVerValores && <TableHead className="text-right">Valor</TableHead>}
+              <TableHead>{t('inventory.col.idMm')}</TableHead>
+              <TableHead>{t('inventory.col.type')}</TableHead>
+              <TableHead>{t('inventory.col.variety')}</TableHead>
+              <TableHead>{t('inventory.col.finish')}</TableHead>
+              <TableHead className="text-right">{t('inventory.col.length')}</TableHead>
+              <TableHead className="text-right">{t('inventory.col.width')}</TableHead>
+              <TableHead className="text-right">{t('inventory.col.thickness')}</TableHead>
+              <TableHead className="text-right">{t('inventory.col.pieces')}</TableHead>
+              <TableHead className="text-right">{t('inventory.col.area')}</TableHead>
+              {podeVerValores && <TableHead>{t('inventory.col.note')}</TableHead>}
+              {podeVerValores && <TableHead className="text-right">{t('inventory.col.value')}</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -116,35 +106,34 @@ export default function Ladrilho() {
                 <TableCell>{ladrilho.tipo || "—"}</TableCell>
                 <TableCell>{ladrilho.variedade || "—"}</TableCell>
                 <TableCell>{ladrilho.acabamento || "—"}</TableCell>
-                <TableCell className="text-right">{formatNumber(ladrilho.comprimento, 0)}</TableCell>
-                <TableCell className="text-right">{formatNumber(ladrilho.largura, 0)}</TableCell>
-                <TableCell className="text-right">{formatNumber(ladrilho.espessura, 1)}</TableCell>
+                <TableCell className="text-right">{formatNumber(ladrilho.comprimento, 0) || '—'}</TableCell>
+                <TableCell className="text-right">{formatNumber(ladrilho.largura, 0) || '—'}</TableCell>
+                <TableCell className="text-right">{formatNumber(ladrilho.espessura, 1) || '—'}</TableCell>
                 <TableCell className="text-right">{ladrilho.num_pecas || "—"}</TableCell>
-                <TableCell className="text-right">{formatNumber(ladrilho.quantidade_m2)}</TableCell>
+                <TableCell className="text-right">{formatNumber(ladrilho.quantidade_m2) || '—'}</TableCell>
                 {podeVerValores && <TableCell className="max-w-[150px] truncate">{ladrilho.nota || "—"}</TableCell>}
-                {podeVerValores && <TableCell className="text-right font-medium">{formatCurrency(ladrilho.valor_inventario)}</TableCell>}
+                {podeVerValores && <TableCell className="text-right font-medium">{formatCurrency(ladrilho.valor_inventario) || '—'}</TableCell>}
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </div>
 
-      {/* RODAPÉ */}
       <Card>
         <CardContent className="pt-6">
           <div className="flex flex-wrap gap-6 text-sm">
             <span className="text-muted-foreground">
-              Total de registos: <strong>{ladrilhosFiltrados?.length || 0}</strong>
+              {t('inventory.tiles.totalRecords')}: <strong>{ladrilhosFiltrados?.length || 0}</strong>
             </span>
             <span className="text-muted-foreground">
-              Total peças: <strong>{formatNumber(ladrilhosFiltrados?.reduce((sum, l) => sum + (l.num_pecas || 0), 0) || 0, 0)}</strong>
+              {t('inventory.tiles.totalPieces')}: <strong>{formatNumber(ladrilhosFiltrados?.reduce((sum, l) => sum + (l.num_pecas || 0), 0) || 0, 0) || '0'}</strong>
             </span>
             <span className="text-muted-foreground">
-              Total: <strong>{formatNumber(ladrilhosFiltrados?.reduce((sum, l) => sum + l.quantidade_m2, 0) || 0)} m²</strong>
+              {t('inventory.total')}: <strong>{formatNumber(ladrilhosFiltrados?.reduce((sum, l) => sum + l.quantidade_m2, 0) || 0) || '0'} m²</strong>
             </span>
             {podeVerValores && (
               <span className="text-muted-foreground">
-                Valor: <strong>{formatCurrency(ladrilhosFiltrados?.reduce((sum, l) => sum + (l.valor_inventario || 0), 0) || 0)}</strong>
+                {t('inventory.value')}: <strong>{formatCurrency(ladrilhosFiltrados?.reduce((sum, l) => sum + (l.valor_inventario || 0), 0) || 0) || '—'}</strong>
               </span>
             )}
           </div>
