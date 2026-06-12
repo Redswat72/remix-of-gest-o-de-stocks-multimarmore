@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Loader2, MapPin, Warehouse, Rows3 } from 'lucide-react';
+import { useAppT } from '@/hooks/useAppT';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -28,93 +29,52 @@ import { useLocaisAtivos } from '@/hooks/useLocais';
 import { useEmpresa } from '@/context/EmpresaContext';
 import type { Produto } from '@/types/database';
 
+// Base schema for type inference only (no translated messages)
 const produtoBaseSchema = z.object({
-  idmm: z.string().min(1, 'IDMM é obrigatório').max(50, 'Máximo 50 caracteres'),
-  tipo_pedra: z.string().min(1, 'Tipo de pedra é obrigatório').max(100, 'Máximo 100 caracteres'),
-  nome_comercial: z.string().max(100, 'Máximo 100 caracteres').optional(),
+  idmm: z.string().min(1).max(50),
+  tipo_pedra: z.string().min(1).max(100),
+  nome_comercial: z.string().max(100).optional(),
   forma: z.enum(['bloco', 'chapa', 'ladrilho'] as const),
   local_id: z.string().optional().nullable(),
-  linha: z.string().max(50, 'Máximo 50 caracteres').optional().nullable(),
-  origem_bloco: z.string().max(100, 'Máximo 100 caracteres').optional(),
-  acabamento: z.string().max(50, 'Máximo 50 caracteres').optional(),
-  comprimento_cm: z.number().positive('Deve ser positivo').optional().nullable(),
-  largura_cm: z.number().positive('Deve ser positivo').optional().nullable(),
-  altura_cm: z.number().positive('Deve ser positivo').optional().nullable(),
-  espessura_cm: z.number().positive('Deve ser positivo').optional().nullable(),
-  peso_ton: z.number().positive('Deve ser positivo').optional().nullable(),
-  valorizacao: z.number().positive('Deve ser positivo').optional().nullable(),
+  linha: z.string().max(50).optional().nullable(),
+  origem_bloco: z.string().max(100).optional(),
+  acabamento: z.string().max(50).optional(),
+  comprimento_cm: z.number().positive().optional().nullable(),
+  largura_cm: z.number().positive().optional().nullable(),
+  altura_cm: z.number().positive().optional().nullable(),
+  espessura_cm: z.number().positive().optional().nullable(),
+  peso_ton: z.number().positive().optional().nullable(),
+  valorizacao: z.number().positive().optional().nullable(),
   latitude: z.number().min(-90).max(90).optional().nullable(),
   longitude: z.number().min(-180).max(180).optional().nullable(),
-  observacoes: z.string().max(500, 'Máximo 500 caracteres').optional(),
-  // Campos de pargas (apenas para chapas)
-  parga1_nome: z.string().max(50, 'Máximo 50 caracteres').optional().nullable(),
-  parga1_quantidade: z.number().int().min(0, 'Não pode ser negativo').optional().nullable(),
-  parga1_comprimento_cm: z.number().positive('Deve ser positivo').optional().nullable(),
-  parga1_altura_cm: z.number().positive('Deve ser positivo').optional().nullable(),
-  parga1_espessura_cm: z.number().positive('Deve ser positivo').optional().nullable(),
-  parga2_nome: z.string().max(50, 'Máximo 50 caracteres').optional().nullable(),
-  parga2_quantidade: z.number().int().min(0, 'Não pode ser negativo').optional().nullable(),
-  parga2_comprimento_cm: z.number().positive('Deve ser positivo').optional().nullable(),
-  parga2_altura_cm: z.number().positive('Deve ser positivo').optional().nullable(),
-  parga2_espessura_cm: z.number().positive('Deve ser positivo').optional().nullable(),
-  parga3_nome: z.string().max(50, 'Máximo 50 caracteres').optional().nullable(),
-  parga3_quantidade: z.number().int().min(0, 'Não pode ser negativo').optional().nullable(),
-  parga3_comprimento_cm: z.number().positive('Deve ser positivo').optional().nullable(),
-  parga3_altura_cm: z.number().positive('Deve ser positivo').optional().nullable(),
-  parga3_espessura_cm: z.number().positive('Deve ser positivo').optional().nullable(),
-  parga4_nome: z.string().max(50, 'Máximo 50 caracteres').optional().nullable(),
-  parga4_quantidade: z.number().int().min(0, 'Não pode ser negativo').optional().nullable(),
-  parga4_comprimento_cm: z.number().positive('Deve ser positivo').optional().nullable(),
-  parga4_altura_cm: z.number().positive('Deve ser positivo').optional().nullable(),
-  parga4_espessura_cm: z.number().positive('Deve ser positivo').optional().nullable(),
+  observacoes: z.string().max(500).optional(),
+  parga1_nome: z.string().max(50).optional().nullable(),
+  parga1_quantidade: z.number().int().min(0).optional().nullable(),
+  parga1_comprimento_cm: z.number().positive().optional().nullable(),
+  parga1_altura_cm: z.number().positive().optional().nullable(),
+  parga1_espessura_cm: z.number().positive().optional().nullable(),
+  parga2_nome: z.string().max(50).optional().nullable(),
+  parga2_quantidade: z.number().int().min(0).optional().nullable(),
+  parga2_comprimento_cm: z.number().positive().optional().nullable(),
+  parga2_altura_cm: z.number().positive().optional().nullable(),
+  parga2_espessura_cm: z.number().positive().optional().nullable(),
+  parga3_nome: z.string().max(50).optional().nullable(),
+  parga3_quantidade: z.number().int().min(0).optional().nullable(),
+  parga3_comprimento_cm: z.number().positive().optional().nullable(),
+  parga3_altura_cm: z.number().positive().optional().nullable(),
+  parga3_espessura_cm: z.number().positive().optional().nullable(),
+  parga4_nome: z.string().max(50).optional().nullable(),
+  parga4_quantidade: z.number().int().min(0).optional().nullable(),
+  parga4_comprimento_cm: z.number().positive().optional().nullable(),
+  parga4_altura_cm: z.number().positive().optional().nullable(),
+  parga4_espessura_cm: z.number().positive().optional().nullable(),
 });
 
-// Schema com refinamento para peso obrigatório em blocos e validação de chapas
-const produtoSchema = produtoBaseSchema.superRefine((data, ctx) => {
-  if (data.forma === 'bloco') {
-    if (data.peso_ton === null || data.peso_ton === undefined || data.peso_ton <= 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Peso em toneladas é obrigatório para blocos',
-        path: ['peso_ton'],
-      });
-    }
-  }
-  
-  // Valorização obrigatória para blocos, chapas e ladrilhos
-  if (['bloco', 'chapa', 'ladrilho'].includes(data.forma)) {
-    if (data.valorizacao === null || data.valorizacao === undefined || data.valorizacao <= 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Valorização é obrigatória',
-        path: ['valorizacao'],
-      });
-    }
-  }
-  
-  if (data.forma === 'chapa') {
-    // Pelo menos uma parga com quantidade > 0
-    const totalChapas = 
-      (data.parga1_quantidade || 0) + 
-      (data.parga2_quantidade || 0) + 
-      (data.parga3_quantidade || 0) + 
-      (data.parga4_quantidade || 0);
-    
-    if (totalChapas === 0) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        message: 'Pelo menos uma parga deve ter quantidade > 0',
-        path: ['parga1_quantidade'],
-      });
-    }
-  }
-});
-
-type ProdutoFormData = z.infer<typeof produtoSchema>;
+type ProdutoFormData = z.infer<typeof produtoBaseSchema>;
 
 interface ProdutoFormProps {
   produto?: Produto | null;
-  currentLocalId?: string | null; // ID do parque atual (derivado do stock)
+  currentLocalId?: string | null;
   onSubmit: (
     data: ProdutoFormData, 
     fotoUrls: (string | null)[], 
@@ -138,17 +98,78 @@ const emptyPargaFotos: PargaFotos = {
 };
 
 export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoading, canUploadHd = false }: ProdutoFormProps) {
+  const t = useAppT();
   const { empresaConfig } = useEmpresa();
   const [fotoUrls, setFotoUrls] = useState<(string | null)[]>([null, null, null, null]);
   const [fotoHdUrls, setFotoHdUrls] = useState<(string | null)[]>([null, null, null, null]);
   const [pargaFotos, setPargaFotos] = useState<PargaFotos>(emptyPargaFotos);
   const [gettingLocation, setGettingLocation] = useState(false);
 
-  // Carregar lista de parques ativos
   const { data: locais = [] } = useLocaisAtivos();
 
-  // Aceder ao peso_ton do produto com type assertion
   const produtoWithPeso = produto as (Produto & { peso_ton?: number | null }) | null | undefined;
+
+  // Build schema with translated messages inside component
+  const produtoSchema = useMemo(() => {
+    const v = t('products.form.validation', { returnObjects: true }) as Record<string, string>;
+    const base = z.object({
+      idmm: z.string().min(1, v.idmmRequired).max(50, v.max50),
+      tipo_pedra: z.string().min(1, v.idmmRequired).max(100, v.max100),
+      nome_comercial: z.string().max(100, v.max100).optional(),
+      forma: z.enum(['bloco', 'chapa', 'ladrilho'] as const),
+      local_id: z.string().optional().nullable(),
+      linha: z.string().max(50, v.max50).optional().nullable(),
+      origem_bloco: z.string().max(100, v.max100).optional(),
+      acabamento: z.string().max(50, v.max50).optional(),
+      comprimento_cm: z.number().positive(v.mustBePositive).optional().nullable(),
+      largura_cm: z.number().positive(v.mustBePositive).optional().nullable(),
+      altura_cm: z.number().positive(v.mustBePositive).optional().nullable(),
+      espessura_cm: z.number().positive(v.mustBePositive).optional().nullable(),
+      peso_ton: z.number().positive(v.mustBePositive).optional().nullable(),
+      valorizacao: z.number().positive(v.mustBePositive).optional().nullable(),
+      latitude: z.number().min(-90).max(90).optional().nullable(),
+      longitude: z.number().min(-180).max(180).optional().nullable(),
+      observacoes: z.string().max(500, v.max500).optional(),
+      parga1_nome: z.string().max(50, v.max50).optional().nullable(),
+      parga1_quantidade: z.number().int().min(0, v.notNegative).optional().nullable(),
+      parga1_comprimento_cm: z.number().positive(v.mustBePositive).optional().nullable(),
+      parga1_altura_cm: z.number().positive(v.mustBePositive).optional().nullable(),
+      parga1_espessura_cm: z.number().positive(v.mustBePositive).optional().nullable(),
+      parga2_nome: z.string().max(50, v.max50).optional().nullable(),
+      parga2_quantidade: z.number().int().min(0, v.notNegative).optional().nullable(),
+      parga2_comprimento_cm: z.number().positive(v.mustBePositive).optional().nullable(),
+      parga2_altura_cm: z.number().positive(v.mustBePositive).optional().nullable(),
+      parga2_espessura_cm: z.number().positive(v.mustBePositive).optional().nullable(),
+      parga3_nome: z.string().max(50, v.max50).optional().nullable(),
+      parga3_quantidade: z.number().int().min(0, v.notNegative).optional().nullable(),
+      parga3_comprimento_cm: z.number().positive(v.mustBePositive).optional().nullable(),
+      parga3_altura_cm: z.number().positive(v.mustBePositive).optional().nullable(),
+      parga3_espessura_cm: z.number().positive(v.mustBePositive).optional().nullable(),
+      parga4_nome: z.string().max(50, v.max50).optional().nullable(),
+      parga4_quantidade: z.number().int().min(0, v.notNegative).optional().nullable(),
+      parga4_comprimento_cm: z.number().positive(v.mustBePositive).optional().nullable(),
+      parga4_altura_cm: z.number().positive(v.mustBePositive).optional().nullable(),
+      parga4_espessura_cm: z.number().positive(v.mustBePositive).optional().nullable(),
+    });
+    return base.superRefine((data, ctx) => {
+      if (data.forma === 'bloco') {
+        if (data.peso_ton === null || data.peso_ton === undefined || data.peso_ton <= 0) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, message: v.weightRequiredForBlocks, path: ['peso_ton'] });
+        }
+      }
+      if (['bloco', 'chapa', 'ladrilho'].includes(data.forma)) {
+        if (data.valorizacao === null || data.valorizacao === undefined || data.valorizacao <= 0) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, message: v.valuationRequired, path: ['valorizacao'] });
+        }
+      }
+      if (data.forma === 'chapa') {
+        const totalChapas = (data.parga1_quantidade || 0) + (data.parga2_quantidade || 0) + (data.parga3_quantidade || 0) + (data.parga4_quantidade || 0);
+        if (totalChapas === 0) {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, message: v.atLeastOneParga, path: ['parga1_quantidade'] });
+        }
+      }
+    });
+  }, [t]);
 
   const form = useForm<ProdutoFormData>({
     resolver: zodResolver(produtoSchema),
@@ -157,7 +178,7 @@ export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoa
       tipo_pedra: produto?.tipo_pedra || '',
       nome_comercial: produto?.nome_comercial || '',
       forma: produto?.forma || 'bloco',
-      local_id: null, // Parque é só para criação
+      local_id: null,
       linha: produto?.linha || '',
       origem_bloco: produto?.origem_bloco || '',
       acabamento: produto?.acabamento || '',
@@ -170,7 +191,6 @@ export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoa
       latitude: produto?.latitude || null,
       longitude: produto?.longitude || null,
       observacoes: produto?.observacoes || '',
-      // Campos de pargas
       parga1_nome: produto?.parga1_nome || '',
       parga1_quantidade: produto?.parga1_quantidade || null,
       parga1_comprimento_cm: produto?.parga1_comprimento_cm || null,
@@ -197,10 +217,8 @@ export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoa
   const forma = form.watch('forma');
   const idmm = form.watch('idmm');
 
-  // Carregar dados existentes do produto quando disponível
   useEffect(() => {
     if (produto) {
-      // Reset do formulário com os valores do produto
       const produtoWithPesoInner = produto as Produto & { peso_ton?: number | null };
       form.reset({
         idmm: produto.idmm || '',
@@ -242,7 +260,6 @@ export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoa
         parga4_espessura_cm: produto.parga4_espessura_cm || null,
       });
 
-      // Carregar fotos
       setFotoUrls([
         produto.foto1_url || null,
         produto.foto2_url || null,
@@ -276,10 +293,9 @@ export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoa
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
-      alert('Geolocalização não suportada pelo navegador');
+      alert(t('products.form.geolocationUnsupported'));
       return;
     }
-
     setGettingLocation(true);
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -289,7 +305,7 @@ export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoa
       },
       (error) => {
         console.error('Erro ao obter localização:', error);
-        alert('Não foi possível obter a localização');
+        alert(t('products.form.geolocationError'));
         setGettingLocation(false);
       },
       { enableHighAccuracy: true }
@@ -315,7 +331,7 @@ export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoa
               <FormItem>
                 <FormLabel>{empresaConfig?.idPrefix ?? 'IDMM'} *</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="Ex: BL-001" className="touch-target" />
+                  <Input {...field} placeholder={t('products.form.idmmPlaceholder')} className="touch-target" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -327,7 +343,7 @@ export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoa
             name="forma"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Forma *</FormLabel>
+                <FormLabel>{t('products.form.shapeLabel')}</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
                     <SelectTrigger className="touch-target">
@@ -335,9 +351,9 @@ export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoa
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="bloco">Bloco</SelectItem>
-                    <SelectItem value="chapa">Chapa</SelectItem>
-                    <SelectItem value="ladrilho">Ladrilho</SelectItem>
+                    <SelectItem value="bloco">{t('enums.tipoProduto.bloco')}</SelectItem>
+                    <SelectItem value="chapa">{t('enums.tipoProduto.chapa')}</SelectItem>
+                    <SelectItem value="ladrilho">{t('enums.tipoProduto.ladrilho')}</SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -354,7 +370,7 @@ export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoa
             <FormItem>
               <FormLabel className="flex items-center gap-2">
                 <Warehouse className="h-4 w-4" />
-                Parque MM
+                {t('products.form.yardLabel')}
               </FormLabel>
               <Select
                 onValueChange={(value) => field.onChange(value === '__none__' ? null : value)}
@@ -362,11 +378,11 @@ export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoa
               >
                 <FormControl>
                   <SelectTrigger className="touch-target">
-                    <SelectValue placeholder="Selecionar parque..." />
+                    <SelectValue placeholder={t('products.form.selectYardPlaceholder')} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="__none__">— Sem parque —</SelectItem>
+                  <SelectItem value="__none__">{t('products.form.noYard')}</SelectItem>
                   {locais.map((local) => (
                     <SelectItem key={local.id} value={local.id}>
                       {local.codigo} - {local.nome}
@@ -376,15 +392,15 @@ export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoa
               </Select>
               <FormDescription>
                 {produto 
-                  ? 'Alterar o parque criará um movimento de transferência automático.'
-                  : 'Ao selecionar um parque, será criada automaticamente uma entrada de stock.'}
+                  ? t('products.form.yardChangeDesc')
+                  : t('products.form.yardCreateDesc')}
               </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        {/* Linha - posição interna no parque */}
+        {/* Linha */}
         <FormField
           control={form.control}
           name="linha"
@@ -392,18 +408,18 @@ export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoa
             <FormItem>
               <FormLabel className="flex items-center gap-2">
                 <Rows3 className="h-4 w-4" />
-                Linha
+                {t('products.form.lineLabel')}
               </FormLabel>
               <FormControl>
                 <Input
                   {...field}
                   value={field.value || ''}
-                  placeholder="Ex: A1, B2, C3"
+                  placeholder={t('products.form.linePlaceholder')}
                   className="touch-target"
                 />
               </FormControl>
               <FormDescription>
-                Posição interna do produto no parque (opcional)
+                {t('products.form.lineDesc')}
               </FormDescription>
               <FormMessage />
             </FormItem>
@@ -416,9 +432,9 @@ export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoa
             name="tipo_pedra"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Tipo de Pedra *</FormLabel>
+                <FormLabel>{t('products.form.stonetype')}</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="Ex: Mármore Branco" className="touch-target" />
+                  <Input {...field} placeholder={t('products.form.stonetypePlaceholder')} className="touch-target" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -430,9 +446,9 @@ export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoa
             name="nome_comercial"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Nome Comercial</FormLabel>
+                <FormLabel>{t('products.form.commercialName')}</FormLabel>
                 <FormControl>
-                  <Input {...field} value={field.value || ''} placeholder="Ex: Estremoz Clássico" className="touch-target" />
+                  <Input {...field} value={field.value || ''} placeholder={t('products.form.commercialNamePlaceholder')} className="touch-target" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -446,25 +462,25 @@ export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoa
           name="origem_bloco"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Origem do Bloco</FormLabel>
+              <FormLabel>{t('products.form.blockOrigin')}</FormLabel>
               <FormControl>
-                <Input {...field} value={field.value || ''} placeholder="Ex: Portugal, Brasil, Espanha" className="touch-target" />
+                <Input {...field} value={field.value || ''} placeholder={t('products.form.blockOriginPlaceholder')} className="touch-target" />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
 
-        {/* Acabamento - apenas para chapas e ladrilhos (blocos não têm acabamento) */}
+        {/* Acabamento - apenas para chapas e ladrilhos */}
         {forma !== 'bloco' && (
           <FormField
             control={form.control}
             name="acabamento"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Acabamento</FormLabel>
+                <FormLabel>{t('products.form.finish')}</FormLabel>
                 <FormControl>
-                  <Input {...field} value={field.value || ''} placeholder="Ex: Polido, Amaciado" className="touch-target" />
+                  <Input {...field} value={field.value || ''} placeholder={t('products.form.finishPlaceholder')} className="touch-target" />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -474,7 +490,6 @@ export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoa
 
         {/* Conteúdo específico por forma */}
         {forma === 'chapa' ? (
-          /* Formulário específico para chapas */
           <ChapaFormSection
             form={form}
             idmm={idmm || 'novo'}
@@ -483,18 +498,17 @@ export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoa
             onPargaFotosChange={setPargaFotos}
           />
         ) : (
-          /* Formulário padrão para blocos e ladrilhos */
           <>
             {/* Dimensões */}
             <div className="space-y-4">
-              <h3 className="font-medium text-sm text-muted-foreground">Dimensões (cm)</h3>
+              <h3 className="font-medium text-sm text-muted-foreground">{t('products.form.dimensionsCm')}</h3>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <FormField
                   control={form.control}
                   name="comprimento_cm"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Comprimento</FormLabel>
+                      <FormLabel>{t('products.form.length')}</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -516,7 +530,7 @@ export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoa
                   name="largura_cm"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Largura</FormLabel>
+                      <FormLabel>{t('products.form.width')}</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -539,7 +553,7 @@ export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoa
                     name="altura_cm"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Altura</FormLabel>
+                        <FormLabel>{t('products.form.height')}</FormLabel>
                         <FormControl>
                           <Input
                             type="number"
@@ -567,7 +581,7 @@ export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoa
                   name="peso_ton"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Peso (toneladas) *</FormLabel>
+                      <FormLabel>{t('products.form.weightTon')}</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -590,7 +604,7 @@ export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoa
             {/* Fotografias para bloco/ladrilho */}
             <div className="space-y-4">
               <h3 className="font-medium text-sm text-muted-foreground">
-                Fotografias (máx. 4)
+                {t('products.form.photosSectionTitle')}
               </h3>
               <ProdutoFotos
                 forma={forma}
@@ -605,7 +619,7 @@ export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoa
           </>
         )}
 
-        {/* Valorização - para blocos, chapas e ladrilhos */}
+        {/* Valorização */}
         <div>
           <FormField
             control={form.control}
@@ -613,7 +627,7 @@ export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoa
             render={({ field }) => (
               <FormItem>
                 <FormLabel>
-                  Valorização ({forma === 'bloco' ? '€/ton' : '€/m²'}) *
+                  {t('products.form.valuationLabel', { unit: forma === 'bloco' ? '€/ton' : '€/m²' })}
                 </FormLabel>
                 <FormControl>
                   <Input
@@ -636,7 +650,7 @@ export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoa
         {/* GPS */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="font-medium text-sm text-muted-foreground">Localização GPS</h3>
+            <h3 className="font-medium text-sm text-muted-foreground">{t('products.form.gpsLabel')}</h3>
             <Button
               type="button"
               variant="outline"
@@ -650,7 +664,7 @@ export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoa
               ) : (
                 <MapPin className="h-4 w-4 mr-2" />
               )}
-              Obter Localização
+              {t('products.form.getLocation')}
             </Button>
           </div>
           <div className="grid grid-cols-2 gap-4">
@@ -659,7 +673,7 @@ export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoa
               name="latitude"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Latitude</FormLabel>
+                  <FormLabel>{t('products.form.latitude')}</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
@@ -668,7 +682,7 @@ export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoa
                       {...field}
                       value={field.value ?? ''}
                       onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
-                      placeholder="-90 a 90"
+                      placeholder={t('products.form.latitudePlaceholder')}
                       className="touch-target"
                     />
                   </FormControl>
@@ -682,7 +696,7 @@ export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoa
               name="longitude"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Longitude</FormLabel>
+                  <FormLabel>{t('products.form.longitude')}</FormLabel>
                   <FormControl>
                     <Input
                       type="number"
@@ -691,7 +705,7 @@ export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoa
                       {...field}
                       value={field.value ?? ''}
                       onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : null)}
-                      placeholder="-180 a 180"
+                      placeholder={t('products.form.longitudePlaceholder')}
                       className="touch-target"
                     />
                   </FormControl>
@@ -708,12 +722,12 @@ export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoa
           name="observacoes"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Observações</FormLabel>
+              <FormLabel>{t('products.observations')}</FormLabel>
               <FormControl>
                 <Textarea
                   {...field}
                   value={field.value || ''}
-                  placeholder="Notas adicionais sobre o produto..."
+                  placeholder={t('products.form.observationsPlaceholder')}
                   rows={3}
                 />
               </FormControl>
@@ -725,11 +739,11 @@ export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoa
         {/* Botões */}
         <div className="flex justify-end gap-3">
           <Button type="button" variant="outline" onClick={onCancel} disabled={isLoading} className="touch-target">
-            Cancelar
+            {t('products.form.cancel')}
           </Button>
           <Button type="submit" disabled={isLoading} className="touch-target">
             {isLoading && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-            {produto ? 'Guardar Alterações' : 'Criar Produto'}
+            {produto ? t('products.form.saveChanges') : t('products.form.createProduct')}
           </Button>
         </div>
       </form>
