@@ -427,9 +427,9 @@ export function ProdutoFotos({
           const hasPreview = !!foto?.preview;
           const isPending = foto?.file !== null;
           const isUploaded = !!foto?.url && !isPending; // Foto já guardada no storage
-          const label = isHd 
-            ? (slotLabels?.[index] || `HD ${index + 1}`)
-            : `Foto ${index + 1}`;
+          const label = isHd
+            ? (slotLabels?.[index] || t('products.fotos.slotHd', { n: index + 1 }))
+            : t('products.fotos.slotPhoto', { n: index + 1 });
 
           // Para HD com watermark, mostrar preview com watermark
           const displayPreview = isHd && foto?.previewWithWatermark 
