@@ -63,6 +63,12 @@ export function ProdutoDetalhe({
   showPartilha = true,
   onLightboxOpen 
 }: ProdutoDetalheProps) {
+  const t = useAppT();
+  const FORMA_LABELS: Record<string, string> = {
+    bloco: t('products.detalhe.formaBloco'),
+    chapa: t('products.detalhe.formaChapa'),
+    ladrilho: t('products.detalhe.formaLadrilho'),
+  };
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const { isAdmin } = useAuth();
