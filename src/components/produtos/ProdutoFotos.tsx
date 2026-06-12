@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { useToast } from '@/hooks/use-toast';
+import { useAppT } from '@/hooks/useAppT';
 import { cn } from '@/lib/utils';
 import type { FormaProduto } from '@/types/database';
 
