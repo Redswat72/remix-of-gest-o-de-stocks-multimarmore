@@ -26,10 +26,11 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useEmpresa, Empresa } from '@/context/EmpresaContext';
 import { useState } from 'react';
+import { useAppT } from '@/hooks/useAppT';
 
 interface NavItem {
   href: string;
-  label: string;
+  labelKey: string;
   icon: React.ComponentType<{ className?: string }>;
   adminOnly?: boolean;
   superadminOnly?: boolean;
@@ -38,21 +39,21 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/blocos', label: 'Blocos', icon: Package },
-  { href: '/chapas', label: 'Chapas', icon: Grid3x3 },
-  { href: '/ladrilho', label: 'Ladrilho', icon: Square },
-  { href: '/bandas', label: 'Bandas', icon: Layers },
-  { href: '/producao', label: 'Produção', icon: Scissors, producaoOnly: true },
-  { href: '/stock', label: 'Consultar Stock', icon: Boxes },
-  { href: '/movimento/novo', label: 'Registar Movimento', icon: PlusCircle, operadorOnly: true },
-  { href: '/historico', label: 'Histórico', icon: History },
-  { href: '/produtos', label: 'Produtos', icon: Boxes },
-  { href: '/clientes', label: 'Clientes', icon: Users, adminOnly: true },
-  { href: '/superadmin', label: 'Superadmin', icon: MapPin, superadminOnly: true },
-  { href: '/importar-stock', label: 'Importar Excel', icon: FileSpreadsheet, superadminOnly: true },
-  { href: '/auditoria', label: 'Auditoria', icon: ClipboardList, superadminOnly: true },
-  { href: '/configuracoes', label: 'Configurações', icon: Settings },
+  { href: '/', labelKey: 'nav.dashboard', icon: LayoutDashboard },
+  { href: '/blocos', labelKey: 'nav.blocos', icon: Package },
+  { href: '/chapas', labelKey: 'nav.chapas', icon: Grid3x3 },
+  { href: '/ladrilho', labelKey: 'nav.ladrilho', icon: Square },
+  { href: '/bandas', labelKey: 'nav.bandas', icon: Layers },
+  { href: '/producao', labelKey: 'nav.producao', icon: Scissors, producaoOnly: true },
+  { href: '/stock', labelKey: 'nav.consultarStock', icon: Boxes },
+  { href: '/movimento/novo', labelKey: 'nav.registarMovimento', icon: PlusCircle, operadorOnly: true },
+  { href: '/historico', labelKey: 'nav.historico', icon: History },
+  { href: '/produtos', labelKey: 'nav.produtos', icon: Boxes },
+  { href: '/clientes', labelKey: 'nav.clientes', icon: Users, adminOnly: true },
+  { href: '/superadmin', labelKey: 'nav.superadmin', icon: MapPin, superadminOnly: true },
+  { href: '/importar-stock', labelKey: 'nav.importarExcel', icon: FileSpreadsheet, superadminOnly: true },
+  { href: '/auditoria', labelKey: 'nav.auditoria', icon: ClipboardList, superadminOnly: true },
+  { href: '/configuracoes', labelKey: 'nav.configuracoes', icon: Settings },
 ];
 
 export function Sidebar() {
