@@ -5,6 +5,7 @@ import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
 import { useEmpresa } from '@/context/EmpresaContext';
 import { usePermissoes } from '@/hooks/usePermissoes';
 import { useAuth } from '@/hooks/useAuth';
+import { useAppT } from '@/hooks/useAppT';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,32 +16,16 @@ import { Separator } from '@/components/ui/separator';
 import { FotoLightbox } from '@/components/produtos/FotoLightbox';
 import InventarioEditModal from '@/components/inventario/InventarioEditModal';
 import { toast } from 'sonner';
+import { formatCurrency, formatNumber } from '@/lib/format';
 import type { Bloco, Chapa, Ladrilho, Banda } from '@/types/inventario';
 
 type FormaType = 'bloco' | 'chapa' | 'ladrilho' | 'banda';
-
-const FORMA_LABELS: Record<string, string> = {
-  bloco: 'Bloco',
-  chapa: 'Chapa',
-  ladrilho: 'Ladrilho',
-  banda: 'Banda',
-};
 
 const FORMA_COLORS: Record<string, string> = {
   bloco: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
   chapa: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
   ladrilho: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
   banda: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-};
-
-const formatCurrency = (value: number | null) => {
-  if (!value) return '—';
-  return new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(value);
-};
-
-const formatNumber = (value: number | null, decimals = 2) => {
-  if (value == null) return '—';
-  return new Intl.NumberFormat('pt-PT', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(value);
 };
 
 interface InventarioDetailModalProps {
@@ -51,12 +36,12 @@ interface InventarioDetailModalProps {
 }
 
 export default function InventarioDetailModal({ open, onOpenChange, forma, itemId }: InventarioDetailModalProps) {
+  const t = useAppT();
   const supabase = useSupabaseEmpresa();
   const { empresa } = useEmpresa();
   const { podeVerValores } = usePermissoes();
   const { isSuperadmin, isAdmin, hasRole } = useAuth();
   const isOperador = hasRole('operador');
-  // Operadores podem editar blocos (apenas dimensões/peso — modal restringe internamente)
   const canEdit = isSuperadmin || isAdmin || (isOperador && forma === 'bloco');
   const queryClient = useQueryClient();
 
@@ -79,14 +64,12 @@ export default function InventarioDetailModal({ open, onOpenChange, forma, itemI
   const [observacoes, setObservacoes] = useState<string>('');
   const [obsLoaded, setObsLoaded] = useState(false);
 
-  // Sync observacoes when data loads
   if (data && !obsLoaded) {
     const obs = forma === 'ladrilho' ? (data as Ladrilho).nota : (data as any).observacoes ?? '';
     setObservacoes(obs || '');
     setObsLoaded(true);
   }
 
-  // Reset on close
   const handleOpenChange = (v: boolean) => {
     if (!v) setObsLoaded(false);
     onOpenChange(v);
@@ -104,11 +87,11 @@ export default function InventarioDetailModal({ open, onOpenChange, forma, itemI
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success('Observações guardadas com sucesso');
+      toast.success(t('inventory.detail.obsSavedOk'));
       queryClient.invalidateQueries({ queryKey: ['inventario-detail-modal', forma, itemId] });
     },
     onError: (err: Error) => {
-      toast.error('Erro ao guardar observações: ' + err.message);
+      toast.error(t('inventory.detail.obsErrorPrefix') + err.message);
     },
   });
 
@@ -117,9 +100,14 @@ export default function InventarioDetailModal({ open, onOpenChange, forma, itemI
       <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Badge className={FORMA_COLORS[forma]}>{FORMA_LABELS[forma]}</Badge>
+            <Badge className={FORMA_COLORS[forma]}>{t(`enums.tipoProduto.${forma}`)}</Badge>
             <span>
-              {data ? (forma === 'bloco' ? (data as Bloco).id_mm : forma === 'chapa' ? (data as Chapa).id_mm : forma === 'banda' ? (data as any).idmm : (data as Ladrilho).variedade || 'Ladrilho') : 'A carregar...'}
+              {data
+                ? (forma === 'bloco' ? (data as Bloco).id_mm
+                  : forma === 'chapa' ? (data as Chapa).id_mm
+                  : forma === 'banda' ? (data as any).idmm
+                  : (data as Ladrilho).variedade || t('enums.tipoProduto.ladrilho'))
+                : t('actions.loading')}
             </span>
           </DialogTitle>
         </DialogHeader>
@@ -145,16 +133,15 @@ export default function InventarioDetailModal({ open, onOpenChange, forma, itemI
               </div>
             </div>
 
-            {/* Observações - not for bandas since produtos table uses observacoes field already */}
             {forma !== 'banda' && (
               <>
                 <Separator />
                 <div className="space-y-3">
-                  <Label htmlFor="obs-textarea" className="text-base font-semibold">Observações</Label>
+                  <Label htmlFor="obs-textarea" className="text-base font-semibold">{t('inventory.detail.observations')}</Label>
                   <Textarea
                     id="obs-textarea"
                     rows={4}
-                    placeholder="Sem observações..."
+                    placeholder={t('inventory.detail.noObservations')}
                     value={observacoes}
                     onChange={(e) => setObservacoes(e.target.value)}
                   />
@@ -164,13 +151,12 @@ export default function InventarioDetailModal({ open, onOpenChange, forma, itemI
                     size="sm"
                   >
                     {obsMutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                    Guardar Observações
+                    {t('inventory.detail.saveObs')}
                   </Button>
                 </div>
               </>
             )}
 
-            {/* Edit button + Close */}
             <div className="flex justify-between pt-2">
               {canEdit && forma !== 'banda' && (
                 <InventarioEditModal
@@ -180,7 +166,7 @@ export default function InventarioDetailModal({ open, onOpenChange, forma, itemI
                 />
               )}
               <Button variant="outline" onClick={() => handleOpenChange(false)} className="ml-auto">
-                Fechar
+                {t('actions.close')}
               </Button>
             </div>
           </div>
@@ -200,38 +186,39 @@ function DetailRow({ label, value }: { label: string; value: string | number | n
 }
 
 function BlocoFields({ data, podeVerValores }: { data: Bloco; podeVerValores: boolean }) {
+  const t = useAppT();
   return (
     <>
       <DetailRow label="ID MM" value={data.id_mm} />
-      <DetailRow label="Parque" value={data.parque} />
-      <DetailRow label="Variedade" value={data.variedade} />
-      <DetailRow label="Origem" value={data.bloco_origem} />
-      <DetailRow label="Fornecedor" value={data.fornecedor} />
+      <DetailRow label={t('inventory.detail.yard')} value={data.parque} />
+      <DetailRow label={t('inventory.detail.variety')} value={data.variedade} />
+      <DetailRow label={t('inventory.detail.origin')} value={data.bloco_origem} />
+      <DetailRow label={t('inventory.detail.supplier')} value={data.fornecedor} />
       <Separator />
-      <DetailRow label="Peso" value={data.quantidade_kg != null ? `${formatNumber(data.quantidade_kg)} kg` : null} />
-      {data.comprimento && <DetailRow label="Comprimento" value={`${data.comprimento}`} />}
-      {data.largura && <DetailRow label="Largura" value={`${data.largura}`} />}
-      {data.altura && <DetailRow label="Altura" value={`${data.altura}`} />}
-      {podeVerValores && <DetailRow label="Preço/ton" value={formatCurrency(data.preco_unitario)} />}
-      {podeVerValores && <DetailRow label="Valor de Inventário" value={formatCurrency(data.valor_inventario)} />}
+      <DetailRow label={t('inventory.detail.weight')} value={data.quantidade_kg != null ? `${formatNumber(data.quantidade_kg)} kg` : null} />
+      {data.comprimento && <DetailRow label={t('inventory.detail.length')} value={`${data.comprimento}`} />}
+      {data.largura && <DetailRow label={t('inventory.detail.width')} value={`${data.largura}`} />}
+      {data.altura && <DetailRow label={t('inventory.detail.height')} value={`${data.altura}`} />}
+      {podeVerValores && <DetailRow label={t('inventory.detail.pricePerTon')} value={formatCurrency(data.preco_unitario) || '—'} />}
+      {podeVerValores && <DetailRow label={t('inventory.detail.inventoryValue')} value={formatCurrency(data.valor_inventario) || '—'} />}
     </>
   );
 }
 
 function ChapaFields({ data, podeVerValores }: { data: Chapa; podeVerValores: boolean }) {
+  const t = useAppT();
   return (
     <>
       <DetailRow label="ID MM" value={data.id_mm} />
-      <DetailRow label="Bundle/Parga" value={data.bundle_id} />
-      <DetailRow label="Parque" value={data.parque} />
-      <DetailRow label="Variedade" value={data.variedade} />
-      <DetailRow label="Acabamento" value={data.acabamento} />
+      <DetailRow label={t('inventory.detail.bundleParga')} value={data.bundle_id} />
+      <DetailRow label={t('inventory.detail.yard')} value={data.parque} />
+      <DetailRow label={t('inventory.detail.variety')} value={data.variedade} />
+      <DetailRow label={t('inventory.detail.finish')} value={data.acabamento} />
       <Separator />
-      <DetailRow label="Nº Chapas" value={data.num_chapas} />
-      <DetailRow label="Área (m²)" value={formatNumber(data.quantidade_m2)} />
-      {podeVerValores && <DetailRow label="Preço/m²" value={formatCurrency(data.preco_unitario)} />}
-      {podeVerValores && <DetailRow label="Valor de Inventário" value={formatCurrency(data.valor_inventario)} />}
-      {/* Pargas */}
+      <DetailRow label={t('inventory.detail.numSlabs')} value={data.num_chapas} />
+      <DetailRow label={t('inventory.detail.area')} value={formatNumber(data.quantidade_m2) || '—'} />
+      {podeVerValores && <DetailRow label={t('inventory.detail.pricePerM2')} value={formatCurrency(data.preco_unitario) || '—'} />}
+      {podeVerValores && <DetailRow label={t('inventory.detail.inventoryValue')} value={formatCurrency(data.valor_inventario) || '—'} />}
       {[1, 2, 3, 4].map(i => {
         const nome = data[`parga${i}_nome` as keyof Chapa] as string | null;
         const qtd = data[`parga${i}_quantidade` as keyof Chapa] as number | null;
@@ -239,8 +226,8 @@ function ChapaFields({ data, podeVerValores }: { data: Chapa; podeVerValores: bo
         return (
           <div key={i}>
             <Separator className="my-2" />
-            <DetailRow label={`Parga ${i}`} value={nome} />
-            <DetailRow label={`Qtd Parga ${i}`} value={qtd} />
+            <DetailRow label={t('inventory.detail.pargaLabel', { n: i })} value={nome} />
+            <DetailRow label={t('inventory.detail.pargaQtyLabel', { n: i })} value={qtd} />
           </div>
         );
       })}
@@ -249,41 +236,44 @@ function ChapaFields({ data, podeVerValores }: { data: Chapa; podeVerValores: bo
 }
 
 function LadrilhoFields({ data, podeVerValores }: { data: Ladrilho; podeVerValores: boolean }) {
+  const t = useAppT();
   return (
     <>
       <DetailRow label="ID MM" value={data.id_mm} />
-      <DetailRow label="Tipo" value={data.tipo} />
-      <DetailRow label="Variedade" value={data.variedade} />
-      <DetailRow label="Acabamento" value={data.acabamento} />
-      <DetailRow label="Dimensões" value={data.dimensoes} />
-      <DetailRow label="Butch No" value={data.butch_no} />
+      <DetailRow label={t('inventory.detail.type')} value={data.tipo} />
+      <DetailRow label={t('inventory.detail.variety')} value={data.variedade} />
+      <DetailRow label={t('inventory.detail.finish')} value={data.acabamento} />
+      <DetailRow label={t('inventory.detail.dimensions')} value={data.dimensoes} />
+      <DetailRow label={t('inventory.detail.butchNo')} value={data.butch_no} />
       <Separator />
-      <DetailRow label="Peças" value={data.num_pecas} />
-      <DetailRow label="Área (m²)" value={formatNumber(data.quantidade_m2)} />
-      <DetailRow label="Peso (kg)" value={formatNumber(data.peso, 0)} />
-      {podeVerValores && <DetailRow label="Preço/m²" value={formatCurrency(data.preco_unitario)} />}
-      {podeVerValores && <DetailRow label="Valor de Inventário" value={formatCurrency(data.valor_inventario)} />}
+      <DetailRow label={t('inventory.detail.pieces')} value={data.num_pecas} />
+      <DetailRow label={t('inventory.detail.area')} value={formatNumber(data.quantidade_m2) || '—'} />
+      <DetailRow label={t('inventory.detail.weightKg')} value={data.peso != null ? formatNumber(data.peso, 0) : null} />
+      {podeVerValores && <DetailRow label={t('inventory.detail.pricePerM2')} value={formatCurrency(data.preco_unitario) || '—'} />}
+      {podeVerValores && <DetailRow label={t('inventory.detail.inventoryValue')} value={formatCurrency(data.valor_inventario) || '—'} />}
     </>
   );
 }
 
 function BandaFields({ data, podeVerValores }: { data: Banda; podeVerValores: boolean }) {
+  const t = useAppT();
   return (
     <>
       <DetailRow label="ID" value={data.idmm} />
-      <DetailRow label="Parque" value={data.parque} />
-      <DetailRow label="Variedade" value={data.variedade} />
+      <DetailRow label={t('inventory.detail.yard')} value={data.parque} />
+      <DetailRow label={t('inventory.detail.variety')} value={data.variedade} />
       <Separator />
-      {data.largura && <DetailRow label="Largura" value={`${data.largura} cm`} />}
-      {data.altura && <DetailRow label="Altura" value={`${data.altura} cm`} />}
-      <DetailRow label="Área (m²)" value={formatNumber(data.quantidade_m2)} />
-      {podeVerValores && <DetailRow label="Preço/m²" value={formatCurrency(data.preco_unitario)} />}
-      {podeVerValores && <DetailRow label="Valor de Inventário" value={formatCurrency(data.valor_inventario)} />}
+      {data.largura && <DetailRow label={t('inventory.detail.width')} value={`${data.largura} cm`} />}
+      {data.altura && <DetailRow label={t('inventory.detail.height')} value={`${data.altura} cm`} />}
+      <DetailRow label={t('inventory.detail.area')} value={formatNumber(data.quantidade_m2) || '—'} />
+      {podeVerValores && <DetailRow label={t('inventory.detail.pricePerM2')} value={formatCurrency(data.preco_unitario) || '—'} />}
+      {podeVerValores && <DetailRow label={t('inventory.detail.inventoryValue')} value={formatCurrency(data.valor_inventario) || '—'} />}
     </>
   );
 }
 
 function PhotoSection({ forma, data }: { forma: string; data: unknown }) {
+  const t = useAppT();
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
 
@@ -291,25 +281,25 @@ function PhotoSection({ forma, data }: { forma: string; data: unknown }) {
 
   if (forma === 'bloco') {
     const d = data as Bloco;
-    if (d.foto1_url) photos.push({ label: 'Foto 1', url: d.foto1_url });
-    if (d.foto2_url) photos.push({ label: 'Foto 2', url: d.foto2_url });
-    if ((d as any).foto3_url) photos.push({ label: 'Foto 3', url: (d as any).foto3_url });
-    if ((d as any).foto4_url) photos.push({ label: 'Foto 4', url: (d as any).foto4_url });
+    if (d.foto1_url) photos.push({ label: t('movements.fotoN', { n: 1 }), url: d.foto1_url });
+    if (d.foto2_url) photos.push({ label: t('movements.fotoN', { n: 2 }), url: d.foto2_url });
+    if ((d as any).foto3_url) photos.push({ label: t('movements.fotoN', { n: 3 }), url: (d as any).foto3_url });
+    if ((d as any).foto4_url) photos.push({ label: t('movements.fotoN', { n: 4 }), url: (d as any).foto4_url });
   } else if (forma === 'chapa') {
     const d = data as Chapa;
     for (let i = 1; i <= 4; i++) {
       const primeira = d[`parga${i}_foto_primeira` as keyof Chapa] as string | null;
       const ultima = d[`parga${i}_foto_ultima` as keyof Chapa] as string | null;
-      if (primeira) photos.push({ label: `Parga ${i} - Primeira`, url: primeira });
-      if (ultima) photos.push({ label: `Parga ${i} - Última`, url: ultima });
+      if (primeira) photos.push({ label: t('inventory.detail.pargaFirst', { n: i }), url: primeira });
+      if (ultima) photos.push({ label: t('inventory.detail.pargaLast', { n: i }), url: ultima });
     }
   } else if (forma === 'ladrilho') {
     const d = data as Ladrilho;
-    if (d.foto_amostra_url) photos.push({ label: 'Foto Amostra', url: d.foto_amostra_url });
+    if (d.foto_amostra_url) photos.push({ label: t('inventory.detail.photoSample'), url: d.foto_amostra_url });
   }
 
   if (photos.length === 0) {
-    return <p className="text-sm text-muted-foreground">Sem fotografias</p>;
+    return <p className="text-sm text-muted-foreground">{t('inventory.detail.noPhotos')}</p>;
   }
 
   const fotosList = photos.map(p => ({ url: p.url, label: p.label, isHd: false }));
@@ -339,7 +329,7 @@ function PhotoSection({ forma, data }: { forma: string; data: unknown }) {
         fotos={fotosList}
         initialIndex={lightboxIndex}
         idmm={forma === 'bloco' ? (data as Bloco).id_mm : forma === 'chapa' ? (data as Chapa).id_mm : 'item'}
-        tipoPedra={FORMA_LABELS[forma] || forma}
+        tipoPedra={t(`enums.tipoProduto.${forma}`)}
       />
     </>
   );

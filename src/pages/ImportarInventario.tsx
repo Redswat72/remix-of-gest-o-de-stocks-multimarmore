@@ -24,22 +24,18 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { useToast } from '@/hooks/use-toast';
+import { useAppT } from '@/hooks/useAppT';
 import { useParseExcel, useExecutarImportacao, type LinhaExcel, type LinhaExcelBlocos, type LinhaExcelChapas, type LinhaExcelLadrilhos, type ResultadoImportacao } from '@/hooks/useImportarExcel';
 import { gerarModeloExcel, type TipoImportacao } from '@/lib/excelTemplateGenerator';
+import { formatDateTime } from '@/lib/format';
 import { cn } from '@/lib/utils';
 
 type Step = 'upload' | 'preview' | 'confirmar' | 'resultado';
 
-const STEPS: { id: Step; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
-  { id: 'upload', label: 'Upload', icon: Upload },
-  { id: 'preview', label: 'Preview', icon: FileSpreadsheet },
-  { id: 'confirmar', label: 'Confirmar', icon: CheckCircle2 },
-  { id: 'resultado', label: 'Resultado', icon: Package },
-];
-
 export default function ImportarInventario() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const t = useAppT();
   
   const [step, setStep] = useState<Step>('upload');
   const [file, setFile] = useState<File | null>(null);
@@ -47,6 +43,13 @@ export default function ImportarInventario() {
   
   const { linhas, isLoading: isParsing, erro: parseErro, parseFile, limpar } = useParseExcel();
   const executarImportacao = useExecutarImportacao();
+
+  const STEPS: { id: Step; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
+    { id: 'upload', label: t('import.steps.upload'), icon: Upload },
+    { id: 'preview', label: t('import.steps.preview'), icon: FileSpreadsheet },
+    { id: 'confirmar', label: t('import.steps.confirmar'), icon: CheckCircle2 },
+    { id: 'resultado', label: t('import.steps.resultado'), icon: Package },
+  ];
 
   // Estatísticas das linhas
   const stats = {
@@ -69,8 +72,8 @@ export default function ImportarInventario() {
     
     if (!validTypes.includes(selectedFile.type) && !selectedFile.name.endsWith('.xlsx') && !selectedFile.name.endsWith('.xls')) {
       toast({
-        title: 'Ficheiro inválido',
-        description: 'Por favor selecione um ficheiro Excel (.xlsx ou .xls)',
+        title: t('import.ficheiroInvalido'),
+        description: t('import.ficheiroInvalidoDesc'),
         variant: 'destructive',
       });
       return;
@@ -79,7 +82,7 @@ export default function ImportarInventario() {
     setFile(selectedFile);
     await parseFile(selectedFile);
     setStep('preview');
-  }, [parseFile, toast]);
+  }, [parseFile, toast, t]);
 
   const handleDrop = useCallback(async (e: React.DragEvent) => {
     e.preventDefault();
@@ -95,15 +98,15 @@ export default function ImportarInventario() {
     try {
       gerarModeloExcel({ incluirExemplos: true, tipo: 'blocos' });
       toast({
-        title: 'Modelo descarregado',
-        description: 'O modelo de importação foi guardado com sucesso.',
+        title: t('import.modeloDescarregado'),
+        description: t('import.modeloDescarregadoDesc'),
       });
     } catch (err) {
       console.error('Erro ao gerar modelo Excel:', err);
-      const msg = err instanceof Error ? err.message : 'Erro desconhecido';
+      const msg = err instanceof Error ? err.message : t('errors.unexpectedError');
       toast({
-        title: 'Erro',
-        description: `Não foi possível gerar o modelo: ${msg}`,
+        title: t('toasts.errorTitle'),
+        description: t('errors.generateTemplate', { msg }),
         variant: 'destructive',
       });
     }
@@ -115,13 +118,13 @@ export default function ImportarInventario() {
       setResultado(result);
       setStep('resultado');
       toast({
-        title: 'Importação concluída',
-        description: `${result.produtosCriados} produtos criados, ${result.movimentosCriados} movimentos registados.`,
+        title: t('import.importacaoConcluida'),
+        description: t('import.importacaoConcluidaDesc', { produtos: result.produtosCriados, movimentos: result.movimentosCriados }),
       });
     } catch (error) {
       toast({
-        title: 'Erro na importação',
-        description: error instanceof Error ? error.message : 'Ocorreu um erro inesperado',
+        title: t('import.erroImportacao'),
+        description: error instanceof Error ? error.message : t('errors.unexpectedError'),
         variant: 'destructive',
       });
     }
@@ -145,13 +148,13 @@ export default function ImportarInventario() {
             <ArrowLeft className="w-5 h-5" />
           </Button>
           <div>
-            <h1 className="text-2xl font-bold">Importar Inventário</h1>
-            <p className="text-muted-foreground">Importação de produtos via Excel</p>
+            <h1 className="text-2xl font-bold">{t('import.inventarioPageTitle')}</h1>
+            <p className="text-muted-foreground">{t('import.inventarioPageSubtitle')}</p>
           </div>
         </div>
         <Button variant="outline" onClick={handleDownloadTemplate} className="gap-2">
           <FileDown className="w-4 h-4" />
-          <span className="hidden sm:inline">Modelo Excel</span>
+          <span className="hidden sm:inline">{t('import.modeloExcel')}</span>
         </Button>
       </div>
 
@@ -251,13 +254,14 @@ interface StepUploadProps {
 
 function StepUpload({ onFileChange, onDrop, isParsing, parseErro }: StepUploadProps) {
   const [isDragOver, setIsDragOver] = useState(false);
+  const t = useAppT();
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Carregar Ficheiro Excel</CardTitle>
+        <CardTitle>{t('import.carregarFicheiroTitle')}</CardTitle>
         <CardDescription>
-          Selecione ou arraste um ficheiro Excel (.xlsx) com os dados de inventário
+          {t('import.carregarFicheiroDesc')}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -274,16 +278,16 @@ function StepUpload({ onFileChange, onDrop, isParsing, parseErro }: StepUploadPr
           {isParsing ? (
             <div className="flex flex-col items-center gap-4">
               <Loader2 className="w-12 h-12 animate-spin text-primary" />
-              <p className="text-lg font-medium">A processar ficheiro...</p>
+              <p className="text-lg font-medium">{t('import.processando')}</p>
             </div>
           ) : (
             <>
               <Upload className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
               <p className="text-lg font-medium mb-2">
-                Arraste o ficheiro aqui
+                {t('import.arrastarFicheiro')}
               </p>
               <p className="text-sm text-muted-foreground mb-4">
-                ou clique para selecionar
+                {t('import.cliqueSelecionar')}
               </p>
               <input
                 type="file"
@@ -295,7 +299,7 @@ function StepUpload({ onFileChange, onDrop, isParsing, parseErro }: StepUploadPr
               <Button asChild>
                 <label htmlFor="file-upload" className="cursor-pointer">
                   <FileSpreadsheet className="w-4 h-4 mr-2" />
-                  Selecionar Ficheiro
+                  {t('import.selecionarFicheiro')}
                 </label>
               </Button>
             </>
@@ -305,17 +309,16 @@ function StepUpload({ onFileChange, onDrop, isParsing, parseErro }: StepUploadPr
         {parseErro && (
           <Alert variant="destructive" className="mt-4">
             <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Erro ao processar ficheiro</AlertTitle>
+            <AlertTitle>{t('import.erroProcesarFicheiro')}</AlertTitle>
             <AlertDescription>{parseErro}</AlertDescription>
           </Alert>
         )}
 
         <Alert className="mt-4">
           <Info className="h-4 w-4" />
-          <AlertTitle>Estrutura esperada</AlertTitle>
+          <AlertTitle>{t('import.estruturaEsperada')}</AlertTitle>
           <AlertDescription>
-            O ficheiro deve conter as colunas: <strong>ID_MM</strong>, <strong>Parque_MM</strong>, <strong>Variedade</strong> (obrigatórias). 
-            Opcionais: Data, Forma, Comprimento_cm, Largura_cm, Altura_cm, Espessura_cm, Peso_ton, Linha, Origem_material, Quantidade, Notas, Foto1_URL a Foto4_URL.
+            {t('import.estruturaDesc')}
           </AlertDescription>
         </Alert>
       </CardContent>
@@ -341,6 +344,7 @@ interface StepPreviewProps {
 
 function StepPreview({ linhas, stats, file, onBack, onNext, isParsing }: StepPreviewProps) {
   const [filtro, setFiltro] = useState<'todas' | 'validas' | 'erros' | 'avisos'>('todas');
+  const t = useAppT();
 
   const linhasFiltradas = linhas.filter(l => {
     if (filtro === 'validas') return l.erros.length === 0;
@@ -354,9 +358,9 @@ function StepPreview({ linhas, stats, file, onBack, onNext, isParsing }: StepPre
       <CardHeader>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <CardTitle>Preview do Ficheiro</CardTitle>
+            <CardTitle>{t('import.previewTitle')}</CardTitle>
             <CardDescription>
-              {file?.name} • {stats.total} linhas encontradas
+              {file?.name} • {t('import.linhasEncontradas', { n: stats.total })}
             </CardDescription>
           </div>
         </div>
@@ -367,28 +371,28 @@ function StepPreview({ linhas, stats, file, onBack, onNext, isParsing }: StepPre
           <Card className="p-4">
             <div className="flex items-center gap-2">
               <Package className="w-5 h-5 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">Total</span>
+              <span className="text-sm text-muted-foreground">{t('import.statsTotal')}</span>
             </div>
             <p className="text-2xl font-bold mt-1">{stats.total}</p>
           </Card>
           <Card className="p-4 border-primary/50">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-5 h-5 text-primary" />
-              <span className="text-sm text-muted-foreground">Válidas</span>
+              <span className="text-sm text-muted-foreground">{t('import.statsValidas')}</span>
             </div>
             <p className="text-2xl font-bold mt-1 text-primary">{stats.validas}</p>
           </Card>
           <Card className="p-4 border-destructive/50">
             <div className="flex items-center gap-2">
               <XCircle className="w-5 h-5 text-destructive" />
-              <span className="text-sm text-muted-foreground">Com Erros</span>
+              <span className="text-sm text-muted-foreground">{t('import.statsComErros')}</span>
             </div>
             <p className="text-2xl font-bold mt-1 text-destructive">{stats.comErros}</p>
           </Card>
           <Card className="p-4 border-accent/50">
             <div className="flex items-center gap-2">
               <AlertTriangle className="w-5 h-5 text-accent-foreground" />
-              <span className="text-sm text-muted-foreground">Avisos</span>
+              <span className="text-sm text-muted-foreground">{t('import.statsAvisos')}</span>
             </div>
             <p className="text-2xl font-bold mt-1 text-accent-foreground">{stats.comAvisos}</p>
           </Card>
@@ -397,10 +401,10 @@ function StepPreview({ linhas, stats, file, onBack, onNext, isParsing }: StepPre
         {/* Filtro Tabs */}
         <Tabs value={filtro} onValueChange={(v) => setFiltro(v as typeof filtro)}>
           <TabsList>
-            <TabsTrigger value="todas">Todas ({stats.total})</TabsTrigger>
-            <TabsTrigger value="validas">Válidas ({stats.validas})</TabsTrigger>
-            <TabsTrigger value="erros">Erros ({stats.comErros})</TabsTrigger>
-            <TabsTrigger value="avisos">Avisos ({stats.comAvisos})</TabsTrigger>
+            <TabsTrigger value="todas">{t('import.tabTodasN', { n: stats.total })}</TabsTrigger>
+            <TabsTrigger value="validas">{t('import.tabValidasN', { n: stats.validas })}</TabsTrigger>
+            <TabsTrigger value="erros">{t('import.tabErrosN', { n: stats.comErros })}</TabsTrigger>
+            <TabsTrigger value="avisos">{t('import.tabAvisosN', { n: stats.comAvisos })}</TabsTrigger>
           </TabsList>
         </Tabs>
 
@@ -409,13 +413,13 @@ function StepPreview({ linhas, stats, file, onBack, onNext, isParsing }: StepPre
           <Table>
             <TableHeader className="sticky top-0 bg-background">
               <TableRow>
-                <TableHead className="w-16">Linha</TableHead>
-                <TableHead>IDMM</TableHead>
-                <TableHead>Variedade</TableHead>
-                <TableHead>Forma</TableHead>
-                <TableHead>Parque MM</TableHead>
-                <TableHead className="w-16 text-center">Qtd</TableHead>
-                <TableHead>Estado</TableHead>
+                <TableHead className="w-16">{t('import.colLinha')}</TableHead>
+                <TableHead>{t('import.colIdmm')}</TableHead>
+                <TableHead>{t('import.colVariedade')}</TableHead>
+                <TableHead>{t('import.colForma')}</TableHead>
+                <TableHead>{t('import.colParqueMM')}</TableHead>
+                <TableHead className="w-16 text-center">{t('import.colQtd')}</TableHead>
+                <TableHead>{t('import.colEstado')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -480,9 +484,9 @@ function StepPreview({ linhas, stats, file, onBack, onNext, isParsing }: StepPre
         {stats.comErros > 0 && (
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Existem {stats.comErros} linhas com erros</AlertTitle>
+            <AlertTitle>{t('import.linhasComErros', { n: stats.comErros })}</AlertTitle>
             <AlertDescription>
-              Estas linhas serão ignoradas durante a importação. Corrija os erros no ficheiro e carregue novamente para importar todas as linhas.
+              {t('import.linhasErrosDesc')}
             </AlertDescription>
           </Alert>
         )}
@@ -490,13 +494,13 @@ function StepPreview({ linhas, stats, file, onBack, onNext, isParsing }: StepPre
       <CardFooter className="flex justify-between">
         <Button variant="outline" onClick={onBack}>
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Voltar
+          {t('actions.back')}
         </Button>
         <Button 
           onClick={onNext} 
           disabled={stats.validas === 0 || isParsing}
         >
-          Continuar
+          {t('import.continuar')}
           <ArrowRight className="w-4 h-4 ml-2" />
         </Button>
       </CardFooter>
@@ -518,38 +522,40 @@ interface StepConfirmarProps {
 }
 
 function StepConfirmar({ stats, onBack, onConfirm, isProcessing }: StepConfirmarProps) {
+  const t = useAppT();
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Confirmar Importação</CardTitle>
+        <CardTitle>{t('import.confirmarTitle')}</CardTitle>
         <CardDescription>
-          Reveja o resumo antes de processar
+          {t('import.confirmarDesc')}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
         <div className="bg-muted/50 rounded-lg p-6 space-y-4">
-          <h3 className="font-semibold text-lg">Resumo da Importação</h3>
+          <h3 className="font-semibold text-lg">{t('import.resumoImportacao')}</h3>
           <Separator />
           
           <div className="grid grid-cols-2 gap-4">
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Linhas totais:</span>
+              <span className="text-muted-foreground">{t('import.linhasTotais')}</span>
               <span className="font-medium">{stats.total}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Linhas válidas:</span>
+              <span className="text-muted-foreground">{t('import.linhasValidas')}</span>
               <span className="font-medium text-primary">{stats.validas}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Linhas ignoradas:</span>
+              <span className="text-muted-foreground">{t('import.linhasIgnoradas')}</span>
               <span className="font-medium text-destructive">{stats.comErros}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Novos produtos:</span>
+              <span className="text-muted-foreground">{t('import.novosProdutos')}</span>
               <span className="font-medium">{stats.produtosNovos}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Movimentos de entrada:</span>
+              <span className="text-muted-foreground">{t('import.movimentosEntrada')}</span>
               <span className="font-medium">{stats.movimentosNovos}</span>
             </div>
           </div>
@@ -557,10 +563,9 @@ function StepConfirmar({ stats, onBack, onConfirm, isProcessing }: StepConfirmar
 
         <Alert>
           <Info className="h-4 w-4" />
-          <AlertTitle>Ação irreversível</AlertTitle>
+          <AlertTitle>{t('import.acaoIrreversivel')}</AlertTitle>
           <AlertDescription>
-            Após confirmar, os produtos serão criados e os movimentos de entrada serão registados. 
-            Esta operação não pode ser desfeita automaticamente.
+            {t('import.acaoDesc')}
           </AlertDescription>
         </Alert>
 
@@ -568,7 +573,7 @@ function StepConfirmar({ stats, onBack, onConfirm, isProcessing }: StepConfirmar
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="w-4 h-4 animate-spin" />
-              A processar importação...
+              {t('import.processingImport')}
             </div>
             <Progress value={undefined} className="h-2" />
           </div>
@@ -577,7 +582,7 @@ function StepConfirmar({ stats, onBack, onConfirm, isProcessing }: StepConfirmar
       <CardFooter className="flex justify-between">
         <Button variant="outline" onClick={onBack} disabled={isProcessing}>
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Voltar
+          {t('actions.back')}
         </Button>
         <Button 
           onClick={onConfirm} 
@@ -587,12 +592,12 @@ function StepConfirmar({ stats, onBack, onConfirm, isProcessing }: StepConfirmar
           {isProcessing ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              A importar...
+              {t('import.aImportar')}
             </>
           ) : (
             <>
               <CheckCircle2 className="w-4 h-4 mr-2" />
-              Confirmar Importação
+              {t('import.confirmarImportacao')}
             </>
           )}
         </Button>
@@ -608,6 +613,7 @@ interface StepResultadoProps {
 }
 
 function StepResultado({ resultado, onReset, onGoToStock }: StepResultadoProps) {
+  const t = useAppT();
   const numErros = resultado.erros?.length || 0;
   const sucesso = numErros === 0;
   const hasErrors = numErros > 0;
@@ -621,10 +627,10 @@ function StepResultado({ resultado, onReset, onGoToStock }: StepResultadoProps) 
           <AlertTriangle className="w-16 h-16 mx-auto text-accent-foreground mb-4" />
         )}
         <CardTitle className="text-2xl">
-          {sucesso ? 'Importação Concluída!' : 'Importação Concluída com Avisos'}
+          {sucesso ? t('import.resultadoConcluida') : t('import.resultadoConcluidaAvisos')}
         </CardTitle>
         <CardDescription>
-          {new Date(resultado.dataHora).toLocaleString('pt-PT')}
+          {formatDateTime(new Date(resultado.dataHora))}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -632,15 +638,15 @@ function StepResultado({ resultado, onReset, onGoToStock }: StepResultadoProps) 
           <div className="grid grid-cols-2 gap-4 text-center">
             <div className="p-4 bg-background rounded-lg">
               <p className="text-3xl font-bold text-primary">{resultado.produtosCriados}</p>
-              <p className="text-sm text-muted-foreground">Produtos Criados</p>
+              <p className="text-sm text-muted-foreground">{t('import.resultadoProdutosCriados')}</p>
             </div>
             <div className="p-4 bg-background rounded-lg">
               <p className="text-3xl font-bold text-primary">{resultado.movimentosCriados}</p>
-              <p className="text-sm text-muted-foreground">Movimentos Registados</p>
+              <p className="text-sm text-muted-foreground">{t('import.resultadoMovimentosRegistados')}</p>
             </div>
             <div className="p-4 bg-background rounded-lg">
               <p className="text-3xl font-bold">{resultado.linhasProcessadas}</p>
-              <p className="text-sm text-muted-foreground">Linhas Processadas</p>
+              <p className="text-sm text-muted-foreground">{t('import.resultadoLinhasProcessadas')}</p>
             </div>
             <div className="p-4 bg-background rounded-lg">
               <p className={cn(
@@ -649,7 +655,7 @@ function StepResultado({ resultado, onReset, onGoToStock }: StepResultadoProps) 
               )}>
                 {numErros}
               </p>
-              <p className="text-sm text-muted-foreground">Erros</p>
+              <p className="text-sm text-muted-foreground">{t('import.resultadoErros')}</p>
             </div>
           </div>
         </div>
@@ -657,14 +663,14 @@ function StepResultado({ resultado, onReset, onGoToStock }: StepResultadoProps) 
         {hasErrors && (
           <Alert variant="destructive">
             <AlertTriangle className="h-4 w-4" />
-            <AlertTitle>Algumas linhas falharam</AlertTitle>
+            <AlertTitle>{t('import.linhasFalharam')}</AlertTitle>
             <AlertDescription className="space-y-1">
-              <p>{numErros} linhas não foram processadas:</p>
+              <p>{t('import.linhasNaoProcessadas', { n: numErros })}</p>
               <ul className="list-disc list-inside text-sm mt-2">
                 {resultado.erros.slice(0, 5).map((e, i) => (
-                  <li key={i}>Linha {e.linha}: {e.erro}</li>
+                  <li key={i}>{t('import.linhaErro', { n: e.linha, erro: e.erro })}</li>
                 ))}
-                {numErros > 5 && <li>...e mais {numErros - 5} erros</li>}
+                {numErros > 5 && <li>{t('import.maisErros', { n: numErros - 5 })}</li>}
               </ul>
             </AlertDescription>
           </Alert>
@@ -673,11 +679,11 @@ function StepResultado({ resultado, onReset, onGoToStock }: StepResultadoProps) 
       <CardFooter className="flex justify-center gap-4">
         <Button variant="outline" onClick={onReset}>
           <Upload className="w-4 h-4 mr-2" />
-          Nova Importação
+          {t('import.novaImportacao')}
         </Button>
         <Button onClick={onGoToStock}>
           <Package className="w-4 h-4 mr-2" />
-          Ver Stock
+          {t('import.verStock')}
         </Button>
       </CardFooter>
     </Card>

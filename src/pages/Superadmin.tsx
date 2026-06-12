@@ -30,7 +30,7 @@ import { useSupabaseEmpresa } from "@/hooks/useSupabaseEmpresa";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAppT } from "@/hooks/useAppT";
 import { useEnumLabel } from "@/lib/enumLabels";
-import { useFormatters } from "@/lib/format";
+import { formatNumber, formatCurrency } from "@/lib/format";
 
 export default function Superadmin() {
   const t = useAppT();
@@ -94,7 +94,7 @@ function StockGlobalTab() {
   const { toast } = useToast();
   const t = useAppT();
   const enumLabel = useEnumLabel();
-  const { formatNumber, formatCurrency } = useFormatters();
+  
   const { empresaConfig } = useEmpresa();
   const supabase = useSupabaseEmpresa();
   const queryClient = useQueryClient();

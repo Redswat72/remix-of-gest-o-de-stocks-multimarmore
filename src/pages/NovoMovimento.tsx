@@ -20,19 +20,10 @@ import { useStockProdutoLocal } from '@/hooks/useStock';
 import { useCreateMovimento } from '@/hooks/useMovimentos';
 import type { TipoMovimento, TipoDocumento, OrigemMaterial, FormaProduto, MovimentoFormData } from '@/types/database';
 import { PhotoUploadField } from '@/components/movimentos/PhotoUploadField';
-
-const STEPS = [
-  { id: 1, title: 'Tipo', description: 'Tipo de movimento' },
-  { id: 2, title: 'Documento', description: 'Informação documental' },
-  { id: 3, title: 'Produto', description: 'Produto e quantidade' },
-  { id: 4, title: 'Locais', description: 'Origem e destino' },
-  { id: 5, title: 'Transporte', description: 'Dados de transporte' },
-  { id: 6, title: 'Confirmação', description: 'Rever e confirmar' },
-];
+import { useAppT } from '@/hooks/useAppT';
+import { useEnumLabel } from '@/lib/enumLabels';
 
 const PEDREIRAS = ['Del Rey', 'Mol', 'Olival do Pires'];
-
-// Removed auto-generation of ID MM — user fills it in manually
 
 export default function NovoMovimento() {
   const navigate = useNavigate();
@@ -40,6 +31,17 @@ export default function NovoMovimento() {
   const { user, userLocal, hasRole, isAdmin, isSuperadmin } = useAuth();
   const createMovimento = useCreateMovimento();
   const supabaseEmpresa = useSupabaseEmpresa();
+  const t = useAppT();
+  const enumLabel = useEnumLabel();
+
+  const STEPS = [
+    { id: 1, title: t('movements.steps.tipo.title'), description: t('movements.steps.tipo.description') },
+    { id: 2, title: t('movements.steps.documento.title'), description: t('movements.steps.documento.description') },
+    { id: 3, title: t('movements.steps.produto.title'), description: t('movements.steps.produto.description') },
+    { id: 4, title: t('movements.steps.locais.title'), description: t('movements.steps.locais.description') },
+    { id: 5, title: t('movements.steps.transporte.title'), description: t('movements.steps.transporte.description') },
+    { id: 6, title: t('movements.steps.confirmacao.title'), description: t('movements.steps.confirmacao.description') },
+  ];
 
   // Apenas operadores e superadmins podem registar movimentos
   if (!hasRole('operador') && !isSuperadmin) {
@@ -78,14 +80,11 @@ export default function NovoMovimento() {
   const [novoProdutoNumPecas, setNovoProdutoNumPecas] = useState<number | ''>('');
 
   // Photo URL fields
-  // Blocos: foto1_url, foto2_url, foto3_url
   const [blocoFoto1, setBlocoFoto1] = useState('');
   const [blocoFoto2, setBlocoFoto2] = useState('');
   const [blocoFoto3, setBlocoFoto3] = useState('');
-  // Ladrilho: foto1_url, foto2_url
   const [ladrilhoFoto1, setLadrilhoFoto1] = useState('');
   const [ladrilhoFoto2, setLadrilhoFoto2] = useState('');
-  // Chapas pargas: foto_primeira, foto_ultima per parga (up to 4)
   const [pargaFotos, setPargaFotos] = useState<{ primeira: string; ultima: string }[]>([
     { primeira: '', ultima: '' },
     { primeira: '', ultima: '' },
@@ -109,9 +108,6 @@ export default function NovoMovimento() {
 
   const selectedLocalOrigem = locais?.find(l => l.id === localOrigemId);
   const selectedLocalDestino = locais?.find(l => l.id === (tipo === 'entrada' ? novoProdutoParqueDestinoId : localDestinoId));
-  // cliente é texto livre — sem ligação ao ERP
-
-  // Removed: auto-generate ID MM is no longer needed
 
   // Set default local for entrada
   useEffect(() => {
@@ -150,7 +146,7 @@ export default function NovoMovimento() {
         }
         return !!produtoId && quantidade > 0;
       case 4:
-        if (tipo === 'entrada') return true; // Parque already selected in step 3
+        if (tipo === 'entrada') return true;
         if (tipo === 'transferencia') {
           return !!localOrigemId && !!localDestinoId && localOrigemId !== localDestinoId;
         }
@@ -174,19 +170,17 @@ export default function NovoMovimento() {
   };
 
   const nextStep = () => {
-    // For entrada, skip step 4 (locais) since parque is in step 3
     if (tipo === 'entrada' && step === 3) {
       setStep(5);
       return;
     }
     if (!canProceed()) {
-      // Mensagens amigáveis para Saída
       if (tipo === 'saida' && step === 2 && !numeroDocumento.trim()) {
-        toast({ title: 'Campo obrigatório', description: 'Indique o número do documento.', variant: 'destructive' });
+        toast({ title: t('movements.campoObrigatorio'), description: t('movements.documentoObrigatorio'), variant: 'destructive' });
         return;
       }
       if (tipo === 'saida' && step === 4 && !clienteNome.trim()) {
-        toast({ title: 'Campo obrigatório', description: 'Indique o nome do cliente.', variant: 'destructive' });
+        toast({ title: t('movements.campoObrigatorio'), description: t('movements.cliente.required'), variant: 'destructive' });
         return;
       }
       return;
@@ -197,7 +191,6 @@ export default function NovoMovimento() {
   };
 
   const prevStep = () => {
-    // For entrada, skip step 4 going back
     if (tipo === 'entrada' && step === 5) {
       setStep(3);
       return;
@@ -214,7 +207,6 @@ export default function NovoMovimento() {
     setIsSubmitting(true);
 
     try {
-      // For entrada, insert into the specific table then movement — atomic: rollback on failure
       if (tipo === 'entrada') {
         const parqueCodigo = locais?.find(l => l.id === novoProdutoParqueDestinoId)?.codigo || '';
         const today = new Date().toISOString().split('T')[0];
@@ -289,7 +281,6 @@ export default function NovoMovimento() {
           insertedId = ladrilhoData?.id;
         }
 
-        // Insert stock record: quantidade = 1 at destination
         let stockInserted = false;
         try {
           const { error: stockErr } = await supabaseEmpresa
@@ -303,7 +294,6 @@ export default function NovoMovimento() {
           if (stockErr) throw stockErr;
           stockInserted = true;
         } catch (stockErr) {
-          // Rollback: delete the just-inserted product
           if (insertedId) {
             const table = novoProdutoForma === 'bloco' ? 'blocos' : novoProdutoForma === 'chapa' ? 'chapas' : 'ladrilho';
             await supabaseEmpresa.from(table).delete().eq('id', insertedId);
@@ -311,7 +301,6 @@ export default function NovoMovimento() {
           throw stockErr;
         }
 
-        // Now create the movement — if this fails, delete stock and product
         try {
           const formData: MovimentoFormData = {
             tipo,
@@ -327,7 +316,6 @@ export default function NovoMovimento() {
           };
           await createMovimento.mutateAsync(formData);
         } catch (movErr) {
-          // Rollback: delete stock record
           if (stockInserted) {
             await supabaseEmpresa
               .from('stock')
@@ -336,7 +324,6 @@ export default function NovoMovimento() {
               .eq('tipo_produto', novoProdutoForma)
               .eq('local_id', novoProdutoParqueDestinoId);
           }
-          // Rollback: delete the just-inserted product
           if (insertedId) {
             const table = novoProdutoForma === 'bloco' ? 'blocos' : novoProdutoForma === 'chapa' ? 'chapas' : 'ladrilho';
             await supabaseEmpresa.from(table).delete().eq('id', insertedId);
@@ -345,8 +332,8 @@ export default function NovoMovimento() {
         }
 
         toast({
-          title: 'Movimento registado!',
-          description: 'O movimento foi registado com sucesso e o stock foi atualizado.',
+          title: t('movements.registado.title'),
+          description: t('movements.registado.desc'),
         });
         navigate('/historico');
         return;
@@ -355,8 +342,8 @@ export default function NovoMovimento() {
       // Transferência / Saída flow
       if (isStockInsuficiente()) {
         toast({
-          title: 'Stock insuficiente',
-          description: `Não há stock suficiente para esta operação. Disponível: ${stockDisponivel}`,
+          title: t('movements.stockInsuficienteToastTitle'),
+          description: t('movements.stockInsuficienteToastDesc', { n: stockDisponivel }),
           variant: 'destructive',
         });
         setIsSubmitting(false);
@@ -365,7 +352,6 @@ export default function NovoMovimento() {
 
       const itemIdMm = selectedItem?.id_mm || '';
       const itemTipo = selectedItem?.tipo || '';
-      const itemParque = selectedItem?.parque || '';
 
       if (tipo === 'transferencia') {
         const destCodigo = locais?.find(l => l.id === localDestinoId)?.codigo || '';
@@ -377,9 +363,6 @@ export default function NovoMovimento() {
         if (updateErr) throw updateErr;
       }
 
-      // Create movement record FIRST (trigger updates stock).
-      // For "saida", only mark product as inactive AFTER the movement is successfully inserted,
-      // otherwise a failed insert would leave the product hidden without any movement/audit trail.
       const formData: MovimentoFormData = {
         tipo,
         tipo_documento: tipoDocumento,
@@ -408,8 +391,8 @@ export default function NovoMovimento() {
       }
 
       toast({
-        title: 'Movimento registado!',
-        description: 'O movimento foi registado com sucesso e o stock foi atualizado.',
+        title: t('movements.registado.title'),
+        description: t('movements.registado.desc'),
       });
       navigate('/historico');
 
@@ -421,7 +404,7 @@ export default function NovoMovimento() {
           : JSON.stringify(error);
       console.error('Erro ao registar movimento:', error);
       toast({
-        title: 'Erro ao registar movimento',
+        title: t('movements.erroRegistar'),
         description: msg,
         variant: 'destructive',
       });
@@ -439,7 +422,6 @@ export default function NovoMovimento() {
     setSelectedItem(null);
     setSearchProduto('');
 
-    // Reset entrada-specific fields
     if (newTipo === 'entrada') {
       setOrigemMaterial('adquirido');
       setTipoDocumento('guia_transporte');
@@ -459,20 +441,19 @@ export default function NovoMovimento() {
     }, 0);
   };
 
-  const formaLabel = (f: FormaProduto) => f === 'bloco' ? 'Bloco' : f === 'chapa' ? 'Chapa' : 'Ladrilho';
+  const formaLabel = (f: FormaProduto) => enumLabel('tipoProduto', f);
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold">Registar Movimento</h1>
-        <p className="text-muted-foreground">Preencha os dados do movimento passo a passo</p>
+        <h1 className="text-2xl font-bold">{t('movements.pageTitle')}</h1>
+        <p className="text-muted-foreground">{t('movements.pageSubtitle')}</p>
       </div>
 
       {/* Progress */}
       <div className="flex items-center justify-between overflow-x-auto pb-2">
         {STEPS.map((s, index) => {
-          // Skip step 4 visually for entrada
           if (tipo === 'entrada' && s.id === 4) return null;
           return (
             <div key={s.id} className="flex items-center">
@@ -516,7 +497,7 @@ export default function NovoMovimento() {
                 onClick={() => handleTipoChange('entrada')}
               >
                 <ArrowDownToLine className="w-8 h-8" />
-                <span>Entrada</span>
+                <span>{enumLabel('tipoMovimento', 'entrada')}</span>
               </Button>
               <Button
                 variant={tipo === 'transferencia' ? 'default' : 'outline'}
@@ -524,7 +505,7 @@ export default function NovoMovimento() {
                 onClick={() => handleTipoChange('transferencia')}
               >
                 <ArrowRightLeft className="w-8 h-8" />
-                <span>Transferência</span>
+                <span>{enumLabel('tipoMovimento', 'transferencia')}</span>
               </Button>
               <Button
                 variant={tipo === 'saida' ? 'default' : 'outline'}
@@ -532,7 +513,7 @@ export default function NovoMovimento() {
                 onClick={() => handleTipoChange('saida')}
               >
                 <Package className="w-8 h-8" />
-                <span>Saída</span>
+                <span>{enumLabel('tipoMovimento', 'saida')}</span>
               </Button>
             </div>
           )}
@@ -543,7 +524,7 @@ export default function NovoMovimento() {
               {tipo === 'entrada' && (
                 <>
                   <div className="space-y-3">
-                    <Label>Origem do Material <span className="text-destructive">*</span></Label>
+                    <Label>{t('movements.origemMaterial.label')} <span className="text-destructive">*</span></Label>
                     <RadioGroup
                       value={origemMaterial}
                       onValueChange={(v) => {
@@ -563,15 +544,15 @@ export default function NovoMovimento() {
                       <div className={`flex items-center space-x-2 border rounded-lg p-4 cursor-pointer hover:bg-muted/50 ${origemMaterial === 'adquirido' ? 'ring-2 ring-primary' : ''}`}>
                         <RadioGroupItem value="adquirido" id="adquirido" />
                         <Label htmlFor="adquirido" className="cursor-pointer flex-1">
-                          <span className="font-medium">Adquirido</span>
-                          <p className="text-sm text-muted-foreground">Material comprado a fornecedor</p>
+                          <span className="font-medium">{t('movements.origemMaterial.adquirido')}</span>
+                          <p className="text-sm text-muted-foreground">{t('movements.origemMaterial.adquiridoDesc')}</p>
                         </Label>
                       </div>
                       <div className={`flex items-center space-x-2 border rounded-lg p-4 cursor-pointer hover:bg-muted/50 ${origemMaterial === 'producao_propria' ? 'ring-2 ring-primary' : ''}`}>
                         <RadioGroupItem value="producao_propria" id="producao_propria" />
                         <Label htmlFor="producao_propria" className="cursor-pointer flex-1">
-                          <span className="font-medium">Produção Própria</span>
-                          <p className="text-sm text-muted-foreground">Material produzido internamente</p>
+                          <span className="font-medium">{t('movements.origemMaterial.producaoPropria')}</span>
+                          <p className="text-sm text-muted-foreground">{t('movements.origemMaterial.producaoPrpriaDesc')}</p>
                         </Label>
                       </div>
                     </RadioGroup>
@@ -579,10 +560,10 @@ export default function NovoMovimento() {
 
                   {origemMaterial === 'producao_propria' && (
                     <div className="space-y-2">
-                      <Label>Pedreira de Origem <span className="text-destructive">*</span></Label>
+                      <Label>{t('movements.pedreiraOrigem.label')} <span className="text-destructive">*</span></Label>
                       <Select value={pedreiraOrigem} onValueChange={setPedreiraOrigem}>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecione a pedreira" />
+                          <SelectValue placeholder={t('movements.pedreiraOrigem.placeholder')} />
                         </SelectTrigger>
                         <SelectContent>
                           {PEDREIRAS.map(p => (
@@ -591,7 +572,7 @@ export default function NovoMovimento() {
                         </SelectContent>
                       </Select>
                       <p className="text-sm text-muted-foreground">
-                        Documento: Sem documento (produção própria)
+                        {t('movements.origemMaterial.semDocumento')}
                       </p>
                     </div>
                   )}
@@ -599,31 +580,31 @@ export default function NovoMovimento() {
                   {origemMaterial === 'adquirido' && (
                     <>
                       <div className="space-y-2">
-                        <Label>Tipo de Documento <span className="text-destructive">*</span></Label>
+                        <Label>{t('movements.tipoDocumento')} <span className="text-destructive">*</span></Label>
                         <Select value={tipoDocumento} onValueChange={(v) => setTipoDocumento(v as TipoDocumento)}>
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="guia_transporte">Guia de Transporte</SelectItem>
-                            <SelectItem value="factura">Fatura</SelectItem>
+                            <SelectItem value="guia_transporte">{enumLabel('tipoDocumento', 'guia_transporte')}</SelectItem>
+                            <SelectItem value="factura">{enumLabel('tipoDocumento', 'factura')}</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
 
                       <div className="space-y-2">
-                        <Label>Número do Documento <span className="text-destructive">*</span></Label>
+                        <Label>{t('movements.numeroDocumento.label')} <span className="text-destructive">*</span></Label>
                         <Input
-                          placeholder="Ex: GT-2024/0001"
+                          placeholder={t('movements.numeroDocumento.placeholder')}
                           value={numeroDocumento}
                           onChange={(e) => setNumeroDocumento(e.target.value)}
                         />
                       </div>
 
                       <div className="space-y-2">
-                        <Label>Fornecedor</Label>
+                        <Label>{t('movements.fornecedor.label')}</Label>
                         <Input
-                          placeholder="Nome do fornecedor"
+                          placeholder={t('movements.fornecedor.placeholder')}
                           value={fornecedor}
                           onChange={(e) => setFornecedor(e.target.value)}
                         />
@@ -636,29 +617,29 @@ export default function NovoMovimento() {
               {(tipo === 'transferencia' || tipo === 'saida') && (
                 <>
                   <div className="space-y-2">
-                    <Label>Tipo de Documento <span className="text-destructive">*</span></Label>
+                    <Label>{t('movements.tipoDocumento')} <span className="text-destructive">*</span></Label>
                     <Select value={tipoDocumento} onValueChange={(v) => setTipoDocumento(v as TipoDocumento)}>
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="guia_transporte">Guia de Transporte</SelectItem>
-                        <SelectItem value="guia_transferencia">Guia de Transferência</SelectItem>
-                        <SelectItem value="factura">Fatura</SelectItem>
+                        <SelectItem value="guia_transporte">{enumLabel('tipoDocumento', 'guia_transporte')}</SelectItem>
+                        <SelectItem value="guia_transferencia">{enumLabel('tipoDocumento', 'guia_transferencia')}</SelectItem>
+                        <SelectItem value="factura">{enumLabel('tipoDocumento', 'factura')}</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Número do Documento <span className="text-destructive">*</span></Label>
+                    <Label>{t('movements.numeroDocumento.label')} <span className="text-destructive">*</span></Label>
                     <Input
-                      placeholder="Ex: GT-2024/0001"
+                      placeholder={t('movements.numeroDocumento.placeholder')}
                       value={numeroDocumento}
                       onChange={(e) => setNumeroDocumento(e.target.value)}
                     />
                     {!numeroDocumento.trim() && (
                       <p className="text-sm text-destructive">
-                        {tipo === 'saida' ? 'Indique o número do documento.' : 'Número do documento é obrigatório'}
+                        {tipo === 'saida' ? t('movements.numeroDocumento.requiredSaida') : t('movements.numeroDocumento.required')}
                       </p>
                     )}
                   </div>
@@ -667,45 +648,45 @@ export default function NovoMovimento() {
             </div>
           )}
 
-          {/* Step 3: Produto */}
+          {/* Step 3: Produto (entrada) */}
           {step === 3 && tipo === 'entrada' && (
             <div className="space-y-6">
               <div className="space-y-2">
-                <Label>Tipo de Produto <span className="text-destructive">*</span></Label>
+                <Label>{t('movements.tipoProduto')} <span className="text-destructive">*</span></Label>
                 <Select value={novoProdutoForma} onValueChange={(v) => setNovoProdutoForma(v as FormaProduto)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="bloco">Bloco</SelectItem>
-                    <SelectItem value="chapa">Chapa</SelectItem>
-                    <SelectItem value="ladrilho">Ladrilho</SelectItem>
+                    <SelectItem value="bloco">{enumLabel('tipoProduto', 'bloco')}</SelectItem>
+                    <SelectItem value="chapa">{enumLabel('tipoProduto', 'chapa')}</SelectItem>
+                    <SelectItem value="ladrilho">{enumLabel('tipoProduto', 'ladrilho')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="space-y-2">
-                <Label>ID MM <span className="text-destructive">*</span></Label>
+                <Label>{t('movements.idMM.label')} <span className="text-destructive">*</span></Label>
                 <Input
                   value={novoProdutoIdMM}
                   onChange={(e) => setNovoProdutoIdMM(e.target.value)}
-                  placeholder="Introduza o ID MM do produto"
+                  placeholder={t('movements.idMM.placeholder')}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label>Variedade</Label>
+                <Label>{t('movements.variedade.label')}</Label>
                 <Input
                   value={novoProdutoVariedade}
                   onChange={(e) => setNovoProdutoVariedade(e.target.value)}
-                  placeholder="Ex: Branco, Cinza..."
+                  placeholder={t('movements.variedade.placeholder')}
                 />
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 {(novoProdutoForma === 'bloco' || novoProdutoForma === 'ladrilho') && (
                   <div className="space-y-2">
-                    <Label>Comprimento (cm)</Label>
+                    <Label>{t('movements.comprimento')}</Label>
                     <Input
                       type="number"
                       value={novoProdutoComprimento}
@@ -715,7 +696,7 @@ export default function NovoMovimento() {
                   </div>
                 )}
                 <div className="space-y-2">
-                  <Label>Largura (cm)</Label>
+                  <Label>{t('movements.largura')}</Label>
                   <Input
                     type="number"
                     value={novoProdutoLargura}
@@ -724,7 +705,7 @@ export default function NovoMovimento() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Altura (cm)</Label>
+                  <Label>{t('movements.altura')}</Label>
                   <Input
                     type="number"
                     value={novoProdutoAltura}
@@ -734,7 +715,7 @@ export default function NovoMovimento() {
                 </div>
                 {novoProdutoForma === 'bloco' && (
                   <div className="space-y-2">
-                    <Label>Peso (kg)</Label>
+                    <Label>{t('movements.peso')}</Label>
                     <Input
                       type="number"
                       step="0.01"
@@ -746,25 +727,25 @@ export default function NovoMovimento() {
                 )}
                 {novoProdutoForma === 'chapa' && (
                   <div className="space-y-2">
-                    <Label>Nº de Chapas</Label>
+                    <Label>{t('movements.numChapas')}</Label>
                     <Input
                       type="number"
                       min={1}
                       value={novoProdutoNumChapas}
                       onChange={(e) => setNovoProdutoNumChapas(e.target.value ? Number(e.target.value) : '')}
-                      placeholder="Quantidade de chapas"
+                      placeholder={t('movements.numChapasFill')}
                     />
                   </div>
                 )}
                 {novoProdutoForma === 'ladrilho' && (
                   <div className="space-y-2">
-                    <Label>Nº de Peças</Label>
+                    <Label>{t('movements.numPecas')}</Label>
                     <Input
                       type="number"
                       min={1}
                       value={novoProdutoNumPecas}
                       onChange={(e) => setNovoProdutoNumPecas(e.target.value ? Number(e.target.value) : '')}
-                      placeholder="Quantidade de peças"
+                      placeholder={t('movements.numPecasFill')}
                     />
                   </div>
                 )}
@@ -773,33 +754,32 @@ export default function NovoMovimento() {
               {/* Photo upload fields */}
               {novoProdutoForma === 'bloco' && (
                 <div className="space-y-3">
-                  <Label className="text-base font-semibold">Fotografias</Label>
+                  <Label className="text-base font-semibold">{t('movements.fotografias')}</Label>
                   <div className="grid gap-3 sm:grid-cols-3">
-                    <div className="space-y-1">
-                      <Label className="text-sm">Foto 1</Label>
-                      <PhotoUploadField value={blocoFoto1} onChange={setBlocoFoto1} idMM={novoProdutoIdMM} fileLabel="foto1" />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-sm">Foto 2</Label>
-                      <PhotoUploadField value={blocoFoto2} onChange={setBlocoFoto2} idMM={novoProdutoIdMM} fileLabel="foto2" />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-sm">Foto 3</Label>
-                      <PhotoUploadField value={blocoFoto3} onChange={setBlocoFoto3} idMM={novoProdutoIdMM} fileLabel="foto3" />
-                    </div>
+                    {[1, 2, 3].map((n) => (
+                      <div key={n} className="space-y-1">
+                        <Label className="text-sm">{t('movements.fotoN', { n })}</Label>
+                        <PhotoUploadField
+                          value={n === 1 ? blocoFoto1 : n === 2 ? blocoFoto2 : blocoFoto3}
+                          onChange={n === 1 ? setBlocoFoto1 : n === 2 ? setBlocoFoto2 : setBlocoFoto3}
+                          idMM={novoProdutoIdMM}
+                          fileLabel={`foto${n}`}
+                        />
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
 
               {novoProdutoForma === 'chapa' && (
                 <div className="space-y-3">
-                  <Label className="text-base font-semibold">Fotografias das Pargas</Label>
+                  <Label className="text-base font-semibold">{t('movements.fotografiasPargas')}</Label>
                   {[1, 2, 3, 4].map((n) => (
                     <div key={n} className="space-y-2 border rounded-lg p-3">
-                      <Label className="text-sm font-medium">Parga {n}</Label>
+                      <Label className="text-sm font-medium">{t('production.parga', { n })}</Label>
                       <div className="grid gap-3 sm:grid-cols-2">
                         <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Foto Primeira</Label>
+                          <Label className="text-xs text-muted-foreground">{t('movements.fotoPrimeira')}</Label>
                           <PhotoUploadField
                             value={pargaFotos[n - 1].primeira}
                             onChange={(url) => {
@@ -812,7 +792,7 @@ export default function NovoMovimento() {
                           />
                         </div>
                         <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Foto Última</Label>
+                          <Label className="text-xs text-muted-foreground">{t('movements.fotoUltima')}</Label>
                           <PhotoUploadField
                             value={pargaFotos[n - 1].ultima}
                             onChange={(url) => {
@@ -832,28 +812,32 @@ export default function NovoMovimento() {
 
               {novoProdutoForma === 'ladrilho' && (
                 <div className="space-y-3">
-                  <Label className="text-base font-semibold">Fotografias</Label>
+                  <Label className="text-base font-semibold">{t('movements.fotografias')}</Label>
                   <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="space-y-1">
-                      <Label className="text-sm">Foto 1</Label>
-                      <PhotoUploadField value={ladrilhoFoto1} onChange={setLadrilhoFoto1} idMM={novoProdutoIdMM} fileLabel="foto1" />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-sm">Foto 2</Label>
-                      <PhotoUploadField value={ladrilhoFoto2} onChange={setLadrilhoFoto2} idMM={novoProdutoIdMM} fileLabel="foto2" />
-                    </div>
+                    {[1, 2].map((n) => (
+                      <div key={n} className="space-y-1">
+                        <Label className="text-sm">{t('movements.fotoN', { n })}</Label>
+                        <PhotoUploadField
+                          value={n === 1 ? ladrilhoFoto1 : ladrilhoFoto2}
+                          onChange={n === 1 ? setLadrilhoFoto1 : setLadrilhoFoto2}
+                          idMM={novoProdutoIdMM}
+                          fileLabel={`foto${n}`}
+                        />
+                      </div>
+                    ))}
                   </div>
                 </div>
               )}
+
               <div className="space-y-2">
-                <Label>Parque de Destino <span className="text-destructive">*</span></Label>
+                <Label>{t('movements.parqueDestino.label')} <span className="text-destructive">*</span></Label>
                 <Select
                   value={novoProdutoParqueDestinoId}
                   onValueChange={setNovoProdutoParqueDestinoId}
                   disabled={!isAdmin && !!userLocal}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione o parque" />
+                    <SelectValue placeholder={t('movements.parqueDestino.placeholder')} />
                   </SelectTrigger>
                   <SelectContent>
                     {locais?.map(l => (
@@ -863,13 +847,13 @@ export default function NovoMovimento() {
                 </Select>
                 {!isAdmin && userLocal && (
                   <p className="text-sm text-muted-foreground">
-                    Está associado ao parque: {userLocal.nome}
+                    {t('movements.parqueDestino.associado', { nome: userLocal.nome })}
                   </p>
                 )}
               </div>
 
               <div className="space-y-2">
-                <Label>Quantidade</Label>
+                <Label>{t('movements.quantidade')}</Label>
                 <Input
                   type="number"
                   min={1}
@@ -881,12 +865,13 @@ export default function NovoMovimento() {
             </div>
           )}
 
+          {/* Step 3: Produto (não entrada) */}
           {step === 3 && tipo !== 'entrada' && (
             <div className="space-y-6">
               <div className="space-y-2">
-                <Label>Pesquisar Produto (ID MM)</Label>
+                <Label>{t('movements.searchProduto.label')}</Label>
                 <Input
-                  placeholder="Digite o ID MM para pesquisar (mín. 2 caracteres)..."
+                  placeholder={t('movements.searchProduto.placeholder')}
                   value={searchProduto}
                   onChange={(e) => setSearchProduto(e.target.value)}
                 />
@@ -894,21 +879,21 @@ export default function NovoMovimento() {
 
               {inventarioResults && inventarioResults.length > 0 && (
                 <div className="space-y-2">
-                  <Label>Selecionar Produto</Label>
+                  <Label>{t('movements.selecionarProduto.label')}</Label>
                   <Select value={produtoId} onValueChange={(val) => {
                     setProdutoId(val);
                     const item = inventarioResults.find(r => r.id === val);
                     setSelectedItem(item || null);
                   }}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Escolha um produto" />
+                      <SelectValue placeholder={t('movements.selecionarProduto.placeholder')} />
                     </SelectTrigger>
                     <SelectContent>
                       {inventarioResults.map(item => (
                         <SelectItem key={item.id} value={item.id}>
                           <span className="font-mono">{item.id_mm}</span>
                           <span className="ml-2 text-muted-foreground">
-                            — {item.tipo === 'bloco' ? 'Bloco' : item.tipo === 'chapa' ? 'Chapa' : 'Ladrilho'}
+                            — {enumLabel('tipoProduto', item.tipo)}
                             {item.variedade ? ` (${item.variedade})` : ''}
                             {` — ${item.parque}`}
                           </span>
@@ -924,22 +909,22 @@ export default function NovoMovimento() {
                   <CardContent className="pt-4">
                     <div className="grid gap-2 text-sm">
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">ID MM:</span>
+                        <span className="text-muted-foreground">{t('movements.idMM.label')}:</span>
                         <span className="font-mono font-medium">{selectedItem.id_mm}</span>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Tipo:</span>
+                        <span className="text-muted-foreground">{t('movements.resumo.tipo')}</span>
                         <Badge variant="outline">
-                          {selectedItem.tipo === 'bloco' ? 'Bloco' : selectedItem.tipo === 'chapa' ? 'Chapa' : 'Ladrilho'}
+                          {enumLabel('tipoProduto', selectedItem.tipo)}
                         </Badge>
                       </div>
                       <div className="flex justify-between">
-                        <span className="text-muted-foreground">Parque:</span>
+                        <span className="text-muted-foreground">{t('movements.parque')}:</span>
                         <span>{selectedItem.parque}</span>
                       </div>
                       {selectedItem.variedade && (
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Variedade:</span>
+                          <span className="text-muted-foreground">{t('movements.variedade.label')}:</span>
                           <span>{selectedItem.variedade}</span>
                         </div>
                       )}
@@ -949,7 +934,7 @@ export default function NovoMovimento() {
               )}
 
               <div className="space-y-2">
-                <Label>Quantidade</Label>
+                <Label>{t('movements.quantidade')}</Label>
                 <Input
                   type="number"
                   min={1}
@@ -961,20 +946,20 @@ export default function NovoMovimento() {
             </div>
           )}
 
-          {/* Step 4: Locais (only for transferencia/saida) */}
+          {/* Step 4: Locais */}
           {step === 4 && (
             <div className="space-y-6">
               {tipo === 'transferencia' && (
                 <>
                   <div className="space-y-2">
-                    <Label>Parque de Origem</Label>
+                    <Label>{t('movements.parqueOrigem.label')}</Label>
                     <Select
                       value={localOrigemId}
                       onValueChange={setLocalOrigemId}
                       disabled={!isAdmin && !!userLocal}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Selecione o parque de origem" />
+                        <SelectValue placeholder={t('movements.parqueOrigem.placeholderOrigem')} />
                       </SelectTrigger>
                       <SelectContent>
                         {locais?.map(l => (
@@ -991,10 +976,10 @@ export default function NovoMovimento() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Parque de Destino</Label>
+                    <Label>{t('movements.parqueDestino.label')}</Label>
                     <Select value={localDestinoId} onValueChange={setLocalDestinoId}>
                       <SelectTrigger>
-                        <SelectValue placeholder="Selecione o parque de destino" />
+                        <SelectValue placeholder={t('movements.parqueOrigem.placeholderDestino')} />
                       </SelectTrigger>
                       <SelectContent>
                         {locais?.map(l => (
@@ -1010,8 +995,8 @@ export default function NovoMovimento() {
                     <Alert variant={isStockInsuficiente() ? 'destructive' : 'default'}>
                       <AlertCircle className="h-4 w-4" />
                       <AlertDescription>
-                        Stock disponível na origem: <strong>{stockDisponivel}</strong> unidades
-                        {isStockInsuficiente() && ' (insuficiente)'}
+                        {t('movements.stockDisponivelOrigem', { n: stockDisponivel })}
+                        {isStockInsuficiente() && ` ${t('movements.stockInsuficiente')}`}
                       </AlertDescription>
                     </Alert>
                   )}
@@ -1021,14 +1006,14 @@ export default function NovoMovimento() {
               {tipo === 'saida' && (
                 <>
                   <div className="space-y-2">
-                    <Label>Parque de Origem</Label>
+                    <Label>{t('movements.parqueOrigem.label')}</Label>
                     <Select
                       value={localOrigemId}
                       onValueChange={setLocalOrigemId}
                       disabled={!isAdmin && !!userLocal}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Selecione o parque" />
+                        <SelectValue placeholder={t('movements.parqueOrigem.placeholder')} />
                       </SelectTrigger>
                       <SelectContent>
                         {locais?.map(l => (
@@ -1042,21 +1027,21 @@ export default function NovoMovimento() {
                     <Alert variant={isStockInsuficiente() ? 'destructive' : 'default'}>
                       <AlertCircle className="h-4 w-4" />
                       <AlertDescription>
-                        Stock disponível: <strong>{stockDisponivel}</strong> unidades
-                        {isStockInsuficiente() && ' (insuficiente)'}
+                        {t('movements.stockDisponivel', { n: stockDisponivel })}
+                        {isStockInsuficiente() && ` ${t('movements.stockInsuficiente')}`}
                       </AlertDescription>
                     </Alert>
                   )}
 
                   <div className="space-y-2">
-                    <Label>Cliente <span className="text-destructive">*</span></Label>
+                    <Label>{t('movements.cliente.label')} <span className="text-destructive">*</span></Label>
                     <Input
-                      placeholder="Escreva o nome do cliente"
+                      placeholder={t('movements.cliente.placeholder')}
                       value={clienteNome}
                       onChange={(e) => setClienteNome(e.target.value)}
                     />
                     {!clienteNome.trim() && (
-                      <p className="text-sm text-destructive">Indique o nome do cliente.</p>
+                      <p className="text-sm text-destructive">{t('movements.cliente.required')}</p>
                     )}
                   </div>
                 </>
@@ -1068,18 +1053,18 @@ export default function NovoMovimento() {
           {step === 5 && (
             <div className="space-y-6">
               <div className="space-y-2">
-                <Label>Matrícula da Viatura (opcional)</Label>
+                <Label>{t('movements.matricula.label')}</Label>
                 <Input
-                  placeholder="Ex: 00-AA-00"
+                  placeholder={t('movements.matricula.placeholder')}
                   value={matriculaViatura}
                   onChange={(e) => setMatriculaViatura(e.target.value.toUpperCase())}
                 />
               </div>
 
               <div className="space-y-2">
-                <Label>Observações (opcional)</Label>
+                <Label>{t('movements.observacoes.label')}</Label>
                 <Textarea
-                  placeholder="Notas adicionais sobre o movimento..."
+                  placeholder={t('movements.observacoes.placeholder')}
                   value={observacoes}
                   onChange={(e) => setObservacoes(e.target.value)}
                   rows={4}
@@ -1092,48 +1077,48 @@ export default function NovoMovimento() {
           {step === 6 && (
             <div className="space-y-6">
               <div className="bg-muted rounded-lg p-4 space-y-4">
-                <h3 className="font-semibold text-lg">Resumo do Movimento</h3>
+                <h3 className="font-semibold text-lg">{t('movements.resumo.title')}</h3>
 
                 <div className="grid gap-3 text-sm">
                   <div className="flex justify-between py-2 border-b">
-                    <span className="text-muted-foreground">Tipo:</span>
+                    <span className="text-muted-foreground">{t('movements.resumo.tipo')}</span>
                     <Badge variant={tipo === 'entrada' ? 'default' : tipo === 'saida' ? 'secondary' : 'outline'}>
-                      {tipo === 'entrada' ? 'Entrada' : tipo === 'saida' ? 'Saída' : 'Transferência'}
+                      {enumLabel('tipoMovimento', tipo)}
                     </Badge>
                   </div>
 
                   <div className="flex justify-between py-2 border-b">
-                    <span className="text-muted-foreground">Produto:</span>
+                    <span className="text-muted-foreground">{t('movements.resumo.produto')}</span>
                     <span className="font-mono font-medium">
                       {tipo === 'entrada' ? `${novoProdutoIdMM} (${formaLabel(novoProdutoForma)})` : selectedItem?.id_mm}
                     </span>
                   </div>
 
                   <div className="flex justify-between py-2 border-b">
-                    <span className="text-muted-foreground">Quantidade:</span>
+                    <span className="text-muted-foreground">{t('movements.resumo.quantidade')}</span>
                     <span className="font-semibold">{quantidade}</span>
                   </div>
 
                   {tipo === 'entrada' && (
                     <>
                       <div className="flex justify-between py-2 border-b">
-                        <span className="text-muted-foreground">Origem Material:</span>
-                        <span>{origemMaterial === 'adquirido' ? 'Adquirido' : 'Produção Própria'}</span>
+                        <span className="text-muted-foreground">{t('movements.resumo.origemMaterial')}</span>
+                        <span>{origemMaterial === 'adquirido' ? t('movements.origemMaterial.adquirido') : t('movements.origemMaterial.producaoPropria')}</span>
                       </div>
                       {origemMaterial === 'producao_propria' && pedreiraOrigem && (
                         <div className="flex justify-between py-2 border-b">
-                          <span className="text-muted-foreground">Pedreira:</span>
+                          <span className="text-muted-foreground">{t('movements.resumo.pedreira')}</span>
                           <span>{pedreiraOrigem}</span>
                         </div>
                       )}
                       {origemMaterial === 'adquirido' && fornecedor && (
                         <div className="flex justify-between py-2 border-b">
-                          <span className="text-muted-foreground">Fornecedor:</span>
+                          <span className="text-muted-foreground">{t('movements.resumo.fornecedor')}</span>
                           <span>{fornecedor}</span>
                         </div>
                       )}
                       <div className="flex justify-between py-2 border-b">
-                        <span className="text-muted-foreground">Destino:</span>
+                        <span className="text-muted-foreground">{t('movements.resumo.destino')}</span>
                         <span>{selectedLocalDestino?.nome}</span>
                       </div>
                     </>
@@ -1141,7 +1126,7 @@ export default function NovoMovimento() {
 
                   {tipo === 'transferencia' && (
                     <div className="flex justify-between py-2 border-b">
-                      <span className="text-muted-foreground">Percurso:</span>
+                      <span className="text-muted-foreground">{t('movements.resumo.percurso')}</span>
                       <span>{selectedLocalOrigem?.nome} → {selectedLocalDestino?.nome}</span>
                     </div>
                   )}
@@ -1149,29 +1134,27 @@ export default function NovoMovimento() {
                   {tipo === 'saida' && (
                     <>
                       <div className="flex justify-between py-2 border-b">
-                        <span className="text-muted-foreground">Origem:</span>
+                        <span className="text-muted-foreground">{t('movements.resumo.origem')}</span>
                         <span>{selectedLocalOrigem?.nome}</span>
                       </div>
                       <div className="flex justify-between py-2 border-b">
-                        <span className="text-muted-foreground">Cliente:</span>
+                        <span className="text-muted-foreground">{t('movements.resumo.cliente')}</span>
                         <span>{clienteNome}</span>
                       </div>
                     </>
                   )}
 
                   <div className="flex justify-between py-2 border-b">
-                    <span className="text-muted-foreground">Documento:</span>
+                    <span className="text-muted-foreground">{t('movements.resumo.documento')}</span>
                     <span>
-                      {tipoDocumento === 'guia_transporte' ? 'Guia de Transporte' :
-                        tipoDocumento === 'guia_transferencia' ? 'Guia de Transferência' :
-                          tipoDocumento === 'factura' ? 'Fatura' : 'Sem Documento'}
+                      {enumLabel('tipoDocumento', tipoDocumento)}
                       {numeroDocumento && ` (${numeroDocumento})`}
                     </span>
                   </div>
 
                   {matriculaViatura && (
                     <div className="flex justify-between py-2 border-b">
-                      <span className="text-muted-foreground">Matrícula:</span>
+                      <span className="text-muted-foreground">{t('movements.resumo.matricula')}</span>
                       <span>{matriculaViatura}</span>
                     </div>
                   )}
@@ -1182,7 +1165,7 @@ export default function NovoMovimento() {
               <Alert>
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  <strong>Impacto no stock:</strong>
+                  <strong>{t('movements.resumo.stockImpacto')}</strong>
                   {tipo === 'entrada' && ` +${quantidade} em ${selectedLocalDestino?.nome}`}
                   {tipo === 'saida' && ` -${quantidade} em ${selectedLocalOrigem?.nome}`}
                   {tipo === 'transferencia' && ` -${quantidade} em ${selectedLocalOrigem?.nome}, +${quantidade} em ${selectedLocalDestino?.nome}`}
@@ -1193,7 +1176,7 @@ export default function NovoMovimento() {
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription>
-                    Stock insuficiente! Disponível: {stockDisponivel}
+                    {t('movements.stockInsuficienteAlert', { n: stockDisponivel })}
                   </AlertDescription>
                 </Alert>
               )}
@@ -1210,7 +1193,7 @@ export default function NovoMovimento() {
           className="gap-2"
         >
           <ArrowLeft className="w-4 h-4" />
-          {step === 1 ? 'Cancelar' : 'Anterior'}
+          {step === 1 ? t('movements.botaoCancelar') : t('actions.previous')}
         </Button>
 
         {step < 6 ? (
@@ -1219,7 +1202,7 @@ export default function NovoMovimento() {
             disabled={!canProceed()}
             className="gap-2"
           >
-            Seguinte
+            {t('movements.botaoSeguinte')}
             <ArrowRight className="w-4 h-4" />
           </Button>
         ) : (
@@ -1231,12 +1214,12 @@ export default function NovoMovimento() {
             {isSubmitting ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                A registar...
+                {t('movements.botaoRegistar')}
               </>
             ) : (
               <>
                 <Check className="w-4 h-4" />
-                Confirmar Movimento
+                {t('movements.botaoConfirmar')}
               </>
             )}
           </Button>

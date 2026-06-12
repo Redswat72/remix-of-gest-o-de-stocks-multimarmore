@@ -282,7 +282,8 @@
     "roleOperatorDesc": "Acesso básico à sua empresa",
     "roleAdminDesc": "Pode gerir utilizadores da sua empresa",
     "roleCommercialDesc": "Apenas consultas e valores do inventário",
-    "sendInvite": "Enviar Convite"
+    "sendInvite": "Enviar Convite",
+    "colUnit": "Unidade"
   },
   "movements": {
     "pageTitle": "Registar Movimento",
@@ -775,7 +776,11 @@
       "photoSample": "Foto Amostra",
       "pargaFirst": "Parga {{n}} - Primeira",
       "pargaLast": "Parga {{n}} - Última",
-      "pargaQtyLabel": "Qtd Parga {{n}}"
+      "pargaQtyLabel": "Qtd Parga {{n}}",
+      "yard": "Parque",
+      "variety": "Variedade",
+      "pargaLabel": "Parga {{n}}",
+      "weightKg": "Peso (kg)"
     },
     "edit": {
       "editBlock": "Editar Bloco",
@@ -897,7 +902,12 @@
       "hdHint": "Aponte a câmara do telemóvel para aceder à foto HD",
       "open": "Abrir",
       "idmm": "IDMM",
-      "type": "Tipo"
+      "type": "Tipo",
+      "copyLink": "Copiar link",
+      "openNewWindow": "Abrir em nova janela",
+      "viewQrCode": "Ver QR Code",
+      "labelHdPhotos": "Fotos HD",
+      "labelProduct": "Produto"
     },
     "card": {
       "deleteTitle": "Eliminar Produto",
@@ -939,7 +949,29 @@
       "errorTitle": "Erro",
       "errorDesc": "Ocorreu um erro ao atualizar o produto.",
       "geolocationUnsupported": "Geolocalização não suportada pelo navegador",
-      "geolocationError": "Não foi possível obter a localização"
+      "geolocationError": "Não foi possível obter a localização",
+      "idmmPlaceholder": "Ex: BL-001",
+      "selectYardPlaceholder": "Selecionar parque...",
+      "linePlaceholder": "Ex: A1, B2, C3",
+      "stonetypePlaceholder": "Ex: Mármore Branco",
+      "commercialNamePlaceholder": "Ex: Estremoz Clássico",
+      "blockOriginPlaceholder": "Ex: Portugal, Brasil, Espanha",
+      "finishPlaceholder": "Ex: Polido, Amaciado",
+      "latitude": "Latitude",
+      "latitudePlaceholder": "-90 a 90",
+      "longitude": "Longitude",
+      "longitudePlaceholder": "-180 a 180",
+      "validation": {
+        "idmmRequired": "IDMM é obrigatório",
+        "max50": "Máximo 50 caracteres",
+        "max100": "Máximo 100 caracteres",
+        "max500": "Máximo 500 caracteres",
+        "mustBePositive": "Deve ser positivo",
+        "notNegative": "Não pode ser negativo",
+        "weightRequiredForBlocks": "Peso em toneladas é obrigatório para blocos",
+        "valuationRequired": "Valorização é obrigatória",
+        "atLeastOneParga": "Pelo menos uma parga deve ter quantidade > 0"
+      }
     },
     "parga": {
       "distribution": "Distribuição por Pargas",
@@ -961,7 +993,8 @@
       "uploadSuccess1": "Foto da 1ª chapa carregada",
       "uploadSuccess2": "Foto da última chapa carregada",
       "uploadError": "Upload falhou: não foi possível guardar no armazenamento (verifique o bucket \"produtos\" e permissões).",
-      "weightTon": "Peso (ton)"
+      "weightTon": "Peso (ton)",
+      "cardTitle": "Parga {{n}}"
     },
     "fotos": {
       "operacional": "Operacionais",
@@ -980,7 +1013,15 @@
       "uploadFailedDesc": "Não foi possível guardar a imagem. Verifique se o bucket \"{{bucket}}\" existe no Supabase externo e tem políticas de INSERT para utilizadores autenticados.",
       "uploadError": "❌ Erro no upload",
       "saved": "Guardada",
-      "watermarkApplied": "Watermark aplicado"
+      "watermarkApplied": "Watermark aplicado",
+      "sideA": "Lado A",
+      "sideB": "Lado B",
+      "sideC": "Lado C",
+      "sideD": "Lado D",
+      "confirmUpload": "Confirmar upload",
+      "removePhoto": "Remover foto",
+      "fotoSlotLabel": "Foto {{n}}",
+      "hdSlotLabel": "HD {{n}}"
     },
     "qrcode": {
       "title": "QR Code do Produto",
@@ -995,6 +1036,20 @@
       "copySuccessDesc": "URL do produto copiada para a área de transferência.",
       "copyError": "Não foi possível copiar o link.",
       "cardTitle": "QR Code"
+    },
+    "variedade": "Variedade",
+    "variety": "Variedade",
+    "qr": {
+      "downloaded": "QR Code descarregado",
+      "downloadedDesc": "Ficheiro {{filename}} guardado.",
+      "downloadError": "Não foi possível descarregar o QR Code.",
+      "linkCopied": "Link copiado",
+      "linkCopiedDesc": "URL do produto copiada para a área de transferência.",
+      "linkCopyError": "Não foi possível copiar o link.",
+      "title": "QR Code do Produto",
+      "hint": "Aponte a câmara do telemóvel para aceder à ficha do produto",
+      "hintShort": "Aponte a câmara para aceder à ficha",
+      "download": "Descarregar"
     }
   },
   "dashboard": {
