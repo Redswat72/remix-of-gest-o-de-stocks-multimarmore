@@ -312,19 +312,19 @@ export function ProdutoFotos({
         }
         
         toast({
-          title: '✅ Foto guardada',
-          description: 'A imagem foi carregada com sucesso para o armazenamento.',
+          title: t('products.fotos.savedToast'),
+          description: t('products.fotos.savedToastDesc'),
         });
       } else {
         // Upload falhou (ex: bucket não existe, permissões, etc.)
         console.error('[ProdutoFotos] Upload returned null - bucket ou permissões em falta');
         toast({
-          title: '❌ Upload falhou',
-          description:
-            `Não foi possível guardar a imagem. Verifique se o bucket "${isHd ? 'produtos_hd' : 'produtos'}" existe no Supabase externo e tem políticas de INSERT para utilizadores autenticados.`,
+          title: t('products.fotos.uploadFailed'),
+          description: t('products.fotos.uploadFailedDesc', { bucket: isHd ? 'produtos_hd' : 'produtos' }),
           variant: 'destructive',
           duration: 8000,
         });
+
         // Reverter para estado anterior - NÃO manter preview
         setter(prev => {
           const newFotos = [...prev];
@@ -339,10 +339,10 @@ export function ProdutoFotos({
         });
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erro desconhecido';
+      const errorMessage = err instanceof Error ? err.message : t('products.fotos.unknownError');
       console.error('[ProdutoFotos] Upload error:', errorMessage, err);
       toast({
-        title: '❌ Erro no upload',
+        title: t('products.fotos.uploadError'),
         description: errorMessage,
         variant: 'destructive',
         duration: 8000,
@@ -469,7 +469,7 @@ export function ProdutoFotos({
                     {/* Indicador de watermark pendente */}
                     {isHd && isPending && foto.previewWithWatermark && (
                       <Badge variant="outline" className="absolute bottom-2 left-2 bg-background/80 text-xs">
-                        Watermark aplicado
+                        {t('products.fotos.watermarkApplied')}
                       </Badge>
                     )}
                     
@@ -490,7 +490,7 @@ export function ProdutoFotos({
                           variant="outline"
                           onClick={() => handleCancelPreview(index, isHd)}
                           className="h-12 w-12 border-destructive/50 hover:bg-destructive/10"
-                          title="Cancelar"
+                          title={t('products.fotos.cancel')}
                         >
                           <RotateCcw className="w-5 h-5 text-destructive" />
                         </Button>
@@ -500,7 +500,7 @@ export function ProdutoFotos({
                           size="icon"
                           onClick={() => handleConfirmUpload(index, isHd)}
                           className="h-12 w-12 bg-primary hover:bg-primary/90"
-                          title="Confirmar upload"
+                          title={t('products.fotos.confirmUpload')}
                         >
                           <Check className="w-5 h-5" />
                         </Button>
@@ -514,7 +514,7 @@ export function ProdutoFotos({
                         {isUploaded && (
                           <div className="absolute bottom-2 right-2 flex items-center gap-1 bg-success text-success-foreground rounded-full px-2 py-0.5 text-xs font-medium shadow-md">
                             <Check className="w-3 h-3" />
-                            Guardada
+                            {t('products.fotos.saved')}
                           </div>
                         )}
                         <Button
@@ -523,7 +523,7 @@ export function ProdutoFotos({
                           variant="destructive"
                           className="absolute top-2 right-2 h-8 w-8"
                           onClick={() => handleRemoveFoto(index, isHd)}
-                          title="Remover foto"
+                          title={t('products.fotos.removePhoto')}
                         >
                           <X className="w-4 h-4" />
                         </Button>
