@@ -1,14 +1,20 @@
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
 import { Sidebar } from './Sidebar';
 import { MobileNav } from './MobileNav';
 import { Header } from './Header';
 import { UpdateBanner } from '@/components/pwa/UpdateBanner';
+import { applyAppLanguage } from '@/lib/appLanguage';
 
 interface AppLayoutProps {
   children: ReactNode;
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
+  // Restaura o idioma da app interna ao montar (independente da loja pública).
+  useEffect(() => {
+    applyAppLanguage();
+  }, []);
+
   return (
     <div className="flex min-h-screen bg-background">
       {/* Sidebar - Desktop only */}

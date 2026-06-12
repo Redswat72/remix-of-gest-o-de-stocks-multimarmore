@@ -156,6 +156,15 @@ export function LanguageSelector() {
   const { i18n } = useTranslation();
   const current = resolveLang(i18n.language ?? 'pt');
 
+  const handleChange = (code: string) => {
+    void i18n.changeLanguage(code);
+    try {
+      localStorage.setItem('store-language', code);
+    } catch {
+      // ignore
+    }
+  };
+
   return (
     <div className="flex items-center gap-1 flex-wrap">
       {LANGS.map((code) => {
@@ -166,7 +175,7 @@ export function LanguageSelector() {
             key={code}
             variant="ghost"
             size="sm"
-            onClick={() => i18n.changeLanguage(code)}
+            onClick={() => handleChange(code)}
             className={`px-1.5 py-1 h-7 rounded-lg transition-all flex items-center gap-1 ${
               isActive
                 ? 'bg-[rgba(30,87,153,0.2)] ring-1 ring-[rgba(30,87,153,0.4)]'

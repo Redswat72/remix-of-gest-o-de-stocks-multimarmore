@@ -16,11 +16,16 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
+import { useAppT } from '@/hooks/useAppT';
+import { AppLanguageSelector } from '@/components/AppLanguageSelector';
+import { useEnumLabel } from '@/lib/enumLabels';
 
 export function Header() {
   const { profile, roles, signOut, userLocal } = useAuth();
   const { theme, setTheme, resolvedTheme } = useTheme();
   const { empresaConfig } = useEmpresa();
+  const t = useAppT();
+  const enumLabel = useEnumLabel();
 
   const getInitials = (nome: string) => {
     return nome
@@ -31,27 +36,22 @@ export function Header() {
       .toUpperCase();
   };
 
-  const getRoleBadge = () => {
-    if (roles.includes('superadmin')) {
-      return { label: 'Superadmin', className: 'badge-superadmin' };
-    }
-    if (roles.includes('admin')) {
-      return { label: 'Admin', className: 'badge-admin' };
-    }
-    return { label: 'Operador', className: 'badge-operador' };
+  const getRoleInfo = () => {
+    if (roles.includes('superadmin')) return { value: 'superadmin', className: 'badge-superadmin' };
+    if (roles.includes('admin')) return { value: 'admin', className: 'badge-admin' };
+    if (roles.includes('area_comercial')) return { value: 'area_comercial', className: 'badge-admin' };
+    return { value: 'operador', className: 'badge-operador' };
   };
 
-  const roleBadge = getRoleBadge();
+  const roleInfo = getRoleInfo();
 
   const forceRefresh = async () => {
     try {
-      toast.loading('A limpar cache e atualizar...', { id: 'force-refresh' });
-      // Unregister all service workers
+      toast.loading(t('header.refreshLoading'), { id: 'force-refresh' });
       if ('serviceWorker' in navigator) {
         const regs = await navigator.serviceWorker.getRegistrations();
         await Promise.all(regs.map((r) => r.unregister()));
       }
-      // Clear all caches
       if ('caches' in window) {
         const keys = await caches.keys();
         await Promise.all(keys.map((k) => caches.delete(k)));
@@ -59,7 +59,6 @@ export function Header() {
     } catch (e) {
       console.error('Erro ao limpar cache:', e);
     } finally {
-      // Hard reload bypassing cache
       const url = new URL(window.location.href);
       url.searchParams.set('_t', Date.now().toString());
       window.location.replace(url.toString());
@@ -71,9 +70,9 @@ export function Header() {
       {/* Mobile Logo */}
       <div className="flex items-center gap-2 lg:hidden">
         <Link to="/">
-          <img 
-            src={empresaConfig?.logo} 
-            alt={empresaConfig?.nome ?? 'Empresa'} 
+          <img
+            src={empresaConfig?.logo}
+            alt={empresaConfig?.nome ?? 'Empresa'}
             className="h-9 w-auto object-contain"
           />
         </Link>
@@ -85,7 +84,7 @@ export function Header() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Pesquisar produtos, clientes..."
+            placeholder={t('header.searchPlaceholder')}
             className="pl-9 bg-muted/50 border-transparent focus:border-border focus:bg-background"
           />
         </div>
@@ -100,42 +99,41 @@ export function Header() {
           </Badge>
         )}
 
+        {/* Language selector */}
+        <AppLanguageSelector />
+
         {/* Theme Toggle */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-              {resolvedTheme === 'dark' ? (
-                <Moon className="w-5 h-5" />
-              ) : (
-                <Sun className="w-5 h-5" />
-              )}
+              {resolvedTheme === 'dark' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => setTheme('light')} className="gap-2">
               <Sun className="w-4 h-4" />
-              Claro
+              {t('header.themeLight')}
               {theme === 'light' && <span className="ml-auto text-primary">✓</span>}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setTheme('dark')} className="gap-2">
               <Moon className="w-4 h-4" />
-              Escuro
+              {t('header.themeDark')}
               {theme === 'dark' && <span className="ml-auto text-primary">✓</span>}
             </DropdownMenuItem>
             <DropdownMenuItem onClick={() => setTheme('system')} className="gap-2">
               <Monitor className="w-4 h-4" />
-              Sistema
+              {t('header.themeSystem')}
               {theme === 'system' && <span className="ml-auto text-primary">✓</span>}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
 
-        {/* Force Refresh / Update App */}
+        {/* Force Refresh */}
         <Button
           variant="ghost"
           size="icon"
           onClick={forceRefresh}
-          title="Atualizar app (limpar cache)"
+          title={t('header.refreshTitle')}
           className="text-muted-foreground hover:text-foreground"
         >
           <RefreshCw className="w-5 h-5" />
@@ -153,9 +151,9 @@ export function Header() {
             <Button variant="ghost" className="relative h-10 w-10 rounded-full">
               <Avatar className="h-10 w-10 border-2 border-border">
                 {(profile as { avatar_url?: string })?.avatar_url && (
-                  <AvatarImage 
-                    src={(profile as { avatar_url?: string }).avatar_url!} 
-                    alt={profile?.nome || 'Avatar'} 
+                  <AvatarImage
+                    src={(profile as { avatar_url?: string }).avatar_url!}
+                    alt={profile?.nome || 'Avatar'}
                   />
                 )}
                 <AvatarFallback className="bg-primary/10 text-primary font-semibold">
@@ -169,21 +167,21 @@ export function Header() {
               <div className="flex flex-col space-y-1">
                 <p className="text-sm font-medium text-foreground">{profile?.nome}</p>
                 <p className="text-xs text-muted-foreground">{profile?.email}</p>
-                <Badge variant="outline" className={`w-fit mt-1 ${roleBadge.className}`}>
-                  {roleBadge.label}
+                <Badge variant="outline" className={`w-fit mt-1 ${roleInfo.className}`}>
+                  {enumLabel('role', roleInfo.value)}
                 </Badge>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem asChild>
               <Link to="/perfil" className="flex items-center cursor-pointer">
-                <span>O Meu Perfil</span>
+                <span>{t('header.myProfile')}</span>
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={signOut} className="text-destructive focus:text-destructive focus:bg-destructive/10">
               <LogOut className="mr-2 h-4 w-4" />
-              <span>Sair</span>
+              <span>{t('header.logout')}</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

@@ -26,10 +26,11 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { useEmpresa, Empresa } from '@/context/EmpresaContext';
 import { useState } from 'react';
+import { useAppT } from '@/hooks/useAppT';
 
 interface NavItem {
   href: string;
-  label: string;
+  labelKey: string;
   icon: React.ComponentType<{ className?: string }>;
   adminOnly?: boolean;
   superadminOnly?: boolean;
@@ -38,21 +39,21 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/blocos', label: 'Blocos', icon: Package },
-  { href: '/chapas', label: 'Chapas', icon: Grid3x3 },
-  { href: '/ladrilho', label: 'Ladrilho', icon: Square },
-  { href: '/bandas', label: 'Bandas', icon: Layers },
-  { href: '/producao', label: 'Produção', icon: Scissors, producaoOnly: true },
-  { href: '/stock', label: 'Consultar Stock', icon: Boxes },
-  { href: '/movimento/novo', label: 'Registar Movimento', icon: PlusCircle, operadorOnly: true },
-  { href: '/historico', label: 'Histórico', icon: History },
-  { href: '/produtos', label: 'Produtos', icon: Boxes },
-  { href: '/clientes', label: 'Clientes', icon: Users, adminOnly: true },
-  { href: '/superadmin', label: 'Superadmin', icon: MapPin, superadminOnly: true },
-  { href: '/importar-stock', label: 'Importar Excel', icon: FileSpreadsheet, superadminOnly: true },
-  { href: '/auditoria', label: 'Auditoria', icon: ClipboardList, superadminOnly: true },
-  { href: '/configuracoes', label: 'Configurações', icon: Settings },
+  { href: '/', labelKey: 'nav.dashboard', icon: LayoutDashboard },
+  { href: '/blocos', labelKey: 'nav.blocos', icon: Package },
+  { href: '/chapas', labelKey: 'nav.chapas', icon: Grid3x3 },
+  { href: '/ladrilho', labelKey: 'nav.ladrilho', icon: Square },
+  { href: '/bandas', labelKey: 'nav.bandas', icon: Layers },
+  { href: '/producao', labelKey: 'nav.producao', icon: Scissors, producaoOnly: true },
+  { href: '/stock', labelKey: 'nav.consultarStock', icon: Boxes },
+  { href: '/movimento/novo', labelKey: 'nav.registarMovimento', icon: PlusCircle, operadorOnly: true },
+  { href: '/historico', labelKey: 'nav.historico', icon: History },
+  { href: '/produtos', labelKey: 'nav.produtos', icon: Boxes },
+  { href: '/clientes', labelKey: 'nav.clientes', icon: Users, adminOnly: true },
+  { href: '/superadmin', labelKey: 'nav.superadmin', icon: MapPin, superadminOnly: true },
+  { href: '/importar-stock', labelKey: 'nav.importarExcel', icon: FileSpreadsheet, superadminOnly: true },
+  { href: '/auditoria', labelKey: 'nav.auditoria', icon: ClipboardList, superadminOnly: true },
+  { href: '/configuracoes', labelKey: 'nav.configuracoes', icon: Settings },
 ];
 
 export function Sidebar() {
@@ -61,6 +62,7 @@ export function Sidebar() {
   const { profile, isAdmin, isSuperadmin, hasRole, podeVerProducao, signOut } = useAuth();
   const { empresaConfig } = useEmpresa();
   const [collapsed, setCollapsed] = useState(false);
+  const t = useAppT();
 
   const filteredItems = navItems.filter((item) => {
     if (item.superadminOnly && !isSuperadmin) return false;
@@ -83,7 +85,7 @@ export function Sidebar() {
           <button
             onClick={() => navigate('/selecionar-empresa')}
             className="flex items-center gap-2 hover:opacity-80 transition-opacity min-w-0"
-            title="Trocar empresa"
+            title={t('nav.trocarEmpresa')}
           >
             <img
               src={empresaConfig?.logo}
@@ -98,7 +100,7 @@ export function Sidebar() {
               onClick={() => navigate('/selecionar-empresa')}
               className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-sm hover:opacity-80 transition-opacity"
               style={{ backgroundColor: empresaConfig?.cor ?? '#1a56db' }}
-              title={empresaConfig?.nome ?? 'Trocar empresa'}
+              title={empresaConfig?.nome ?? t('nav.trocarEmpresa')}
             >
               {empresaConfig?.nome?.substring(0, 2).toUpperCase() ?? 'MM'}
             </button>
@@ -120,6 +122,7 @@ export function Sidebar() {
           {filteredItems.map((item) => {
             const Icon = item.icon;
             const isActive = location.pathname === item.href;
+            const label = t(item.labelKey);
 
             return (
               <li key={item.href}>
@@ -132,11 +135,11 @@ export function Sidebar() {
                       : 'text-foreground/70 hover:bg-muted hover:text-foreground',
                     collapsed && 'justify-center px-2'
                   )}
-                  title={collapsed ? item.label : undefined}
+                  title={collapsed ? label : undefined}
                 >
                   <Icon className={cn("w-5 h-5 flex-shrink-0", isActive && "text-primary-foreground")} />
                   {!collapsed && (
-                    <span className="font-medium text-sm">{item.label}</span>
+                    <span className="font-medium text-sm">{label}</span>
                   )}
                 </Link>
               </li>
@@ -147,35 +150,38 @@ export function Sidebar() {
         {/* Store Links */}
         {isAdmin && <div className="mt-4 pt-4 border-t border-border px-2">
           {!collapsed && (
-            <p className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Lojas</p>
+            <p className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('nav.lojas')}</p>
           )}
           <ul className="space-y-1">
             {[
-              { slug: 'multimarmore', label: 'Loja Multimarmore' },
-              { slug: 'magratex', label: 'Loja Magratex' },
-            ].map((store) => (
-              <li key={store.slug}>
-                <a
-                  href={`/loja/${store.slug}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className={cn(
-                    'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200',
-                    'text-foreground/70 hover:bg-muted hover:text-foreground',
-                    collapsed && 'justify-center px-2'
-                  )}
-                  title={collapsed ? store.label : undefined}
-                >
-                  <Store className="w-5 h-5 flex-shrink-0" />
-                  {!collapsed && (
-                    <>
-                      <span className="font-medium text-sm flex-1">{store.label}</span>
-                      <ExternalLink className="w-3.5 h-3.5 text-muted-foreground" />
-                    </>
-                  )}
-                </a>
-              </li>
-            ))}
+              { slug: 'multimarmore', labelKey: 'nav.lojaMultimarmore' },
+              { slug: 'magratex', labelKey: 'nav.lojaMagratex' },
+            ].map((store) => {
+              const storeLabel = t(store.labelKey);
+              return (
+                <li key={store.slug}>
+                  <a
+                    href={`/loja/${store.slug}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={cn(
+                      'flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200',
+                      'text-foreground/70 hover:bg-muted hover:text-foreground',
+                      collapsed && 'justify-center px-2'
+                    )}
+                    title={collapsed ? storeLabel : undefined}
+                  >
+                    <Store className="w-5 h-5 flex-shrink-0" />
+                    {!collapsed && (
+                      <>
+                        <span className="font-medium text-sm flex-1">{storeLabel}</span>
+                        <ExternalLink className="w-3.5 h-3.5 text-muted-foreground" />
+                      </>
+                    )}
+                  </a>
+                </li>
+              );
+            })}
           </ul>
         </div>}
       </nav>
@@ -198,10 +204,10 @@ export function Sidebar() {
             'text-muted-foreground hover:text-destructive hover:bg-destructive/10',
             !collapsed && 'w-full justify-start'
           )}
-          title={collapsed ? 'Sair' : undefined}
+          title={collapsed ? t('nav.sair') : undefined}
         >
           <LogOut className="w-5 h-5" />
-          {!collapsed && <span className="ml-2">Sair</span>}
+          {!collapsed && <span className="ml-2">{t('nav.sair')}</span>}
         </Button>
       </div>
     </aside>
