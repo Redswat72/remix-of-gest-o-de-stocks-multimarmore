@@ -4,6 +4,7 @@ import { Pencil, Upload, X, Loader2, Image as ImageIcon, Trash2, Camera, Lock } 
 import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { useAuth } from '@/hooks/useAuth';
+import { useAppT } from '@/hooks/useAppT';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,14 +22,14 @@ interface PhotoSlot {
   currentUrl: string | null;
 }
 
-function getPhotoSlots(forma: FormaInventario, data: Bloco | Chapa | Ladrilho): PhotoSlot[] {
+function getPhotoSlots(forma: FormaInventario, data: Bloco | Chapa | Ladrilho, t: (key: string, opts?: any) => string): PhotoSlot[] {
   if (forma === 'bloco') {
     const d = data as Bloco;
     return [
-      { label: 'Foto 1', field: 'foto1_url', currentUrl: d.foto1_url },
-      { label: 'Foto 2', field: 'foto2_url', currentUrl: d.foto2_url },
-      { label: 'Foto 3', field: 'foto3_url', currentUrl: d.foto3_url },
-      { label: 'Foto 4', field: 'foto4_url', currentUrl: d.foto4_url },
+      { label: t('movements.fotoN', { n: 1 }), field: 'foto1_url', currentUrl: d.foto1_url },
+      { label: t('movements.fotoN', { n: 2 }), field: 'foto2_url', currentUrl: d.foto2_url },
+      { label: t('movements.fotoN', { n: 3 }), field: 'foto3_url', currentUrl: d.foto3_url },
+      { label: t('movements.fotoN', { n: 4 }), field: 'foto4_url', currentUrl: d.foto4_url },
     ];
   }
   if (forma === 'chapa') {
@@ -38,12 +39,12 @@ function getPhotoSlots(forma: FormaInventario, data: Bloco | Chapa | Ladrilho): 
       const nome = d[`parga${i}_nome` as keyof Chapa] as string | null;
       if (nome || i <= 2) {
         slots.push({
-          label: `Parga ${i} - Primeira`,
+          label: t('inventory.detail.pargaFirst', { n: i }),
           field: `parga${i}_foto_primeira`,
           currentUrl: d[`parga${i}_foto_primeira` as keyof Chapa] as string | null,
         });
         slots.push({
-          label: `Parga ${i} - Última`,
+          label: t('inventory.detail.pargaLast', { n: i }),
           field: `parga${i}_foto_ultima`,
           currentUrl: d[`parga${i}_foto_ultima` as keyof Chapa] as string | null,
         });
@@ -51,49 +52,48 @@ function getPhotoSlots(forma: FormaInventario, data: Bloco | Chapa | Ladrilho): 
     }
     return slots;
   }
-  // ladrilho
   const d = data as Ladrilho;
   return [
-    { label: 'Foto Amostra', field: 'foto_amostra_url', currentUrl: d.foto_amostra_url },
+    { label: t('inventory.detail.photoSample'), field: 'foto_amostra_url', currentUrl: d.foto_amostra_url },
   ];
 }
 
 type EditableField = { label: string; field: string; value: string | number | null; type: 'text' | 'number'; operadorEditable?: boolean };
 
-function getEditableFields(forma: FormaInventario, data: Bloco | Chapa | Ladrilho): EditableField[] {
+function getEditableFields(forma: FormaInventario, data: Bloco | Chapa | Ladrilho, t: (key: string) => string): EditableField[] {
   if (forma === 'bloco') {
     const d = data as Bloco;
     return [
-      { label: 'Variedade', field: 'variedade', value: d.variedade, type: 'text' },
-      { label: 'Parque', field: 'parque', value: d.parque, type: 'text' },
-      { label: 'Origem', field: 'bloco_origem', value: d.bloco_origem, type: 'text' },
-      { label: 'Fornecedor', field: 'fornecedor', value: d.fornecedor, type: 'text' },
-      { label: 'Comprimento (cm)', field: 'comprimento', value: d.comprimento, type: 'number', operadorEditable: true },
-      { label: 'Largura (cm)', field: 'largura', value: d.largura, type: 'number', operadorEditable: true },
-      { label: 'Altura (cm)', field: 'altura', value: d.altura, type: 'number', operadorEditable: true },
-      { label: 'Peso (kg)', field: 'quantidade_kg', value: d.quantidade_kg, type: 'number', operadorEditable: true },
-      { label: 'Preço/kg', field: 'preco_unitario', value: d.preco_unitario, type: 'number' },
+      { label: t('inventory.edit.fields.variety'), field: 'variedade', value: d.variedade, type: 'text' },
+      { label: t('inventory.edit.fields.yard'), field: 'parque', value: d.parque, type: 'text' },
+      { label: t('inventory.edit.fields.origin'), field: 'bloco_origem', value: d.bloco_origem, type: 'text' },
+      { label: t('inventory.edit.fields.supplier'), field: 'fornecedor', value: d.fornecedor, type: 'text' },
+      { label: t('inventory.edit.fields.lengthCm'), field: 'comprimento', value: d.comprimento, type: 'number', operadorEditable: true },
+      { label: t('inventory.edit.fields.widthCm'), field: 'largura', value: d.largura, type: 'number', operadorEditable: true },
+      { label: t('inventory.edit.fields.heightCm'), field: 'altura', value: d.altura, type: 'number', operadorEditable: true },
+      { label: t('inventory.edit.fields.weightKg'), field: 'quantidade_kg', value: d.quantidade_kg, type: 'number', operadorEditable: true },
+      { label: t('inventory.edit.fields.pricePerKg'), field: 'preco_unitario', value: d.preco_unitario, type: 'number' },
     ];
   }
   if (forma === 'chapa') {
     const d = data as Chapa;
     return [
-      { label: 'Variedade', field: 'variedade', value: d.variedade, type: 'text' },
-      { label: 'Parque', field: 'parque', value: d.parque, type: 'text' },
-      { label: 'Bundle ID', field: 'bundle_id', value: d.bundle_id, type: 'text' },
-      { label: 'Nº Chapas', field: 'num_chapas', value: d.num_chapas, type: 'number' },
-      { label: 'Área (m²)', field: 'quantidade_m2', value: d.quantidade_m2, type: 'number' },
-      { label: 'Preço/m²', field: 'preco_unitario', value: d.preco_unitario, type: 'number' },
+      { label: t('inventory.edit.fields.variety'), field: 'variedade', value: d.variedade, type: 'text' },
+      { label: t('inventory.edit.fields.yard'), field: 'parque', value: d.parque, type: 'text' },
+      { label: t('inventory.edit.fields.bundleId'), field: 'bundle_id', value: d.bundle_id, type: 'text' },
+      { label: t('inventory.edit.fields.numSlabs'), field: 'num_chapas', value: d.num_chapas, type: 'number' },
+      { label: t('inventory.edit.fields.areaM2'), field: 'quantidade_m2', value: d.quantidade_m2, type: 'number' },
+      { label: t('inventory.edit.fields.pricePerM2'), field: 'preco_unitario', value: d.preco_unitario, type: 'number' },
     ];
   }
   const d = data as Ladrilho;
   return [
-    { label: 'Variedade', field: 'variedade', value: d.variedade, type: 'text' },
-    { label: 'Parque', field: 'parque', value: d.parque, type: 'text' },
-    { label: 'Dimensões', field: 'dimensoes', value: d.dimensoes, type: 'text' },
-    { label: 'Nº Peças', field: 'num_pecas', value: d.num_pecas, type: 'number' },
-    { label: 'Área (m²)', field: 'quantidade_m2', value: d.quantidade_m2, type: 'number' },
-    { label: 'Preço/m²', field: 'preco_unitario', value: d.preco_unitario, type: 'number' },
+    { label: t('inventory.edit.fields.variety'), field: 'variedade', value: d.variedade, type: 'text' },
+    { label: t('inventory.edit.fields.yard'), field: 'parque', value: d.parque, type: 'text' },
+    { label: t('inventory.edit.fields.dimensions'), field: 'dimensoes', value: d.dimensoes, type: 'text' },
+    { label: t('inventory.edit.fields.numPieces'), field: 'num_pecas', value: d.num_pecas, type: 'number' },
+    { label: t('inventory.edit.fields.areaM2'), field: 'quantidade_m2', value: d.quantidade_m2, type: 'number' },
+    { label: t('inventory.edit.fields.pricePerM2'), field: 'preco_unitario', value: d.preco_unitario, type: 'number' },
   ];
 }
 
@@ -104,6 +104,7 @@ interface InventarioEditModalProps {
 }
 
 export default function InventarioEditModal({ forma, data, itemId }: InventarioEditModalProps) {
+  const t = useAppT();
   const [open, setOpen] = useState(false);
   const supabase = useSupabaseEmpresa();
   const queryClient = useQueryClient();
@@ -113,8 +114,8 @@ export default function InventarioEditModal({ forma, data, itemId }: InventarioE
 
   const tableName = forma === 'bloco' ? 'blocos' : forma === 'chapa' ? 'chapas' : 'ladrilho';
 
-  const editableFields = getEditableFields(forma, data);
-  const photoSlots = getPhotoSlots(forma, data);
+  const editableFields = getEditableFields(forma, data, t);
+  const photoSlots = getPhotoSlots(forma, data, t);
 
   const [fieldValues, setFieldValues] = useState<Record<string, string | number | null>>(() => {
     const vals: Record<string, string | number | null> = {};
@@ -139,17 +140,17 @@ export default function InventarioEditModal({ forma, data, itemId }: InventarioE
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inventario-ficha', forma, itemId] });
       queryClient.invalidateQueries({ queryKey: ['stock-unificado'] });
-      toast.success('Item atualizado com sucesso');
+      toast.success(t('inventory.edit.updatedSuccess'));
       setOpen(false);
     },
     onError: (err: Error) => {
-      toast.error('Erro ao atualizar: ' + err.message);
+      toast.error(t('inventory.edit.updateErrorPrefix') + err.message);
     },
   });
 
   const handlePhotoUpload = async (field: string, file: File) => {
     const idRef = forma === 'bloco' ? (data as Bloco).id_mm : forma === 'chapa' ? (data as Chapa).id_mm : (data as Ladrilho).id_mm || itemId;
-    
+
     const result = await uploadImage(file, {
       bucket: 'produtos',
       naming: { type: 'produto', idmm: `${forma}_${idRef}`, slot: 'F1' },
@@ -158,7 +159,7 @@ export default function InventarioEditModal({ forma, data, itemId }: InventarioE
 
     if (result) {
       setPhotoUrls(prev => ({ ...prev, [field]: result.url }));
-      toast.success('Foto carregada');
+      toast.success(t('inventory.edit.uploadPhotoSuccess'));
     }
   };
 
@@ -184,26 +185,31 @@ export default function InventarioEditModal({ forma, data, itemId }: InventarioE
     updateMutation.mutate(updates);
   };
 
+  const editTitle = forma === 'bloco'
+    ? t('inventory.edit.editBlock')
+    : forma === 'chapa'
+    ? t('inventory.edit.editSlab')
+    : t('inventory.edit.editTile');
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" size="sm">
           <Pencil className="h-4 w-4 mr-2" />
-          Editar
+          {t('actions.edit')}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Editar {forma === 'bloco' ? 'Bloco' : forma === 'chapa' ? 'Chapa' : 'Ladrilho'}</DialogTitle>
+          <DialogTitle>{editTitle}</DialogTitle>
           {isOperador && (
             <p className="text-xs text-muted-foreground">
-              Podes editar apenas as dimensões e o peso deste bloco.
+              {t('inventory.edit.operatorNote')}
             </p>
           )}
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Editable fields */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {editableFields.map(f => {
               const locked = isOperador && !f.operadorEditable;
@@ -230,17 +236,16 @@ export default function InventarioEditModal({ forma, data, itemId }: InventarioE
 
           <Separator />
 
-          {/* Photo slots */}
           <div>
             <h3 className="font-semibold mb-3 flex items-center gap-2">
               <ImageIcon className="h-4 w-4" />
-              Fotografias
+              {t('inventory.edit.photos')}
               {isOperador && <Lock className="h-3 w-3 text-muted-foreground" />}
             </h3>
             {isOperador ? (
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {photoSlots.filter(s => photoUrls[s.field]).length === 0 ? (
-                  <p className="text-sm text-muted-foreground col-span-full">Sem fotografias.</p>
+                  <p className="text-sm text-muted-foreground col-span-full">{t('inventory.edit.noPhotos')}</p>
                 ) : (
                   photoSlots
                     .filter(s => photoUrls[s.field])
@@ -266,6 +271,8 @@ export default function InventarioEditModal({ forma, data, itemId }: InventarioE
                     onUpload={(file) => handlePhotoUpload(slot.field, file)}
                     onRemove={() => setPhotoUrls(prev => ({ ...prev, [slot.field]: null }))}
                     isUploading={isUploading}
+                    cameraLabel={t('inventory.edit.camera')}
+                    galleryLabel={t('inventory.edit.gallery')}
                   />
                 ))}
               </div>
@@ -273,10 +280,10 @@ export default function InventarioEditModal({ forma, data, itemId }: InventarioE
           </div>
 
           <div className="flex justify-end gap-2 pt-4">
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+            <Button variant="outline" onClick={() => setOpen(false)}>{t('actions.cancel')}</Button>
             <Button onClick={handleSave} disabled={updateMutation.isPending || isUploading}>
               {updateMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-              Guardar
+              {t('actions.save')}
             </Button>
           </div>
         </div>
@@ -285,12 +292,14 @@ export default function InventarioEditModal({ forma, data, itemId }: InventarioE
   );
 }
 
-function PhotoUploadSlot({ label, currentUrl, onUpload, onRemove, isUploading }: {
+function PhotoUploadSlot({ label, currentUrl, onUpload, onRemove, isUploading, cameraLabel, galleryLabel }: {
   label: string;
   currentUrl: string | null;
   onUpload: (file: File) => void;
   onRemove: () => void;
   isUploading: boolean;
+  cameraLabel: string;
+  galleryLabel: string;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
@@ -317,7 +326,7 @@ function PhotoUploadSlot({ label, currentUrl, onUpload, onRemove, isUploading }:
             className="border-2 border-dashed rounded-md flex flex-col items-center justify-center gap-1 text-muted-foreground hover:border-primary hover:text-primary transition-colors"
           >
             {isUploading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Camera className="h-5 w-5" />}
-            <span className="text-xs">Câmara</span>
+            <span className="text-xs">{cameraLabel}</span>
           </button>
           <button
             type="button"
@@ -326,7 +335,7 @@ function PhotoUploadSlot({ label, currentUrl, onUpload, onRemove, isUploading }:
             className="border-2 border-dashed rounded-md flex flex-col items-center justify-center gap-1 text-muted-foreground hover:border-primary hover:text-primary transition-colors"
           >
             <Upload className="h-5 w-5" />
-            <span className="text-xs">Galeria</span>
+            <span className="text-xs">{galleryLabel}</span>
           </button>
         </div>
       )}
