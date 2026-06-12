@@ -3,14 +3,15 @@ import { Camera, Loader2, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
+import { useAppT } from '@/hooks/useAppT';
 import { cn } from '@/lib/utils';
 
 interface PhotoUploadFieldProps {
   value: string;
   onChange: (url: string) => void;
   idMM: string;
-  fileLabel: string; // e.g. "foto1"
-  folder?: string; // default "movimentos"
+  fileLabel: string;
+  folder?: string;
   disabled?: boolean;
 }
 
@@ -24,6 +25,7 @@ export function PhotoUploadField({
 }: PhotoUploadFieldProps) {
   const supabase = useSupabaseEmpresa();
   const { toast } = useToast();
+  const t = useAppT();
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
@@ -31,7 +33,7 @@ export function PhotoUploadField({
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith('image/')) {
-      toast({ title: 'Ficheiro inválido', description: 'Selecione uma imagem.', variant: 'destructive' });
+      toast({ title: t('movements.photo.ficheiroInvalido'), description: t('movements.photo.selecioneImagem'), variant: 'destructive' });
       return;
     }
     const safeId = (idMM || 'sem_id').trim().replace(/[^a-zA-Z0-9_-]/g, '_');
@@ -48,8 +50,8 @@ export function PhotoUploadField({
       onChange(url);
     } catch (err: any) {
       toast({
-        title: 'Erro ao carregar foto',
-        description: err.message || 'Tente novamente.',
+        title: t('movements.photo.erroCarregar'),
+        description: err.message || t('movements.photo.tentarNovamente'),
         variant: 'destructive',
       });
     } finally {
@@ -90,7 +92,7 @@ export function PhotoUploadField({
               className="h-8 w-8"
               onClick={() => inputRef.current?.click()}
               disabled={disabled || uploading}
-              title="Substituir"
+              title={t('movements.photo.substituir')}
             >
               <Camera className="w-4 h-4" />
             </Button>
@@ -101,7 +103,7 @@ export function PhotoUploadField({
               className="h-8 w-8"
               onClick={handleRemove}
               disabled={disabled || uploading}
-              title="Remover"
+              title={t('movements.photo.remover')}
             >
               <X className="w-4 h-4" />
             </Button>
@@ -122,12 +124,12 @@ export function PhotoUploadField({
           {uploading ? (
             <>
               <Loader2 className="w-5 h-5 animate-spin" />
-              <span>A carregar...</span>
+              <span>{t('movements.photo.aCarregar')}</span>
             </>
           ) : (
             <>
               <Camera className="w-5 h-5" />
-              <span className="text-center leading-tight">Tirar foto ou escolher da galeria</span>
+              <span className="text-center leading-tight">{t('movements.photo.tirarFoto')}</span>
             </>
           )}
         </button>

@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUsers } from "@/hooks/useUsers";
 import { Loader2 } from "lucide-react";
+import { useAppT } from "@/hooks/useAppT";
 
 interface AddUserModalProps {
   open: boolean;
@@ -16,6 +17,7 @@ export default function AddUserModal({ open, onClose }: AddUserModalProps) {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [role, setRole] = useState<"admin" | "operador" | "area_comercial">("operador");
+  const t = useAppT();
 
   const { convidarUser } = useUsers();
 
@@ -38,22 +40,22 @@ export default function AddUserModal({ open, onClose }: AddUserModalProps) {
     <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Adicionar Colaborador</DialogTitle>
+          <DialogTitle>{t('superadmin.addCollaboratorTitle')}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label>Nome Completo *</Label>
+            <Label>{t('superadmin.labelFullName')}</Label>
             <Input
               value={nome}
               onChange={(e) => setNome(e.target.value)}
-              placeholder="Ex: João Silva"
+              placeholder={t('superadmin.placeholderFullName')}
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label>Email *</Label>
+            <Label>{t('superadmin.labelEmail')}</Label>
             <Input
               type="email"
               value={email}
@@ -64,31 +66,31 @@ export default function AddUserModal({ open, onClose }: AddUserModalProps) {
           </div>
 
           <div className="space-y-2">
-            <Label>Permissão *</Label>
+            <Label>{t('superadmin.labelPermission')}</Label>
             <Select value={role} onValueChange={(value: "admin" | "operador" | "area_comercial") => setRole(value)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="operador">Operador</SelectItem>
-                <SelectItem value="admin">Administrador</SelectItem>
-                <SelectItem value="area_comercial">Área Comercial</SelectItem>
+                <SelectItem value="operador">{t('superadmin.roleOperator')}</SelectItem>
+                <SelectItem value="admin">{t('superadmin.roleAdmin')}</SelectItem>
+                <SelectItem value="area_comercial">{t('superadmin.roleCommercial')}</SelectItem>
               </SelectContent>
             </Select>
             <div className="text-xs text-muted-foreground space-y-0.5">
-              <p>Operador: Acesso básico à sua empresa</p>
-              <p>Administrador: Pode gerir utilizadores da sua empresa</p>
-              <p>Área Comercial: Apenas consultas e valores do inventário</p>
+              <p>{t('superadmin.roleOperator')}: {t('superadmin.roleOperatorDesc')}</p>
+              <p>{t('superadmin.roleAdmin')}: {t('superadmin.roleAdminDesc')}</p>
+              <p>{t('superadmin.roleCommercial')}: {t('superadmin.roleCommercialDesc')}</p>
             </div>
           </div>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>
-              Cancelar
+              {t('actions.cancel')}
             </Button>
             <Button type="submit" disabled={convidarUser.isPending}>
               {convidarUser.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Enviar Convite
+              {t('superadmin.sendInvite')}
             </Button>
           </DialogFooter>
         </form>

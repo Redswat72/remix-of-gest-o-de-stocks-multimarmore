@@ -9,8 +9,11 @@ import { useBandas } from "@/hooks/useBandas";
 import { usePermissoes } from "@/hooks/usePermissoes";
 import { Search } from "lucide-react";
 import InventarioDetailModal from "@/components/inventario/InventarioDetailModal";
+import { useAppT } from "@/hooks/useAppT";
+import { formatCurrency, formatNumber } from "@/lib/format";
 
 export default function Bandas() {
+  const t = useAppT();
   const [parqueFiltro, setParqueFiltro] = useState<string>("");
   const [busca, setBusca] = useState("");
   const { data: bandas, isLoading } = useBandas(parqueFiltro || undefined);
@@ -26,16 +29,6 @@ export default function Bandas() {
     );
   });
 
-  const formatCurrency = (value: number | null) => {
-    if (!value) return "—";
-    return new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(value);
-  };
-
-  const formatNumber = (value: number | null, decimals: number = 2) => {
-    if (!value) return "—";
-    return new Intl.NumberFormat('pt-PT', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(value);
-  };
-
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -48,23 +41,22 @@ export default function Bandas() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Bandas</h1>
-        <p className="text-muted-foreground">Gestão de bandas de pedra</p>
+        <h1 className="text-2xl font-bold">{t('inventory.strips.title')}</h1>
+        <p className="text-muted-foreground">{t('inventory.strips.subtitle')}</p>
       </div>
 
-      {/* FILTROS */}
       <Card className="p-4">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input placeholder="Pesquisar por ID, variedade..." value={busca} onChange={(e) => setBusca(e.target.value)} className="pl-10" />
+            <Input placeholder={t('inventory.strips.searchPlaceholder')} value={busca} onChange={(e) => setBusca(e.target.value)} className="pl-10" />
           </div>
           <Select value={parqueFiltro} onValueChange={setParqueFiltro}>
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Todos os parques" />
+              <SelectValue placeholder={t('inventory.allYards')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todos os parques</SelectItem>
+              <SelectItem value="all">{t('inventory.allYards')}</SelectItem>
               <SelectItem value="MM">MM</SelectItem>
               <SelectItem value="MOL">MOL</SelectItem>
               <SelectItem value="MTX">MTX</SelectItem>
@@ -73,18 +65,17 @@ export default function Bandas() {
         </div>
       </Card>
 
-      {/* TABELA */}
       <Card>
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>ID</TableHead>
-              <TableHead>Parque</TableHead>
-              <TableHead>Variedade</TableHead>
-              <TableHead>Dimensões</TableHead>
-              <TableHead className="text-right">m²</TableHead>
-              {podeVerValores && <TableHead className="text-right">Preço/m²</TableHead>}
-              {podeVerValores && <TableHead className="text-right">Valor</TableHead>}
+              <TableHead>{t('inventory.col.yard')}</TableHead>
+              <TableHead>{t('inventory.col.variety')}</TableHead>
+              <TableHead>{t('inventory.col.dimensions')}</TableHead>
+              <TableHead className="text-right">{t('inventory.col.area')}</TableHead>
+              {podeVerValores && <TableHead className="text-right">{t('inventory.col.pricePerM2')}</TableHead>}
+              {podeVerValores && <TableHead className="text-right">{t('inventory.col.value')}</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -96,27 +87,26 @@ export default function Bandas() {
                 <TableCell>
                   {banda.largura && banda.altura ? `${banda.largura} × ${banda.altura} cm` : "—"}
                 </TableCell>
-                <TableCell className="text-right">{formatNumber(banda.quantidade_m2)}</TableCell>
-                {podeVerValores && <TableCell className="text-right">{formatCurrency(banda.preco_unitario)}</TableCell>}
-                {podeVerValores && <TableCell className="text-right font-medium">{formatCurrency(banda.valor_inventario)}</TableCell>}
+                <TableCell className="text-right">{formatNumber(banda.quantidade_m2) || '—'}</TableCell>
+                {podeVerValores && <TableCell className="text-right">{formatCurrency(banda.preco_unitario) || '—'}</TableCell>}
+                {podeVerValores && <TableCell className="text-right font-medium">{formatCurrency(banda.valor_inventario) || '—'}</TableCell>}
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </Card>
 
-      {/* RODAPÉ */}
       <Card className="p-4">
         <div className="flex flex-wrap gap-6 text-sm">
           <span className="text-muted-foreground">
-            Total de bandas: <strong className="text-foreground">{bandasFiltradas?.length || 0}</strong>
+            {t('inventory.strips.totalLabel')}: <strong className="text-foreground">{bandasFiltradas?.length || 0}</strong>
           </span>
           <span className="text-muted-foreground">
-            Total: <strong className="text-foreground">{formatNumber(bandasFiltradas?.reduce((sum, b) => sum + (b.quantidade_m2 || 0), 0) || 0)} m²</strong>
+            {t('inventory.total')}: <strong className="text-foreground">{formatNumber(bandasFiltradas?.reduce((sum, b) => sum + (b.quantidade_m2 || 0), 0) || 0) || '0'} m²</strong>
           </span>
           {podeVerValores && (
             <span className="text-muted-foreground">
-              Valor: <strong className="text-foreground">{formatCurrency(bandasFiltradas?.reduce((sum, b) => sum + (b.valor_inventario || 0), 0) || 0)}</strong>
+              {t('inventory.value')}: <strong className="text-foreground">{formatCurrency(bandasFiltradas?.reduce((sum, b) => sum + (b.valor_inventario || 0), 0) || 0) || '—'}</strong>
             </span>
           )}
         </div>

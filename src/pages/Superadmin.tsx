@@ -28,8 +28,12 @@ import {
 } from "lucide-react";
 import { useSupabaseEmpresa } from "@/hooks/useSupabaseEmpresa";
 import { useQueryClient } from "@tanstack/react-query";
+import { useAppT } from "@/hooks/useAppT";
+import { useEnumLabel } from "@/lib/enumLabels";
+import { useFormatters } from "@/lib/format";
 
 export default function Superadmin() {
+  const t = useAppT();
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
@@ -37,8 +41,8 @@ export default function Superadmin() {
           <Shield className="w-6 h-6 text-primary" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold">Painel Superadmin</h1>
-          <p className="text-muted-foreground">Gestão global do sistema</p>
+          <h1 className="text-2xl font-bold">{t('superadmin.title')}</h1>
+          <p className="text-muted-foreground">{t('superadmin.subtitle')}</p>
         </div>
       </div>
 
@@ -46,15 +50,15 @@ export default function Superadmin() {
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="stock" className="gap-2">
             <Package className="w-4 h-4" />
-            <span className="hidden sm:inline">Stock Global</span>
+            <span className="hidden sm:inline">{t('superadmin.tabStock')}</span>
           </TabsTrigger>
           <TabsTrigger value="locais" className="gap-2">
             <MapPin className="w-4 h-4" />
-            <span className="hidden sm:inline">Parques</span>
+            <span className="hidden sm:inline">{t('superadmin.tabYards')}</span>
           </TabsTrigger>
           <TabsTrigger value="utilizadores" className="gap-2">
             <Users className="w-4 h-4" />
-            <span className="hidden sm:inline">Utilizadores</span>
+            <span className="hidden sm:inline">{t('superadmin.tabUsers')}</span>
           </TabsTrigger>
         </TabsList>
 
@@ -75,11 +79,12 @@ export default function Superadmin() {
 // === Botão de Importação ===
 function ImportarButton() {
   const navigate = useNavigate();
+  const t = useAppT();
   return (
     <Button variant="outline" onClick={() => navigate("/importar-inventario")} className="gap-2">
       <Upload className="h-4 w-4" />
-      <span className="hidden sm:inline">Importar Inventário</span>
-      <span className="sm:hidden">Importar</span>
+      <span className="hidden sm:inline">{t('superadmin.importInventory')}</span>
+      <span className="sm:hidden">{t('superadmin.importShort')}</span>
     </Button>
   );
 }
@@ -87,25 +92,25 @@ function ImportarButton() {
 // === Stock Global Tab ===
 function StockGlobalTab() {
   const { toast } = useToast();
+  const t = useAppT();
+  const enumLabel = useEnumLabel();
+  const { formatNumber, formatCurrency } = useFormatters();
   const { empresaConfig } = useEmpresa();
   const supabase = useSupabaseEmpresa();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
-  // Use unified inventory (blocos + chapas + ladrilho) instead of just produtos/stock
   const { data: items, isLoading, allBlocos, allChapas, allLadrilho } = useStockUnificado();
-  useLocais({ ativo: true }); // keep the query warm for recalculation
+  useLocais({ ativo: true });
   const [recalculating, setRecalculating] = useState(false);
   const [formaFilter, setFormaFilter] = useState<string>('all');
 
-  // Filter by forma
   const filteredItems = useMemo(() => {
     if (!items) return [];
     if (formaFilter === 'all') return items;
     return items.filter(i => i.forma === formaFilter);
   }, [items, formaFilter]);
 
-  // Summary stats
   const summary = useMemo(() => {
     const all = items || [];
     return {
@@ -195,14 +200,19 @@ function StockGlobalTab() {
       queryClient.invalidateQueries({ queryKey: ['stock-produto'] });
 
       toast({
-        title: 'Stock recalculado',
-        description: `${movimentos?.length || 0} movimentos processados. ${updated} actualizados, ${inserted} inseridos, ${zeroed} zerados.`,
+        title: t('toasts.stockRecalculated'),
+        description: t('toasts.stockRecalculatedDesc', {
+          movements: movimentos?.length || 0,
+          updated,
+          inserted,
+          zeroed,
+        }),
       });
     } catch (error) {
       console.error('Erro ao recalcular stock:', error);
       toast({
-        title: 'Erro',
-        description: error instanceof Error ? error.message : 'Erro ao recalcular stock',
+        title: t('toasts.errorTitle'),
+        description: error instanceof Error ? error.message : t('errors.recalculateStock'),
         variant: 'destructive',
       });
     } finally {
@@ -210,28 +220,17 @@ function StockGlobalTab() {
     }
   };
 
-  const FORMA_LABELS: Record<string, string> = { bloco: 'Bloco', chapa: 'Chapa', ladrilho: 'Ladrilho' };
   const FORMA_COLORS: Record<string, string> = {
     bloco: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
     chapa: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
     ladrilho: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
   };
 
-  const formatNumber = (value: number | null, decimals = 2) => {
-    if (value == null) return '—';
-    return new Intl.NumberFormat('pt-PT', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(value);
-  };
-
-  const formatCurrency = (value: number | null) => {
-    if (!value) return '—';
-    return new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(value);
-  };
-
   const handleExport = () => {
     if (!filteredItems.length) return;
     const exportData = filteredItems.map((item) => ({
       [empresaConfig?.idPrefix ?? "IDMM"]: item.referencia,
-      "Forma": FORMA_LABELS[item.forma] || item.forma,
+      "Forma": enumLabel('tipoProduto', item.forma) || item.forma,
       "Variedade": item.variedade || "-",
       "Parque": item.parque,
       "Quantidade": item.quantidade,
@@ -244,11 +243,18 @@ function StockGlobalTab() {
   const handleDownloadTemplate = () => {
     try {
       gerarModeloExcel({ incluirExemplos: true, tipo: "blocos" });
-      toast({ title: "Modelo descarregado", description: "O modelo de importação foi guardado com sucesso." });
+      toast({
+        title: t('toasts.templateDownloaded'),
+        description: t('toasts.templateDownloadedDesc'),
+      });
     } catch (err) {
       console.error('Erro ao gerar modelo Excel:', err);
-      const msg = err instanceof Error ? err.message : 'Erro desconhecido';
-      toast({ title: "Erro", description: `Não foi possível gerar o modelo: ${msg}`, variant: "destructive" });
+      const msg = err instanceof Error ? err.message : t('errors.generic');
+      toast({
+        title: t('toasts.errorTitle'),
+        description: t('errors.generateTemplate', { msg }),
+        variant: "destructive",
+      });
     }
   };
 
@@ -261,6 +267,10 @@ function StockGlobalTab() {
       </Card>
     );
   }
+
+  const formaLabel = formaFilter === 'all'
+    ? t('superadmin.allForms')
+    : (enumLabel('tipoProduto', formaFilter) || formaFilter);
 
   return (
     <div className="space-y-6">
@@ -290,31 +300,31 @@ function StockGlobalTab() {
         <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setFormaFilter('all')}>
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold">{summary.totalItems}</p>
-            <p className="text-xs text-muted-foreground">Total Registos</p>
+            <p className="text-xs text-muted-foreground">{t('superadmin.totalRecords')}</p>
           </CardContent>
         </Card>
         <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setFormaFilter('bloco')}>
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold">{summary.blocos}</p>
-            <p className="text-xs text-muted-foreground">Blocos</p>
+            <p className="text-xs text-muted-foreground">{enumLabel('tipoProduto', 'bloco')}</p>
           </CardContent>
         </Card>
         <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setFormaFilter('chapa')}>
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold">{summary.chapas}</p>
-            <p className="text-xs text-muted-foreground">Chapas</p>
+            <p className="text-xs text-muted-foreground">{enumLabel('tipoProduto', 'chapa')}</p>
           </CardContent>
         </Card>
         <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setFormaFilter('ladrilho')}>
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold">{summary.ladrilho}</p>
-            <p className="text-xs text-muted-foreground">Ladrilhos</p>
+            <p className="text-xs text-muted-foreground">{enumLabel('tipoProduto', 'ladrilho')}s</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <p className="text-2xl font-bold text-primary">{formatCurrency(summary.valorTotal)}</p>
-            <p className="text-xs text-muted-foreground">Valor Total</p>
+            <p className="text-xs text-muted-foreground">{t('superadmin.totalValue')}</p>
           </CardContent>
         </Card>
       </div>
@@ -325,10 +335,10 @@ function StockGlobalTab() {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <CardTitle>
-                Stock Global — {formaFilter === 'all' ? 'Todos' : FORMA_LABELS[formaFilter]}
-                <span className="ml-2 text-sm font-normal text-muted-foreground">({filteredItems.length} registos)</span>
+                {t('superadmin.tabStock')} — {formaLabel}
+                <span className="ml-2 text-sm font-normal text-muted-foreground">({filteredItems.length} {t('superadmin.totalRecords').toLowerCase()})</span>
               </CardTitle>
-              <CardDescription>Visão unificada de blocos, chapas e ladrilhos</CardDescription>
+              <CardDescription>{t('superadmin.stockDescription')}</CardDescription>
             </div>
             <div className="flex flex-wrap gap-2">
               <Button
@@ -338,17 +348,19 @@ function StockGlobalTab() {
                 className="gap-2"
               >
                 <RefreshCw className={`h-4 w-4 ${recalculating ? 'animate-spin' : ''}`} />
-                <span className="hidden sm:inline">{recalculating ? 'Recalculando...' : 'Recalcular Stock'}</span>
+                <span className="hidden sm:inline">
+                  {recalculating ? t('superadmin.recalculating') : t('superadmin.recalculateStock')}
+                </span>
               </Button>
               <Button variant="outline" onClick={handleDownloadTemplate} className="gap-2">
                 <FileDown className="h-4 w-4" />
-                <span className="hidden sm:inline">Modelo Excel</span>
+                <span className="hidden sm:inline">{t('superadmin.excelTemplate')}</span>
               </Button>
               <ImportarButton />
               <ExportLojaButton />
               <Button onClick={handleExport} disabled={!filteredItems.length} className="gap-2">
                 <FileSpreadsheet className="h-4 w-4" />
-                <span className="hidden sm:inline">Exportar Excel</span>
+                <span className="hidden sm:inline">{t('superadmin.exportExcel')}</span>
               </Button>
             </div>
           </div>
@@ -359,12 +371,12 @@ function StockGlobalTab() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Forma</TableHead>
+                    <TableHead>{t('superadmin.colForm')}</TableHead>
                     <TableHead>{empresaConfig?.idPrefix ?? "IDMM"}</TableHead>
-                    <TableHead>Variedade</TableHead>
-                    <TableHead>Parque</TableHead>
-                    <TableHead className="text-right">Quantidade</TableHead>
-                    <TableHead className="text-right">Valor (€)</TableHead>
+                    <TableHead>{t('superadmin.colVariety')}</TableHead>
+                    <TableHead>{t('superadmin.colYard')}</TableHead>
+                    <TableHead className="text-right">{t('superadmin.colQty')}</TableHead>
+                    <TableHead className="text-right">{t('superadmin.colValue')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -375,7 +387,9 @@ function StockGlobalTab() {
                       onClick={() => navigate(`/inventario/${item.forma}/${item.id}`)}
                     >
                       <TableCell>
-                        <Badge className={FORMA_COLORS[item.forma]}>{FORMA_LABELS[item.forma]}</Badge>
+                        <Badge className={FORMA_COLORS[item.forma]}>
+                          {enumLabel('tipoProduto', item.forma) || item.forma}
+                        </Badge>
                       </TableCell>
                       <TableCell className="font-mono font-medium">
                         {item.forma === 'bloco' ? (item.idMm || item.referencia) : item.referencia}
@@ -392,7 +406,7 @@ function StockGlobalTab() {
           ) : (
             <div className="text-center py-12 text-muted-foreground">
               <Package className="w-12 h-12 mx-auto mb-2 opacity-50" />
-              <p>Nenhum produto em stock</p>
+              <p>{t('superadmin.noStock')}</p>
             </div>
           )}
         </CardContent>
@@ -404,6 +418,7 @@ function StockGlobalTab() {
 // === Gestão de Locais Tab ===
 function GestaoLocaisTab() {
   const { toast } = useToast();
+  const t = useAppT();
   const { data: locais, isLoading } = useLocais();
   const createLocal = useCreateLocal();
   const updateLocal = useUpdateLocal();
@@ -418,28 +433,28 @@ function GestaoLocaisTab() {
 
   const handleSave = async () => {
     if (!formData.codigo.trim() || !formData.nome.trim()) {
-      toast({ title: "Erro", description: "Código e nome são obrigatórios.", variant: "destructive" }); return;
+      toast({ title: t('toasts.errorTitle'), description: t('errors.codeAndNameRequired'), variant: "destructive" }); return;
     }
     try {
       if (editingId) {
         await updateLocal.mutateAsync({ id: editingId, data: formData });
-        toast({ title: "Parque atualizado", description: "As alterações foram guardadas." });
+        toast({ title: t('toasts.yardUpdated'), description: t('toasts.yardUpdatedDesc') });
       } else {
         await createLocal.mutateAsync(formData);
-        toast({ title: "Parque criado", description: "O novo parque foi criado com sucesso." });
+        toast({ title: t('toasts.yardCreated'), description: t('toasts.yardCreatedDesc') });
       }
       setDialogOpen(false);
     } catch (error) {
-      toast({ title: "Erro", description: error instanceof Error ? error.message : "Ocorreu um erro inesperado", variant: "destructive" });
+      toast({ title: t('toasts.errorTitle'), description: error instanceof Error ? error.message : t('errors.unexpectedError'), variant: "destructive" });
     }
   };
 
   const handleToggleAtivo = async (id: string, ativo: boolean) => {
     try {
       await updateLocal.mutateAsync({ id, data: { ativo } });
-      toast({ title: ativo ? "Parque ativado" : "Parque desativado" });
+      toast({ title: ativo ? t('toasts.yardActivated') : t('toasts.yardDeactivated') });
     } catch (error) {
-      toast({ title: "Erro", description: error instanceof Error ? error.message : "Ocorreu um erro", variant: "destructive" });
+      toast({ title: t('toasts.errorTitle'), description: error instanceof Error ? error.message : t('errors.unexpectedError'), variant: "destructive" });
     }
   };
 
@@ -447,37 +462,42 @@ function GestaoLocaisTab() {
     <Card>
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
-          <CardTitle>Gestão de Parques</CardTitle>
-          <CardDescription>Adicione e configure os parques/armazéns</CardDescription>
+          <CardTitle>{t('superadmin.yardsTitle')}</CardTitle>
+          <CardDescription>{t('superadmin.yardsDescription')}</CardDescription>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger asChild>
-            <Button onClick={handleOpenNew} className="gap-2"><Plus className="w-4 h-4" />Novo Parque</Button>
+            <Button onClick={handleOpenNew} className="gap-2">
+              <Plus className="w-4 h-4" />
+              {t('superadmin.newYard')}
+            </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{editingId ? "Editar Parque" : "Novo Parque"}</DialogTitle>
-              <DialogDescription>{editingId ? "Altere os dados do parque." : "Preencha os dados para criar um novo parque."}</DialogDescription>
+              <DialogTitle>{editingId ? t('superadmin.editYard') : t('superadmin.newYard')}</DialogTitle>
+              <DialogDescription>
+                {editingId ? t('superadmin.editYardDesc') : t('superadmin.newYardDesc')}
+              </DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label>Código *</Label>
-                <Input placeholder="Ex: P1" value={formData.codigo} onChange={(e) => setFormData({ ...formData, codigo: e.target.value })} />
+                <Label>{t('superadmin.labelCode')}</Label>
+                <Input placeholder={t('superadmin.placeholderCode')} value={formData.codigo} onChange={(e) => setFormData({ ...formData, codigo: e.target.value })} />
               </div>
               <div className="space-y-2">
-                <Label>Nome *</Label>
-                <Input placeholder="Ex: Parque 1" value={formData.nome} onChange={(e) => setFormData({ ...formData, nome: e.target.value })} />
+                <Label>{t('superadmin.labelName')}</Label>
+                <Input placeholder={t('superadmin.placeholderName')} value={formData.nome} onChange={(e) => setFormData({ ...formData, nome: e.target.value })} />
               </div>
               <div className="space-y-2">
-                <Label>Morada</Label>
-                <Input placeholder="Morada do parque" value={formData.morada} onChange={(e) => setFormData({ ...formData, morada: e.target.value })} />
+                <Label>{t('superadmin.labelAddress')}</Label>
+                <Input placeholder={t('superadmin.placeholderAddress')} value={formData.morada} onChange={(e) => setFormData({ ...formData, morada: e.target.value })} />
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
+              <Button variant="outline" onClick={() => setDialogOpen(false)}>{t('actions.cancel')}</Button>
               <Button onClick={handleSave} disabled={createLocal.isPending || updateLocal.isPending}>
                 {(createLocal.isPending || updateLocal.isPending) ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                <span className="ml-2">Guardar</span>
+                <span className="ml-2">{t('actions.save')}</span>
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -490,11 +510,11 @@ function GestaoLocaisTab() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Código</TableHead>
-                <TableHead>Nome</TableHead>
-                <TableHead>Morada</TableHead>
-                <TableHead>Estado</TableHead>
-                <TableHead className="w-[100px]">Ações</TableHead>
+                <TableHead>{t('superadmin.colCode')}</TableHead>
+                <TableHead>{t('superadmin.colName')}</TableHead>
+                <TableHead>{t('superadmin.colAddress')}</TableHead>
+                <TableHead>{t('superadmin.colStatus')}</TableHead>
+                <TableHead className="w-[100px]">{t('superadmin.colActions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -506,7 +526,9 @@ function GestaoLocaisTab() {
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Switch checked={local.ativo} onCheckedChange={(checked) => handleToggleAtivo(local.id, checked)} />
-                      <span className="text-sm">{local.ativo ? "Ativo" : "Inativo"}</span>
+                      <span className="text-sm">
+                        {local.ativo ? t('superadmin.activeStatus') : t('superadmin.inactiveStatus')}
+                      </span>
                     </div>
                   </TableCell>
                   <TableCell>
@@ -519,8 +541,8 @@ function GestaoLocaisTab() {
         ) : (
           <div className="text-center py-12 text-muted-foreground">
             <MapPin className="w-12 h-12 mx-auto mb-2 opacity-50" />
-            <p>Nenhum parque criado</p>
-            <Button variant="link" onClick={handleOpenNew}>Criar primeiro parque</Button>
+            <p>{t('superadmin.noYards')}</p>
+            <Button variant="link" onClick={handleOpenNew}>{t('superadmin.createFirstYard')}</Button>
           </div>
         )}
       </CardContent>
@@ -531,6 +553,8 @@ function GestaoLocaisTab() {
 // === Gestão de Utilizadores Tab ===
 function GestaoUtilizadoresTab() {
   const [modalOpen, setModalOpen] = useState(false);
+  const t = useAppT();
+  const enumLabel = useEnumLabel();
   const { users, isLoading, error, atualizarRole, toggleAtivo } = useUsers();
 
   const getUserRole = (user: User): AppRole => {
@@ -547,27 +571,26 @@ function GestaoUtilizadoresTab() {
       operador: "bg-secondary text-secondary-foreground",
       area_comercial: "bg-accent text-accent-foreground",
     };
-    return <Badge className={variants[role]}>{role}</Badge>;
+    return <Badge className={variants[role]}>{enumLabel('role', role) || role}</Badge>;
   };
 
   return (
     <div className="space-y-6">
-      {/* Header - always visible */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-lg font-semibold">Gestão de Utilizadores</h2>
-          <p className="text-sm text-muted-foreground">Gerir colaboradores e permissões</p>
+          <h2 className="text-lg font-semibold">{t('superadmin.usersTitle')}</h2>
+          <p className="text-sm text-muted-foreground">{t('superadmin.usersDescription')}</p>
         </div>
         <Button onClick={() => setModalOpen(true)} className="gap-2">
           <UserPlus className="w-4 h-4" />
-          Adicionar Colaborador
+          {t('superadmin.addCollaborator')}
         </Button>
       </div>
 
       {error && (
         <Card className="border-destructive">
           <CardContent className="p-4 text-destructive text-sm">
-            <p className="font-medium">Erro ao carregar utilizadores:</p>
+            <p className="font-medium">{t('superadmin.errorLoadUsers')}</p>
             <p>{(error as Error).message}</p>
           </CardContent>
         </Card>
@@ -581,24 +604,23 @@ function GestaoUtilizadoresTab() {
         </Card>
       ) : (
         <>
-          {/* Utilizadores Pendentes / Inativos - shown first for visibility */}
           {usersInativos.length > 0 && (
             <Card className="border-amber-200 dark:border-amber-800">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Clock className="w-4 h-4 text-amber-500" />
-                  Pendentes de Aprovação / Inativos ({usersInativos.length})
+                  {t('superadmin.pendingTitle', { count: usersInativos.length })}
                 </CardTitle>
-                <CardDescription>Utilizadores que se registaram e aguardam ativação</CardDescription>
+                <CardDescription>{t('superadmin.pendingDesc')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Permissão</TableHead>
-                      <TableHead>Ações</TableHead>
+                      <TableHead>{t('superadmin.colName')}</TableHead>
+                      <TableHead>{t('superadmin.colEmail')}</TableHead>
+                      <TableHead>{t('superadmin.colPermission')}</TableHead>
+                      <TableHead>{t('superadmin.colActions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -621,9 +643,9 @@ function GestaoUtilizadoresTab() {
                                   <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="operador">Operador</SelectItem>
-                                  <SelectItem value="admin">Admin</SelectItem>
-                                  <SelectItem value="area_comercial">Área Comercial</SelectItem>
+                                  <SelectItem value="operador">{t('superadmin.roleOperator')}</SelectItem>
+                                  <SelectItem value="admin">{t('superadmin.roleAdminShort')}</SelectItem>
+                                  <SelectItem value="area_comercial">{t('superadmin.roleCommercial')}</SelectItem>
                                 </SelectContent>
                               </Select>
                               <Button
@@ -633,7 +655,7 @@ function GestaoUtilizadoresTab() {
                                 onClick={() => toggleAtivo.mutate({ userId: user.user_id, ativo: true })}
                               >
                                 <Check className="w-3 h-3" />
-                                Aprovar
+                                {t('actions.approve')}
                               </Button>
                             </div>
                           </TableCell>
@@ -646,12 +668,11 @@ function GestaoUtilizadoresTab() {
             </Card>
           )}
 
-          {/* Utilizadores Ativos */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Power className="w-4 h-4 text-green-500" />
-                Utilizadores Ativos ({usersAtivos.length})
+                {t('superadmin.activeUsersTitle', { count: usersAtivos.length })}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -659,11 +680,11 @@ function GestaoUtilizadoresTab() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Parque</TableHead>
-                      <TableHead>Permissão</TableHead>
-                      <TableHead>Ações</TableHead>
+                      <TableHead>{t('superadmin.colName')}</TableHead>
+                      <TableHead>{t('superadmin.colEmail')}</TableHead>
+                      <TableHead>{t('superadmin.colYard')}</TableHead>
+                      <TableHead>{t('superadmin.colPermission')}</TableHead>
+                      <TableHead>{t('superadmin.colActions')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -688,15 +709,15 @@ function GestaoUtilizadoresTab() {
                                     <SelectValue />
                                   </SelectTrigger>
                                   <SelectContent>
-                                    <SelectItem value="operador">Operador</SelectItem>
-                                    <SelectItem value="admin">Admin</SelectItem>
-                                    <SelectItem value="area_comercial">Área Comercial</SelectItem>
+                                    <SelectItem value="operador">{t('superadmin.roleOperator')}</SelectItem>
+                                    <SelectItem value="admin">{t('superadmin.roleAdminShort')}</SelectItem>
+                                    <SelectItem value="area_comercial">{t('superadmin.roleCommercial')}</SelectItem>
                                   </SelectContent>
                                 </Select>
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  title="Desativar"
+                                  title={t('superadmin.inactiveStatus')}
                                   onClick={() => toggleAtivo.mutate({ userId: user.user_id, ativo: false })}
                                 >
                                   <PowerOff className="w-4 h-4 text-destructive" />
@@ -712,8 +733,8 @@ function GestaoUtilizadoresTab() {
               ) : (
                 <div className="text-center py-8 text-muted-foreground">
                   <Users className="w-10 h-10 mx-auto mb-2 opacity-50" />
-                  <p>Nenhum utilizador ativo encontrado</p>
-                  <p className="text-xs mt-1">Adicione um colaborador usando o botão acima</p>
+                  <p>{t('superadmin.noActiveUsers')}</p>
+                  <p className="text-xs mt-1">{t('superadmin.noActiveUsersHint')}</p>
                 </div>
               )}
             </CardContent>

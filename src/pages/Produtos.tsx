@@ -6,35 +6,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useStockUnificado, type FormaInventario, type ItemUnificado } from '@/hooks/useStockUnificado';
 import { useEmpresa } from '@/context/EmpresaContext';
 import { usePermissoes } from '@/hooks/usePermissoes';
-
-const FORMA_LABELS: Record<string, string> = {
-  bloco: 'Bloco',
-  chapa: 'Chapa',
-  ladrilho: 'Ladrilho',
-};
+import { useAppT } from '@/hooks/useAppT';
 
 const FORMA_COLORS: Record<string, string> = {
   bloco: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
@@ -53,8 +31,8 @@ const formatNumber = (value: number | null, decimals = 2) => {
 };
 
 export default function Produtos() {
+  const t = useAppT();
   const navigate = useNavigate();
-  const { empresaConfig } = useEmpresa();
   const { podeVerValores } = usePermissoes();
   const [search, setSearch] = useState('');
   const [formaFilter, setFormaFilter] = useState('all');
@@ -66,22 +44,17 @@ export default function Produtos() {
     busca: search || undefined,
   });
 
-  const clearFilters = () => {
-    setSearch('');
-    setFormaFilter('all');
-  };
+  const clearFilters = () => { setSearch(''); setFormaFilter('all'); };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Gestão de Produtos</h1>
-          <p className="text-muted-foreground">Todos os blocos, chapas e ladrilhos</p>
+          <h1 className="text-2xl font-bold">{t('products.title')}</h1>
+          <p className="text-muted-foreground">{t('products.subtitle')}</p>
         </div>
       </div>
 
-      {/* Filtros */}
       <Collapsible open={showFilters} onOpenChange={setShowFilters}>
         <Card>
           <CollapsibleTrigger asChild>
@@ -89,7 +62,7 @@ export default function Produtos() {
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Filter className="w-5 h-5" />
-                  Filtros
+                  {t('actions.filter')}
                 </CardTitle>
                 {showFilters ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
               </div>
@@ -98,7 +71,7 @@ export default function Produtos() {
           <CollapsibleContent>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="space-y-2 lg:col-span-2">
-                <Label>Pesquisar</Label>
+                <Label>{t('actions.search')}</Label>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -109,41 +82,23 @@ export default function Produtos() {
                   />
                 </div>
               </div>
-
               <div className="space-y-2">
-                <Label>Forma</Label>
+                <Label>{t('products.shape')}</Label>
                 <Select value={formaFilter} onValueChange={setFormaFilter}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todas</SelectItem>
-                    <SelectItem value="bloco">Bloco</SelectItem>
-                    <SelectItem value="chapa">Chapa</SelectItem>
-                    <SelectItem value="ladrilho">Ladrilho</SelectItem>
+                    <SelectItem value="all">{t('products.allShapes')}</SelectItem>
+                    <SelectItem value="bloco">{t('enums.tipoProduto.bloco')}</SelectItem>
+                    <SelectItem value="chapa">{t('enums.tipoProduto.chapa')}</SelectItem>
+                    <SelectItem value="ladrilho">{t('enums.tipoProduto.ladrilho')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-
               <div className="space-y-2 flex flex-col justify-end">
                 <div className="flex gap-2 items-end">
-                  <Button
-                    variant={viewMode === 'grid' ? 'default' : 'outline'}
-                    size="icon"
-                    onClick={() => setViewMode('grid')}
-                  >
-                    <Grid className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant={viewMode === 'list' ? 'default' : 'outline'}
-                    size="icon"
-                    onClick={() => setViewMode('list')}
-                  >
-                    <List className="h-4 w-4" />
-                  </Button>
-                  <Button variant="outline" onClick={clearFilters} className="ml-auto">
-                    Limpar
-                  </Button>
+                  <Button variant={viewMode === 'grid' ? 'default' : 'outline'} size="icon" onClick={() => setViewMode('grid')}><Grid className="h-4 w-4" /></Button>
+                  <Button variant={viewMode === 'list' ? 'default' : 'outline'} size="icon" onClick={() => setViewMode('list')}><List className="h-4 w-4" /></Button>
+                  <Button variant="outline" onClick={clearFilters} className="ml-auto">{t('products.clear')}</Button>
                 </div>
               </div>
             </CardContent>
@@ -151,16 +106,13 @@ export default function Produtos() {
         </Card>
       </Collapsible>
 
-      {/* Content */}
       {isLoading ? (
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
+        <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
       ) : !items?.length ? (
         <Card>
           <CardContent className="py-12 text-center text-muted-foreground">
             <Package className="w-12 h-12 mx-auto mb-4 opacity-50" />
-            Nenhum produto encontrado
+            {t('products.noProducts')}
           </CardContent>
         </Card>
       ) : viewMode === 'grid' ? (
@@ -176,12 +128,12 @@ export default function Produtos() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Forma</TableHead>
-                    <TableHead>ID MM</TableHead>
-                    <TableHead>Variedade</TableHead>
-                    <TableHead>Parque</TableHead>
-                    <TableHead className="text-right">Quantidade</TableHead>
-                     {podeVerValores && <TableHead className="text-right">Valor (€)</TableHead>}
+                    <TableHead>{t('products.col.shape')}</TableHead>
+                    <TableHead>{t('products.col.idMm')}</TableHead>
+                    <TableHead>{t('products.col.variety')}</TableHead>
+                    <TableHead>{t('products.col.yard')}</TableHead>
+                    <TableHead className="text-right">{t('products.col.quantity')}</TableHead>
+                    {podeVerValores && <TableHead className="text-right">{t('products.col.value')}</TableHead>}
                     <TableHead className="w-[80px]"></TableHead>
                   </TableRow>
                 </TableHeader>
@@ -189,7 +141,7 @@ export default function Produtos() {
                   {items.map(item => (
                     <TableRow key={`${item.forma}-${item.id}`}>
                       <TableCell>
-                        <Badge className={FORMA_COLORS[item.forma]}>{FORMA_LABELS[item.forma]}</Badge>
+                        <Badge className={FORMA_COLORS[item.forma]}>{t(`enums.tipoProduto.${item.forma}`)}</Badge>
                       </TableCell>
                       <TableCell className="font-mono font-medium">{item.forma === 'bloco' ? (item.idMm || item.referencia) : item.referencia}</TableCell>
                       <TableCell>{item.variedade || '—'}</TableCell>
@@ -197,9 +149,7 @@ export default function Produtos() {
                       <TableCell className="text-right">{formatNumber(item.quantidade)} {item.unidade}</TableCell>
                       {podeVerValores && <TableCell className="text-right font-medium">{formatCurrency(item.valor)}</TableCell>}
                       <TableCell>
-                        <Button variant="ghost" size="sm" onClick={() => navigate(`/inventario/${item.forma}/${item.id}`)}>
-                          Ver
-                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => navigate(`/inventario/${item.forma}/${item.id}`)}>{t('actions.view')}</Button>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -212,7 +162,7 @@ export default function Produtos() {
 
       {items && items.length > 0 && (
         <div className="text-sm text-muted-foreground text-center">
-          A mostrar {items.length} produto{items.length !== 1 ? 's' : ''}
+          {items.length === 1 ? t('products.showingOne', { count: items.length }) : t('products.showingMany', { count: items.length })}
         </div>
       )}
     </div>
@@ -220,41 +170,26 @@ export default function Produtos() {
 }
 
 function getItemPhoto(item: ItemUnificado): string | null {
-  if (item.forma === 'bloco') {
-    const raw = item.raw as import('@/types/inventario').Bloco;
-    return raw.foto1_url || null;
-  }
-  if (item.forma === 'chapa') {
-    const raw = item.raw as import('@/types/inventario').Chapa;
-    return raw.parga1_foto_primeira || null;
-  }
-  if (item.forma === 'ladrilho') {
-    const raw = item.raw as import('@/types/inventario').Ladrilho;
-    return raw.foto_amostra_url || null;
-  }
+  if (item.forma === 'bloco') { const raw = item.raw as import('@/types/inventario').Bloco; return raw.foto1_url || null; }
+  if (item.forma === 'chapa') { const raw = item.raw as import('@/types/inventario').Chapa; return raw.parga1_foto_primeira || null; }
+  if (item.forma === 'ladrilho') { const raw = item.raw as import('@/types/inventario').Ladrilho; return raw.foto_amostra_url || null; }
   return null;
 }
 
 function InventarioCard({ item, onClick, podeVerValores = true }: { item: ItemUnificado; onClick: () => void; podeVerValores?: boolean }) {
+  const t = useAppT();
   const foto = getItemPhoto(item);
-
   const displayRef = item.forma === 'bloco' ? (item.idMm || item.referencia) : item.referencia;
 
   return (
     <Card className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer" onClick={onClick}>
       <div className="relative aspect-video bg-muted flex items-center justify-center overflow-hidden group">
         {foto ? (
-          <img
-            src={foto}
-            alt={displayRef}
-            className="w-full h-full object-cover transition-transform group-hover:scale-105"
-          />
+          <img src={foto} alt={displayRef} className="w-full h-full object-cover transition-transform group-hover:scale-105" />
         ) : (
           <Package className="h-12 w-12 text-muted-foreground/30" />
         )}
-        <Badge className={`absolute top-2 left-2 ${FORMA_COLORS[item.forma]}`}>
-          {FORMA_LABELS[item.forma]}
-        </Badge>
+        <Badge className={`absolute top-2 left-2 ${FORMA_COLORS[item.forma]}`}>{t(`enums.tipoProduto.${item.forma}`)}</Badge>
       </div>
       <CardContent className="p-4">
         <div className="mb-2">
@@ -262,14 +197,14 @@ function InventarioCard({ item, onClick, podeVerValores = true }: { item: ItemUn
           <p className="text-sm text-muted-foreground">{item.variedade || '—'}</p>
         </div>
         <div className="space-y-1 text-sm mb-4">
-          <p><span className="text-muted-foreground">Parque:</span> {item.parque}</p>
-          <p><span className="text-muted-foreground">Quantidade:</span> {formatNumber(item.quantidade)} {item.unidade}</p>
+          <p><span className="text-muted-foreground">{t('products.yard')}:</span> {item.parque}</p>
+          <p><span className="text-muted-foreground">{t('products.quantity')}:</span> {formatNumber(item.quantidade)} {item.unidade}</p>
           {podeVerValores && item.valor != null && (
-            <p><span className="text-muted-foreground">Valor:</span> {formatCurrency(item.valor)}</p>
+            <p><span className="text-muted-foreground">{t('products.value')}:</span> {formatCurrency(item.valor)}</p>
           )}
         </div>
         <Button variant="outline" size="sm" className="w-full" onClick={e => { e.stopPropagation(); onClick(); }}>
-          Ver Ficha
+          {t('products.viewCard')}
         </Button>
       </CardContent>
     </Card>

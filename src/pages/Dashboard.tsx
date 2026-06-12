@@ -12,8 +12,11 @@ import { usePermissoes } from "@/hooks/usePermissoes";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PARQUES, type ParqueCode } from "@/lib/parques";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
+import { useAppT } from "@/hooks/useAppT";
+import { formatCurrency, formatNumber } from "@/lib/format";
 
 export default function Dashboard() {
+  const t = useAppT();
   const { empresaConfig } = useEmpresa();
   const { podeVerValores } = usePermissoes();
   const { data: resumoBlocos, isLoading: loadingBlocos } = useResumoBlocos();
@@ -39,20 +42,6 @@ export default function Dashboard() {
     (resumoChapas?.valor_total || 0) +
     (resumoLadrilho?.valor_total || 0) +
     (resumoBandas?.valor_total || 0);
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-PT', {
-      style: 'currency',
-      currency: 'EUR',
-    }).format(value);
-  };
-
-  const formatNumber = (value: number, decimals: number = 0) => {
-    return new Intl.NumberFormat('pt-PT', {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals,
-    }).format(value);
-  };
 
   // Aggregate by parque
   const parqueBreakdown = useMemo(() => {
@@ -118,14 +107,14 @@ export default function Dashboard() {
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-bold">Dashboard - {empresaConfig?.nome}</h1>
-        <p className="text-muted-foreground">Visão geral do inventário</p>
+        <p className="text-muted-foreground">{t('dashboard.subtitle')}</p>
       </div>
 
       {/* VALOR TOTAL - só admin */}
       <Card>
         <CardHeader>
           <CardTitle className="text-sm font-medium text-muted-foreground">
-            {podeVerValores ? 'Valor Total do Inventário' : 'Resumo do Inventário'}
+            {podeVerValores ? t('dashboard.totalInventoryValue') : t('dashboard.inventorySummary')}
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -133,7 +122,13 @@ export default function Dashboard() {
             <p className="text-3xl font-bold">{formatCurrency(valorTotal)}</p>
           )}
           <p className={`text-sm text-muted-foreground ${podeVerValores ? 'mt-1' : ''}`}>
-            {formatNumber(totalRegistos)} registos — {formatNumber(resumoBlocos?.total_blocos || 0)} blocos · {formatNumber(resumoChapas?.total_chapas || 0)} chapas · {formatNumber(resumoLadrilho?.total_registos || 0)} ladrilhos · {formatNumber(resumoBandas?.total_bandas || 0)} bandas
+            {t('dashboard.summaryLine', {
+              registos: formatNumber(totalRegistos, 0),
+              blocos: formatNumber(resumoBlocos?.total_blocos || 0, 0),
+              chapas: formatNumber(resumoChapas?.total_chapas || 0, 0),
+              ladrilhos: formatNumber(resumoLadrilho?.total_registos || 0, 0),
+              bandas: formatNumber(resumoBandas?.total_bandas || 0, 0),
+            })}
           </p>
         </CardContent>
       </Card>
@@ -143,13 +138,13 @@ export default function Dashboard() {
         {/* BLOCOS */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Blocos</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('nav.blocos')}</CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{resumoBlocos?.total_blocos || 0}</p>
             <p className="text-xs text-muted-foreground">
-              {formatNumber(resumoBlocos?.total_kg || 0)} kg
+              {formatNumber(resumoBlocos?.total_kg || 0, 0)} kg
             </p>
             {podeVerValores && (
               <p className="text-sm font-medium text-primary mt-1">
@@ -162,7 +157,7 @@ export default function Dashboard() {
         {/* CHAPAS */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Chapas</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('nav.chapas')}</CardTitle>
             <Grid3x3 className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -181,13 +176,13 @@ export default function Dashboard() {
         {/* LADRILHO */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Ladrilho</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('nav.ladrilho')}</CardTitle>
             <Square className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold">{resumoLadrilho?.total_registos || 0}</p>
             <p className="text-xs text-muted-foreground">
-              {formatNumber(resumoLadrilho?.total_m2 || 0, 2)} m² • {formatNumber(resumoLadrilho?.total_pecas || 0)} peças
+              {formatNumber(resumoLadrilho?.total_m2 || 0, 2)} m² • {formatNumber(resumoLadrilho?.total_pecas || 0, 0)} {t('dashboard.pieces')}
             </p>
             {podeVerValores && (
               <p className="text-sm font-medium text-primary mt-1">
@@ -200,7 +195,7 @@ export default function Dashboard() {
         {/* BANDAS */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Bandas</CardTitle>
+            <CardTitle className="text-sm font-medium">{t('nav.bandas')}</CardTitle>
             <Layers className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -220,19 +215,19 @@ export default function Dashboard() {
       {/* DISTRIBUIÇÃO POR PARQUE - TABELA */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Distribuição por Parque</CardTitle>
+          <CardTitle className="text-base">{t('dashboard.yardDistribution')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="rounded-md border overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Parque</TableHead>
-                  <TableHead>Nome</TableHead>
-                  <TableHead className="text-right">Blocos (kg)</TableHead>
-                  <TableHead className="text-right">Chapas (m²)</TableHead>
-                  <TableHead className="text-right">Ladrilho (m²)</TableHead>
-                  {podeVerValores && <TableHead className="text-right">Valor Total (€)</TableHead>}
+                  <TableHead>{t('dashboard.colYard')}</TableHead>
+                  <TableHead>{t('dashboard.colName')}</TableHead>
+                  <TableHead className="text-right">{t('dashboard.colBlocksKg')}</TableHead>
+                  <TableHead className="text-right">{t('dashboard.colSlabsM2')}</TableHead>
+                  <TableHead className="text-right">{t('dashboard.colTilesM2')}</TableHead>
+                  {podeVerValores && <TableHead className="text-right">{t('dashboard.colTotalValue')}</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -240,7 +235,7 @@ export default function Dashboard() {
                   <TableRow key={row.parque}>
                     <TableCell className="font-medium">{row.parque}</TableCell>
                     <TableCell>{row.nome}</TableCell>
-                    <TableCell className="text-right">{formatNumber(row.blocos_kg)}</TableCell>
+                    <TableCell className="text-right">{formatNumber(row.blocos_kg, 0)}</TableCell>
                     <TableCell className="text-right">{formatNumber(row.chapas_m2, 2)}</TableCell>
                     <TableCell className="text-right">{formatNumber(row.ladrilho_m2, 2)}</TableCell>
                     {podeVerValores && <TableCell className="text-right font-medium">{formatCurrency(row.valor)}</TableCell>}
@@ -248,9 +243,9 @@ export default function Dashboard() {
                 ))}
                 {/* TOTAL */}
                 <TableRow className="border-t-2 font-bold">
-                  <TableCell colSpan={2}>TOTAL</TableCell>
+                  <TableCell colSpan={2}>{t('dashboard.total')}</TableCell>
                   <TableCell className="text-right">
-                    {formatNumber(parqueBreakdown.reduce((s, r) => s + r.blocos_kg, 0))}
+                    {formatNumber(parqueBreakdown.reduce((s, r) => s + r.blocos_kg, 0), 0)}
                   </TableCell>
                   <TableCell className="text-right">
                     {formatNumber(parqueBreakdown.reduce((s, r) => s + r.chapas_m2, 0), 2)}
@@ -274,7 +269,7 @@ export default function Dashboard() {
       {podeVerValores && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Valor por Parque</CardTitle>
+            <CardTitle className="text-base">{t('dashboard.yardValue')}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="h-[300px]">
@@ -282,13 +277,13 @@ export default function Dashboard() {
                 <BarChart data={chartData}>
                   <XAxis dataKey="parque" tick={{ fontSize: 12 }} />
                   <YAxis
-                    tickFormatter={(v: number) => `${(v / 1000).toLocaleString('pt-PT')}k`}
+                    tickFormatter={(v: number) => `${formatNumber(v / 1000, 0)}k`}
                     tick={{ fontSize: 12 }}
                   />
                   <Tooltip
                     formatter={(value: number) => [
-                      new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(value),
-                      'Valor',
+                      formatCurrency(value),
+                      t('dashboard.chartValueLabel'),
                     ]}
                     labelFormatter={(label: string) => {
                       const found = chartData.find((d) => d.parque === label);

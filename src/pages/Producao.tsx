@@ -13,6 +13,7 @@ import { Loader2, Search, MapPin, Scissors, Camera, Upload } from 'lucide-react'
 import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
 import { useEmpresa } from '@/context/EmpresaContext';
 import { useImageUpload } from '@/hooks/useImageUpload';
+import { useAppT } from '@/hooks/useAppT';
 import { toast } from 'sonner';
 import type { Bloco } from '@/types/inventario';
 
@@ -42,13 +43,13 @@ export default function Producao() {
   const { empresa, empresaConfig } = useEmpresa();
   const queryClient = useQueryClient();
   const { uploadImage, isUploading } = useImageUpload();
+  const t = useAppT();
 
   const [idMm, setIdMm] = useState(searchParams.get('id_mm') || searchParams.get('bloco') || '');
   const [bloco, setBloco] = useState<Bloco | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [notFound, setNotFound] = useState(false);
 
-  // Form fields
   const [data, setData] = useState(new Date().toISOString().split('T')[0]);
   const [latitude, setLatitude] = useState('');
   const [longitude, setLongitude] = useState('');
@@ -56,7 +57,6 @@ export default function Producao() {
   const [tipoCorte, setTipoCorte] = useState<'total' | 'parcial' | ''>('');
   const [pargas, setPargas] = useState<PargaData[]>([emptyParga(), emptyParga(), emptyParga(), emptyParga()]);
 
-  // Search bloco by ID MM
   const searchBloco = async () => {
     if (!idMm.trim()) return;
     setIsSearching(true);
@@ -77,32 +77,30 @@ export default function Producao() {
       }
       setBloco(result as Bloco);
     } catch (err) {
-      toast.error('Erro ao pesquisar bloco');
+      toast.error(t('production.erroPesquisar'));
     } finally {
       setIsSearching(false);
     }
   };
 
-  // Auto-search on mount if bloco/id_mm param exists
   useEffect(() => {
     if (searchParams.get('bloco') || searchParams.get('id_mm')) {
       searchBloco();
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Get GPS location
   const getLocation = () => {
     if (!navigator.geolocation) {
-      toast.error('Geolocalização não suportada');
+      toast.error(t('production.gpsNaoSuportado'));
       return;
     }
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setLatitude(pos.coords.latitude.toFixed(6));
         setLongitude(pos.coords.longitude.toFixed(6));
-        toast.success('Localização obtida');
+        toast.success(t('production.gpsObtido'));
       },
-      () => toast.error('Não foi possível obter localização')
+      () => toast.error(t('production.gpsErro'))
     );
   };
 
@@ -122,32 +120,29 @@ export default function Producao() {
     });
     if (result) {
       updateParga(pargaIndex, slot, result.url);
-      toast.success('Foto carregada');
+      toast.success(t('production.fotoCarregada'));
     }
   };
 
-  // Save production
   const saveMutation = useMutation({
     mutationFn: async () => {
-      if (!bloco) throw new Error('Bloco não selecionado');
-      if (!tipoCorte) throw new Error('Selecione o tipo de corte');
+      if (!bloco) throw new Error(t('production.blocoNaoSelecionado'));
+      if (!tipoCorte) throw new Error(t('production.selecioneTipoCorte'));
 
       const prefix = empresaConfig?.idPrefix || 'IDMM';
       const timestamp = Date.now().toString(36).toUpperCase();
       const chapaIdMm = `${prefix}-CH-${bloco.id_mm}-${timestamp}`;
 
-      // 1. Create chapa record
       const chapaData: Record<string, unknown> = {
         id_mm: chapaIdMm,
         parque: bloco.parque,
         variedade: bloco.variedade,
         entrada_stock: data,
         linha: linha || null,
-        quantidade_m2: 0, // Will be calculated based on pargas
+        quantidade_m2: 0,
         observacoes: `Produção a partir do bloco ${bloco.id_mm}`,
       };
 
-      // Add parga data
       for (let i = 0; i < 4; i++) {
         const p = pargas[i];
         const idx = i + 1;
@@ -162,35 +157,19 @@ export default function Producao() {
         }
       }
 
-      // Calculate total chapas for num_chapas
       const totalChapas = pargas.reduce((sum, p) => sum + (p.quantidade || 0), 0);
       chapaData.num_chapas = totalChapas;
 
-      const { error: chapaError } = await supabase
-        .from('chapas')
-        .insert(chapaData);
+      const { error: chapaError } = await supabase.from('chapas').insert(chapaData);
       if (chapaError) throw chapaError;
 
-      // 2. Update bloco based on tipo de corte
       if (tipoCorte === 'total') {
-        // Corte total: bloco sai do stock
-        const { error: blocoError } = await supabase
-          .from('blocos')
-          .update({ ativo: false })
-          .eq('id', bloco.id);
+        const { error: blocoError } = await supabase.from('blocos').update({ ativo: false }).eq('id', bloco.id);
         if (blocoError) throw blocoError;
       } else {
-        // Corte parcial: medição pendente
         const { error: blocoError } = await supabase
           .from('blocos')
-          .update({
-            corte_parcial: true,
-            medicao_pendente: true,
-            comprimento: null,
-            largura: null,
-            altura: null,
-            quantidade_kg: null,
-          })
+          .update({ corte_parcial: true, medicao_pendente: true, comprimento: null, largura: null, altura: null, quantidade_kg: null })
           .eq('id', bloco.id);
         if (blocoError) throw blocoError;
       }
@@ -202,18 +181,17 @@ export default function Producao() {
       queryClient.invalidateQueries({ queryKey: ['chapas'] });
       queryClient.invalidateQueries({ queryKey: ['stock-unificado'] });
       toast.success(
-        `Produção guardada! Chapa ${result.chapaIdMm} criada. ${
-          result.tipoCorte === 'total' ? 'Bloco removido do stock.' : 'Bloco marcado para medição.'
-        }`
+        result.tipoCorte === 'total'
+          ? t('production.guardadoTotal', { id: result.chapaIdMm })
+          : t('production.guardadoParcial', { id: result.chapaIdMm })
       );
-      // Reset form
       setBloco(null);
       setIdMm('');
       setTipoCorte('');
       setPargas([emptyParga(), emptyParga(), emptyParga(), emptyParga()]);
     },
     onError: (err: Error) => {
-      toast.error('Erro ao guardar produção: ' + err.message);
+      toast.error(t('production.erroGuardar', { msg: err.message }));
     },
   });
 
@@ -225,21 +203,20 @@ export default function Producao() {
       <div>
         <h1 className="text-2xl font-bold flex items-center gap-2">
           <Scissors className="h-6 w-6" />
-          Nova Produção
+          {t('production.pageTitle')}
         </h1>
-        <p className="text-muted-foreground">Produzir chapas a partir de um bloco</p>
+        <p className="text-muted-foreground">{t('production.pageSubtitle')}</p>
       </div>
 
-      {/* Search Bloco */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Bloco de Origem</CardTitle>
-          <CardDescription>Introduza o ID MM do bloco para pré-preencher os dados</CardDescription>
+          <CardTitle className="text-lg">{t('production.blocoOrigem.title')}</CardTitle>
+          <CardDescription>{t('production.blocoOrigem.description')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex gap-2">
             <Input
-              placeholder="Ex: IDMM0001"
+              placeholder={t('production.blocoOrigem.placeholder')}
               value={idMm}
               onChange={e => setIdMm(e.target.value.toUpperCase())}
               onKeyDown={e => e.key === 'Enter' && searchBloco()}
@@ -247,12 +224,12 @@ export default function Producao() {
             />
             <Button onClick={searchBloco} disabled={isSearching || !idMm.trim()}>
               {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-              <span className="ml-2">Pesquisar</span>
+              <span className="ml-2">{t('production.pesquisar')}</span>
             </Button>
           </div>
 
           {notFound && (
-            <p className="text-sm text-destructive mt-2">Bloco não encontrado com o ID "{idMm}"</p>
+            <p className="text-sm text-destructive mt-2">{t('production.notFound', { id: idMm })}</p>
           )}
 
           {bloco && (
@@ -264,19 +241,19 @@ export default function Producao() {
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
                 <div>
-                  <span className="text-muted-foreground">Comprimento</span>
+                  <span className="text-muted-foreground">{t('production.comprimento')}</span>
                   <p className="font-medium">{bloco.comprimento ?? '—'}</p>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Largura</span>
+                  <span className="text-muted-foreground">{t('production.largura')}</span>
                   <p className="font-medium">{bloco.largura ?? '—'}</p>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Altura</span>
+                  <span className="text-muted-foreground">{t('production.altura')}</span>
                   <p className="font-medium">{bloco.altura ?? '—'}</p>
                 </div>
                 <div>
-                  <span className="text-muted-foreground">Peso (kg)</span>
+                  <span className="text-muted-foreground">{t('production.pesoKg')}</span>
                   <p className="font-medium">{bloco.quantidade_kg != null ? `${bloco.quantidade_kg} kg` : '—'}</p>
                 </div>
               </div>
@@ -293,22 +270,21 @@ export default function Producao() {
 
       {bloco && (
         <>
-          {/* Additional fields */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Dados da Produção</CardTitle>
+              <CardTitle className="text-lg">{t('production.dadosProducao')}</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-1">
-                  <Label>Data</Label>
+                  <Label>{t('production.data')}</Label>
                   <Input type="date" value={data} onChange={e => setData(e.target.value)} />
                 </div>
                 <div className="space-y-1">
-                  <Label>Nº de Linha</Label>
+                  <Label>{t('production.numLinha')}</Label>
                   <Select value={linha} onValueChange={setLinha}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Selecionar linha" />
+                      <SelectValue placeholder={t('production.linhaPlaceholder')} />
                     </SelectTrigger>
                     <SelectContent>
                       {LINHAS_OPTIONS.map(l => (
@@ -318,11 +294,11 @@ export default function Producao() {
                   </Select>
                 </div>
                 <div className="space-y-1">
-                  <Label>Localização GPS</Label>
+                  <Label>{t('production.gps')}</Label>
                   <div className="flex gap-2">
                     <Input placeholder="Lat" value={latitude} onChange={e => setLatitude(e.target.value)} className="flex-1" />
                     <Input placeholder="Lng" value={longitude} onChange={e => setLongitude(e.target.value)} className="flex-1" />
-                    <Button variant="outline" size="icon" onClick={getLocation} title="Obter localização">
+                    <Button variant="outline" size="icon" onClick={getLocation} title={t('production.gpsTitle')}>
                       <MapPin className="h-4 w-4" />
                     </Button>
                   </div>
@@ -331,22 +307,21 @@ export default function Producao() {
             </CardContent>
           </Card>
 
-          {/* Pargas */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Pargas (Secções de Corte)</CardTitle>
-              <CardDescription>Configure até 4 pargas com as chapas resultantes</CardDescription>
+              <CardTitle className="text-lg">{t('production.pargas.title')}</CardTitle>
+              <CardDescription>{t('production.pargas.description')}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               {pargas.map((parga, idx) => (
                 <div key={idx}>
                   {idx > 0 && <Separator className="mb-4" />}
                   <h4 className="font-semibold mb-3 flex items-center gap-2">
-                    <Badge variant="secondary">Parga {idx + 1}</Badge>
+                    <Badge variant="secondary">{t('production.parga', { n: idx + 1 })}</Badge>
                   </h4>
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                     <div className="space-y-1">
-                      <Label className="text-xs">Qtd. Chapas</Label>
+                      <Label className="text-xs">{t('production.qtdChapas')}</Label>
                       <Input
                         type="number"
                         min={0}
@@ -355,7 +330,7 @@ export default function Producao() {
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs">Comprimento</Label>
+                      <Label className="text-xs">{t('production.comprimento')}</Label>
                       <Input
                         type="number"
                         min={0}
@@ -364,7 +339,7 @@ export default function Producao() {
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs">Altura</Label>
+                      <Label className="text-xs">{t('production.altura')}</Label>
                       <Input
                         type="number"
                         min={0}
@@ -373,7 +348,7 @@ export default function Producao() {
                       />
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs">Espessura</Label>
+                      <Label className="text-xs">{t('production.espessura')}</Label>
                       <Input
                         type="number"
                         min={0}
@@ -384,7 +359,7 @@ export default function Producao() {
                   </div>
                   <div className="grid grid-cols-2 gap-3 mt-3">
                     <div className="space-y-1">
-                      <Label className="text-xs">Foto Primeira</Label>
+                      <Label className="text-xs">{t('production.fotoPrimeira')}</Label>
                       {parga.foto_primeira ? (
                         <div className="relative">
                           <img src={parga.foto_primeira} alt="Primeira" className="h-24 w-full object-cover rounded border" />
@@ -393,18 +368,18 @@ export default function Producao() {
                       ) : (
                         <div className="grid grid-cols-2 gap-1 h-24">
                           <label className="flex flex-col items-center justify-center border-2 border-dashed rounded cursor-pointer hover:border-primary text-muted-foreground text-xs gap-1">
-                            {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Camera className="h-4 w-4" /><span>Câmara</span></>}
+                            {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Camera className="h-4 w-4" /><span>{t('production.camera')}</span></>}
                             <input type="file" accept="image/*" capture="environment" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handlePhotoUpload(idx, 'foto_primeira', f); e.target.value = ''; }} />
                           </label>
                           <label className="flex flex-col items-center justify-center border-2 border-dashed rounded cursor-pointer hover:border-primary text-muted-foreground text-xs gap-1">
-                            <Upload className="h-4 w-4" /><span>Galeria</span>
+                            <Upload className="h-4 w-4" /><span>{t('production.galeria')}</span>
                             <input type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handlePhotoUpload(idx, 'foto_primeira', f); e.target.value = ''; }} />
                           </label>
                         </div>
                       )}
                     </div>
                     <div className="space-y-1">
-                      <Label className="text-xs">Foto Última</Label>
+                      <Label className="text-xs">{t('production.fotoUltima')}</Label>
                       {parga.foto_ultima ? (
                         <div className="relative">
                           <img src={parga.foto_ultima} alt="Última" className="h-24 w-full object-cover rounded border" />
@@ -413,11 +388,11 @@ export default function Producao() {
                       ) : (
                         <div className="grid grid-cols-2 gap-1 h-24">
                           <label className="flex flex-col items-center justify-center border-2 border-dashed rounded cursor-pointer hover:border-primary text-muted-foreground text-xs gap-1">
-                            {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Camera className="h-4 w-4" /><span>Câmara</span></>}
+                            {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Camera className="h-4 w-4" /><span>{t('production.camera')}</span></>}
                             <input type="file" accept="image/*" capture="environment" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handlePhotoUpload(idx, 'foto_ultima', f); e.target.value = ''; }} />
                           </label>
                           <label className="flex flex-col items-center justify-center border-2 border-dashed rounded cursor-pointer hover:border-primary text-muted-foreground text-xs gap-1">
-                            <Upload className="h-4 w-4" /><span>Galeria</span>
+                            <Upload className="h-4 w-4" /><span>{t('production.galeria')}</span>
                             <input type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handlePhotoUpload(idx, 'foto_ultima', f); e.target.value = ''; }} />
                           </label>
                         </div>
@@ -429,37 +404,35 @@ export default function Producao() {
             </CardContent>
           </Card>
 
-          {/* Tipo de Corte */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Tipo de Corte</CardTitle>
-              <CardDescription>Selecione se o bloco foi totalmente ou parcialmente cortado</CardDescription>
+              <CardTitle className="text-lg">{t('production.tipoCorte.title')}</CardTitle>
+              <CardDescription>{t('production.tipoCorte.description')}</CardDescription>
             </CardHeader>
             <CardContent>
               <RadioGroup value={tipoCorte} onValueChange={v => setTipoCorte(v as 'total' | 'parcial')}>
                 <div className="flex items-start gap-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer">
                   <RadioGroupItem value="total" id="corte-total" className="mt-1" />
                   <div>
-                    <Label htmlFor="corte-total" className="font-medium cursor-pointer">Corte Total</Label>
-                    <p className="text-sm text-muted-foreground">O bloco é totalmente consumido e sai do stock.</p>
+                    <Label htmlFor="corte-total" className="font-medium cursor-pointer">{t('production.corteTotal.label')}</Label>
+                    <p className="text-sm text-muted-foreground">{t('production.corteTotal.desc')}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer">
                   <RadioGroupItem value="parcial" id="corte-parcial" className="mt-1" />
                   <div>
-                    <Label htmlFor="corte-parcial" className="font-medium cursor-pointer">Corte Parcial</Label>
-                    <p className="text-sm text-muted-foreground">O bloco permanece no stock mas as medidas ficam pendentes de atualização.</p>
+                    <Label htmlFor="corte-parcial" className="font-medium cursor-pointer">{t('production.corteParcial.label')}</Label>
+                    <p className="text-sm text-muted-foreground">{t('production.corteParcial.desc')}</p>
                   </div>
                 </div>
               </RadioGroup>
             </CardContent>
           </Card>
 
-          {/* Save */}
           <div className="flex justify-end">
             <Button size="lg" onClick={() => saveMutation.mutate()} disabled={!canSave}>
               {saveMutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-              Guardar Produção
+              {t('production.guardarProducao')}
             </Button>
           </div>
         </>

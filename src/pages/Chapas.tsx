@@ -14,8 +14,11 @@ import { exportChapas } from "@/utils/exportExcel";
 import { Search } from "lucide-react";
 import { PARQUES_OPTIONS } from "@/lib/parques";
 import InventarioDetailModal from "@/components/inventario/InventarioDetailModal";
+import { useAppT } from "@/hooks/useAppT";
+import { formatCurrency, formatNumber } from "@/lib/format";
 
 export default function Chapas() {
+  const t = useAppT();
   const [parqueFiltro, setParqueFiltro] = useState("__all__");
   const [busca, setBusca] = useState("");
   const supabase = useSupabaseEmpresa();
@@ -37,16 +40,6 @@ export default function Chapas() {
     );
   });
 
-  const formatCurrency = (value: number | null) => {
-    if (!value) return "—";
-    return new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(value);
-  };
-
-  const formatNumber = (value: number | null, decimals: number = 2) => {
-    if (!value) return "—";
-    return new Intl.NumberFormat('pt-PT', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(value);
-  };
-
   if (isLoading) {
     return (
       <div className="space-y-4">
@@ -60,28 +53,27 @@ export default function Chapas() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Chapas</h1>
-          <p className="text-muted-foreground">Gestão de chapas de pedra</p>
+          <h1 className="text-2xl font-bold">{t('inventory.slabs.title')}</h1>
+          <p className="text-muted-foreground">{t('inventory.slabs.subtitle')}</p>
         </div>
         {podeVerValores && (
           <ExportExcelButton onExport={() => exportChapas(supabase, { empresaNome: empresaConfig!.nome, corHeader: empresaConfig!.cor })} />
         )}
       </div>
 
-      {/* FILTROS */}
       <Card>
         <CardContent className="pt-6">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input placeholder="Pesquisar por ID, bundle, parque ou variedade..." value={busca} onChange={(e) => setBusca(e.target.value)} className="pl-10" />
+              <Input placeholder={t('inventory.slabs.searchPlaceholder')} value={busca} onChange={(e) => setBusca(e.target.value)} className="pl-10" />
             </div>
             <Select value={parqueFiltro} onValueChange={setParqueFiltro}>
               <SelectTrigger className="w-full sm:w-[200px]">
-                <SelectValue placeholder="Filtrar por parque" />
+                <SelectValue placeholder={t('inventory.filterByYard')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="__all__">Todos os parques</SelectItem>
+                <SelectItem value="__all__">{t('inventory.allYards')}</SelectItem>
                 {PARQUES_OPTIONS.map(({ value, label }) => (
                   <SelectItem key={value} value={value}>{label}</SelectItem>
                 ))}
@@ -91,20 +83,19 @@ export default function Chapas() {
         </CardContent>
       </Card>
 
-      {/* TABELA */}
       <div className="rounded-md border overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>ID MM</TableHead>
-              <TableHead>Bundle/Parga</TableHead>
-              <TableHead>Parque</TableHead>
-              <TableHead>Variedade</TableHead>
-              <TableHead>Acabamento</TableHead>
-              <TableHead className="text-right">Chapas</TableHead>
-              <TableHead className="text-right">m²</TableHead>
-              {podeVerValores && <TableHead className="text-right">Preço/m²</TableHead>}
-              {podeVerValores && <TableHead className="text-right">Valor</TableHead>}
+              <TableHead>{t('inventory.col.idMm')}</TableHead>
+              <TableHead>{t('inventory.col.bundleParga')}</TableHead>
+              <TableHead>{t('inventory.col.yard')}</TableHead>
+              <TableHead>{t('inventory.col.variety')}</TableHead>
+              <TableHead>{t('inventory.col.finish')}</TableHead>
+              <TableHead className="text-right">{t('inventory.col.numSlabs')}</TableHead>
+              <TableHead className="text-right">{t('inventory.col.area')}</TableHead>
+              {podeVerValores && <TableHead className="text-right">{t('inventory.col.pricePerM2')}</TableHead>}
+              {podeVerValores && <TableHead className="text-right">{t('inventory.col.value')}</TableHead>}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -116,28 +107,27 @@ export default function Chapas() {
                 <TableCell>{chapa.variedade || "—"}</TableCell>
                 <TableCell>{chapa.acabamento || "—"}</TableCell>
                 <TableCell className="text-right">{chapa.num_chapas || "—"}</TableCell>
-                <TableCell className="text-right">{formatNumber(chapa.quantidade_m2)}</TableCell>
-                {podeVerValores && <TableCell className="text-right">{formatCurrency(chapa.preco_unitario)}</TableCell>}
-                {podeVerValores && <TableCell className="text-right font-medium">{formatCurrency(chapa.valor_inventario)}</TableCell>}
+                <TableCell className="text-right">{formatNumber(chapa.quantidade_m2) || '—'}</TableCell>
+                {podeVerValores && <TableCell className="text-right">{formatCurrency(chapa.preco_unitario) || '—'}</TableCell>}
+                {podeVerValores && <TableCell className="text-right font-medium">{formatCurrency(chapa.valor_inventario) || '—'}</TableCell>}
               </TableRow>
             ))}
           </TableBody>
         </Table>
       </div>
 
-      {/* RODAPÉ */}
       <Card>
         <CardContent className="pt-6">
           <div className="flex flex-wrap gap-6 text-sm">
             <span className="text-muted-foreground">
-              Total de chapas: <strong>{chapasFiltradas?.length || 0}</strong>
+              {t('inventory.slabs.totalLabel')}: <strong>{chapasFiltradas?.length || 0}</strong>
             </span>
             <span className="text-muted-foreground">
-              Total: <strong>{formatNumber(chapasFiltradas?.reduce((sum, c) => sum + c.quantidade_m2, 0) || 0)} m²</strong>
+              {t('inventory.total')}: <strong>{formatNumber(chapasFiltradas?.reduce((sum, c) => sum + c.quantidade_m2, 0) || 0) || '0'} m²</strong>
             </span>
             {podeVerValores && (
               <span className="text-muted-foreground">
-                Valor: <strong>{formatCurrency(chapasFiltradas?.reduce((sum, c) => sum + (c.valor_inventario || 0), 0) || 0)}</strong>
+                {t('inventory.value')}: <strong>{formatCurrency(chapasFiltradas?.reduce((sum, c) => sum + (c.valor_inventario || 0), 0) || 0) || '—'}</strong>
               </span>
             )}
           </div>
