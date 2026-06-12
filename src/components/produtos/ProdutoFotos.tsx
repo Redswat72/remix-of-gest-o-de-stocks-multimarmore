@@ -135,11 +135,16 @@ export function ProdutoFotos({
   const empresaNome = empresaConfig?.nome?.toUpperCase() ?? 'EMPRESA';
   const idPrefix = empresaConfig?.idPrefix ?? 'ID';
   const { toast } = useToast();
-  
+  const t = useAppT();
+
   // Configuração baseada na forma
-  const hdConfig = HD_SLOTS_CONFIG[forma];
   const maxFotosOperacionais = 4;
-  const maxFotosHd = hdConfig.count;
+  const maxFotosHd = HD_SLOTS_COUNT[forma];
+  const hdLabels =
+    forma === 'bloco'
+      ? [t('products.fotos.sideA'), t('products.fotos.sideB'), t('products.fotos.sideC'), t('products.fotos.sideD')]
+      : [1, 2, 3, 4].map((n) => t('products.fotos.slotPhoto', { n }));
+
   
   // Estado para fotos operacionais
   const [fotos, setFotos] = useState<FotoSlot[]>(
