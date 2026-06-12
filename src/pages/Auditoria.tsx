@@ -1,54 +1,18 @@
 import { useState } from 'react';
-import { format } from 'date-fns';
-import { pt } from 'date-fns/locale';
-import { FileSpreadsheet, Filter, Search, ChevronDown, ChevronUp, Eye } from 'lucide-react';
+import { FileSpreadsheet, Filter, ChevronDown, ChevronUp, Eye } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useAuditoria, useAuditoriaTiposAcao, useAuditoriaUsers, AuditoriaFilters, AuditoriaRecord } from '@/hooks/useAuditoria';
 import { exportToExcel } from '@/lib/exportExcel';
-
-const TIPO_ACAO_LABELS: Record<string, string> = {
-  criacao_movimento: 'Criação de Movimento',
-  cancelamento_movimento: 'Cancelamento de Movimento',
-  criacao_produto: 'Criação de Produto',
-  edicao_produto: 'Edição de Produto',
-  criacao_cliente: 'Criação de Cliente',
-  edicao_cliente: 'Edição de Cliente',
-  criacao_local: 'Criação de Local',
-  edicao_local: 'Edição de Local',
-  atribuicao_role: 'Atribuição de Role',
-  alteracao_role: 'Alteração de Role',
-  alteracao_parque_utilizador: 'Alteração de Parque',
-};
+import { useAppT } from '@/hooks/useAppT';
+import { formatDateTime } from '@/lib/format';
 
 const TIPO_ACAO_COLORS: Record<string, string> = {
   criacao_movimento: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
@@ -64,49 +28,43 @@ const TIPO_ACAO_COLORS: Record<string, string> = {
   alteracao_parque_utilizador: 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200',
 };
 
-const ENTIDADE_LABELS: Record<string, string> = {
-  movimentos: 'Movimentos',
-  produtos: 'Produtos',
-  clientes: 'Clientes',
-  locais: 'Locais',
-  user_roles: 'Roles',
-  profiles: 'Perfis',
-};
-
 export default function Auditoria() {
+  const t = useAppT();
   const [filters, setFilters] = useState<AuditoriaFilters>({});
   const [showFilters, setShowFilters] = useState(true);
   const [selectedRecord, setSelectedRecord] = useState<AuditoriaRecord | null>(null);
-  
+
   const { data: registos, isLoading, error } = useAuditoria(filters);
   const { data: tiposAcao } = useAuditoriaTiposAcao();
   const { data: users } = useAuditoriaUsers();
 
+  const getActionLabel = (tipo: string) =>
+    t(`audit.actions.${tipo}` as any, { defaultValue: tipo });
+
+  const getEntityLabel = (entidade: string) =>
+    t(`audit.entities.${entidade}` as any, { defaultValue: entidade });
+
   const handleExportExcel = () => {
     if (!registos?.length) return;
-    
     const exportData = registos.map(r => ({
-      'Data/Hora': format(new Date(r.data_hora), 'dd/MM/yyyy HH:mm:ss', { locale: pt }),
-      'Utilizador': r.user_nome,
-      'Email': r.user_email,
-      'Role': r.user_role,
-      'Tipo de Ação': TIPO_ACAO_LABELS[r.tipo_acao] || r.tipo_acao,
-      'Entidade': ENTIDADE_LABELS[r.entidade] || r.entidade,
-      'ID Entidade': r.entidade_id || '-',
-      'Descrição': r.descricao,
+      [t('audit.exportColDateTime')]: formatDateTime(r.data_hora),
+      [t('audit.exportColUser')]: r.user_nome,
+      [t('audit.exportColEmail')]: r.user_email,
+      [t('audit.exportColRole')]: r.user_role,
+      [t('audit.exportColActionType')]: getActionLabel(r.tipo_acao),
+      [t('audit.exportColEntity')]: getEntityLabel(r.entidade),
+      [t('audit.exportColEntityId')]: r.entidade_id || '-',
+      [t('audit.exportColDescription')]: r.descricao,
     }));
-    
     exportToExcel(exportData, 'auditoria');
   };
 
-  const clearFilters = () => {
-    setFilters({});
-  };
+  const clearFilters = () => setFilters({});
 
   if (error) {
     return (
       <div className="p-6 text-center">
-        <p className="text-destructive">Erro ao carregar auditoria: {error.message}</p>
+        <p className="text-destructive">{t('audit.errorLoad')} {error.message}</p>
       </div>
     );
   }
@@ -115,12 +73,12 @@ export default function Auditoria() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Auditoria</h1>
-          <p className="text-muted-foreground">Registo cronológico de todas as ações do sistema</p>
+          <h1 className="text-2xl font-bold">{t('audit.title')}</h1>
+          <p className="text-muted-foreground">{t('audit.subtitle')}</p>
         </div>
         <Button onClick={handleExportExcel} disabled={!registos?.length}>
           <FileSpreadsheet className="w-4 h-4 mr-2" />
-          Exportar Excel
+          {t('audit.exportExcel')}
         </Button>
       </div>
 
@@ -132,7 +90,7 @@ export default function Auditoria() {
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Filter className="w-5 h-5" />
-                  Filtros
+                  {t('audit.filters')}
                 </CardTitle>
                 {showFilters ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
               </div>
@@ -141,88 +99,50 @@ export default function Auditoria() {
           <CollapsibleContent>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               <div className="space-y-2">
-                <Label>Data Início</Label>
-                <Input
-                  type="date"
-                  value={filters.dataInicio || ''}
-                  onChange={(e) => setFilters({ ...filters, dataInicio: e.target.value || undefined })}
-                />
+                <Label>{t('audit.labelDateStart')}</Label>
+                <Input type="date" value={filters.dataInicio || ''} onChange={(e) => setFilters({ ...filters, dataInicio: e.target.value || undefined })} />
               </div>
-              
               <div className="space-y-2">
-                <Label>Data Fim</Label>
-                <Input
-                  type="date"
-                  value={filters.dataFim || ''}
-                  onChange={(e) => setFilters({ ...filters, dataFim: e.target.value || undefined })}
-                />
+                <Label>{t('audit.labelDateEnd')}</Label>
+                <Input type="date" value={filters.dataFim || ''} onChange={(e) => setFilters({ ...filters, dataFim: e.target.value || undefined })} />
               </div>
-              
               <div className="space-y-2">
-                <Label>Utilizador</Label>
-                <Select
-                  value={filters.userId || 'all'}
-                  onValueChange={(value) => setFilters({ ...filters, userId: value === 'all' ? undefined : value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Todos" />
-                  </SelectTrigger>
+                <Label>{t('audit.labelUser')}</Label>
+                <Select value={filters.userId || 'all'} onValueChange={(v) => setFilters({ ...filters, userId: v === 'all' ? undefined : v })}>
+                  <SelectTrigger><SelectValue placeholder={t('audit.allUsers')} /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    {users?.map((user) => (
-                      <SelectItem key={user.id} value={user.id}>
-                        {user.nome}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="all">{t('audit.allUsers')}</SelectItem>
+                    {users?.map((user) => <SelectItem key={user.id} value={user.id}>{user.nome}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
-              
               <div className="space-y-2">
-                <Label>Tipo de Ação</Label>
-                <Select
-                  value={filters.tipoAcao || 'all'}
-                  onValueChange={(value) => setFilters({ ...filters, tipoAcao: value === 'all' ? undefined : value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Todos" />
-                  </SelectTrigger>
+                <Label>{t('audit.labelActionType')}</Label>
+                <Select value={filters.tipoAcao || 'all'} onValueChange={(v) => setFilters({ ...filters, tipoAcao: v === 'all' ? undefined : v })}>
+                  <SelectTrigger><SelectValue placeholder={t('audit.allActionTypes')} /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    {tiposAcao?.map((tipo) => (
-                      <SelectItem key={tipo} value={tipo}>
-                        {TIPO_ACAO_LABELS[tipo] || tipo}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="all">{t('audit.allActionTypes')}</SelectItem>
+                    {tiposAcao?.map((tipo) => <SelectItem key={tipo} value={tipo}>{getActionLabel(tipo)}</SelectItem>)}
                   </SelectContent>
                 </Select>
               </div>
-              
               <div className="space-y-2">
-                <Label>Entidade</Label>
-                <Select
-                  value={filters.entidade || 'all'}
-                  onValueChange={(value) => setFilters({ ...filters, entidade: value === 'all' ? undefined : value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Todas" />
-                  </SelectTrigger>
+                <Label>{t('audit.labelEntity')}</Label>
+                <Select value={filters.entidade || 'all'} onValueChange={(v) => setFilters({ ...filters, entidade: v === 'all' ? undefined : v })}>
+                  <SelectTrigger><SelectValue placeholder={t('audit.allEntities')} /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todas</SelectItem>
-                    <SelectItem value="movimentos">Movimentos</SelectItem>
-                    <SelectItem value="produtos">Produtos</SelectItem>
-                    <SelectItem value="clientes">Clientes</SelectItem>
-                    <SelectItem value="locais">Locais</SelectItem>
-                    <SelectItem value="user_roles">Roles</SelectItem>
-                    <SelectItem value="profiles">Perfis</SelectItem>
+                    <SelectItem value="all">{t('audit.allEntities')}</SelectItem>
+                    <SelectItem value="movimentos">{getEntityLabel('movimentos')}</SelectItem>
+                    <SelectItem value="produtos">{getEntityLabel('produtos')}</SelectItem>
+                    <SelectItem value="clientes">{getEntityLabel('clientes')}</SelectItem>
+                    <SelectItem value="locais">{getEntityLabel('locais')}</SelectItem>
+                    <SelectItem value="user_roles">{getEntityLabel('user_roles')}</SelectItem>
+                    <SelectItem value="profiles">{getEntityLabel('profiles')}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              
               <div className="lg:col-span-5 flex justify-end">
-                <Button variant="outline" onClick={clearFilters}>
-                  Limpar Filtros
-                </Button>
+                <Button variant="outline" onClick={clearFilters}>{t('audit.clearFilters')}</Button>
               </div>
             </CardContent>
           </CollapsibleContent>
@@ -233,69 +153,55 @@ export default function Auditoria() {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">
-            Registos de Auditoria
+            {t('audit.tableTitle')}
             {registos && (
               <Badge variant="secondary" className="ml-2">
-                {registos.length} {registos.length === 1 ? 'registo' : 'registos'}
+                {t('audit.recordCount_other', { count: registos.length })}
               </Badge>
             )}
           </CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-center py-8 text-muted-foreground">A carregar...</div>
+            <div className="text-center py-8 text-muted-foreground">{t('audit.loading')}</div>
           ) : !registos?.length ? (
-            <div className="text-center py-8 text-muted-foreground">
-              Nenhum registo de auditoria encontrado
-            </div>
+            <div className="text-center py-8 text-muted-foreground">{t('audit.noRecords')}</div>
           ) : (
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="min-w-[150px]">Data/Hora</TableHead>
-                    <TableHead className="min-w-[150px]">Utilizador</TableHead>
-                    <TableHead className="min-w-[100px]">Role</TableHead>
-                    <TableHead className="min-w-[180px]">Tipo de Ação</TableHead>
-                    <TableHead className="min-w-[100px]">Entidade</TableHead>
-                    <TableHead className="min-w-[300px]">Descrição</TableHead>
-                    <TableHead className="w-[80px]">Detalhes</TableHead>
+                    <TableHead className="min-w-[150px]">{t('audit.colDateTime')}</TableHead>
+                    <TableHead className="min-w-[150px]">{t('audit.colUser')}</TableHead>
+                    <TableHead className="min-w-[100px]">{t('audit.colRole')}</TableHead>
+                    <TableHead className="min-w-[180px]">{t('audit.colActionType')}</TableHead>
+                    <TableHead className="min-w-[100px]">{t('audit.colEntity')}</TableHead>
+                    <TableHead className="min-w-[300px]">{t('audit.colDescription')}</TableHead>
+                    <TableHead className="w-[80px]">{t('audit.colDetails')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {registos.map((registo) => (
                     <TableRow key={registo.id}>
-                      <TableCell className="font-mono text-sm">
-                        {format(new Date(registo.data_hora), 'dd/MM/yyyy HH:mm:ss', { locale: pt })}
-                      </TableCell>
+                      <TableCell className="font-mono text-sm">{formatDateTime(registo.data_hora)}</TableCell>
                       <TableCell>
                         <div>
                           <div className="font-medium">{registo.user_nome}</div>
                           <div className="text-xs text-muted-foreground">{registo.user_email}</div>
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{registo.user_role}</Badge>
-                      </TableCell>
+                      <TableCell><Badge variant="outline">{registo.user_role}</Badge></TableCell>
                       <TableCell>
                         <Badge className={TIPO_ACAO_COLORS[registo.tipo_acao] || 'bg-gray-100 text-gray-800'}>
-                          {TIPO_ACAO_LABELS[registo.tipo_acao] || registo.tipo_acao}
+                          {getActionLabel(registo.tipo_acao)}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <Badge variant="secondary">
-                          {ENTIDADE_LABELS[registo.entidade] || registo.entidade}
-                        </Badge>
+                        <Badge variant="secondary">{getEntityLabel(registo.entidade)}</Badge>
                       </TableCell>
-                      <TableCell className="max-w-[300px] truncate" title={registo.descricao}>
-                        {registo.descricao}
-                      </TableCell>
+                      <TableCell className="max-w-[300px] truncate" title={registo.descricao}>{registo.descricao}</TableCell>
                       <TableCell>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setSelectedRecord(registo)}
-                        >
+                        <Button variant="ghost" size="sm" onClick={() => setSelectedRecord(registo)}>
                           <Eye className="w-4 h-4" />
                         </Button>
                       </TableCell>
@@ -312,68 +218,52 @@ export default function Auditoria() {
       <Dialog open={!!selectedRecord} onOpenChange={() => setSelectedRecord(null)}>
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Detalhes do Registo de Auditoria</DialogTitle>
+            <DialogTitle>{t('audit.detailDialogTitle')}</DialogTitle>
           </DialogHeader>
-          
           {selectedRecord && (
             <div className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label className="text-muted-foreground">Data/Hora</Label>
-                  <p className="font-mono">
-                    {format(new Date(selectedRecord.data_hora), 'dd/MM/yyyy HH:mm:ss', { locale: pt })}
-                  </p>
+                  <Label className="text-muted-foreground">{t('audit.labelDateTime')}</Label>
+                  <p className="font-mono">{formatDateTime(selectedRecord.data_hora)}</p>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground">ID da Entidade</Label>
+                  <Label className="text-muted-foreground">{t('audit.labelEntityId')}</Label>
                   <p className="font-mono text-sm">{selectedRecord.entidade_id || '-'}</p>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground">Utilizador</Label>
+                  <Label className="text-muted-foreground">{t('audit.colUser')}</Label>
                   <p>{selectedRecord.user_nome}</p>
                   <p className="text-sm text-muted-foreground">{selectedRecord.user_email}</p>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground">Role</Label>
-                  <p>
-                    <Badge variant="outline">{selectedRecord.user_role}</Badge>
-                  </p>
+                  <Label className="text-muted-foreground">{t('audit.colRole')}</Label>
+                  <p><Badge variant="outline">{selectedRecord.user_role}</Badge></p>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground">Tipo de Ação</Label>
-                  <p>
-                    <Badge className={TIPO_ACAO_COLORS[selectedRecord.tipo_acao] || ''}>
-                      {TIPO_ACAO_LABELS[selectedRecord.tipo_acao] || selectedRecord.tipo_acao}
-                    </Badge>
-                  </p>
+                  <Label className="text-muted-foreground">{t('audit.colActionType')}</Label>
+                  <p><Badge className={TIPO_ACAO_COLORS[selectedRecord.tipo_acao] || ''}>{getActionLabel(selectedRecord.tipo_acao)}</Badge></p>
                 </div>
                 <div>
-                  <Label className="text-muted-foreground">Entidade</Label>
-                  <p>
-                    <Badge variant="secondary">
-                      {ENTIDADE_LABELS[selectedRecord.entidade] || selectedRecord.entidade}
-                    </Badge>
-                  </p>
+                  <Label className="text-muted-foreground">{t('audit.colEntity')}</Label>
+                  <p><Badge variant="secondary">{getEntityLabel(selectedRecord.entidade)}</Badge></p>
                 </div>
               </div>
-              
               <div>
-                <Label className="text-muted-foreground">Descrição</Label>
+                <Label className="text-muted-foreground">{t('audit.labelDescription')}</Label>
                 <p className="mt-1">{selectedRecord.descricao}</p>
               </div>
-              
               {selectedRecord.dados_anteriores && (
                 <div>
-                  <Label className="text-muted-foreground">Dados Anteriores</Label>
+                  <Label className="text-muted-foreground">{t('audit.labelPreviousData')}</Label>
                   <pre className="mt-1 p-3 bg-muted rounded-lg text-sm overflow-x-auto">
                     {JSON.stringify(selectedRecord.dados_anteriores, null, 2)}
                   </pre>
                 </div>
               )}
-              
               {selectedRecord.dados_novos && (
                 <div>
-                  <Label className="text-muted-foreground">Dados Novos</Label>
+                  <Label className="text-muted-foreground">{t('audit.labelNewData')}</Label>
                   <pre className="mt-1 p-3 bg-muted rounded-lg text-sm overflow-x-auto">
                     {JSON.stringify(selectedRecord.dados_novos, null, 2)}
                   </pre>

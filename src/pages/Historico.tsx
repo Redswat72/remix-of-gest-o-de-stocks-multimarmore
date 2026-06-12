@@ -1,6 +1,4 @@
 import { useState, useMemo } from 'react';
-import { format } from 'date-fns';
-import { pt } from 'date-fns/locale';
 import { 
   History, 
   Filter, 
@@ -30,8 +28,13 @@ import { useMovimentos, useCancelMovimento, type MovimentoComDetalhes } from '@/
 import { useLocaisAtivos } from '@/hooks/useLocais';
 import { useProfiles } from '@/hooks/useProfiles';
 import { exportToExcel } from '@/lib/exportExcel';
+import { useAppT } from '@/hooks/useAppT';
+import { useEnumLabel } from '@/lib/enumLabels';
+import { formatDateTime } from '@/lib/format';
 
 export default function Historico() {
+  const t = useAppT();
+  const enumLabel = useEnumLabel();
   const { toast } = useToast();
   const { isAdmin, userLocal } = useAuth();
   const cancelMovimento = useCancelMovimento();
@@ -90,25 +93,18 @@ export default function Historico() {
   const toggleRow = (id: string) => {
     setExpandedRows(prev => {
       const newSet = new Set(prev);
-      if (newSet.has(id)) {
-        newSet.delete(id);
-      } else {
-        newSet.add(id);
-      }
+      if (newSet.has(id)) newSet.delete(id);
+      else newSet.add(id);
       return newSet;
     });
   };
 
   const getTipoIcon = (tipo: string) => {
     switch (tipo) {
-      case 'entrada':
-        return <ArrowDownToLine className="w-4 h-4 text-success" />;
-      case 'transferencia':
-        return <ArrowRightLeft className="w-4 h-4 text-warning" />;
-      case 'saida':
-        return <Package className="w-4 h-4 text-destructive" />;
-      default:
-        return null;
+      case 'entrada': return <ArrowDownToLine className="w-4 h-4 text-success" />;
+      case 'transferencia': return <ArrowRightLeft className="w-4 h-4 text-warning" />;
+      case 'saida': return <Package className="w-4 h-4 text-destructive" />;
+      default: return null;
     }
   };
 
@@ -118,14 +114,9 @@ export default function Historico() {
       transferencia: 'badge-transferencia',
       saida: 'badge-saida',
     };
-    const labels: Record<string, string> = {
-      entrada: 'Entrada',
-      transferencia: 'Transferência',
-      saida: 'Saída',
-    };
     return (
       <Badge variant="outline" className={classes[tipo]}>
-        {labels[tipo]}
+        {enumLabel('tipoMovimento', tipo)}
       </Badge>
     );
   };
@@ -142,11 +133,9 @@ export default function Historico() {
   const getPercursoLabel = (mov: MovimentoComDetalhes) => {
     const origem = getLocalNome(mov.local_origem_id);
     const destino = getLocalNome(mov.local_destino_id);
-
     if (mov.tipo === 'entrada') return `→ ${destino}`;
     if (mov.tipo === 'saida') return `${origem} →`;
     if (mov.tipo === 'transferencia') return `${origem} → ${destino}`;
-
     return '-';
   };
 
@@ -161,27 +150,26 @@ export default function Historico() {
   const handleConfirmCancel = async () => {
     if (!selectedMovimento || !motivoCancelamento.trim()) {
       toast({
-        title: 'Erro',
-        description: 'Indique o motivo do cancelamento.',
+        title: t('errors.generic'),
+        description: t('movements.history.errorCancelDesc'),
         variant: 'destructive',
       });
       return;
     }
-
     try {
       await cancelMovimento.mutateAsync({
         movimentoId: selectedMovimento.id,
         motivo: motivoCancelamento.trim(),
       });
       toast({
-        title: 'Movimento cancelado',
-        description: 'O movimento foi cancelado e o stock foi revertido.',
+        title: t('movements.history.cancelSuccessTitle'),
+        description: t('movements.history.cancelSuccessDesc'),
       });
       setCancelDialogOpen(false);
     } catch (error) {
       toast({
-        title: 'Erro ao cancelar',
-        description: error instanceof Error ? error.message : 'Ocorreu um erro inesperado',
+        title: t('movements.history.cancelErrorTitle'),
+        description: error instanceof Error ? error.message : t('errors.unexpectedError'),
         variant: 'destructive',
       });
     }
@@ -189,24 +177,20 @@ export default function Historico() {
 
   const handleExport = () => {
     if (!movimentos) return;
-
     const exportData = movimentos.map(mov => ({
-      'Data': format(new Date(mov.data_movimento), 'dd/MM/yyyy HH:mm', { locale: pt }),
-      'Tipo': mov.tipo === 'entrada' ? 'Entrada' : mov.tipo === 'saida' ? 'Saída' : 'Transferência',
-      'ID MM': mov.id_mm || '—',
-      'Tipo Produto': mov.tipo_produto || '—',
-      'Quantidade': mov.quantidade,
-      'Origem': getLocalNome(mov.local_origem_id),
-      'Destino': getLocalNome(mov.local_destino_id),
-      'Cliente': getClienteNome(mov),
-      'Documento': mov.tipo_documento,
-      'Nº Documento': mov.numero_documento || '-',
-      'Matrícula': mov.matricula_viatura || '-',
-      'Operador': getOperadorNome(mov.operador_id),
-      'Cancelado': mov.cancelado ? 'Sim' : 'Não',
-      'Motivo Cancelamento': mov.motivo_cancelamento || '-',
+      [t('movements.history.colDate')]: formatDateTime(mov.data_movimento),
+      [t('movements.history.colType')]: enumLabel('tipoMovimento', mov.tipo),
+      [t('movements.history.colIdMm')]: mov.id_mm || '—',
+      [t('movements.history.colProductType')]: mov.tipo_produto ? enumLabel('tipoProduto', mov.tipo_produto) : '—',
+      [t('movements.history.colQty')]: mov.quantidade,
+      [t('movements.history.labelDocument')]: enumLabel('tipoDocumento', mov.tipo_documento),
+      [t('movements.history.colRoute')]: getPercursoLabel(mov),
+      [t('movements.history.labelCustomer')]: getClienteNome(mov),
+      [t('movements.history.labelPlate')]: mov.matricula_viatura || '-',
+      [t('movements.history.labelOperator')]: getOperadorNome(mov.operador_id),
+      [t('movements.history.statusCancelled')]: mov.cancelado ? t('movements.history.exportYes') : t('movements.history.exportNo'),
+      [t('movements.history.labelCancelReason')]: mov.motivo_cancelamento || '-',
     }));
-
     exportToExcel(exportData, 'historico-movimentos');
   };
 
@@ -220,24 +204,24 @@ export default function Historico() {
     setCurrentPage(0);
   };
 
-  // Reset page when filters change
   const handleFilterChange = <T,>(setter: React.Dispatch<React.SetStateAction<T>>) => (value: T) => {
     setter(value);
     setCurrentPage(0);
   };
 
   const hasFilters = dataInicio || dataFim || tipoFilter !== '__all__' || localFilter !== '__all__' || idMmFilter || showCancelados !== 'todos';
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Histórico de Movimentos</h1>
-          <p className="text-muted-foreground">Consulte todos os movimentos registados</p>
+          <h1 className="text-2xl font-bold">{t('movements.history.title')}</h1>
+          <p className="text-muted-foreground">{t('movements.history.subtitle')}</p>
         </div>
         <Button onClick={handleExport} disabled={!movimentos?.length} className="gap-2">
           <Download className="w-4 h-4" />
-          Exportar Excel
+          {t('movements.history.exportExcel')}
         </Button>
       </div>
 
@@ -247,73 +231,56 @@ export default function Historico() {
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg flex items-center gap-2">
               <Filter className="w-5 h-5" />
-              Filtros
+              {t('movements.history.filters')}
             </CardTitle>
             {hasFilters && (
               <Button variant="ghost" size="sm" onClick={clearFilters}>
-                Limpar filtros
+                {t('movements.history.clearFilters')}
               </Button>
             )}
           </div>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-6">
-            {/* Data Início */}
             <div className="space-y-2">
-              <Label className="text-sm">Data Início</Label>
-              <Input
-                type="date"
-                value={dataInicio}
-                onChange={(e) => handleFilterChange(setDataInicio)(e.target.value)}
-              />
+              <Label className="text-sm">{t('movements.history.labelDateStart')}</Label>
+              <Input type="date" value={dataInicio} onChange={(e) => handleFilterChange(setDataInicio)(e.target.value)} />
             </div>
-
-            {/* Data Fim */}
             <div className="space-y-2">
-              <Label className="text-sm">Data Fim</Label>
-              <Input
-                type="date"
-                value={dataFim}
-                onChange={(e) => handleFilterChange(setDataFim)(e.target.value)}
-              />
+              <Label className="text-sm">{t('movements.history.labelDateEnd')}</Label>
+              <Input type="date" value={dataFim} onChange={(e) => handleFilterChange(setDataFim)(e.target.value)} />
             </div>
-
-            {/* Tipo */}
             <div className="space-y-2">
-              <Label className="text-sm">Tipo</Label>
+              <Label className="text-sm">{t('movements.history.labelType')}</Label>
               <Select value={tipoFilter} onValueChange={handleFilterChange(setTipoFilter)}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Todos" />
+                  <SelectValue placeholder={t('movements.history.allTypes')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__all__">Todos</SelectItem>
-                  <SelectItem value="entrada">Entrada</SelectItem>
-                  <SelectItem value="transferencia">Transferência</SelectItem>
-                  <SelectItem value="saida">Saída</SelectItem>
+                  <SelectItem value="__all__">{t('movements.history.allTypes')}</SelectItem>
+                  <SelectItem value="entrada">{enumLabel('tipoMovimento', 'entrada')}</SelectItem>
+                  <SelectItem value="transferencia">{enumLabel('tipoMovimento', 'transferencia')}</SelectItem>
+                  <SelectItem value="saida">{enumLabel('tipoMovimento', 'saida')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-
-            {/* ID MM */}
             <div className="space-y-2">
-              <Label className="text-sm">ID MM</Label>
+              <Label className="text-sm">{t('movements.history.labelIdMm')}</Label>
               <Input
-                placeholder="Pesquisar ID MM..."
+                placeholder={t('movements.history.searchIdMmPlaceholder')}
                 value={idMmFilter}
                 onChange={(e) => handleFilterChange(setIdMmFilter)(e.target.value)}
               />
             </div>
-
-            {/* Parque - only for admins */}
             {isAdmin && (
               <div className="space-y-2">
-                <Label className="text-sm">Parque</Label>
+                <Label className="text-sm">{t('movements.history.labelYard')}</Label>
                 <Select value={localFilter} onValueChange={handleFilterChange(setLocalFilter)}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Todos" />
+                    <SelectValue placeholder={t('movements.history.allTypes')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="__all__">Todos</SelectItem>
+                    <SelectItem value="__all__">{t('movements.history.allTypes')}</SelectItem>
                     {locais?.map(l => (
                       <SelectItem key={l.id} value={l.id}>{l.nome}</SelectItem>
                     ))}
@@ -321,18 +288,14 @@ export default function Historico() {
                 </Select>
               </div>
             )}
-
-            {/* Cancelados */}
             <div className="space-y-2">
-              <Label className="text-sm">Cancelados</Label>
+              <Label className="text-sm">{t('movements.history.labelCancelled')}</Label>
               <Select value={showCancelados} onValueChange={handleFilterChange(setShowCancelados)}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
+                <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="todos">Todos</SelectItem>
-                  <SelectItem value="nao">Apenas ativos</SelectItem>
-                  <SelectItem value="sim">Apenas cancelados</SelectItem>
+                  <SelectItem value="todos">{t('movements.history.allTypes')}</SelectItem>
+                  <SelectItem value="nao">{t('movements.history.onlyActive')}</SelectItem>
+                  <SelectItem value="sim">{t('movements.history.onlyCancelled')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -359,14 +322,14 @@ export default function Historico() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[50px]"></TableHead>
-                    <TableHead>Data</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>ID MM</TableHead>
-                    <TableHead>Tipo Produto</TableHead>
-                    <TableHead className="text-right">Qtd</TableHead>
-                    <TableHead>Origem → Destino</TableHead>
-                    <TableHead>Estado</TableHead>
-                    {isAdmin && <TableHead className="w-[100px]">Ações</TableHead>}
+                    <TableHead>{t('movements.history.colDate')}</TableHead>
+                    <TableHead>{t('movements.history.colType')}</TableHead>
+                    <TableHead>{t('movements.history.colIdMm')}</TableHead>
+                    <TableHead>{t('movements.history.colProductType')}</TableHead>
+                    <TableHead className="text-right">{t('movements.history.colQty')}</TableHead>
+                    <TableHead>{t('movements.history.colRoute')}</TableHead>
+                    <TableHead>{t('movements.history.colStatus')}</TableHead>
+                    {isAdmin && <TableHead className="w-[100px]">{t('movements.history.colActions')}</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -376,22 +339,13 @@ export default function Historico() {
                         <TableRow className={mov.cancelado ? 'opacity-60 bg-muted/30' : ''}>
                           <TableCell>
                             <CollapsibleTrigger asChild>
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="h-8 w-8 p-0"
-                                onClick={() => toggleRow(mov.id)}
-                              >
-                                {expandedRows.has(mov.id) ? (
-                                  <ChevronUp className="w-4 h-4" />
-                                ) : (
-                                  <ChevronDown className="w-4 h-4" />
-                                )}
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={() => toggleRow(mov.id)}>
+                                {expandedRows.has(mov.id) ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
                               </Button>
                             </CollapsibleTrigger>
                           </TableCell>
                           <TableCell className="whitespace-nowrap">
-                            {format(new Date(mov.data_movimento), 'dd/MM/yyyy HH:mm', { locale: pt })}
+                            {formatDateTime(mov.data_movimento)}
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
@@ -403,22 +357,20 @@ export default function Historico() {
                             <span className="font-mono font-medium">{mov.id_mm || '—'}</span>
                           </TableCell>
                           <TableCell>
-                            <Badge variant="outline" className="capitalize">{mov.tipo_produto || '—'}</Badge>
+                            <Badge variant="outline" className="capitalize">
+                              {mov.tipo_produto ? enumLabel('tipoProduto', mov.tipo_produto) : '—'}
+                            </Badge>
                           </TableCell>
-                          <TableCell className="text-right font-semibold">
-                            {mov.quantidade}
-                          </TableCell>
-                          <TableCell>
-                            <span>{getPercursoLabel(mov)}</span>
-                          </TableCell>
+                          <TableCell className="text-right font-semibold">{mov.quantidade}</TableCell>
+                          <TableCell><span>{getPercursoLabel(mov)}</span></TableCell>
                           <TableCell>
                             {mov.cancelado ? (
                               <Badge variant="outline" className="badge-cancelado gap-1">
-                                <XCircle className="w-3 h-3" /> Cancelado
+                                <XCircle className="w-3 h-3" /> {t('movements.history.statusCancelled')}
                               </Badge>
                             ) : (
                               <Badge variant="outline" className="badge-entrada">
-                                Ativo
+                                {t('movements.history.statusActive')}
                               </Badge>
                             )}
                           </TableCell>
@@ -431,7 +383,7 @@ export default function Historico() {
                                   className="text-destructive hover:text-destructive"
                                   onClick={() => handleCancelClick(mov)}
                                 >
-                                  Cancelar
+                                  {t('movements.history.cancelBtn')}
                                 </Button>
                               )}
                             </TableCell>
@@ -442,31 +394,31 @@ export default function Historico() {
                             <TableCell colSpan={isAdmin ? 9 : 8} className="py-4">
                               <div className="pl-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 text-sm">
                                 <div>
-                                  <span className="text-muted-foreground">Documento:</span>
+                                  <span className="text-muted-foreground">{t('movements.history.labelDocument')}:</span>
                                   <p className="font-medium">
-                                    {mov.tipo_documento.replace('_', ' ')}
+                                    {enumLabel('tipoDocumento', mov.tipo_documento)}
                                     {mov.numero_documento && ` - ${mov.numero_documento}`}
                                   </p>
                                 </div>
                                 <div>
-                                  <span className="text-muted-foreground">Operador:</span>
+                                  <span className="text-muted-foreground">{t('movements.history.labelOperator')}:</span>
                                   <p className="font-medium">{getOperadorNome(mov.operador_id)}</p>
                                 </div>
                                 {mov.tipo === 'saida' && (
                                   <div>
-                                    <span className="text-muted-foreground">Cliente:</span>
+                                    <span className="text-muted-foreground">{t('movements.history.labelCustomer')}:</span>
                                     <p className="font-medium">{getClienteNome(mov)}</p>
                                   </div>
                                 )}
                                 {mov.matricula_viatura && (
                                   <div>
-                                    <span className="text-muted-foreground">Matrícula:</span>
+                                    <span className="text-muted-foreground">{t('movements.history.labelPlate')}:</span>
                                     <p className="font-medium">{mov.matricula_viatura}</p>
                                   </div>
                                 )}
                                 {mov.observacoes && (
                                   <div className="sm:col-span-2 lg:col-span-3">
-                                    <span className="text-muted-foreground">Observações:</span>
+                                    <span className="text-muted-foreground">{t('movements.history.labelNotes')}:</span>
                                     <p className="font-medium">{mov.observacoes}</p>
                                   </div>
                                 )}
@@ -474,7 +426,7 @@ export default function Historico() {
                                   <div className="sm:col-span-2 lg:col-span-3 text-destructive">
                                     <span className="flex items-center gap-1">
                                       <AlertTriangle className="w-4 h-4" />
-                                      Motivo do cancelamento:
+                                      {t('movements.history.labelCancelReason')}:
                                     </span>
                                     <p className="font-medium">{mov.motivo_cancelamento}</p>
                                   </div>
@@ -492,8 +444,8 @@ export default function Historico() {
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <History className="w-16 h-16 mb-4 opacity-50" />
-              <p className="text-lg font-medium">Nenhum movimento encontrado</p>
-              <p className="text-sm">Ajuste os filtros ou registe novos movimentos</p>
+              <p className="text-lg font-medium">{t('movements.history.noMovements')}</p>
+              <p className="text-sm">{t('movements.history.noMovementsHint')}</p>
             </div>
           )}
         </CardContent>
@@ -503,27 +455,21 @@ export default function Historico() {
       {totalPages > 1 && (
         <div className="flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
-            A mostrar {currentPage * PAGE_SIZE + 1}–{Math.min((currentPage + 1) * PAGE_SIZE, totalCount)} de {totalCount} movimentos
+            {t('movements.history.showingRange', {
+              from: currentPage * PAGE_SIZE + 1,
+              to: Math.min((currentPage + 1) * PAGE_SIZE, totalCount),
+              total: totalCount,
+            })}
           </p>
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={currentPage === 0}
-              onClick={() => setCurrentPage(p => p - 1)}
-            >
-              Anterior
+            <Button variant="outline" size="sm" disabled={currentPage === 0} onClick={() => setCurrentPage(p => p - 1)}>
+              {t('movements.history.prevPage')}
             </Button>
             <span className="flex items-center px-3 text-sm text-muted-foreground">
-              Página {currentPage + 1} de {totalPages}
+              {t('movements.history.pageLabel', { page: currentPage + 1, total: totalPages })}
             </span>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={currentPage >= totalPages - 1}
-              onClick={() => setCurrentPage(p => p + 1)}
-            >
-              Seguinte
+            <Button variant="outline" size="sm" disabled={currentPage >= totalPages - 1} onClick={() => setCurrentPage(p => p + 1)}>
+              {t('movements.history.nextPage')}
             </Button>
           </div>
         </div>
@@ -531,7 +477,7 @@ export default function Historico() {
 
       {movimentos && movimentos.length > 0 && totalPages <= 1 && (
         <div className="text-sm text-muted-foreground text-center">
-          A mostrar {movimentos.length} de {totalCount} movimento{totalCount !== 1 ? 's' : ''}
+          {t('movements.history.showingCount', { count: movimentos.length, total: totalCount })}
         </div>
       )}
 
@@ -541,26 +487,26 @@ export default function Historico() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-destructive">
               <AlertTriangle className="w-5 h-5" />
-              Cancelar Movimento
+              {t('movements.history.cancelDialogTitle')}
             </DialogTitle>
             <DialogDescription>
-              Esta ação irá reverter o stock automaticamente. Esta operação não pode ser desfeita.
+              {t('movements.history.cancelDialogDesc')}
             </DialogDescription>
           </DialogHeader>
 
           {selectedMovimento && (
             <div className="bg-muted rounded-lg p-4 text-sm space-y-2">
-              <p><strong>Produto:</strong> {selectedMovimento.id_mm || '—'}</p>
-              <p><strong>Quantidade:</strong> {selectedMovimento.quantidade}</p>
-              <p><strong>Data:</strong> {format(new Date(selectedMovimento.data_movimento), 'dd/MM/yyyy HH:mm', { locale: pt })}</p>
+              <p><strong>{t('movements.history.cancelLabelProduct')}:</strong> {selectedMovimento.id_mm || '—'}</p>
+              <p><strong>{t('movements.history.cancelLabelQty')}:</strong> {selectedMovimento.quantidade}</p>
+              <p><strong>{t('movements.history.cancelLabelDate')}:</strong> {formatDateTime(selectedMovimento.data_movimento)}</p>
             </div>
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="motivo">Motivo do cancelamento *</Label>
+            <Label htmlFor="motivo">{t('movements.history.cancelReasonLabel')}</Label>
             <Textarea
               id="motivo"
-              placeholder="Indique o motivo do cancelamento..."
+              placeholder={t('movements.history.cancelReasonPlaceholder')}
               value={motivoCancelamento}
               onChange={(e) => setMotivoCancelamento(e.target.value)}
               rows={3}
@@ -569,14 +515,14 @@ export default function Historico() {
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setCancelDialogOpen(false)}>
-              Voltar
+              {t('movements.history.backBtn')}
             </Button>
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={handleConfirmCancel}
               disabled={cancelMovimento.isPending || !motivoCancelamento.trim()}
             >
-              {cancelMovimento.isPending ? 'A cancelar...' : 'Confirmar Cancelamento'}
+              {cancelMovimento.isPending ? t('movements.history.cancellingBtn') : t('movements.history.confirmCancelBtn')}
             </Button>
           </DialogFooter>
         </DialogContent>
