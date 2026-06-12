@@ -599,8 +599,8 @@ export function ProdutoFotos({
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="operacionais" className="gap-2">
             <Image className="w-4 h-4" />
-            <span className="hidden sm:inline">Operacionais</span>
-            <span className="sm:hidden">Op.</span>
+            <span className="hidden sm:inline">{t('products.fotos.operacionais')}</span>
+            <span className="sm:hidden">{t('products.fotos.operacionaisShort')}</span>
           </TabsTrigger>
           <TabsTrigger 
             value="hd" 
@@ -608,16 +608,15 @@ export function ProdutoFotos({
             className="gap-2"
           >
             <Sparkles className="w-4 h-4" />
-            <span className="hidden sm:inline">Alta Qualidade (HD)</span>
-            <span className="sm:hidden">HD</span>
+            <span className="hidden sm:inline">{t('products.fotos.hdTab')}</span>
+            <span className="sm:hidden">{t('products.fotos.hdTabShort')}</span>
           </TabsTrigger>
         </TabsList>
         
         <TabsContent value="operacionais" className="mt-4">
           <div className="mb-3">
             <p className="text-sm text-muted-foreground">
-              Fotos para uso operacional (listagens, histórico, mobile). 
-              Comprimidas até 2000px, ideal para rapidez.
+              {t('products.fotos.operacionaisDesc')}
             </p>
           </div>
           {renderFotoGrid(fotos, false, maxFotosOperacionais)}
@@ -628,11 +627,10 @@ export function ProdutoFotos({
             <>
               <div className="mb-3 space-y-1">
                 <p className="text-sm text-muted-foreground">
-                  Fotos de alta qualidade para visualização detalhada. 
-                  Sem compressão, preserva cores e detalhes da pedra.
+                  {t('products.fotos.hdTabDesc')}
                 </p>
                 <p className="text-xs text-muted-foreground/70">
-                  💧 Watermark discreto aplicado automaticamente ({empresaNome} • {idPrefix} • Lado)
+                  {t('products.fotos.watermarkInfo', { empresa: empresaNome, prefix: idPrefix })}
                 </p>
               </div>
               {renderFotoGrid(fotosHd, true, maxFotosHd, hdLabels)}
@@ -640,9 +638,9 @@ export function ProdutoFotos({
           ) : (
             <div className="py-8 text-center text-muted-foreground">
               <Sparkles className="w-12 h-12 mx-auto mb-3 opacity-30" />
-              <p className="font-medium">Acesso restrito</p>
+              <p className="font-medium">{t('products.fotos.restrictedTitle')}</p>
               <p className="text-sm">
-                Apenas Admins e Superadmins podem carregar fotos HD
+                {t('products.fotos.restrictedDesc')}
               </p>
             </div>
           )}
@@ -651,7 +649,7 @@ export function ProdutoFotos({
       
       {hasPendingUploads() && (
         <p className="text-sm text-destructive">
-          ⚠️ Confirme ou cancele os uploads pendentes antes de guardar.
+          {t('products.fotos.pendingWarning')}
         </p>
       )}
     </div>
