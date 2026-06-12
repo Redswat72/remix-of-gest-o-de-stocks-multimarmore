@@ -30,21 +30,13 @@ interface ProdutoFotosProps {
   canUploadHd: boolean;
 }
 
-// Configuração de slots HD por forma de produto
-const HD_SLOTS_CONFIG: Record<FormaProduto, { count: number; labels: string[] }> = {
-  bloco: {
-    count: 4,
-    labels: ['Lado A', 'Lado B', 'Lado C', 'Lado D'],
-  },
-  chapa: {
-    count: 4,
-    labels: ['Foto 1', 'Foto 2', 'Foto 3', 'Foto 4'],
-  },
-  ladrilho: {
-    count: 4,
-    labels: ['Foto 1', 'Foto 2', 'Foto 3', 'Foto 4'],
-  },
+// Quantidade de slots HD por forma de produto
+const HD_SLOTS_COUNT: Record<FormaProduto, number> = {
+  bloco: 4,
+  chapa: 4,
+  ladrilho: 4,
 };
+
 
 // Função para aplicar watermark na imagem
 async function applyWatermark(
