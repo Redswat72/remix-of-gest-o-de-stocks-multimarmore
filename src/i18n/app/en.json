@@ -283,5 +283,336 @@
     "roleAdminDesc": "Can manage users in your company",
     "roleCommercialDesc": "Read-only access to inventory values",
     "sendInvite": "Send Invite"
+  },
+  "movements": {
+    "pageTitle": "Register Movement",
+    "pageSubtitle": "Fill in the movement details step by step",
+    "steps": {
+      "tipo": {
+        "title": "Type",
+        "description": "Movement type"
+      },
+      "documento": {
+        "title": "Document",
+        "description": "Document information"
+      },
+      "produto": {
+        "title": "Product",
+        "description": "Product and quantity"
+      },
+      "locais": {
+        "title": "Locations",
+        "description": "Origin and destination"
+      },
+      "transporte": {
+        "title": "Transport",
+        "description": "Transport details"
+      },
+      "confirmacao": {
+        "title": "Confirmation",
+        "description": "Review and confirm"
+      }
+    },
+    "origemMaterial": {
+      "label": "Material Origin",
+      "adquirido": "Purchased",
+      "adquiridoDesc": "Material purchased from supplier",
+      "producaoPropria": "Own Production",
+      "producaoPrpriaDesc": "Internally produced material",
+      "semDocumento": "Document: No document (own production)"
+    },
+    "pedreiraOrigem": {
+      "label": "Origin Quarry",
+      "placeholder": "Select quarry"
+    },
+    "tipoDocumento": "Document Type",
+    "numeroDocumento": {
+      "label": "Document Number",
+      "requiredSaida": "Enter the document number.",
+      "required": "Document number is required"
+    },
+    "fornecedor": {
+      "label": "Supplier",
+      "placeholder": "Supplier name"
+    },
+    "tipoProduto": "Product Type",
+    "idMM": {
+      "label": "ID MM",
+      "placeholder": "Enter the product ID MM"
+    },
+    "variedade": {
+      "label": "Variety",
+      "placeholder": "E.g.: White, Grey..."
+    },
+    "comprimento": "Length (cm)",
+    "largura": "Width (cm)",
+    "altura": "Height (cm)",
+    "peso": "Weight (kg)",
+    "numChapas": "No. of Slabs",
+    "numPecas": "No. of Pieces",
+    "parqueDestino": {
+      "label": "Destination Yard",
+      "placeholder": "Select yard",
+      "associado": "You are assigned to yard: {{nome}}"
+    },
+    "parqueOrigem": {
+      "label": "Origin Yard",
+      "placeholderOrigem": "Select origin yard",
+      "placeholderDestino": "Select destination yard",
+      "placeholder": "Select yard"
+    },
+    "quantidade": "Quantity",
+    "searchProduto": {
+      "label": "Search Product (ID MM)",
+      "placeholder": "Type the ID MM to search (min. 2 characters)..."
+    },
+    "selecionarProduto": {
+      "label": "Select Product",
+      "placeholder": "Choose a product"
+    },
+    "fotografias": "Photos",
+    "fotografiasPargas": "Parga Photos",
+    "fotoPrimeira": "First Photo",
+    "fotoUltima": "Last Photo",
+    "matricula": {
+      "label": "Vehicle Registration (optional)",
+      "placeholder": "E.g.: 00-AA-00"
+    },
+    "observacoes": {
+      "label": "Notes (optional)",
+      "placeholder": "Additional notes about the movement..."
+    },
+    "resumo": {
+      "title": "Movement Summary",
+      "tipo": "Type:",
+      "produto": "Product:",
+      "quantidade": "Quantity:",
+      "origemMaterial": "Material Origin:",
+      "pedreira": "Quarry:",
+      "fornecedor": "Supplier:",
+      "destino": "Destination:",
+      "percurso": "Route:",
+      "origem": "Origin:",
+      "cliente": "Customer:",
+      "documento": "Document:",
+      "matricula": "Registration:",
+      "stockImpacto": "Stock impact:"
+    },
+    "stockDisponivel": "Available stock: {{n}} units",
+    "stockDisponivelOrigem": "Available stock at origin: {{n}} units",
+    "stockInsuficiente": "(insufficient)",
+    "stockInsuficienteAlert": "Insufficient stock! Available: {{n}}",
+    "stockInsuficienteToastTitle": "Insufficient stock",
+    "stockInsuficienteToastDesc": "Not enough stock for this operation. Available: {{n}}",
+    "cliente": {
+      "label": "Customer",
+      "placeholder": "Enter the customer name",
+      "required": "Enter the customer name."
+    },
+    "campoObrigatorio": "Required field",
+    "documentoObrigatorio": "Enter the document number.",
+    "registado": {
+      "title": "Movement registered!",
+      "desc": "The movement was successfully registered and the stock was updated."
+    },
+    "erroRegistar": "Error registering movement",
+    "botaoCancelar": "Cancel",
+    "botaoSeguinte": "Next",
+    "botaoRegistar": "Registering...",
+    "botaoConfirmar": "Confirm Movement",
+    "photo": {
+      "ficheiroInvalido": "Invalid file",
+      "selecioneImagem": "Please select an image.",
+      "erroCarregar": "Error uploading photo",
+      "tirarFoto": "Take photo or choose from gallery",
+      "substituir": "Replace",
+      "remover": "Remove",
+      "aCarregar": "Uploading..."
+    }
+  },
+  "production": {
+    "pageTitle": "New Production",
+    "pageSubtitle": "Produce slabs from a block",
+    "blocoOrigem": {
+      "title": "Origin Block",
+      "description": "Enter the block ID MM to pre-fill the data"
+    },
+    "pesquisar": "Search",
+    "notFound": "Block not found with ID \"{{id}}\"",
+    "comprimento": "Length",
+    "largura": "Width",
+    "altura": "Height",
+    "pesoKg": "Weight (kg)",
+    "dadosProducao": "Production Data",
+    "data": "Date",
+    "numLinha": "Line No.",
+    "linhaPlaceholder": "Select line",
+    "gps": "GPS Location",
+    "gpsTitle": "Get location",
+    "gpsObtido": "Location obtained",
+    "gpsErro": "Could not obtain location",
+    "gpsNaoSuportado": "Geolocation not supported",
+    "pargas": {
+      "title": "Pargas (Cut Sections)",
+      "description": "Configure up to 4 pargas with resulting slabs"
+    },
+    "parga": "Parga {{n}}",
+    "qtdChapas": "No. Slabs",
+    "espessura": "Thickness",
+    "fotoPrimeira": "First Photo",
+    "fotoUltima": "Last Photo",
+    "camera": "Camera",
+    "galeria": "Gallery",
+    "fotoCarregada": "Photo uploaded",
+    "tipoCorte": {
+      "title": "Cut Type",
+      "description": "Select whether the block was fully or partially cut"
+    },
+    "corteTotal": {
+      "label": "Full Cut",
+      "desc": "The block is fully consumed and removed from stock."
+    },
+    "corteParcial": {
+      "label": "Partial Cut",
+      "desc": "The block remains in stock but measurements are pending update."
+    },
+    "guardarProducao": "Save Production",
+    "erroPesquisar": "Error searching block",
+    "guardadoTotal": "Production saved! Slab {{id}} created. Block removed from stock.",
+    "guardadoParcial": "Production saved! Slab {{id}} created. Block marked for measurement.",
+    "erroGuardar": "Error saving production: {{msg}}",
+    "blocoNaoSelecionado": "No block selected",
+    "selecioneTipoCorte": "Select the cut type"
+  },
+  "import": {
+    "inventarioPageTitle": "Import Inventory",
+    "inventarioPageSubtitle": "Import products via Excel",
+    "stockPageTitle": "Import Stock via Excel",
+    "stockPageSubtitle": "Import initial inventory from Excel files",
+    "steps": {
+      "upload": "Upload",
+      "preview": "Preview",
+      "confirmar": "Confirm",
+      "resultado": "Result"
+    },
+    "modeloExcel": "Excel Template",
+    "carregarFicheiroTitle": "Upload Excel File",
+    "carregarFicheiroDesc": "Select or drag an Excel file (.xlsx) with the inventory data",
+    "processando": "Processing file...",
+    "arrastarFicheiro": "Drag the file here",
+    "cliqueSelecionar": "or click to select",
+    "selecionarFicheiro": "Select File",
+    "erroProcesarFicheiro": "Error processing file",
+    "estruturaEsperada": "Expected structure",
+    "estruturaDesc": "The file must contain columns: ID_MM, Parque_MM, Variedade (required). Optional: Date, Forma, Comprimento_cm, Largura_cm, Altura_cm, Espessura_cm, Peso_ton, Linha, Origem_material, Quantidade, Notas, Foto1_URL to Foto4_URL.",
+    "previewTitle": "File Preview",
+    "linhasEncontradas": "{{n}} rows found",
+    "statsTotal": "Total",
+    "statsValidas": "Valid",
+    "statsComErros": "With Errors",
+    "statsAvisos": "Warnings",
+    "tabTodasN": "All ({{n}})",
+    "tabValidasN": "Valid ({{n}})",
+    "tabErrosN": "Errors ({{n}})",
+    "tabAvisosN": "Warnings ({{n}})",
+    "colLinha": "Row",
+    "colIdmm": "IDMM",
+    "colVariedade": "Variety",
+    "colForma": "Type",
+    "colParqueMM": "Yard MM",
+    "colQtd": "Qty",
+    "colEstado": "Status",
+    "linhasComErros": "There are {{n}} rows with errors",
+    "linhasErrosDesc": "These rows will be skipped during import. Fix the errors in the file and upload again to import all rows.",
+    "continuar": "Continue",
+    "confirmarTitle": "Confirm Import",
+    "confirmarDesc": "Review the summary before processing",
+    "resumoImportacao": "Import Summary",
+    "linhasTotais": "Total rows:",
+    "linhasValidas": "Valid rows:",
+    "linhasIgnoradas": "Skipped rows:",
+    "novosProdutos": "New products:",
+    "movimentosEntrada": "Inbound movements:",
+    "acaoIrreversivel": "Irreversible action",
+    "acaoDesc": "After confirming, products will be created and inbound movements will be registered. This operation cannot be automatically undone.",
+    "processingImport": "Processing import...",
+    "aImportar": "Importing...",
+    "confirmarImportacao": "Confirm Import",
+    "resultadoConcluida": "Import Complete!",
+    "resultadoConcluidaAvisos": "Import Completed with Warnings",
+    "resultadoProdutosCriados": "Products Created",
+    "resultadoMovimentosRegistados": "Movements Registered",
+    "resultadoLinhasProcessadas": "Rows Processed",
+    "resultadoErros": "Errors",
+    "linhasFalharam": "Some rows failed",
+    "linhasNaoProcessadas": "{{n}} rows were not processed:",
+    "maisErros": "...and {{n}} more errors",
+    "novaImportacao": "New Import",
+    "verStock": "View Stock",
+    "modeloDescarregado": "Template downloaded",
+    "modeloDescarregadoDesc": "The import template was saved successfully.",
+    "modeloTransferido": "Template downloaded",
+    "modeloTransferidoDesc": "Excel template for {{tipo}} downloaded successfully",
+    "importacaoConcluida": "Import complete",
+    "importacaoConcluidaDesc": "{{produtos}} products created, {{movimentos}} movements registered.",
+    "movimentosCriadosDesc": "{{n}} movements created successfully",
+    "erroImportacao": "Import error",
+    "ficheiroInvalido": "Invalid file",
+    "ficheiroInvalidoDesc": "Please select an Excel file (.xlsx or .xls)",
+    "tipoNaoSelecionado": "Type not selected",
+    "tipoNaoSelecionadoDesc": "Please select the import type (Blocks, Slabs or Tiles)",
+    "tipoNaoSelecionadoDropDesc": "Please select the import type first",
+    "selecionarTipoTitle": "1. Select the Import Type",
+    "selecionarTipoDesc": "Choose the type of product you want to import",
+    "modeloParaTipoTitle": "Excel Template for {{nome}}",
+    "modeloParaTipoDesc": "Download the template with the correct structure",
+    "descarregarModelo": "Download Template",
+    "carregarFicheiroStepTitle": "2. Upload Excel File",
+    "carregarFicheiroStepDescComTipo": "Upload an Excel file with {{nome}} data",
+    "carregarFicheiroStepDescSemTipo": "Select the import type above first",
+    "arrastarOuClicar": "Drag the Excel file or click to select",
+    "selecioneTipoPrimeiro": "Select the import type first",
+    "suportaFormatos": "Supports .xlsx and .xls files",
+    "importacaoConcluidaInline": "Import Complete",
+    "importarN": "Import ({{n}})",
+    "limpar": "Clear",
+    "preVisualizacaoTitle": "Data Preview",
+    "preVisualizacaoDesc": "Review the data before confirming the import",
+    "confirmarDialogTitle": "Confirm Import of {{nome}}",
+    "confirmarDialogDesc": "This action will create inbound movements for all valid rows.",
+    "tipoProduto": "Product type:",
+    "linhasProcessar": "Rows to process:",
+    "produtosNovosDialog": "New products to create:",
+    "movimentosDialog": "Movements to create:",
+    "linhasIgnoradasDialog": "Skipped rows (errors):",
+    "infoTitle": "Information",
+    "infoDesc": "Stock will be updated automatically by database triggers. This operation cannot be undone.",
+    "totalLinhas": "Total Rows",
+    "processadas": "Processed",
+    "produtosNovosInline": "New Products",
+    "movimentosInline": "Movements",
+    "atencao": "Warning",
+    "maisErrosInline": "...and {{n}} more errors",
+    "prontas": "Ready to Import",
+    "produtosNovosStats": "New Products",
+    "unidadesTotal": "Total Units",
+    "linhasEncontradasStats": "Rows Found",
+    "colunasPrincipais": "Main Columns for {{nome}}",
+    "blocos": {
+      "nome": "Blocks",
+      "desc": "Raw stone blocks"
+    },
+    "chapas": {
+      "nome": "Slabs",
+      "desc": "Sawn slabs with pargas"
+    },
+    "ladrilhos": {
+      "nome": "Tiles",
+      "desc": "Finished tiles"
+    },
+    "colPargas": "Pargas (Qty)",
+    "colDimensoesPargas": "Parga Dimensions",
+    "colTotalChapas": "Total Slabs",
+    "colDimensoes": "Dimensions"
   }
 }

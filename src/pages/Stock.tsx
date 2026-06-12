@@ -16,27 +16,28 @@ import { useResumoBandas } from '@/hooks/useBandas';
 import { usePermissoes } from '@/hooks/usePermissoes';
 import { ExportExcelButton } from '@/components/ExportExcelButton';
 import { exportStockCompleto } from '@/utils/exportStockCompleto';
+import { useAppT } from '@/hooks/useAppT';
+import { useEnumLabel } from '@/lib/enumLabels';
+import { formatCurrency, formatNumber } from '@/lib/format';
 
 type SortField = 'referencia' | 'variedade' | 'quantidade' | 'valor';
 type SortOrder = 'asc' | 'desc';
 
-const FORMA_BADGE: Record<FormaInventario, { label: string; className: string }> = {
-  bloco: { label: '🟦 Bloco', className: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200' },
-  chapa: { label: '🟩 Chapa', className: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
-  ladrilho: { label: '🟨 Ladrilho', className: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200' },
+const FORMA_BADGE_CLASS: Record<FormaInventario, string> = {
+  bloco: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
+  chapa: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+  ladrilho: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
 };
 
-const formatCurrency = (value: number | null) => {
-  if (!value) return '—';
-  return new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(value);
-};
-
-const formatNumber = (value: number | null, decimals = 2) => {
-  if (value == null) return '—';
-  return new Intl.NumberFormat('pt-PT', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(value);
+const FORMA_EMOJI: Record<FormaInventario, string> = {
+  bloco: '🟦',
+  chapa: '🟩',
+  ladrilho: '🟨',
 };
 
 export default function Stock() {
+  const t = useAppT();
+  const enumLabel = useEnumLabel();
   const navigate = useNavigate();
   const { empresaConfig } = useEmpresa();
   const supabase = useSupabaseEmpresa();
@@ -81,7 +82,6 @@ export default function Stock() {
 
   const clearFilters = () => { setBusca(''); setFormaFilter(''); };
   const hasFilters = busca || formaFilter;
-  const mostrarIdMm = formaFilter === 'bloco' || (sortedItems.length > 0 && sortedItems.every(i => i.forma === 'bloco'));
 
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) return null;
@@ -111,8 +111,8 @@ export default function Stock() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Consulta de Stock</h1>
-          <p className="text-muted-foreground">Blocos, Chapas, Ladrilhos e Bandas de todas as tabelas</p>
+          <h1 className="text-2xl font-bold">{t('stock.title')}</h1>
+          <p className="text-muted-foreground">{t('stock.subtitle')}</p>
         </div>
         {podeVerValores && (
           <ExportExcelButton
@@ -120,7 +120,7 @@ export default function Stock() {
               empresaNome: empresaConfig!.nome,
               corHeader: empresaConfig!.cor,
             })}
-            label="Exportar Excel"
+            label={t('stock.exportExcel')}
           />
         )}
       </div>
@@ -129,33 +129,33 @@ export default function Stock() {
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         <Card>
           <CardContent className="pt-4 pb-4">
-            <p className="text-sm text-muted-foreground">Blocos</p>
+            <p className="text-sm text-muted-foreground">{t('nav.blocos')}</p>
             <p className="text-2xl font-bold">{totals.blocos}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4 pb-4">
-            <p className="text-sm text-muted-foreground">Chapas</p>
+            <p className="text-sm text-muted-foreground">{t('nav.chapas')}</p>
             <p className="text-2xl font-bold">{totals.chapas}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4 pb-4">
-            <p className="text-sm text-muted-foreground">Ladrilhos</p>
+            <p className="text-sm text-muted-foreground">{t('stock.tiles')}</p>
             <p className="text-2xl font-bold">{totals.ladrilho}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4 pb-4">
-            <p className="text-sm text-muted-foreground">Bandas</p>
+            <p className="text-sm text-muted-foreground">{t('nav.bandas')}</p>
             <p className="text-2xl font-bold">{totals.bandas}</p>
           </CardContent>
         </Card>
         {podeVerValores && (
           <Card>
             <CardContent className="pt-4 pb-4">
-              <p className="text-sm text-muted-foreground">Valor Total</p>
-              <p className="text-2xl font-bold">{formatCurrency(totals.valorTotal)}</p>
+              <p className="text-sm text-muted-foreground">{t('stock.totalValue')}</p>
+              <p className="text-2xl font-bold">{formatCurrency(totals.valorTotal) || '—'}</p>
             </CardContent>
           </Card>
         )}
@@ -167,10 +167,10 @@ export default function Stock() {
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg flex items-center gap-2">
               <Filter className="w-5 h-5" />
-              Filtros
+              {t('actions.filter')}
             </CardTitle>
             {hasFilters && (
-              <Button variant="ghost" size="sm" onClick={clearFilters}>Limpar filtros</Button>
+              <Button variant="ghost" size="sm" onClick={clearFilters}>{t('stock.clearFilters')}</Button>
             )}
           </div>
         </CardHeader>
@@ -179,7 +179,7 @@ export default function Stock() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Pesquisar por ID, variedade, parque..."
+                placeholder={t('stock.searchPlaceholder')}
                 value={busca}
                 onChange={e => setBusca(e.target.value)}
                 className="pl-10"
@@ -187,13 +187,13 @@ export default function Stock() {
             </div>
             <Select value={formaFilter || 'all'} onValueChange={v => setFormaFilter(v === 'all' ? '' : v)}>
               <SelectTrigger>
-                <SelectValue placeholder="Forma" />
+                <SelectValue placeholder={t('stock.allForms')} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todas as formas</SelectItem>
-                <SelectItem value="bloco">Bloco</SelectItem>
-                <SelectItem value="chapa">Chapa</SelectItem>
-                <SelectItem value="ladrilho">Ladrilho</SelectItem>
+                <SelectItem value="all">{t('stock.allForms')}</SelectItem>
+                <SelectItem value="bloco">{enumLabel('tipoProduto', 'bloco')}</SelectItem>
+                <SelectItem value="chapa">{enumLabel('tipoProduto', 'chapa')}</SelectItem>
+                <SelectItem value="ladrilho">{enumLabel('tipoProduto', 'ladrilho')}</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -218,23 +218,23 @@ export default function Stock() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Forma</TableHead>
+                    <TableHead>{t('stock.colForm')}</TableHead>
                     <TableHead className="cursor-pointer hover:bg-muted/50" onClick={() => toggleSort('referencia')}>
-                      <div className="flex items-center gap-1">ID MM <SortIcon field="referencia" /></div>
+                      <div className="flex items-center gap-1">{t('stock.colIdMm')} <SortIcon field="referencia" /></div>
                     </TableHead>
                     <TableHead className="cursor-pointer hover:bg-muted/50" onClick={() => toggleSort('variedade')}>
-                      <div className="flex items-center gap-1">Variedade <SortIcon field="variedade" /></div>
+                      <div className="flex items-center gap-1">{t('stock.colVariety')} <SortIcon field="variedade" /></div>
                     </TableHead>
-                    <TableHead>Parque</TableHead>
-                    <TableHead>Acabamento</TableHead>
-                    <TableHead>Dimensões</TableHead>
-                    <TableHead className="text-right">Peso (kg)</TableHead>
+                    <TableHead>{t('stock.colYard')}</TableHead>
+                    <TableHead>{t('stock.colFinish')}</TableHead>
+                    <TableHead>{t('stock.colDimensions')}</TableHead>
+                    <TableHead className="text-right">{t('stock.colWeight')}</TableHead>
                     <TableHead className="text-right cursor-pointer hover:bg-muted/50" onClick={() => toggleSort('quantidade')}>
-                      <div className="flex items-center justify-end gap-1">Quantidade <SortIcon field="quantidade" /></div>
+                      <div className="flex items-center justify-end gap-1">{t('stock.colQuantity')} <SortIcon field="quantidade" /></div>
                     </TableHead>
                     {podeVerValores && (
                       <TableHead className="text-right cursor-pointer hover:bg-muted/50" onClick={() => toggleSort('valor')}>
-                        <div className="flex items-center justify-end gap-1">Valor (€) <SortIcon field="valor" /></div>
+                        <div className="flex items-center justify-end gap-1">{t('stock.colValue')} <SortIcon field="valor" /></div>
                       </TableHead>
                     )}
                   </TableRow>
@@ -247,8 +247,8 @@ export default function Stock() {
                       onClick={() => navigate(`/inventario/${item.forma}/${item.id}`)}
                     >
                       <TableCell>
-                        <Badge className={FORMA_BADGE[item.forma].className}>
-                          {FORMA_BADGE[item.forma].label}
+                        <Badge className={FORMA_BADGE_CLASS[item.forma]}>
+                          {FORMA_EMOJI[item.forma]} {enumLabel('tipoProduto', item.forma)}
                         </Badge>
                       </TableCell>
                       <TableCell className="font-mono font-medium">{getDisplayReferencia(item)}</TableCell>
@@ -263,14 +263,14 @@ export default function Stock() {
                           : '—'}
                       </TableCell>
                       <TableCell className="text-right text-muted-foreground">
-                        {item.forma === 'bloco' && item.pesoKg ? `${formatNumber(item.pesoKg)} kg` : '—'}
+                        {item.forma === 'bloco' && item.pesoKg ? `${formatNumber(item.pesoKg, 0)} kg` : '—'}
                       </TableCell>
                       <TableCell className="text-right">
                         {formatNumber(item.quantidade)} {item.unidade}
                       </TableCell>
                       {podeVerValores && (
                         <TableCell className="text-right font-medium">
-                          {formatCurrency(item.valor)}
+                          {formatCurrency(item.valor) || '—'}
                         </TableCell>
                       )}
                     </TableRow>
@@ -281,8 +281,8 @@ export default function Stock() {
           ) : (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
               <Package className="w-16 h-16 mb-4 opacity-50" />
-              <p className="text-lg font-medium">Nenhum item em stock</p>
-              <p className="text-sm">Ajuste os filtros ou importe dados</p>
+              <p className="text-lg font-medium">{t('stock.noItems')}</p>
+              <p className="text-sm">{t('stock.adjustFilters')}</p>
             </div>
           )}
         </CardContent>
@@ -290,7 +290,7 @@ export default function Stock() {
 
       {sortedItems.length > 0 && (
         <div className="text-sm text-muted-foreground text-center">
-          A mostrar {sortedItems.length} item{sortedItems.length !== 1 ? 'ns' : ''}
+          {t('stock.showingItems', { count: sortedItems.length })}
         </div>
       )}
     </div>

@@ -283,5 +283,336 @@
     "roleAdminDesc": "Pode gerir utilizadores da sua empresa",
     "roleCommercialDesc": "Apenas consultas e valores do inventário",
     "sendInvite": "Enviar Convite"
+  },
+  "movements": {
+    "pageTitle": "Registar Movimento",
+    "pageSubtitle": "Preencha os dados do movimento passo a passo",
+    "steps": {
+      "tipo": {
+        "title": "Tipo",
+        "description": "Tipo de movimento"
+      },
+      "documento": {
+        "title": "Documento",
+        "description": "Informação documental"
+      },
+      "produto": {
+        "title": "Produto",
+        "description": "Produto e quantidade"
+      },
+      "locais": {
+        "title": "Locais",
+        "description": "Origem e destino"
+      },
+      "transporte": {
+        "title": "Transporte",
+        "description": "Dados de transporte"
+      },
+      "confirmacao": {
+        "title": "Confirmação",
+        "description": "Rever e confirmar"
+      }
+    },
+    "origemMaterial": {
+      "label": "Origem do Material",
+      "adquirido": "Adquirido",
+      "adquiridoDesc": "Material comprado a fornecedor",
+      "producaoPropria": "Produção Própria",
+      "producaoPrpriaDesc": "Material produzido internamente",
+      "semDocumento": "Documento: Sem documento (produção própria)"
+    },
+    "pedreiraOrigem": {
+      "label": "Pedreira de Origem",
+      "placeholder": "Selecione a pedreira"
+    },
+    "tipoDocumento": "Tipo de Documento",
+    "numeroDocumento": {
+      "label": "Número do Documento",
+      "requiredSaida": "Indique o número do documento.",
+      "required": "Número do documento é obrigatório"
+    },
+    "fornecedor": {
+      "label": "Fornecedor",
+      "placeholder": "Nome do fornecedor"
+    },
+    "tipoProduto": "Tipo de Produto",
+    "idMM": {
+      "label": "ID MM",
+      "placeholder": "Introduza o ID MM do produto"
+    },
+    "variedade": {
+      "label": "Variedade",
+      "placeholder": "Ex: Branco, Cinza..."
+    },
+    "comprimento": "Comprimento (cm)",
+    "largura": "Largura (cm)",
+    "altura": "Altura (cm)",
+    "peso": "Peso (kg)",
+    "numChapas": "Nº de Chapas",
+    "numPecas": "Nº de Peças",
+    "parqueDestino": {
+      "label": "Parque de Destino",
+      "placeholder": "Selecione o parque",
+      "associado": "Está associado ao parque: {{nome}}"
+    },
+    "parqueOrigem": {
+      "label": "Parque de Origem",
+      "placeholderOrigem": "Selecione o parque de origem",
+      "placeholderDestino": "Selecione o parque de destino",
+      "placeholder": "Selecione o parque"
+    },
+    "quantidade": "Quantidade",
+    "searchProduto": {
+      "label": "Pesquisar Produto (ID MM)",
+      "placeholder": "Digite o ID MM para pesquisar (mín. 2 caracteres)..."
+    },
+    "selecionarProduto": {
+      "label": "Selecionar Produto",
+      "placeholder": "Escolha um produto"
+    },
+    "fotografias": "Fotografias",
+    "fotografiasPargas": "Fotografias das Pargas",
+    "fotoPrimeira": "Foto Primeira",
+    "fotoUltima": "Foto Última",
+    "matricula": {
+      "label": "Matrícula da Viatura (opcional)",
+      "placeholder": "Ex: 00-AA-00"
+    },
+    "observacoes": {
+      "label": "Observações (opcional)",
+      "placeholder": "Notas adicionais sobre o movimento..."
+    },
+    "resumo": {
+      "title": "Resumo do Movimento",
+      "tipo": "Tipo:",
+      "produto": "Produto:",
+      "quantidade": "Quantidade:",
+      "origemMaterial": "Origem Material:",
+      "pedreira": "Pedreira:",
+      "fornecedor": "Fornecedor:",
+      "destino": "Destino:",
+      "percurso": "Percurso:",
+      "origem": "Origem:",
+      "cliente": "Cliente:",
+      "documento": "Documento:",
+      "matricula": "Matrícula:",
+      "stockImpacto": "Impacto no stock:"
+    },
+    "stockDisponivel": "Stock disponível: {{n}} unidades",
+    "stockDisponivelOrigem": "Stock disponível na origem: {{n}} unidades",
+    "stockInsuficiente": "(insuficiente)",
+    "stockInsuficienteAlert": "Stock insuficiente! Disponível: {{n}}",
+    "stockInsuficienteToastTitle": "Stock insuficiente",
+    "stockInsuficienteToastDesc": "Não há stock suficiente para esta operação. Disponível: {{n}}",
+    "cliente": {
+      "label": "Cliente",
+      "placeholder": "Escreva o nome do cliente",
+      "required": "Indique o nome do cliente."
+    },
+    "campoObrigatorio": "Campo obrigatório",
+    "documentoObrigatorio": "Indique o número do documento.",
+    "registado": {
+      "title": "Movimento registado!",
+      "desc": "O movimento foi registado com sucesso e o stock foi atualizado."
+    },
+    "erroRegistar": "Erro ao registar movimento",
+    "botaoCancelar": "Cancelar",
+    "botaoSeguinte": "Seguinte",
+    "botaoRegistar": "A registar...",
+    "botaoConfirmar": "Confirmar Movimento",
+    "photo": {
+      "ficheiroInvalido": "Ficheiro inválido",
+      "selecioneImagem": "Selecione uma imagem.",
+      "erroCarregar": "Erro ao carregar foto",
+      "tirarFoto": "Tirar foto ou escolher da galeria",
+      "substituir": "Substituir",
+      "remover": "Remover",
+      "aCarregar": "A carregar..."
+    }
+  },
+  "production": {
+    "pageTitle": "Nova Produção",
+    "pageSubtitle": "Produzir chapas a partir de um bloco",
+    "blocoOrigem": {
+      "title": "Bloco de Origem",
+      "description": "Introduza o ID MM do bloco para pré-preencher os dados"
+    },
+    "pesquisar": "Pesquisar",
+    "notFound": "Bloco não encontrado com o ID \"{{id}}\"",
+    "comprimento": "Comprimento",
+    "largura": "Largura",
+    "altura": "Altura",
+    "pesoKg": "Peso (kg)",
+    "dadosProducao": "Dados da Produção",
+    "data": "Data",
+    "numLinha": "Nº de Linha",
+    "linhaPlaceholder": "Selecionar linha",
+    "gps": "Localização GPS",
+    "gpsTitle": "Obter localização",
+    "gpsObtido": "Localização obtida",
+    "gpsErro": "Não foi possível obter localização",
+    "gpsNaoSuportado": "Geolocalização não suportada",
+    "pargas": {
+      "title": "Pargas (Secções de Corte)",
+      "description": "Configure até 4 pargas com as chapas resultantes"
+    },
+    "parga": "Parga {{n}}",
+    "qtdChapas": "Qtd. Chapas",
+    "espessura": "Espessura",
+    "fotoPrimeira": "Foto Primeira",
+    "fotoUltima": "Foto Última",
+    "camera": "Câmara",
+    "galeria": "Galeria",
+    "fotoCarregada": "Foto carregada",
+    "tipoCorte": {
+      "title": "Tipo de Corte",
+      "description": "Selecione se o bloco foi totalmente ou parcialmente cortado"
+    },
+    "corteTotal": {
+      "label": "Corte Total",
+      "desc": "O bloco é totalmente consumido e sai do stock."
+    },
+    "corteParcial": {
+      "label": "Corte Parcial",
+      "desc": "O bloco permanece no stock mas as medidas ficam pendentes de atualização."
+    },
+    "guardarProducao": "Guardar Produção",
+    "erroPesquisar": "Erro ao pesquisar bloco",
+    "guardadoTotal": "Produção guardada! Chapa {{id}} criada. Bloco removido do stock.",
+    "guardadoParcial": "Produção guardada! Chapa {{id}} criada. Bloco marcado para medição.",
+    "erroGuardar": "Erro ao guardar produção: {{msg}}",
+    "blocoNaoSelecionado": "Bloco não selecionado",
+    "selecioneTipoCorte": "Selecione o tipo de corte"
+  },
+  "import": {
+    "inventarioPageTitle": "Importar Inventário",
+    "inventarioPageSubtitle": "Importação de produtos via Excel",
+    "stockPageTitle": "Importar Stock via Excel",
+    "stockPageSubtitle": "Importe inventário inicial a partir de ficheiros Excel",
+    "steps": {
+      "upload": "Upload",
+      "preview": "Preview",
+      "confirmar": "Confirmar",
+      "resultado": "Resultado"
+    },
+    "modeloExcel": "Modelo Excel",
+    "carregarFicheiroTitle": "Carregar Ficheiro Excel",
+    "carregarFicheiroDesc": "Selecione ou arraste um ficheiro Excel (.xlsx) com os dados de inventário",
+    "processando": "A processar ficheiro...",
+    "arrastarFicheiro": "Arraste o ficheiro aqui",
+    "cliqueSelecionar": "ou clique para selecionar",
+    "selecionarFicheiro": "Selecionar Ficheiro",
+    "erroProcesarFicheiro": "Erro ao processar ficheiro",
+    "estruturaEsperada": "Estrutura esperada",
+    "estruturaDesc": "O ficheiro deve conter as colunas: ID_MM, Parque_MM, Variedade (obrigatórias). Opcionais: Data, Forma, Comprimento_cm, Largura_cm, Altura_cm, Espessura_cm, Peso_ton, Linha, Origem_material, Quantidade, Notas, Foto1_URL a Foto4_URL.",
+    "previewTitle": "Preview do Ficheiro",
+    "linhasEncontradas": "{{n}} linhas encontradas",
+    "statsTotal": "Total",
+    "statsValidas": "Válidas",
+    "statsComErros": "Com Erros",
+    "statsAvisos": "Avisos",
+    "tabTodasN": "Todas ({{n}})",
+    "tabValidasN": "Válidas ({{n}})",
+    "tabErrosN": "Erros ({{n}})",
+    "tabAvisosN": "Avisos ({{n}})",
+    "colLinha": "Linha",
+    "colIdmm": "IDMM",
+    "colVariedade": "Variedade",
+    "colForma": "Forma",
+    "colParqueMM": "Parque MM",
+    "colQtd": "Qtd",
+    "colEstado": "Estado",
+    "linhasComErros": "Existem {{n}} linhas com erros",
+    "linhasErrosDesc": "Estas linhas serão ignoradas durante a importação. Corrija os erros no ficheiro e carregue novamente para importar todas as linhas.",
+    "continuar": "Continuar",
+    "confirmarTitle": "Confirmar Importação",
+    "confirmarDesc": "Reveja o resumo antes de processar",
+    "resumoImportacao": "Resumo da Importação",
+    "linhasTotais": "Linhas totais:",
+    "linhasValidas": "Linhas válidas:",
+    "linhasIgnoradas": "Linhas ignoradas:",
+    "novosProdutos": "Novos produtos:",
+    "movimentosEntrada": "Movimentos de entrada:",
+    "acaoIrreversivel": "Ação irreversível",
+    "acaoDesc": "Após confirmar, os produtos serão criados e os movimentos de entrada serão registados. Esta operação não pode ser desfeita automaticamente.",
+    "processingImport": "A processar importação...",
+    "aImportar": "A importar...",
+    "confirmarImportacao": "Confirmar Importação",
+    "resultadoConcluida": "Importação Concluída!",
+    "resultadoConcluidaAvisos": "Importação Concluída com Avisos",
+    "resultadoProdutosCriados": "Produtos Criados",
+    "resultadoMovimentosRegistados": "Movimentos Registados",
+    "resultadoLinhasProcessadas": "Linhas Processadas",
+    "resultadoErros": "Erros",
+    "linhasFalharam": "Algumas linhas falharam",
+    "linhasNaoProcessadas": "{{n}} linhas não foram processadas:",
+    "maisErros": "...e mais {{n}} erros",
+    "novaImportacao": "Nova Importação",
+    "verStock": "Ver Stock",
+    "modeloDescarregado": "Modelo descarregado",
+    "modeloDescarregadoDesc": "O modelo de importação foi guardado com sucesso.",
+    "modeloTransferido": "Modelo transferido",
+    "modeloTransferidoDesc": "Modelo Excel para {{tipo}} transferido com sucesso",
+    "importacaoConcluida": "Importação concluída",
+    "importacaoConcluidaDesc": "{{produtos}} produtos criados, {{movimentos}} movimentos registados.",
+    "movimentosCriadosDesc": "{{n}} movimentos criados com sucesso",
+    "erroImportacao": "Erro na importação",
+    "ficheiroInvalido": "Ficheiro inválido",
+    "ficheiroInvalidoDesc": "Por favor selecione um ficheiro Excel (.xlsx ou .xls)",
+    "tipoNaoSelecionado": "Tipo não selecionado",
+    "tipoNaoSelecionadoDesc": "Por favor, selecione o tipo de importação (Blocos, Chapas ou Ladrilhos)",
+    "tipoNaoSelecionadoDropDesc": "Por favor, selecione primeiro o tipo de importação",
+    "selecionarTipoTitle": "1. Selecione o Tipo de Importação",
+    "selecionarTipoDesc": "Escolha o tipo de produto que pretende importar",
+    "modeloParaTipoTitle": "Modelo Excel para {{nome}}",
+    "modeloParaTipoDesc": "Descarregue o modelo com a estrutura correta",
+    "descarregarModelo": "Descarregar Modelo",
+    "carregarFicheiroStepTitle": "2. Carregar Ficheiro Excel",
+    "carregarFicheiroStepDescComTipo": "Carregue um ficheiro Excel com dados de {{nome}}",
+    "carregarFicheiroStepDescSemTipo": "Selecione primeiro o tipo de importação acima",
+    "arrastarOuClicar": "Arraste o ficheiro Excel ou clique para selecionar",
+    "selecioneTipoPrimeiro": "Selecione o tipo de importação primeiro",
+    "suportaFormatos": "Suporta ficheiros .xlsx e .xls",
+    "importacaoConcluidaInline": "Importação Concluída",
+    "importarN": "Importar ({{n}})",
+    "limpar": "Limpar",
+    "preVisualizacaoTitle": "Pré-visualização dos Dados",
+    "preVisualizacaoDesc": "Revise os dados antes de confirmar a importação",
+    "confirmarDialogTitle": "Confirmar Importação de {{nome}}",
+    "confirmarDialogDesc": "Esta ação irá criar movimentos de entrada para todas as linhas válidas.",
+    "tipoProduto": "Tipo de produto:",
+    "linhasProcessar": "Linhas a processar:",
+    "produtosNovosDialog": "Produtos novos a criar:",
+    "movimentosDialog": "Movimentos a criar:",
+    "linhasIgnoradasDialog": "Linhas ignoradas (erros):",
+    "infoTitle": "Informação",
+    "infoDesc": "O stock será atualizado automaticamente pelos triggers da base de dados. Esta operação não pode ser desfeita.",
+    "totalLinhas": "Linhas Total",
+    "processadas": "Processadas",
+    "produtosNovosInline": "Produtos Novos",
+    "movimentosInline": "Movimentos",
+    "atencao": "Atenção",
+    "maisErrosInline": "...e mais {{n}} erros",
+    "prontas": "Prontas para Importar",
+    "produtosNovosStats": "Produtos Novos",
+    "unidadesTotal": "Unidades Total",
+    "linhasEncontradasStats": "Linhas Encontradas",
+    "colunasPrincipais": "Colunas Principais para {{nome}}",
+    "blocos": {
+      "nome": "Blocos",
+      "desc": "Blocos de pedra brutos"
+    },
+    "chapas": {
+      "nome": "Chapas",
+      "desc": "Chapas serradas com pargas"
+    },
+    "ladrilhos": {
+      "nome": "Ladrilhos",
+      "desc": "Ladrilhos acabados"
+    },
+    "colPargas": "Pargas (Qtd)",
+    "colDimensoesPargas": "Dimensões Pargas",
+    "colTotalChapas": "Total Chapas",
+    "colDimensoes": "Dimensões"
   }
 }
