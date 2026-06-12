@@ -408,7 +408,7 @@ export function ProdutoDetalhe({
                     {isGenerating && (
                       <div className="flex items-center justify-center py-6">
                         <Loader2 className="h-6 w-6 animate-spin text-primary" />
-                        <span className="ml-2 text-sm">A gerar links...</span>
+                        <span className="ml-2 text-sm">{t('products.detalhe.generating')}</span>
                       </div>
                     )}
 
