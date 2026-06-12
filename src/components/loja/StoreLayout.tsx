@@ -1,4 +1,5 @@
-import { ReactNode } from 'react';
+import { ReactNode, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { StoreHeader } from './StoreHeader';
 import { StoreFooter } from './StoreFooter';
 import type { StoreConfig } from '@/types/store';
@@ -11,6 +12,21 @@ interface StoreLayoutProps {
 }
 
 export function StoreLayout({ config, cartCount, onCartClick, children }: StoreLayoutProps) {
+  const { i18n } = useTranslation();
+
+  // Restaura o idioma da loja ao entrar (independente da app interna).
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('store-language');
+      if (stored && i18n.language !== stored) {
+        void i18n.changeLanguage(stored);
+      }
+    } catch {
+      // ignore
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <div className="flex min-h-screen flex-col store-theme">
       <StoreHeader config={config} cartCount={cartCount} onCartClick={onCartClick} />
