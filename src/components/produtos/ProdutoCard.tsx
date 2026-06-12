@@ -18,12 +18,7 @@ import {
 import { FotoLightbox, createFotosList } from './FotoLightbox';
 import { ProdutoQrCode } from './ProdutoQrCode';
 import type { Produto } from '@/types/database';
-
-const FORMA_LABELS: Record<string, string> = {
-  bloco: 'Bloco',
-  chapa: 'Chapa',
-  ladrilho: 'Ladrilho',
-};
+import { useAppT } from '@/hooks/useAppT';
 
 const FORMA_COLORS: Record<string, string> = {
   bloco: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
@@ -40,6 +35,7 @@ interface ProdutoCardProps {
 
 export function ProdutoCard({ produto, onEdit, onDelete, isDeleting }: ProdutoCardProps) {
   const navigate = useNavigate();
+  const t = useAppT();
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
 
@@ -48,8 +44,13 @@ export function ProdutoCard({ produto, onEdit, onDelete, isDeleting }: ProdutoCa
   const mainFoto = fotos[0];
   const hasHdPhotos = fotosHd.length > 0;
 
-  // Criar lista de fotos para o lightbox
   const fotosList = createFotosList(produto);
+
+  const FORMA_LABELS: Record<string, string> = {
+    bloco: t('enums.tipoProduto.bloco'),
+    chapa: t('enums.tipoProduto.chapa'),
+    ladrilho: t('enums.tipoProduto.ladrilho'),
+  };
 
   const getDimensoes = () => {
     if (produto.forma === 'bloco') {
@@ -78,7 +79,6 @@ export function ProdutoCard({ produto, onEdit, onDelete, isDeleting }: ProdutoCa
 
   const handleHdClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    // Encontrar o índice da primeira foto HD
     const hdIndex = fotosList.findIndex(f => f.isHd);
     if (hdIndex >= 0) {
       setLightboxIndex(hdIndex);
@@ -89,7 +89,6 @@ export function ProdutoCard({ produto, onEdit, onDelete, isDeleting }: ProdutoCa
   return (
     <>
       <Card className="overflow-hidden hover:shadow-md transition-shadow">
-        {/* Imagem Principal */}
         <div 
           className="relative aspect-video bg-muted cursor-pointer group"
           onClick={handleImageClick}
@@ -101,7 +100,6 @@ export function ProdutoCard({ produto, onEdit, onDelete, isDeleting }: ProdutoCa
                 alt={produto.idmm}
                 className="w-full h-full object-cover transition-transform group-hover:scale-105"
               />
-              {/* Overlay de zoom */}
               <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
                 <ZoomIn className="w-8 h-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
@@ -112,12 +110,10 @@ export function ProdutoCard({ produto, onEdit, onDelete, isDeleting }: ProdutoCa
             </div>
           )}
           
-          {/* Badge da forma */}
           <Badge className={`absolute top-2 left-2 ${FORMA_COLORS[produto.forma]}`}>
             {FORMA_LABELS[produto.forma]}
           </Badge>
 
-          {/* Contador de fotos e indicador HD */}
           <div className="absolute top-2 right-2 flex items-center gap-1">
             {hasHdPhotos && (
               <Button
@@ -138,7 +134,6 @@ export function ProdutoCard({ produto, onEdit, onDelete, isDeleting }: ProdutoCa
             )}
           </div>
 
-          {/* GPS indicator */}
           {produto.latitude && produto.longitude && (
             <div className="absolute bottom-2 right-2">
               <Badge variant="secondary" className="bg-white/90 text-foreground">
@@ -150,7 +145,6 @@ export function ProdutoCard({ produto, onEdit, onDelete, isDeleting }: ProdutoCa
         </div>
 
         <CardContent className="p-4">
-          {/* Header */}
           <div className="flex items-start justify-between gap-2 mb-2">
             <div>
               <h3 className="font-bold text-lg">{produto.idmm}</h3>
@@ -158,18 +152,17 @@ export function ProdutoCard({ produto, onEdit, onDelete, isDeleting }: ProdutoCa
             </div>
             {!produto.ativo && (
               <Badge variant="outline" className="text-destructive border-destructive">
-                Inativo
+                {t('products.inactive')}
               </Badge>
             )}
           </div>
 
-          {/* Detalhes */}
           <div className="space-y-1 text-sm mb-4">
             {produto.nome_comercial && (
-              <p><span className="text-muted-foreground">Nome:</span> {produto.nome_comercial}</p>
+              <p><span className="text-muted-foreground">{t('products.commercialName')}:</span> {produto.nome_comercial}</p>
             )}
             {produto.acabamento && (
-              <p><span className="text-muted-foreground">Acabamento:</span> {produto.acabamento}</p>
+              <p><span className="text-muted-foreground">{t('products.finish')}:</span> {produto.acabamento}</p>
             )}
             {getDimensoes() && (
               <p>📐 {getDimensoes()}</p>
@@ -178,14 +171,13 @@ export function ProdutoCard({ produto, onEdit, onDelete, isDeleting }: ProdutoCa
               <p>⚖️ {new Intl.NumberFormat('pt-PT', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(produto.peso_ton)} ton</p>
             )}
             {produto.area_m2 && (
-              <p><span className="text-muted-foreground">Área:</span> {produto.area_m2.toFixed(2)} m²</p>
+              <p><span className="text-muted-foreground">{t('products.area')}:</span> {produto.area_m2.toFixed(2)} m²</p>
             )}
             {produto.volume_m3 && (
-              <p><span className="text-muted-foreground">Volume:</span> {produto.volume_m3.toFixed(3)} m³</p>
+              <p><span className="text-muted-foreground">{t('products.volume')}:</span> {produto.volume_m3.toFixed(3)} m³</p>
             )}
           </div>
 
-          {/* Ações */}
           <div className="flex gap-2 flex-wrap">
             <Button
               variant="outline"
@@ -194,7 +186,7 @@ export function ProdutoCard({ produto, onEdit, onDelete, isDeleting }: ProdutoCa
               onClick={() => navigate(`/produto/${produto.id}`)}
             >
               <ExternalLink className="h-4 w-4 mr-1" />
-              Ver Ficha
+              {t('products.viewCard')}
             </Button>
             
             <Button
@@ -204,7 +196,7 @@ export function ProdutoCard({ produto, onEdit, onDelete, isDeleting }: ProdutoCa
               onClick={() => onEdit(produto)}
             >
               <Edit className="h-4 w-4 mr-1" />
-              Editar
+              {t('actions.edit')}
             </Button>
           </div>
           
@@ -219,20 +211,19 @@ export function ProdutoCard({ produto, onEdit, onDelete, isDeleting }: ProdutoCa
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Eliminar Produto</AlertDialogTitle>
+                  <AlertDialogTitle>{t('confirm.deleteTitle')}</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Tem a certeza que deseja eliminar o produto <strong>{produto.idmm}</strong>?
-                    Esta ação irá desativar o produto e não pode ser revertida facilmente.
+                    {t('confirm.deleteDescription')} <strong>{produto.idmm}</strong>
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogCancel>{t('actions.cancel')}</AlertDialogCancel>
                   <AlertDialogAction
                     onClick={() => onDelete(produto.id)}
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                     disabled={isDeleting}
                   >
-                    Eliminar
+                    {t('actions.delete')}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -241,7 +232,6 @@ export function ProdutoCard({ produto, onEdit, onDelete, isDeleting }: ProdutoCa
         </CardContent>
       </Card>
 
-      {/* Lightbox */}
       <FotoLightbox
         isOpen={lightboxOpen}
         onClose={() => setLightboxOpen(false)}
