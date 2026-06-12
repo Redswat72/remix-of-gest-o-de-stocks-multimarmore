@@ -11,19 +11,22 @@ import { useAuth } from '@/hooks/useAuth';
 import { useUpdateProfile } from '@/hooks/useProfiles';
 import { useImageUpload } from '@/hooks/useImageUpload';
 import { useToast } from '@/hooks/use-toast';
+import { useAppT } from '@/hooks/useAppT';
+import { useEnumLabel } from '@/lib/enumLabels';
 
 export default function Perfil() {
   const { toast } = useToast();
   const { user, profile, roles, userLocal, refreshProfile } = useAuth();
   const updateProfile = useUpdateProfile();
   const { uploadImage, deleteImage, isUploading, progress, error: uploadError } = useImageUpload();
+  const t = useAppT();
+  const enumLabel = useEnumLabel();
 
   const [nome, setNome] = useState('');
   const [telefone, setTelefone] = useState('');
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [hasChanges, setHasChanges] = useState(false);
 
-  // Carregar dados do perfil
   useEffect(() => {
     if (profile) {
       setNome(profile.nome || '');
@@ -32,11 +35,10 @@ export default function Perfil() {
     }
   }, [profile]);
 
-  // Verificar alterações
   useEffect(() => {
     if (profile) {
       const profileData = profile as { telefone?: string; avatar_url?: string };
-      const changed = 
+      const changed =
         nome !== profile.nome ||
         telefone !== (profileData.telefone || '') ||
         avatarUrl !== (profileData.avatar_url || null);
@@ -65,13 +67,10 @@ export default function Perfil() {
 
   const handleAvatarDelete = async (): Promise<boolean> => {
     if (!user || !avatarUrl) return true;
-    
-    // Extrair path do URL
     const urlParts = avatarUrl.split('/avatars/');
     if (urlParts.length > 1) {
       await deleteImage('avatars', urlParts[1]);
     }
-    
     setAvatarUrl(null);
     return true;
   };
@@ -90,33 +89,30 @@ export default function Perfil() {
       });
 
       await refreshProfile();
-      
+
       toast({
-        title: 'Perfil atualizado',
-        description: 'As suas alterações foram guardadas com sucesso.',
+        title: t('profile.updatedTitle'),
+        description: t('profile.updatedDesc'),
       });
-      
+
       setHasChanges(false);
     } catch (error) {
       toast({
-        title: 'Erro',
-        description: error instanceof Error ? error.message : 'Ocorreu um erro ao guardar',
+        title: t('profile.saveErrorTitle'),
+        description: error instanceof Error ? error.message : t('profile.saveErrorDesc'),
         variant: 'destructive',
       });
     }
   };
 
-  const getRoleBadge = () => {
-    if (roles.includes('superadmin')) {
-      return { label: 'Superadmin', className: 'badge-superadmin' };
-    }
-    if (roles.includes('admin')) {
-      return { label: 'Admin', className: 'badge-admin' };
-    }
-    return { label: 'Operador', className: 'badge-operador' };
+  const getRoleInfo = () => {
+    if (roles.includes('superadmin')) return { value: 'superadmin', className: 'badge-superadmin' };
+    if (roles.includes('admin')) return { value: 'admin', className: 'badge-admin' };
+    if (roles.includes('area_comercial')) return { value: 'area_comercial', className: 'badge-admin' };
+    return { value: 'operador', className: 'badge-operador' };
   };
 
-  const roleBadge = getRoleBadge();
+  const roleInfo = getRoleInfo();
 
   return (
     <div className="space-y-6 max-w-2xl mx-auto">
@@ -126,18 +122,16 @@ export default function Perfil() {
           <User className="w-6 h-6 text-primary" />
         </div>
         <div>
-          <h1 className="text-2xl font-bold">O Meu Perfil</h1>
-          <p className="text-muted-foreground">Gerir informações pessoais</p>
+          <h1 className="text-2xl font-bold">{t('profile.title')}</h1>
+          <p className="text-muted-foreground">{t('profile.subtitle')}</p>
         </div>
       </div>
 
       {/* Foto de Perfil */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Foto de Perfil</CardTitle>
-          <CardDescription>
-            Adicione uma foto para facilitar a identificação
-          </CardDescription>
+          <CardTitle className="text-lg">{t('profile.photoTitle')}</CardTitle>
+          <CardDescription>{t('profile.photoSubtitle')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col sm:flex-row items-center gap-6">
@@ -150,15 +144,15 @@ export default function Perfil() {
                 isUploading={isUploading}
                 progress={progress}
                 aspectRatio="square"
-                placeholder="Foto"
+                placeholder={t('profile.photoPlaceholder')}
                 className="w-full h-full"
               />
             </div>
             <div className="text-center sm:text-left">
               <p className="text-sm text-muted-foreground">
-                Formatos suportados: JPG, PNG<br />
-                Tamanho máximo: 5MB<br />
-                A imagem será redimensionada para 400×400px
+                {t('profile.photoFormats')}<br />
+                {t('profile.photoMaxSize')}<br />
+                {t('profile.photoResized')}
               </p>
             </div>
           </div>
@@ -171,29 +165,25 @@ export default function Perfil() {
       {/* Dados Pessoais */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Dados Pessoais</CardTitle>
-          <CardDescription>
-            Informações da sua conta
-          </CardDescription>
+          <CardTitle className="text-lg">{t('profile.personalTitle')}</CardTitle>
+          <CardDescription>{t('profile.personalSubtitle')}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Nome */}
           <div className="space-y-2">
-            <Label htmlFor="nome">Nome Completo</Label>
+            <Label htmlFor="nome">{t('profile.name')}</Label>
             <Input
               id="nome"
               value={nome}
               onChange={(e) => setNome(e.target.value)}
-              placeholder="O seu nome"
+              placeholder={t('profile.namePlaceholder')}
               className="touch-target"
             />
           </div>
 
-          {/* Email (readonly) */}
           <div className="space-y-2">
             <Label htmlFor="email" className="flex items-center gap-2">
               <Mail className="w-4 h-4" />
-              Email
+              {t('profile.email')}
             </Label>
             <Input
               id="email"
@@ -202,37 +192,33 @@ export default function Perfil() {
               className="bg-muted"
             />
             <p className="text-xs text-muted-foreground">
-              O email não pode ser alterado
+              {t('profile.emailReadonly')}
             </p>
           </div>
 
-          {/* Telefone */}
           <div className="space-y-2">
             <Label htmlFor="telefone" className="flex items-center gap-2">
               <Phone className="w-4 h-4" />
-              Telefone / Telemóvel
+              {t('profile.phone')}
             </Label>
             <Input
               id="telefone"
               type="tel"
               value={telefone}
               onChange={(e) => setTelefone(e.target.value)}
-              placeholder="+351 912 345 678"
+              placeholder={t('profile.phonePlaceholder')}
               className="touch-target"
             />
           </div>
 
           <Separator />
 
-          {/* Info adicional (readonly) */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="flex items-center gap-2">
-                Role
-              </Label>
+              <Label className="flex items-center gap-2">{t('profile.role')}</Label>
               <div>
-                <Badge variant="outline" className={roleBadge.className}>
-                  {roleBadge.label}
+                <Badge variant="outline" className={roleInfo.className}>
+                  {enumLabel('role', roleInfo.value)}
                 </Badge>
               </div>
             </div>
@@ -240,7 +226,7 @@ export default function Perfil() {
             <div className="space-y-2">
               <Label className="flex items-center gap-2">
                 <MapPin className="w-4 h-4" />
-                Parque Atribuído
+                {t('profile.assignedYard')}
               </Label>
               <div>
                 {userLocal ? (
@@ -249,7 +235,7 @@ export default function Perfil() {
                   </Badge>
                 ) : (
                   <span className="text-sm text-muted-foreground">
-                    Sem parque atribuído
+                    {t('profile.noYard')}
                   </span>
                 )}
               </div>
@@ -271,7 +257,7 @@ export default function Perfil() {
           ) : (
             <Save className="w-5 h-5" />
           )}
-          Guardar Alterações
+          {t('profile.saveChanges')}
         </Button>
       </div>
     </div>

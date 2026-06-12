@@ -1,36 +1,37 @@
 import { useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { 
-  Home, 
-  Package, 
+import {
+  Home,
+  Package,
   Grid3x3,
   Square,
   Layers,
   Boxes,
-  History, 
-  PlusCircle, 
+  History,
+  PlusCircle,
   User,
   Scissors,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { useAuth } from '@/hooks/useAuth';
+import { useAppT } from '@/hooks/useAppT';
 
 const inventarioItemsBase = [
-  { href: '/blocos', label: 'Blocos', icon: Package },
-  { href: '/chapas', label: 'Chapas', icon: Grid3x3 },
-  { href: '/ladrilho', label: 'Ladrilho', icon: Square },
-  { href: '/bandas', label: 'Bandas', icon: Layers },
-  { href: '/producao', label: 'Produção', icon: Scissors, producaoOnly: true },
-  { href: '/stock', label: 'Consultar Stock', icon: Boxes },
+  { href: '/blocos', labelKey: 'nav.blocos', icon: Package },
+  { href: '/chapas', labelKey: 'nav.chapas', icon: Grid3x3 },
+  { href: '/ladrilho', labelKey: 'nav.ladrilho', icon: Square },
+  { href: '/bandas', labelKey: 'nav.bandas', icon: Layers },
+  { href: '/producao', labelKey: 'nav.producao', icon: Scissors, producaoOnly: true },
+  { href: '/stock', labelKey: 'nav.consultarStock', icon: Boxes },
 ];
 
 const navItemsBase = [
-  { href: '/', label: 'Início', icon: Home },
-  { type: 'inventario' as const, label: 'Inventário', icon: Package },
-  { href: '/movimento/novo', label: 'Novo', icon: PlusCircle, primary: true, operadorOnly: true },
-  { href: '/historico', label: 'Histórico', icon: History },
-  { href: '/perfil', label: 'Perfil', icon: User },
+  { href: '/', labelKey: 'nav.inicio', icon: Home },
+  { type: 'inventario' as const, labelKey: 'nav.inventario', icon: Package },
+  { href: '/movimento/novo', labelKey: 'nav.novo', icon: PlusCircle, primary: true, operadorOnly: true },
+  { href: '/historico', labelKey: 'nav.historico', icon: History },
+  { href: '/perfil', labelKey: 'nav.perfil', icon: User },
 ];
 
 export function MobileNav() {
@@ -38,6 +39,7 @@ export function MobileNav() {
   const navigate = useNavigate();
   const [inventarioOpen, setInventarioOpen] = useState(false);
   const { podeVerProducao, hasRole, isSuperadmin } = useAuth();
+  const t = useAppT();
 
   const inventarioItems = inventarioItemsBase.filter(
     (i) => !('producaoOnly' in i && i.producaoOnly) || podeVerProducao
@@ -54,6 +56,7 @@ export function MobileNav() {
       <div className="flex items-center justify-around h-16">
         {navItems.map((item) => {
           const Icon = item.icon;
+          const label = t(item.labelKey);
 
           if ('type' in item && item.type === 'inventario') {
             return (
@@ -68,12 +71,12 @@ export function MobileNav() {
                     )}
                   >
                     <Icon className={cn('w-5 h-5', inventarioActive && 'text-primary')} />
-                    <span className={cn('text-xs font-medium', inventarioActive && 'text-primary')}>{item.label}</span>
+                    <span className={cn('text-xs font-medium', inventarioActive && 'text-primary')}>{label}</span>
                   </button>
                 </SheetTrigger>
                 <SheetContent side="bottom" className="rounded-t-2xl">
                   <SheetHeader>
-                    <SheetTitle>Inventário</SheetTitle>
+                    <SheetTitle>{t('nav.inventario')}</SheetTitle>
                   </SheetHeader>
                   <div className="grid grid-cols-2 gap-3 mt-4 pb-6">
                     {inventarioItems.map((sub) => {
@@ -94,7 +97,7 @@ export function MobileNav() {
                           )}
                         >
                           <SubIcon className="w-6 h-6" />
-                          <span className="text-sm font-medium">{sub.label}</span>
+                          <span className="text-sm font-medium">{t(sub.labelKey)}</span>
                         </button>
                       );
                     })}
@@ -113,6 +116,7 @@ export function MobileNav() {
                 key={item.href}
                 to={item.href!}
                 className="flex flex-col items-center justify-center -mt-5"
+                title={label}
               >
                 <div className="flex items-center justify-center w-14 h-14 rounded-full bg-primary text-primary-foreground shadow-lg shadow-primary/25 touch-target">
                   <Icon className="w-6 h-6" />
@@ -127,13 +131,13 @@ export function MobileNav() {
               to={item.href!}
               className={cn(
                 'flex flex-col items-center justify-center gap-1 px-3 py-2 touch-target transition-colors',
-                isActive 
-                  ? 'text-primary' 
+                isActive
+                  ? 'text-primary'
                   : 'text-muted-foreground hover:text-foreground'
               )}
             >
               <Icon className={cn("w-5 h-5", isActive && "text-primary")} />
-              <span className={cn("text-xs font-medium", isActive && "text-primary")}>{item.label}</span>
+              <span className={cn("text-xs font-medium", isActive && "text-primary")}>{label}</span>
             </Link>
           );
         })}

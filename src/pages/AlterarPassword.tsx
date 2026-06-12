@@ -8,17 +8,19 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2, Lock } from 'lucide-react';
+import { useAppT } from '@/hooks/useAppT';
+import { AppLanguageSelector } from '@/components/AppLanguageSelector';
 
 export default function AlterarPassword() {
   const { user, profile, refreshProfile, loading } = useAuth();
   const { supabaseEmpresa, empresaConfig } = useEmpresa();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const t = useAppT();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  // Se a flag não está ativa, não deve estar nesta página
   if (!loading && profile && profile.deve_alterar_password === false) {
     return <Navigate to="/" replace />;
   }
@@ -28,8 +30,8 @@ export default function AlterarPassword() {
 
     if (newPassword !== confirmPassword) {
       toast({
-        title: 'Erro',
-        description: 'As passwords não coincidem.',
+        title: t('toasts.errorTitle'),
+        description: t('auth.errorPasswordMismatch'),
         variant: 'destructive',
       });
       return;
@@ -37,8 +39,8 @@ export default function AlterarPassword() {
 
     if (newPassword.length < 8) {
       toast({
-        title: 'Erro',
-        description: 'A password deve ter pelo menos 8 caracteres.',
+        title: t('toasts.errorTitle'),
+        description: t('auth.errorPasswordShort8'),
         variant: 'destructive',
       });
       return;
@@ -47,8 +49,8 @@ export default function AlterarPassword() {
     setIsSubmitting(true);
 
     try {
-      if (!supabaseEmpresa) throw new Error('Sem conexão');
-      if (!user) throw new Error('Sessão inválida');
+      if (!supabaseEmpresa) throw new Error(t('auth.noConnection'));
+      if (!user) throw new Error(t('auth.invalidSession'));
 
       const { error: authError } = await supabaseEmpresa.auth.updateUser({
         password: newPassword,
@@ -65,16 +67,16 @@ export default function AlterarPassword() {
       if (profileError) throw profileError;
 
       toast({
-        title: 'Password definida!',
-        description: 'Já podes aceder à aplicação.',
+        title: t('auth.passwordSetTitle'),
+        description: t('auth.passwordSetDesc'),
       });
 
       await refreshProfile();
       navigate('/', { replace: true });
     } catch (error: any) {
       toast({
-        title: 'Erro',
-        description: error.message || 'Não foi possível definir a password.',
+        title: t('auth.passwordErrorTitle'),
+        description: error.message || t('auth.passwordErrorDesc'),
         variant: 'destructive',
       });
     } finally {
@@ -85,6 +87,10 @@ export default function AlterarPassword() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#030712] p-4">
       <div className="w-full max-w-md">
+        <div className="flex justify-end mb-4">
+          <AppLanguageSelector />
+        </div>
+
         <div className="flex flex-col items-center mb-8">
           {empresaConfig?.logo && (
             <img
@@ -100,15 +106,15 @@ export default function AlterarPassword() {
             <div className="mx-auto p-3 rounded-full bg-primary/10 w-fit mb-2">
               <Lock className="w-6 h-6 text-primary" />
             </div>
-            <CardTitle className="text-xl">Definir nova password</CardTitle>
+            <CardTitle className="text-xl">{t('auth.changePasswordTitle')}</CardTitle>
             <CardDescription>
-              Por segurança, define uma password pessoal antes de continuar.
+              {t('auth.changePasswordSubtitle')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleChangePassword} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="new-password">Nova password</Label>
+                <Label htmlFor="new-password">{t('auth.newPassword')}</Label>
                 <Input
                   id="new-password"
                   type="password"
@@ -122,7 +128,7 @@ export default function AlterarPassword() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="confirm-password">Confirmar password</Label>
+                <Label htmlFor="confirm-password">{t('auth.confirmPassword')}</Label>
                 <Input
                   id="confirm-password"
                   type="password"
@@ -143,10 +149,10 @@ export default function AlterarPassword() {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    A guardar...
+                    {t('auth.savingPassword')}
                   </>
                 ) : (
-                  'Guardar password'
+                  t('auth.savePassword')
                 )}
               </Button>
             </form>

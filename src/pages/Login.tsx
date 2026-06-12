@@ -9,15 +9,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { useAppT } from '@/hooks/useAppT';
+import { AppLanguageSelector } from '@/components/AppLanguageSelector';
 
 export default function Login() {
   const { user, loading, signIn, signUp } = useAuth();
   const { empresaConfig } = useEmpresa();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const t = useAppT();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Form states
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [signupNome, setSignupNome] = useState('');
@@ -45,8 +47,8 @@ export default function Login() {
 
     if (error) {
       toast({
-        title: 'Erro no login',
-        description: 'Email ou password incorretos.',
+        title: t('auth.errorLoginTitle'),
+        description: t('auth.errorLoginDesc'),
         variant: 'destructive',
       });
     }
@@ -59,8 +61,8 @@ export default function Login() {
 
     if (signupPassword !== signupConfirmPassword) {
       toast({
-        title: 'Erro',
-        description: 'As passwords não coincidem.',
+        title: t('toasts.errorTitle'),
+        description: t('auth.errorPasswordMismatch'),
         variant: 'destructive',
       });
       return;
@@ -68,8 +70,8 @@ export default function Login() {
 
     if (signupPassword.length < 6) {
       toast({
-        title: 'Erro',
-        description: 'A password deve ter pelo menos 6 caracteres.',
+        title: t('toasts.errorTitle'),
+        description: t('auth.errorPasswordShort'),
         variant: 'destructive',
       });
       return;
@@ -81,14 +83,14 @@ export default function Login() {
 
     if (error) {
       toast({
-        title: 'Erro no registo',
-        description: error.message || 'Não foi possível criar a conta.',
+        title: t('auth.errorSignupTitle'),
+        description: error.message || t('auth.errorSignupDesc'),
         variant: 'destructive',
       });
     } else {
       toast({
-        title: 'Conta criada!',
-        description: 'Verifique o seu email para confirmar a conta.',
+        title: t('auth.signupSuccessTitle'),
+        description: t('auth.signupSuccessDesc'),
       });
     }
 
@@ -98,14 +100,18 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
+        <div className="flex justify-end mb-4">
+          <AppLanguageSelector />
+        </div>
+
         <div className="flex flex-col items-center mb-8">
-          <img 
-            src={empresaConfig?.logo} 
-            alt={empresaConfig?.nome ?? 'Empresa'} 
+          <img
+            src={empresaConfig?.logo}
+            alt={empresaConfig?.nome ?? 'Empresa'}
             className="h-40 w-auto object-contain mb-4"
           />
           <p className="text-muted-foreground text-center">
-            Plataforma de Gestão de Stock
+            {t('auth.platformTagline')}
           </p>
         </div>
 
@@ -113,26 +119,26 @@ export default function Login() {
           <Tabs defaultValue="login">
             <CardHeader className="pb-4">
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="login">Entrar</TabsTrigger>
-                <TabsTrigger value="signup">Registar</TabsTrigger>
+                <TabsTrigger value="login">{t('auth.tabLogin')}</TabsTrigger>
+                <TabsTrigger value="signup">{t('auth.tabSignup')}</TabsTrigger>
               </TabsList>
             </CardHeader>
 
             <CardContent>
               {/* Login Tab */}
               <TabsContent value="login" className="mt-0">
-                <CardTitle className="mb-2 text-lg">Bem-vindo de volta</CardTitle>
+                <CardTitle className="mb-2 text-lg">{t('auth.loginTitle')}</CardTitle>
                 <CardDescription className="mb-6">
-                  Introduza as suas credenciais para aceder
+                  {t('auth.loginSubtitle')}
                 </CardDescription>
 
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="login-email">Email</Label>
+                    <Label htmlFor="login-email">{t('auth.email')}</Label>
                     <Input
                       id="login-email"
                       type="email"
-                      placeholder="seu@email.com"
+                      placeholder={t('auth.emailPlaceholder')}
                       value={loginEmail}
                       onChange={(e) => setLoginEmail(e.target.value)}
                       required
@@ -142,7 +148,7 @@ export default function Login() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="login-password">Password</Label>
+                    <Label htmlFor="login-password">{t('auth.password')}</Label>
                     <Input
                       id="login-password"
                       type="password"
@@ -163,32 +169,32 @@ export default function Login() {
                     {isSubmitting ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        A entrar...
+                        {t('auth.submittingLogin')}
                       </>
                     ) : (
-                      'Entrar'
+                      t('auth.submitLogin')
                     )}
                   </Button>
                   <button type="button" onClick={() => navigate('/selecionar-empresa')} className="w-full text-center text-xs text-muted-foreground hover:text-foreground mt-4 transition-colors">
-                    ← Escolher outra empresa
+                    {t('auth.chooseAnotherCompany')}
                   </button>
                 </form>
               </TabsContent>
 
               {/* Signup Tab */}
               <TabsContent value="signup" className="mt-0">
-                <CardTitle className="mb-2 text-lg">Criar conta</CardTitle>
+                <CardTitle className="mb-2 text-lg">{t('auth.signupTitle')}</CardTitle>
                 <CardDescription className="mb-6">
-                  Preencha os dados para criar uma nova conta
+                  {t('auth.signupSubtitle')}
                 </CardDescription>
 
                 <form onSubmit={handleSignup} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="signup-nome">Nome completo</Label>
+                    <Label htmlFor="signup-nome">{t('auth.fullName')}</Label>
                     <Input
                       id="signup-nome"
                       type="text"
-                      placeholder="João Silva"
+                      placeholder={t('auth.fullNamePlaceholder')}
                       value={signupNome}
                       onChange={(e) => setSignupNome(e.target.value)}
                       required
@@ -198,11 +204,11 @@ export default function Login() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-email">Email</Label>
+                    <Label htmlFor="signup-email">{t('auth.email')}</Label>
                     <Input
                       id="signup-email"
                       type="email"
-                      placeholder="seu@email.com"
+                      placeholder={t('auth.emailPlaceholder')}
                       value={signupEmail}
                       onChange={(e) => setSignupEmail(e.target.value)}
                       required
@@ -212,7 +218,7 @@ export default function Login() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-password">Password</Label>
+                    <Label htmlFor="signup-password">{t('auth.password')}</Label>
                     <Input
                       id="signup-password"
                       type="password"
@@ -227,7 +233,7 @@ export default function Login() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="signup-confirm">Confirmar password</Label>
+                    <Label htmlFor="signup-confirm">{t('auth.confirmPassword')}</Label>
                     <Input
                       id="signup-confirm"
                       type="password"
@@ -249,10 +255,10 @@ export default function Login() {
                     {isSubmitting ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        A criar conta...
+                        {t('auth.submittingSignup')}
                       </>
                     ) : (
-                      'Criar conta'
+                      t('auth.submitSignup')
                     )}
                   </Button>
                 </form>

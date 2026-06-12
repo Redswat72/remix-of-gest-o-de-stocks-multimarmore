@@ -1,10 +1,19 @@
+import { useEffect } from 'react';
 import { useEmpresa, EMPRESAS_CONFIG, Empresa } from '@/context/EmpresaContext';
 import { useNavigate } from 'react-router-dom';
 import logoStockflow from '@/assets/logo-stockflow.png';
+import { useAppT } from '@/hooks/useAppT';
+import { AppLanguageSelector } from '@/components/AppLanguageSelector';
+import { applyAppLanguage } from '@/lib/appLanguage';
 
 export default function SelecionarEmpresa() {
   const { selectEmpresa } = useEmpresa();
   const navigate = useNavigate();
+  const t = useAppT();
+
+  useEffect(() => {
+    applyAppLanguage();
+  }, []);
 
   function handleSelect(id: Empresa) {
     selectEmpresa(id);
@@ -17,6 +26,11 @@ export default function SelecionarEmpresa() {
     <div
       className="min-h-screen flex flex-col items-center justify-center relative overflow-hidden px-4 bg-[#030712]"
     >
+      {/* Language Selector */}
+      <div className="absolute top-4 right-4 z-10">
+        <AppLanguageSelector />
+      </div>
+
       {/* Logo da Plataforma */}
       <div className="mb-12 flex items-center justify-center">
         <div
@@ -38,10 +52,10 @@ export default function SelecionarEmpresa() {
       {/* Header */}
       <div className="text-center mb-12">
         <h1 className="tracking-[0.3em] text-xs text-gray-400 uppercase font-light">
-          Grupo Empresarial
+          {t('auth.selectCompanyHeading')}
         </h1>
         <p className="text-gray-600 text-sm mt-2">
-          Seleciona a tua empresa para continuar
+          {t('auth.selectCompanySubtitle')}
         </p>
       </div>
 
@@ -76,7 +90,7 @@ export default function SelecionarEmpresa() {
             </div>
             <div className="flex-1 min-w-0">
               <h2 className="text-white font-semibold text-xl">{config.nome}</h2>
-              <p className="text-gray-500 text-sm mt-1 whitespace-nowrap">Gestão de Stocks</p>
+              <p className="text-gray-500 text-sm mt-1 whitespace-nowrap">{t('auth.stockManagement')}</p>
             </div>
             <span className="text-gray-600 group-hover:text-white text-xl ml-auto transition-colors duration-300">
               →
@@ -87,7 +101,7 @@ export default function SelecionarEmpresa() {
 
       {/* Footer */}
       <p className="absolute bottom-6 text-gray-800 text-xs">
-        © 2025 Grupo Empresarial · Plataforma de Gestão de Stocks
+        {t('auth.footerYear')}
       </p>
 
       <style>{`
