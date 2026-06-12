@@ -902,7 +902,12 @@
       "hdHint": "Point your phone camera to access the HD photo",
       "open": "Open",
       "idmm": "IDMM",
-      "type": "Type"
+      "type": "Type",
+      "copyLink": "Copy link",
+      "openNewWindow": "Open in new window",
+      "viewQrCode": "View QR Code",
+      "labelHdPhotos": "HD Photos",
+      "labelProduct": "Product"
     },
     "card": {
       "deleteTitle": "Delete Product",
@@ -944,7 +949,29 @@
       "errorTitle": "Error",
       "errorDesc": "An error occurred while updating the product.",
       "geolocationUnsupported": "Geolocation not supported by browser",
-      "geolocationError": "Could not get location"
+      "geolocationError": "Could not get location",
+      "idmmPlaceholder": "E.g.: BL-001",
+      "selectYardPlaceholder": "Select yard...",
+      "linePlaceholder": "E.g.: A1, B2, C3",
+      "stonetypePlaceholder": "E.g.: White Marble",
+      "commercialNamePlaceholder": "E.g.: Estremoz Classic",
+      "blockOriginPlaceholder": "E.g.: Portugal, Brazil, Spain",
+      "finishPlaceholder": "E.g.: Polished, Honed",
+      "latitude": "Latitude",
+      "latitudePlaceholder": "-90 to 90",
+      "longitude": "Longitude",
+      "longitudePlaceholder": "-180 to 180",
+      "validation": {
+        "idmmRequired": "IDMM is required",
+        "max50": "Maximum 50 characters",
+        "max100": "Maximum 100 characters",
+        "max500": "Maximum 500 characters",
+        "mustBePositive": "Must be positive",
+        "notNegative": "Cannot be negative",
+        "weightRequiredForBlocks": "Weight in tonnes is required for blocks",
+        "valuationRequired": "Valuation is required",
+        "atLeastOneParga": "At least one bundle must have quantity > 0"
+      }
     },
     "parga": {
       "distribution": "Distribution by Bundles",
@@ -966,7 +993,8 @@
       "uploadSuccess1": "First slab photo uploaded",
       "uploadSuccess2": "Last slab photo uploaded",
       "uploadError": "Upload failed: could not save to storage (check the \"produtos\" bucket and permissions).",
-      "weightTon": "Weight (ton)"
+      "weightTon": "Weight (ton)",
+      "cardTitle": "Bundle {{n}}"
     },
     "fotos": {
       "operacional": "Operational",
@@ -989,7 +1017,11 @@
       "sideA": "Side A",
       "sideB": "Side B",
       "sideC": "Side C",
-      "sideD": "Side D"
+      "sideD": "Side D",
+      "confirmUpload": "Confirm upload",
+      "removePhoto": "Remove photo",
+      "fotoSlotLabel": "Photo {{n}}",
+      "hdSlotLabel": "HD {{n}}"
     },
     "qrcode": {
       "title": "Product QR Code",
@@ -1005,7 +1037,20 @@
       "copyError": "Could not copy the link.",
       "cardTitle": "QR Code"
     },
-    "variedade": "Variety"
+    "variedade": "Variety",
+    "variety": "Variety",
+    "qr": {
+      "downloaded": "QR Code downloaded",
+      "downloadedDesc": "File {{filename}} saved.",
+      "downloadError": "Could not download the QR Code.",
+      "linkCopied": "Link copied",
+      "linkCopiedDesc": "Product URL copied to clipboard.",
+      "linkCopyError": "Could not copy the link.",
+      "title": "Product QR Code",
+      "hint": "Point your phone camera to access the product record",
+      "hintShort": "Point your camera to access the record",
+      "download": "Download"
+    }
   },
   "dashboard": {
     "subtitle": "Inventory overview",
