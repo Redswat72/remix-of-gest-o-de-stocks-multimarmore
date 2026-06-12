@@ -282,7 +282,8 @@
     "roleOperatorDesc": "Acesso básico à sua empresa",
     "roleAdminDesc": "Pode gerir utilizadores da sua empresa",
     "roleCommercialDesc": "Apenas consultas e valores do inventário",
-    "sendInvite": "Enviar Convite"
+    "sendInvite": "Enviar Convite",
+    "colUnit": "Unidade"
   },
   "movements": {
     "pageTitle": "Registar Movimento",
@@ -775,7 +776,11 @@
       "photoSample": "Foto Amostra",
       "pargaFirst": "Parga {{n}} - Primeira",
       "pargaLast": "Parga {{n}} - Última",
-      "pargaQtyLabel": "Qtd Parga {{n}}"
+      "pargaQtyLabel": "Qtd Parga {{n}}",
+      "yard": "Parque",
+      "variety": "Variedade",
+      "pargaLabel": "Parga {{n}}",
+      "weightKg": "Peso (kg)"
     },
     "edit": {
       "editBlock": "Editar Bloco",
@@ -980,7 +985,11 @@
       "uploadFailedDesc": "Não foi possível guardar a imagem. Verifique se o bucket \"{{bucket}}\" existe no Supabase externo e tem políticas de INSERT para utilizadores autenticados.",
       "uploadError": "❌ Erro no upload",
       "saved": "Guardada",
-      "watermarkApplied": "Watermark aplicado"
+      "watermarkApplied": "Watermark aplicado",
+      "sideA": "Lado A",
+      "sideB": "Lado B",
+      "sideC": "Lado C",
+      "sideD": "Lado D"
     },
     "qrcode": {
       "title": "QR Code do Produto",
@@ -995,7 +1004,8 @@
       "copySuccessDesc": "URL do produto copiada para a área de transferência.",
       "copyError": "Não foi possível copiar o link.",
       "cardTitle": "QR Code"
-    }
+    },
+    "variedade": "Variedade"
   },
   "dashboard": {
     "subtitle": "Visão geral do inventário",

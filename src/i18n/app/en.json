@@ -282,7 +282,8 @@
     "roleOperatorDesc": "Basic access to your company",
     "roleAdminDesc": "Can manage users in your company",
     "roleCommercialDesc": "Read-only access to inventory values",
-    "sendInvite": "Send Invite"
+    "sendInvite": "Send Invite",
+    "colUnit": "Unit"
   },
   "movements": {
     "pageTitle": "Register Movement",
@@ -775,7 +776,11 @@
       "photoSample": "Sample Photo",
       "pargaFirst": "Bundle {{n}} - First",
       "pargaLast": "Bundle {{n}} - Last",
-      "pargaQtyLabel": "Bundle {{n}} Qty"
+      "pargaQtyLabel": "Bundle {{n}} Qty",
+      "yard": "Yard",
+      "variety": "Variety",
+      "pargaLabel": "Bundle {{n}}",
+      "weightKg": "Weight (kg)"
     },
     "edit": {
       "editBlock": "Edit Block",
@@ -980,7 +985,11 @@
       "uploadFailedDesc": "Could not save the image. Check that the \"{{bucket}}\" bucket exists in external Supabase and has INSERT policies for authenticated users.",
       "uploadError": "❌ Upload error",
       "saved": "Saved",
-      "watermarkApplied": "Watermark applied"
+      "watermarkApplied": "Watermark applied",
+      "sideA": "Side A",
+      "sideB": "Side B",
+      "sideC": "Side C",
+      "sideD": "Side D"
     },
     "qrcode": {
       "title": "Product QR Code",
@@ -995,7 +1004,8 @@
       "copySuccessDesc": "Product URL copied to clipboard.",
       "copyError": "Could not copy the link.",
       "cardTitle": "QR Code"
-    }
+    },
+    "variedade": "Variety"
   },
   "dashboard": {
     "subtitle": "Inventory overview",

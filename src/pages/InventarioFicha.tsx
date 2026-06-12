@@ -6,6 +6,7 @@ import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
 import { useEmpresa } from '@/context/EmpresaContext';
 import { useAuth } from '@/hooks/useAuth';
 import { usePermissoes } from '@/hooks/usePermissoes';
+import { useAppT } from '@/hooks/useAppT';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -15,14 +16,9 @@ import { Textarea } from '@/components/ui/textarea';
 import { FotoLightbox } from '@/components/produtos/FotoLightbox';
 import InventarioEditModal from '@/components/inventario/InventarioEditModal';
 import { toast } from 'sonner';
+import { formatCurrency, formatNumber } from '@/lib/format';
 import type { Bloco, Chapa, Ladrilho } from '@/types/inventario';
 import type { FormaInventario } from '@/hooks/useStockUnificado';
-
-const FORMA_LABELS: Record<string, string> = {
-  bloco: 'Bloco',
-  chapa: 'Chapa',
-  ladrilho: 'Ladrilho',
-};
 
 const FORMA_COLORS: Record<string, string> = {
   bloco: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
@@ -30,17 +26,8 @@ const FORMA_COLORS: Record<string, string> = {
   ladrilho: 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200',
 };
 
-const formatCurrency = (value: number | null) => {
-  if (!value) return '—';
-  return new Intl.NumberFormat('pt-PT', { style: 'currency', currency: 'EUR' }).format(value);
-};
-
-const formatNumber = (value: number | null, decimals = 2) => {
-  if (value == null) return '—';
-  return new Intl.NumberFormat('pt-PT', { minimumFractionDigits: decimals, maximumFractionDigits: decimals }).format(value);
-};
-
 export default function InventarioFicha() {
+  const t = useAppT();
   const { forma, id } = useParams<{ forma: string; id: string }>();
   const navigate = useNavigate();
   const supabase = useSupabaseEmpresa();
@@ -71,7 +58,7 @@ export default function InventarioFicha() {
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
           <Loader2 className="w-8 h-8 animate-spin text-primary" />
-          <p className="text-muted-foreground">A carregar ficha...</p>
+          <p className="text-muted-foreground">{t('inventory.detail.loading')}</p>
         </div>
       </div>
     );
@@ -84,20 +71,22 @@ export default function InventarioFicha() {
           <CardContent className="pt-6 text-center space-y-4">
             <AlertCircle className="w-12 h-12 mx-auto text-destructive" />
             <div>
-              <h1 className="text-xl font-bold mb-2">Item não encontrado</h1>
+              <h1 className="text-xl font-bold mb-2">{t('inventory.detail.notFound')}</h1>
               <p className="text-muted-foreground">
-                {(error as Error)?.message || 'Não foi possível carregar os dados.'}
+                {(error as Error)?.message || t('inventory.detail.notFoundDesc')}
               </p>
             </div>
             <Button onClick={() => navigate(-1)}>
               <ArrowLeft className="w-4 h-4 mr-2" />
-              Voltar
+              {t('actions.back')}
             </Button>
           </CardContent>
         </Card>
       </div>
     );
   }
+
+  const formaLabel = forma ? t(`enums.tipoProduto.${forma}`) : '';
 
   return (
     <div className="space-y-6">
@@ -112,10 +101,10 @@ export default function InventarioFicha() {
               <h1 className="text-2xl font-bold">
                 {forma === 'bloco' ? (data as Bloco).id_mm
                   : forma === 'chapa' ? (data as Chapa).id_mm
-                  : (data as Ladrilho).variedade || 'Ladrilho'}
+                  : (data as Ladrilho).variedade || formaLabel}
               </h1>
               <Badge className={FORMA_COLORS[forma || '']}>
-                {FORMA_LABELS[forma || '']}
+                {formaLabel}
               </Badge>
             </div>
             <p className="text-muted-foreground">{empresaConfig?.nome}</p>
@@ -134,7 +123,7 @@ export default function InventarioFicha() {
         {/* Dados Principais */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Dados do Item</CardTitle>
+            <CardTitle className="text-base">{t('inventory.detail.itemData')}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             {forma === 'bloco' && <BlocoDetails data={data as Bloco} />}
@@ -148,19 +137,19 @@ export default function InventarioFicha() {
           <CardHeader>
             <CardTitle className="text-base flex items-center gap-2">
               <QrCode className="h-5 w-5" />
-              Identificação & Fotos
+              {t('inventory.detail.idAndPhotos')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <span className="text-sm text-muted-foreground">Forma</span>
-              <p className="font-medium">{FORMA_LABELS[forma || '']}</p>
+              <span className="text-sm text-muted-foreground">{t('inventory.detail.form')}</span>
+              <p className="font-medium">{formaLabel}</p>
             </div>
             <div>
-              <span className="text-sm text-muted-foreground">{forma === 'bloco' ? 'ID MM' : 'ID interno'}</span>
+              <span className="text-sm text-muted-foreground">{forma === 'bloco' ? 'ID MM' : t('inventory.detail.idInternal')}</span>
               <p className="font-mono text-sm">{forma === 'bloco' ? (data as Bloco).id_mm : id}</p>
             </div>
-            
+
             {/* Display photos */}
             <PhotoGallery forma={forma as string} data={data} />
           </CardContent>
@@ -176,6 +165,7 @@ export default function InventarioFicha() {
 function ObservacoesSection({ forma, itemId, data, empresa, supabase, queryClient }: {
   forma: string; itemId: string; data: any; empresa: string | null; supabase: any; queryClient: any;
 }) {
+  const t = useAppT();
   const obsField = forma === 'ladrilho' ? 'nota' : 'observacoes';
   const initialObs = data?.[obsField] || '';
   const [observacoes, setObservacoes] = useState<string>(initialObs);
@@ -192,23 +182,23 @@ function ObservacoesSection({ forma, itemId, data, empresa, supabase, queryClien
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success('Observações guardadas com sucesso');
+      toast.success(t('inventory.detail.obsSavedOk'));
       queryClient.invalidateQueries({ queryKey: ['inventario-ficha', forma, itemId] });
     },
     onError: (err: Error) => {
-      toast.error('Erro ao guardar observações: ' + err.message);
+      toast.error(t('inventory.detail.obsErrorPrefix') + err.message);
     },
   });
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Observações</CardTitle>
+        <CardTitle className="text-base">{t('inventory.detail.observations')}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <Textarea
           rows={4}
-          placeholder="Sem observações..."
+          placeholder={t('inventory.detail.noObservations')}
           value={observacoes}
           onChange={(e) => setObservacoes(e.target.value)}
         />
@@ -218,7 +208,7 @@ function ObservacoesSection({ forma, itemId, data, empresa, supabase, queryClien
           size="sm"
         >
           {obsMutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-          Guardar Observações
+          {t('inventory.detail.saveObs')}
         </Button>
       </CardContent>
     </Card>
@@ -226,6 +216,7 @@ function ObservacoesSection({ forma, itemId, data, empresa, supabase, queryClien
 }
 
 function PhotoGallery({ forma, data }: { forma: string; data: unknown }) {
+  const t = useAppT();
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
 
@@ -235,25 +226,25 @@ function PhotoGallery({ forma, data }: { forma: string; data: unknown }) {
   if (forma === 'bloco') {
     const d = data as Bloco;
     idLabel = d.id_mm;
-    if (d.foto1_url) photos.push({ label: 'Foto 1', url: d.foto1_url });
-    if (d.foto2_url) photos.push({ label: 'Foto 2', url: d.foto2_url });
+    if (d.foto1_url) photos.push({ label: t('movements.fotoN', { n: 1 }), url: d.foto1_url });
+    if (d.foto2_url) photos.push({ label: t('movements.fotoN', { n: 2 }), url: d.foto2_url });
   } else if (forma === 'chapa') {
     const d = data as Chapa;
     idLabel = d.id_mm;
     for (let i = 1; i <= 4; i++) {
       const primeira = d[`parga${i}_foto_primeira` as keyof Chapa] as string | null;
       const ultima = d[`parga${i}_foto_ultima` as keyof Chapa] as string | null;
-      if (primeira) photos.push({ label: `Parga ${i} - Primeira`, url: primeira });
-      if (ultima) photos.push({ label: `Parga ${i} - Última`, url: ultima });
+      if (primeira) photos.push({ label: t('inventory.detail.pargaFirst', { n: i }), url: primeira });
+      if (ultima) photos.push({ label: t('inventory.detail.pargaLast', { n: i }), url: ultima });
     }
   } else if (forma === 'ladrilho') {
     const d = data as Ladrilho;
-    idLabel = d.variedade || 'Ladrilho';
-    if (d.foto_amostra_url) photos.push({ label: 'Foto Amostra', url: d.foto_amostra_url });
+    idLabel = d.variedade || t('enums.tipoProduto.ladrilho');
+    if (d.foto_amostra_url) photos.push({ label: t('inventory.detail.photoSample'), url: d.foto_amostra_url });
   }
 
   if (photos.length === 0) {
-    return <p className="text-sm text-muted-foreground">Sem fotografias</p>;
+    return <p className="text-sm text-muted-foreground">{t('inventory.detail.noPhotos')}</p>;
   }
 
   const fotosList = photos.map(p => ({ url: p.url, label: p.label, isHd: false }));
@@ -284,7 +275,7 @@ function PhotoGallery({ forma, data }: { forma: string; data: unknown }) {
         fotos={fotosList}
         initialIndex={lightboxIndex}
         idmm={idLabel}
-        tipoPedra={FORMA_LABELS[forma] || forma}
+        tipoPedra={t(`enums.tipoProduto.${forma}`)}
       />
     </>
   );
@@ -300,24 +291,25 @@ function DetailRow({ label, value }: { label: string; value: string | number | n
 }
 
 function BlocoDetails({ data }: { data: Bloco }) {
+  const t = useAppT();
   const { podeVerValores } = usePermissoes();
   return (
     <>
       <DetailRow label="ID MM" value={data.id_mm} />
-      <DetailRow label="Parque" value={data.parque} />
-      <DetailRow label="Variedade" value={data.variedade} />
-      <DetailRow label="Origem" value={data.bloco_origem} />
+      <DetailRow label={t('inventory.detail.yard')} value={data.parque} />
+      <DetailRow label={t('inventory.detail.variety')} value={data.variedade} />
+      <DetailRow label={t('inventory.detail.origin')} value={data.bloco_origem} />
       <Separator />
-      <DetailRow label="Peso" value={data.quantidade_kg != null ? `${formatNumber(data.quantidade_kg)} kg` : null} />
-      {podeVerValores && <DetailRow label="Preço/kg" value={formatCurrency(data.preco_unitario)} />}
-      {podeVerValores && <DetailRow label="Valor de Inventário" value={formatCurrency(data.valor_inventario)} />}
+      <DetailRow label={t('inventory.detail.weight')} value={data.quantidade_kg != null ? `${formatNumber(data.quantidade_kg)} kg` : null} />
+      {podeVerValores && <DetailRow label={t('inventory.detail.pricePerKg')} value={formatCurrency(data.preco_unitario) || '—'} />}
+      {podeVerValores && <DetailRow label={t('inventory.detail.inventoryValue')} value={formatCurrency(data.valor_inventario) || '—'} />}
       {(data.comprimento || data.largura || data.altura) && (
         <>
           <Separator />
           <div className="grid grid-cols-3 gap-4">
-            <DetailRow label="Comprimento" value={data.comprimento ? `${data.comprimento}` : null} />
-            <DetailRow label="Largura" value={data.largura ? `${data.largura}` : null} />
-            <DetailRow label="Altura" value={data.altura ? `${data.altura}` : null} />
+            <DetailRow label={t('inventory.detail.length')} value={data.comprimento ? `${data.comprimento}` : null} />
+            <DetailRow label={t('inventory.detail.width')} value={data.largura ? `${data.largura}` : null} />
+            <DetailRow label={t('inventory.detail.height')} value={data.altura ? `${data.altura}` : null} />
           </div>
         </>
       )}
@@ -326,36 +318,38 @@ function BlocoDetails({ data }: { data: Bloco }) {
 }
 
 function ChapaDetails({ data }: { data: Chapa }) {
+  const t = useAppT();
   const { podeVerValores } = usePermissoes();
   return (
     <>
       <DetailRow label="ID MM" value={data.id_mm} />
-      <DetailRow label="Bundle/Parga" value={data.bundle_id} />
-      <DetailRow label="Parque" value={data.parque} />
-      <DetailRow label="Variedade" value={data.variedade} />
-      <DetailRow label="Acabamento" value={data.acabamento} />
+      <DetailRow label={t('inventory.detail.bundleParga')} value={data.bundle_id} />
+      <DetailRow label={t('inventory.detail.yard')} value={data.parque} />
+      <DetailRow label={t('inventory.detail.variety')} value={data.variedade} />
+      <DetailRow label={t('inventory.detail.finish')} value={data.acabamento} />
       <Separator />
-      <DetailRow label="Nº Chapas" value={data.num_chapas} />
-      <DetailRow label="Área (m²)" value={formatNumber(data.quantidade_m2)} />
-      {podeVerValores && <DetailRow label="Preço/m²" value={formatCurrency(data.preco_unitario)} />}
-      {podeVerValores && <DetailRow label="Valor de Inventário" value={formatCurrency(data.valor_inventario)} />}
+      <DetailRow label={t('inventory.detail.numSlabs')} value={data.num_chapas} />
+      <DetailRow label={t('inventory.detail.area')} value={formatNumber(data.quantidade_m2) || '—'} />
+      {podeVerValores && <DetailRow label={t('inventory.detail.pricePerM2')} value={formatCurrency(data.preco_unitario) || '—'} />}
+      {podeVerValores && <DetailRow label={t('inventory.detail.inventoryValue')} value={formatCurrency(data.valor_inventario) || '—'} />}
     </>
   );
 }
 
 function LadrilhoDetails({ data }: { data: Ladrilho }) {
+  const t = useAppT();
   const { podeVerValores } = usePermissoes();
   return (
     <>
-      <DetailRow label="Variedade" value={data.variedade} />
-      <DetailRow label="Dimensões" value={data.dimensoes} />
-      <DetailRow label="Butch No" value={data.butch_no} />
+      <DetailRow label={t('inventory.detail.variety')} value={data.variedade} />
+      <DetailRow label={t('inventory.detail.dimensions')} value={data.dimensoes} />
+      <DetailRow label={t('inventory.detail.butchNo')} value={data.butch_no} />
       <Separator />
-      <DetailRow label="Peças" value={data.num_pecas} />
-      <DetailRow label="Área (m²)" value={formatNumber(data.quantidade_m2)} />
-      <DetailRow label="Peso (kg)" value={formatNumber(data.peso, 0)} />
-      {podeVerValores && <DetailRow label="Preço/m²" value={formatCurrency(data.preco_unitario)} />}
-      {podeVerValores && <DetailRow label="Valor de Inventário" value={formatCurrency(data.valor_inventario)} />}
+      <DetailRow label={t('inventory.detail.pieces')} value={data.num_pecas} />
+      <DetailRow label={t('inventory.detail.area')} value={formatNumber(data.quantidade_m2) || '—'} />
+      <DetailRow label={t('inventory.detail.weightKg')} value={data.peso != null ? formatNumber(data.peso, 0) : null} />
+      {podeVerValores && <DetailRow label={t('inventory.detail.pricePerM2')} value={formatCurrency(data.preco_unitario) || '—'} />}
+      {podeVerValores && <DetailRow label={t('inventory.detail.inventoryValue')} value={formatCurrency(data.valor_inventario) || '—'} />}
     </>
   );
 }
