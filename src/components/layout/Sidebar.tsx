@@ -149,7 +149,7 @@ export function Sidebar() {
         </ul>
 
         {/* Store Links */}
-        {isAdmin && <div className="mt-4 pt-4 border-t border-border px-2">
+        {podeVerLojas && <div className="mt-4 pt-4 border-t border-border px-2">
           {!collapsed && (
             <p className="px-3 mb-2 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t('nav.lojas')}</p>
           )}
