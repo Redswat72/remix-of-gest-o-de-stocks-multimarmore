@@ -569,6 +569,7 @@ function GestaoUtilizadoresTab() {
       superadmin: "bg-destructive text-destructive-foreground",
       admin: "bg-primary text-primary-foreground",
       operador: "bg-secondary text-secondary-foreground",
+      comercial: "bg-accent text-accent-foreground",
       area_comercial: "bg-accent text-accent-foreground",
     };
     return <Badge className={variants[role]}>{enumLabel('role', role) || role}</Badge>;
@@ -645,7 +646,7 @@ function GestaoUtilizadoresTab() {
                                 <SelectContent>
                                   <SelectItem value="operador">{t('superadmin.roleOperator')}</SelectItem>
                                   <SelectItem value="admin">{t('superadmin.roleAdminShort')}</SelectItem>
-                                  <SelectItem value="area_comercial">{t('superadmin.roleCommercial')}</SelectItem>
+                                  <SelectItem value="comercial">{t('superadmin.roleCommercial')}</SelectItem>
                                 </SelectContent>
                               </Select>
                               <Button
@@ -711,7 +712,7 @@ function GestaoUtilizadoresTab() {
                                   <SelectContent>
                                     <SelectItem value="operador">{t('superadmin.roleOperator')}</SelectItem>
                                     <SelectItem value="admin">{t('superadmin.roleAdminShort')}</SelectItem>
-                                    <SelectItem value="area_comercial">{t('superadmin.roleCommercial')}</SelectItem>
+                                    <SelectItem value="comercial">{t('superadmin.roleCommercial')}</SelectItem>
                                   </SelectContent>
                                 </Select>
                                 <Button

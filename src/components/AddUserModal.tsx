@@ -16,7 +16,7 @@ interface AddUserModalProps {
 export default function AddUserModal({ open, onClose }: AddUserModalProps) {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
-  const [role, setRole] = useState<"admin" | "operador" | "area_comercial">("operador");
+  const [role, setRole] = useState<"admin" | "operador" | "comercial">("operador");
   const t = useAppT();
 
   const { convidarUser } = useUsers();
@@ -67,14 +67,14 @@ export default function AddUserModal({ open, onClose }: AddUserModalProps) {
 
           <div className="space-y-2">
             <Label>{t('superadmin.labelPermission')}</Label>
-            <Select value={role} onValueChange={(value: "admin" | "operador" | "area_comercial") => setRole(value)}>
+            <Select value={role} onValueChange={(value: "admin" | "operador" | "comercial") => setRole(value)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="operador">{t('superadmin.roleOperator')}</SelectItem>
                 <SelectItem value="admin">{t('superadmin.roleAdmin')}</SelectItem>
-                <SelectItem value="area_comercial">{t('superadmin.roleCommercial')}</SelectItem>
+                <SelectItem value="comercial">{t('superadmin.roleCommercial')}</SelectItem>
               </SelectContent>
             </Select>
             <div className="text-xs text-muted-foreground space-y-0.5">
