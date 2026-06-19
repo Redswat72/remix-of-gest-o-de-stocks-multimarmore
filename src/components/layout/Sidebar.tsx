@@ -60,6 +60,7 @@ export function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
   const { profile, isAdmin, isSuperadmin, hasRole, podeVerProducao, signOut } = useAuth();
+  const podeVerLojas = isAdmin || hasRole('area_comercial');
   const { empresaConfig } = useEmpresa();
   const [collapsed, setCollapsed] = useState(false);
   const t = useAppT();
