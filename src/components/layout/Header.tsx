@@ -39,7 +39,7 @@ export function Header() {
   const getRoleInfo = () => {
     if (roles.includes('superadmin')) return { value: 'superadmin', className: 'badge-superadmin' };
     if (roles.includes('admin')) return { value: 'admin', className: 'badge-admin' };
-    if (roles.includes('area_comercial')) return { value: 'area_comercial', className: 'badge-admin' };
+    if (roles.includes('comercial') || roles.includes('area_comercial')) return { value: 'comercial', className: 'badge-admin' };
     return { value: 'operador', className: 'badge-operador' };
   };
 

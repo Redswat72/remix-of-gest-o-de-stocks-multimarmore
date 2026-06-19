@@ -7,6 +7,6 @@ import { useAuth } from '@/hooks/useAuth';
 export function usePermissoes() {
   const { isAdmin, hasRole } = useAuth();
   return {
-    podeVerValores: isAdmin || hasRole('area_comercial'),
+    podeVerValores: isAdmin || hasRole('comercial') || hasRole('area_comercial'),
   };
 }
