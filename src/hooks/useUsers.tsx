@@ -14,7 +14,13 @@ export interface User {
   created_at: string;
   // Joined data
   local?: { id: string; nome: string } | null;
-  user_roles?: { role: AppRole }[];
+  user_roles?: { id?: string; role: AppRole }[];
+}
+
+const ROLE_PRIORITY: AppRole[] = ["superadmin", "admin", "comercial", "area_comercial", "operador"];
+
+function sortRolesByPriority(roles: { id?: string; role: AppRole }[]) {
+  return [...roles].sort((a, b) => ROLE_PRIORITY.indexOf(a.role) - ROLE_PRIORITY.indexOf(b.role));
 }
 
 export function useUsers() {
@@ -41,7 +47,7 @@ export function useUsers() {
       // Fetch all roles separately (no FK between profiles and user_roles)
       const { data: roles, error: rolesError } = await supabase
         .from("user_roles")
-        .select("user_id, role");
+        .select("id, user_id, role");
 
       if (rolesError) {
         console.error("[useUsers] Error fetching roles:", rolesError);
@@ -49,11 +55,11 @@ export function useUsers() {
       }
 
       // Merge roles into profiles
-      const rolesMap = new Map<string, { role: AppRole }[]>();
+      const rolesMap = new Map<string, { id?: string; role: AppRole }[]>();
       for (const r of roles || []) {
         const existing = rolesMap.get(r.user_id) || [];
-        existing.push({ role: r.role as AppRole });
-        rolesMap.set(r.user_id, existing);
+        existing.push({ id: r.id, role: r.role as AppRole });
+        rolesMap.set(r.user_id, sortRolesByPriority(existing));
       }
 
       const merged = (profiles || []).map((p: any) => ({
@@ -69,23 +75,46 @@ export function useUsers() {
 
   const atualizarRole = useMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: string }) => {
-      // Upsert into user_roles
-      const { data: existing } = await supabase
+      const normalizedRole = role as AppRole;
+      const { data: existingRoles, error: fetchError } = await supabase
         .from("user_roles")
-        .select("id")
-        .eq("user_id", userId)
-        .maybeSingle();
+        .select("id, role")
+        .eq("user_id", userId);
 
-      if (existing) {
+      if (fetchError) throw fetchError;
+
+      const roles = existingRoles || [];
+      const targetRole = roles.find((existingRole) => existingRole.role === normalizedRole);
+
+      if (targetRole) {
         const { error } = await supabase
           .from("user_roles")
-          .update({ role })
-          .eq("user_id", userId);
+          .delete()
+          .eq("user_id", userId)
+          .neq("id", targetRole.id);
         if (error) throw error;
+        return;
+      }
+
+      if (roles.length > 0) {
+        const [primaryRole, ...duplicateRoles] = roles;
+        const { error: updateError } = await supabase
+          .from("user_roles")
+          .update({ role: normalizedRole })
+          .eq("id", primaryRole.id);
+        if (updateError) throw updateError;
+
+        if (duplicateRoles.length > 0) {
+          const { error: deleteError } = await supabase
+            .from("user_roles")
+            .delete()
+            .in("id", duplicateRoles.map((duplicateRole) => duplicateRole.id));
+          if (deleteError) throw deleteError;
+        }
       } else {
         const { error } = await supabase
           .from("user_roles")
-          .insert({ user_id: userId, role });
+          .insert({ user_id: userId, role: normalizedRole });
         if (error) throw error;
       }
     },
