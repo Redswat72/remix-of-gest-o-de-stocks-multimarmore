@@ -183,7 +183,8 @@
     "tipoMovimento": {
       "entrada": "Inbound",
       "transferencia": "Transfer",
-      "saida": "Dispatch"
+      "saida": "Dispatch",
+      "producao": "Production"
     },
     "tipoDocumento": {
       "guia_transporte": "Delivery note",
@@ -467,6 +468,9 @@
       "labelCancelReason": "Cancellation reason",
       "statusActive": "Active",
       "statusCancelled": "Cancelled",
+      "statusCompleted": "Completed",
+      "routeTransformation": "transformation",
+      "routeCustomer": "Customer",
       "cancelBtn": "Cancel",
       "cancelDialogTitle": "Cancel Movement",
       "cancelDialogDesc": "This action will automatically reverse the stock. This operation cannot be undone.",

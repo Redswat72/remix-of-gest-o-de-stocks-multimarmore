@@ -2,7 +2,7 @@
 
 export type AppRole = 'operador' | 'admin' | 'superadmin' | 'comercial' | 'area_comercial';
 export type FormaProduto = 'bloco' | 'chapa' | 'ladrilho';
-export type TipoMovimento = 'entrada' | 'transferencia' | 'saida';
+export type TipoMovimento = 'entrada' | 'transferencia' | 'saida' | 'producao';
 export type TipoDocumento = 'guia_transporte' | 'guia_transferencia' | 'factura' | 'sem_documento';
 export type OrigemMaterial = 'adquirido' | 'producao_propria';
 

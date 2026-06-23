@@ -156,6 +156,9 @@
   .badge-saida {
     @apply bg-destructive/15 text-destructive border-destructive/30;
   }
+  .badge-producao {
+    @apply bg-purple/15 text-purple border-purple/30;
+  }
   .badge-cancelado {
     @apply bg-muted text-muted-foreground border-border;
   }
