@@ -183,7 +183,8 @@
     "tipoMovimento": {
       "entrada": "Entrada",
       "transferencia": "Transferência",
-      "saida": "Saída"
+      "saida": "Saída",
+      "producao": "Produção"
     },
     "tipoDocumento": {
       "guia_transporte": "Guia de transporte",
@@ -467,6 +468,9 @@
       "labelCancelReason": "Motivo do cancelamento",
       "statusActive": "Ativo",
       "statusCancelled": "Cancelado",
+      "statusCompleted": "Concluído",
+      "routeTransformation": "transformação",
+      "routeCustomer": "Cliente",
       "cancelBtn": "Cancelar",
       "cancelDialogTitle": "Cancelar Movimento",
       "cancelDialogDesc": "Esta ação irá reverter o stock automaticamente. Esta operação não pode ser desfeita.",
