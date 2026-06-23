@@ -6,7 +6,9 @@ import {
   ArrowDownToLine,
   ArrowRightLeft,
   Package,
+  Hammer,
   XCircle,
+  CheckCircle2,
   ChevronDown,
   ChevronUp,
   AlertTriangle
@@ -104,6 +106,7 @@ export default function Historico() {
       case 'entrada': return <ArrowDownToLine className="w-4 h-4 text-success" />;
       case 'transferencia': return <ArrowRightLeft className="w-4 h-4 text-warning" />;
       case 'saida': return <Package className="w-4 h-4 text-destructive" />;
+      case 'producao': return <Hammer className="w-4 h-4 text-purple" />;
       default: return null;
     }
   };
@@ -113,6 +116,7 @@ export default function Historico() {
       entrada: 'badge-entrada',
       transferencia: 'badge-transferencia',
       saida: 'badge-saida',
+      producao: 'badge-producao',
     };
     return (
       <Badge variant="outline" className={classes[tipo]}>
@@ -133,9 +137,11 @@ export default function Historico() {
   const getPercursoLabel = (mov: MovimentoComDetalhes) => {
     const origem = getLocalNome(mov.local_origem_id);
     const destino = getLocalNome(mov.local_destino_id);
+    const cliente = mov.cliente_nome?.trim();
     if (mov.tipo === 'entrada') return `→ ${destino}`;
-    if (mov.tipo === 'saida') return `${origem} →`;
+    if (mov.tipo === 'saida') return cliente ? `${origem} → ${cliente}` : `${origem} →`;
     if (mov.tipo === 'transferencia') return `${origem} → ${destino}`;
+    if (mov.tipo === 'producao') return `${origem} (${t('movements.history.routeTransformation')})`;
     return '-';
   };
 
@@ -261,6 +267,7 @@ export default function Historico() {
                   <SelectItem value="entrada">{enumLabel('tipoMovimento', 'entrada')}</SelectItem>
                   <SelectItem value="transferencia">{enumLabel('tipoMovimento', 'transferencia')}</SelectItem>
                   <SelectItem value="saida">{enumLabel('tipoMovimento', 'saida')}</SelectItem>
+                  <SelectItem value="producao">{enumLabel('tipoMovimento', 'producao')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -367,6 +374,10 @@ export default function Historico() {
                             {mov.cancelado ? (
                               <Badge variant="outline" className="badge-cancelado gap-1">
                                 <XCircle className="w-3 h-3" /> {t('movements.history.statusCancelled')}
+                              </Badge>
+                            ) : mov.tipo === 'producao' ? (
+                              <Badge variant="outline" className="badge-producao gap-1">
+                                <CheckCircle2 className="w-3 h-3" /> {t('movements.history.statusCompleted')}
                               </Badge>
                             ) : (
                               <Badge variant="outline" className="badge-entrada">
