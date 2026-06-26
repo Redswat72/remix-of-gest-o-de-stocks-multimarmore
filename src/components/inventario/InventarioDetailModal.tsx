@@ -42,7 +42,7 @@ export default function InventarioDetailModal({ open, onOpenChange, forma, itemI
   const { podeVerValores } = usePermissoes();
   const { isSuperadmin, isAdmin, hasRole } = useAuth();
   const isOperador = hasRole('operador');
-  const canEdit = isSuperadmin || isAdmin || (isOperador && forma === 'bloco');
+  const canEdit = isSuperadmin || isAdmin || (isOperador && (forma === 'bloco' || forma === 'chapa'));
   const queryClient = useQueryClient();
 
   const tableName = forma === 'bloco' ? 'blocos' : forma === 'chapa' ? 'chapas' : forma === 'banda' ? 'produtos' : 'ladrilho';
@@ -228,11 +228,10 @@ function ChapaFields({ data, podeVerValores }: { data: Chapa; podeVerValores: bo
         const e = (row[`parga${i}_espessura`] ?? null) as number | null;
         const hasAny = nome || qtd != null || c != null || a != null || e != null;
         if (!hasAny) return null;
-        const dimParts: string[] = [];
-        if (c != null) dimParts.push(String(c));
-        if (a != null) dimParts.push(String(a));
-        if (e != null) dimParts.push(String(e));
-        const dim = dimParts.length >= 2 ? `${dimParts.join(' × ')} cm` : null;
+        let dim: string | null = null;
+        if (c != null && a != null) {
+          dim = e != null ? `${c} × ${a} × ${e} cm` : `${c} × ${a} cm`;
+        }
         return (
           <div key={i} className="rounded-md border border-border bg-muted/30 p-3 space-y-1">
             <p className="font-semibold text-sm">{t('inventory.detail.pargaLabel', { n: i })}{nome && nome !== `Parga ${i}` ? ` — ${nome}` : ''}</p>
