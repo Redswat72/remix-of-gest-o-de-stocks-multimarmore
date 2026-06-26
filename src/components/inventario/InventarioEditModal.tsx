@@ -77,7 +77,7 @@ function getEditableFields(forma: FormaInventario, data: Bloco | Chapa | Ladrilh
   }
   if (forma === 'chapa') {
     const d = data as Chapa;
-    return [
+    const base: EditableField[] = [
       { label: t('inventory.edit.fields.variety'), field: 'variedade', value: d.variedade, type: 'text' },
       { label: t('inventory.edit.fields.yard'), field: 'parque', value: d.parque, type: 'text' },
       { label: t('inventory.edit.fields.bundleId'), field: 'bundle_id', value: d.bundle_id, type: 'text' },
@@ -85,6 +85,24 @@ function getEditableFields(forma: FormaInventario, data: Bloco | Chapa | Ladrilh
       { label: t('inventory.edit.fields.areaM2'), field: 'quantidade_m2', value: d.quantidade_m2, type: 'number' },
       { label: t('inventory.edit.fields.pricePerM2'), field: 'preco_unitario', value: d.preco_unitario, type: 'number' },
     ];
+    const row = d as unknown as Record<string, unknown>;
+    for (let i = 1; i <= 4; i++) {
+      const nome = (row[`parga${i}_nome`] ?? null) as string | null;
+      const qtd = (row[`parga${i}_quantidade`] ?? null) as number | null;
+      const cmp = (row[`parga${i}_comprimento`] ?? null) as number | null;
+      const alt = (row[`parga${i}_altura`] ?? null) as number | null;
+      const esp = (row[`parga${i}_espessura`] ?? null) as number | null;
+      if (nome || qtd != null || cmp != null || alt != null || esp != null) {
+        base.push({
+          label: `Parga ${i} — ${t('inventory.edit.fields.thicknessCm') || 'Espessura (cm)'}`,
+          field: `parga${i}_espessura`,
+          value: esp,
+          type: 'number',
+          operadorEditable: true,
+        });
+      }
+    }
+    return base;
   }
   const d = data as Ladrilho;
   return [
