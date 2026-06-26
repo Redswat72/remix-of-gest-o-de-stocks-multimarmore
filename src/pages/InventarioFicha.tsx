@@ -317,9 +317,36 @@ function BlocoDetails({ data }: { data: Bloco }) {
   );
 }
 
+function formatPargaDim(data: Chapa) {
+  const pargas: { idx: number; comprimento: number | null; altura: number | null; espessura: number | null; quantidade: number | null }[] = [
+    { idx: 1, comprimento: data.parga1_comprimento, altura: data.parga1_altura, espessura: data.parga1_espessura, quantidade: data.parga1_quantidade },
+    { idx: 2, comprimento: data.parga2_comprimento, altura: data.parga2_altura, espessura: data.parga2_espessura, quantidade: data.parga2_quantidade },
+    { idx: 3, comprimento: data.parga3_comprimento, altura: data.parga3_altura, espessura: data.parga3_espessura, quantidade: data.parga3_quantidade },
+    { idx: 4, comprimento: data.parga4_comprimento, altura: data.parga4_altura, espessura: data.parga4_espessura, quantidade: data.parga4_quantidade },
+  ];
+
+  const validas = pargas.filter(p => p.comprimento != null && p.altura != null);
+  if (validas.length === 0) return null;
+
+  const formatOne = (p: typeof validas[0]) => {
+    const dim = p.espessura != null
+      ? `${p.comprimento} × ${p.altura} × ${p.espessura} cm`
+      : `${p.comprimento} × ${p.altura} cm`;
+    const qty = p.quantidade != null ? ` (${p.quantidade} chapas)` : '';
+    return `${dim}${qty}`;
+  };
+
+  if (validas.length === 1) {
+    return `Dimensões: ${formatOne(validas[0])}`;
+  }
+
+  return validas.map(p => `Parga ${p.idx}: ${formatOne(p)}`).join(' / ');
+}
+
 function ChapaDetails({ data }: { data: Chapa }) {
   const t = useAppT();
   const { podeVerValores } = usePermissoes();
+  const dimensoesPargas = formatPargaDim(data);
   return (
     <>
       <DetailRow label="ID MM" value={data.id_mm} />
@@ -330,6 +357,7 @@ function ChapaDetails({ data }: { data: Chapa }) {
       <Separator />
       <DetailRow label={t('inventory.detail.numSlabs')} value={data.num_chapas} />
       <DetailRow label={t('inventory.detail.area')} value={formatNumber(data.quantidade_m2) || '—'} />
+      {dimensoesPargas && <DetailRow label={t('inventory.detail.dimensions')} value={dimensoesPargas} />}
       {podeVerValores && <DetailRow label={t('inventory.detail.pricePerM2')} value={formatCurrency(data.preco_unitario) || '—'} />}
       {podeVerValores && <DetailRow label={t('inventory.detail.inventoryValue')} value={formatCurrency(data.valor_inventario) || '—'} />}
     </>
