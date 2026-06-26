@@ -128,7 +128,7 @@ export default function InventarioEditModal({ forma, data, itemId }: InventarioE
   const queryClient = useQueryClient();
   const { uploadImage, isUploading } = useImageUpload();
   const { hasRole } = useAuth();
-  const isOperador = hasRole('operador') && forma === 'bloco';
+  const isOperador = hasRole('operador') && (forma === 'bloco' || forma === 'chapa');
 
   const tableName = forma === 'bloco' ? 'blocos' : forma === 'chapa' ? 'chapas' : 'ladrilho';
 
