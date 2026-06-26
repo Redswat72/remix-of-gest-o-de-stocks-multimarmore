@@ -222,12 +222,19 @@ function ChapaFields({ data, podeVerValores }: { data: Chapa; podeVerValores: bo
       {[1, 2, 3, 4].map(i => {
         const nome = data[`parga${i}_nome` as keyof Chapa] as string | null;
         const qtd = data[`parga${i}_quantidade` as keyof Chapa] as number | null;
-        if (!nome && !qtd) return null;
+        const c = data[`parga${i}_comprimento` as keyof Chapa] as number | null;
+        const a = data[`parga${i}_altura` as keyof Chapa] as number | null;
+        const e = data[`parga${i}_espessura` as keyof Chapa] as number | null;
+        if (!nome && !qtd && c == null && a == null && e == null) return null;
+        const dim = (c != null && a != null)
+          ? (e != null ? `${c} × ${a} × ${e} cm` : `${c} × ${a} cm`)
+          : null;
         return (
           <div key={i}>
             <Separator className="my-2" />
             <DetailRow label={t('inventory.detail.pargaLabel', { n: i })} value={nome} />
             <DetailRow label={t('inventory.detail.pargaQtyLabel', { n: i })} value={qtd} />
+            {dim && <DetailRow label={t('inventory.detail.dimensions')} value={dim} />}
           </div>
         );
       })}
