@@ -220,7 +220,7 @@ function ChapaFields({ data, podeVerValores }: { data: Chapa; podeVerValores: bo
       {podeVerValores && <DetailRow label={t('inventory.detail.pricePerM2')} value={formatCurrency(data.preco_unitario) || '—'} />}
       {podeVerValores && <DetailRow label={t('inventory.detail.inventoryValue')} value={formatCurrency(data.valor_inventario) || '—'} />}
       {[1, 2, 3, 4].map(i => {
-        const row = data as Record<string, unknown>;
+        const row = data as unknown as Record<string, unknown>;
         const nome = (row[`parga${i}_nome`] ?? null) as string | null;
         const qtd = (row[`parga${i}_quantidade`] ?? null) as number | null;
         const c = (row[`parga${i}_comprimento`] ?? null) as number | null;
