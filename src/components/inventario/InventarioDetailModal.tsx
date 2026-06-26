@@ -220,21 +220,28 @@ function ChapaFields({ data, podeVerValores }: { data: Chapa; podeVerValores: bo
       {podeVerValores && <DetailRow label={t('inventory.detail.pricePerM2')} value={formatCurrency(data.preco_unitario) || '—'} />}
       {podeVerValores && <DetailRow label={t('inventory.detail.inventoryValue')} value={formatCurrency(data.valor_inventario) || '—'} />}
       {[1, 2, 3, 4].map(i => {
-        const nome = data[`parga${i}_nome` as keyof Chapa] as string | null;
-        const qtd = data[`parga${i}_quantidade` as keyof Chapa] as number | null;
-        const c = data[`parga${i}_comprimento` as keyof Chapa] as number | null;
-        const a = data[`parga${i}_altura` as keyof Chapa] as number | null;
-        const e = data[`parga${i}_espessura` as keyof Chapa] as number | null;
-        if (!nome && !qtd && c == null && a == null && e == null) return null;
-        const dim = (c != null && a != null)
-          ? (e != null ? `${c} × ${a} × ${e} cm` : `${c} × ${a} cm`)
-          : null;
+        const row = data as Record<string, unknown>;
+        const nome = (row[`parga${i}_nome`] ?? null) as string | null;
+        const qtd = (row[`parga${i}_quantidade`] ?? null) as number | null;
+        const c = (row[`parga${i}_comprimento`] ?? null) as number | null;
+        const a = (row[`parga${i}_altura`] ?? null) as number | null;
+        const e = (row[`parga${i}_espessura`] ?? null) as number | null;
+        const hasAny = nome || qtd != null || c != null || a != null || e != null;
+        if (!hasAny) return null;
+        const dimParts: string[] = [];
+        if (c != null) dimParts.push(String(c));
+        if (a != null) dimParts.push(String(a));
+        if (e != null) dimParts.push(String(e));
+        const dim = dimParts.length >= 2 ? `${dimParts.join(' × ')} cm` : null;
         return (
-          <div key={i}>
-            <Separator className="my-2" />
-            <DetailRow label={t('inventory.detail.pargaLabel', { n: i })} value={nome} />
-            <DetailRow label={t('inventory.detail.pargaQtyLabel', { n: i })} value={qtd} />
-            {dim && <DetailRow label={t('inventory.detail.dimensions')} value={dim} />}
+          <div key={i} className="rounded-md border border-border bg-muted/30 p-3 space-y-1">
+            <p className="font-semibold text-sm">{t('inventory.detail.pargaLabel', { n: i })}{nome && nome !== `Parga ${i}` ? ` — ${nome}` : ''}</p>
+            {qtd != null && (
+              <p className="text-sm"><span className="text-muted-foreground">{t('inventory.detail.pargaQtyLabel', { n: i })}:</span> <span className="font-medium">{qtd}</span></p>
+            )}
+            {dim && (
+              <p className="text-sm"><span className="text-muted-foreground">{t('inventory.detail.dimensions')}:</span> <span className="font-medium">{dim}</span></p>
+            )}
           </div>
         );
       })}
