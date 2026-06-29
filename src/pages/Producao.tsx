@@ -13,6 +13,7 @@ import { Loader2, Search, MapPin, Scissors, Camera, Upload } from 'lucide-react'
 import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
 import { useEmpresa } from '@/context/EmpresaContext';
 import { useImageUpload } from '@/hooks/useImageUpload';
+import { useAuth } from '@/hooks/useAuth';
 import { useAppT } from '@/hooks/useAppT';
 import { toast } from 'sonner';
 import type { Bloco } from '@/types/inventario';
