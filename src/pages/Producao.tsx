@@ -214,15 +214,32 @@ export default function Producao() {
       }
 
       // 3) Registar movimento de produção. Se falhar → rollback chapa + bloco.
+      // Lookup local de origem (Plurirochas / MM002) — produção acontece sempre aqui.
+      if (!user?.id) {
+        await supabase.from('chapas').delete().eq('id', chapaId);
+        throw new Error('Utilizador não autenticado: operador_id é obrigatório.');
+      }
+      let localOrigemId: string | null = null;
+      const { data: localMM002 } = await supabase
+        .from('locais')
+        .select('id')
+        .eq('codigo', 'MM002')
+        .maybeSingle();
+      localOrigemId = (localMM002 as { id: string } | null)?.id ?? '01fcf8ae-cef1-4a5d-bae2-8e7d8b3e5bd8';
+
       const { error: movError } = await supabase.from('movimentos').insert({
         tipo: 'producao',
         tipo_documento: 'sem_documento',
-        id_mm: chapaIdMm,
-        tipo_produto: 'chapa',
-        quantidade: totalChapas,
+        local_origem_id: localOrigemId,
+        local_destino_id: null,
+        cliente_nome: null,
+        numero_documento: null,
+        id_mm: bloco.id_mm,
+        tipo_produto: 'bloco',
+        quantidade: 1,
         data_movimento: data,
-        operador_id: user?.id ?? null,
-        observacoes: `Produção do bloco ${bloco.id_mm} (corte ${tipoCorte}) → ${totalChapas} chapas / ${areaRounded} m²`,
+        operador_id: user.id,
+        observacoes: `Bloco ${bloco.id_mm} serrado em ${totalChapas} chapas (${areaRounded} m², corte ${tipoCorte})`,
       } as Record<string, unknown>);
       if (movError) {
         // Best-effort rollback
