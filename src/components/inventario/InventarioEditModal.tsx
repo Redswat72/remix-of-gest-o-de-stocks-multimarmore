@@ -157,6 +157,9 @@ export default function InventarioEditModal({ forma, data, itemId }: InventarioE
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['inventario-ficha', forma, itemId] });
+      queryClient.invalidateQueries({ queryKey: ['blocos-unificado'] });
+      queryClient.invalidateQueries({ queryKey: ['chapas-unificado'] });
+      queryClient.invalidateQueries({ queryKey: ['ladrilho-unificado'] });
       queryClient.invalidateQueries({ queryKey: ['stock-unificado'] });
       toast.success(t('inventory.edit.updatedSuccess'));
       setOpen(false);
