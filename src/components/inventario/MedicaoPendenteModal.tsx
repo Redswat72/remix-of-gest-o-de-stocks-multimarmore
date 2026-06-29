@@ -40,6 +40,9 @@ export default function MedicaoPendenteModal({ open, onOpenChange, blocoId, idMm
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['blocos'] });
+      queryClient.invalidateQueries({ queryKey: ['blocos-unificado'] });
+      queryClient.invalidateQueries({ queryKey: ['chapas-unificado'] });
+      queryClient.invalidateQueries({ queryKey: ['ladrilho-unificado'] });
       queryClient.invalidateQueries({ queryKey: ['stock-unificado'] });
       toast.success(t('inventory.measurement.successMsg'));
       onOpenChange(false);
