@@ -201,6 +201,9 @@ export function useCancelMovimento() {
       queryClient.invalidateQueries({ queryKey: ['stock-agregado'] });
       queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
       queryClient.invalidateQueries({ queryKey: ['ultimos-movimentos'] });
+      queryClient.invalidateQueries({ queryKey: ['blocos-unificado'] });
+      queryClient.invalidateQueries({ queryKey: ['chapas-unificado'] });
+      queryClient.invalidateQueries({ queryKey: ['ladrilho-unificado'] });
     },
   });
 }
