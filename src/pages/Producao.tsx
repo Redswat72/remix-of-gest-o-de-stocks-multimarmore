@@ -44,6 +44,7 @@ export default function Producao() {
   const { empresa, empresaConfig } = useEmpresa();
   const queryClient = useQueryClient();
   const { uploadImage, isUploading } = useImageUpload();
+  const { user } = useAuth();
   const t = useAppT();
 
   const [idMm, setIdMm] = useState(searchParams.get('id_mm') || searchParams.get('bloco') || '');
