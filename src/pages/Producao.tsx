@@ -216,6 +216,7 @@ export default function Producao() {
       // 3) Registar movimento de produção. Se falhar → rollback chapa + bloco.
       const { error: movError } = await supabase.from('movimentos').insert({
         tipo: 'producao',
+        tipo_documento: 'sem_documento',
         id_mm: chapaIdMm,
         tipo_produto: 'chapa',
         quantidade: totalChapas,
