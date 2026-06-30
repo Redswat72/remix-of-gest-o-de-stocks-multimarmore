@@ -24,6 +24,7 @@ import Bandas from "./pages/Bandas";
 import Stock from "./pages/Stock";
 import NovoMovimento from "./pages/NovoMovimento";
 import Historico from "./pages/Historico";
+import MovimentosValidar from "./pages/MovimentosValidar";
 import Superadmin from "./pages/Superadmin";
 import Auditoria from "./pages/Auditoria";
 import Produtos from "./pages/Produtos";
