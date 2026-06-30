@@ -113,6 +113,10 @@ export function MovimentoAddendaModal({ open, onOpenChange, movimento }: Addenda
         return <Badge variant="outline" className="bg-purple-500/10 text-purple-500 border-purple-500/20">{t('movements.history.addendaStatusConsumidoTotal')}</Badge>;
       case 'faturado':
         return <Badge variant="outline" className="bg-emerald-500/10 text-emerald-500 border-emerald-500/20">{t('movements.history.addendaStatusFaturado')}</Badge>;
+      case 'stock_mtx':
+        return <Badge variant="outline" className="bg-emerald-600/10 text-emerald-600 border-emerald-600/20">Stock MTX</Badge>;
+      case 'stock_mm':
+        return <Badge variant="outline" className="bg-blue-600/10 text-blue-600 border-blue-600/20">Stock MM</Badge>;
       default:
         return null;
     }
@@ -163,6 +167,8 @@ export function MovimentoAddendaModal({ open, onOpenChange, movimento }: Addenda
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="faturado">{t('movements.history.addendaStatusFaturado')}</SelectItem>
+                      <SelectItem value="stock_mtx">{t('movements.history.addendaStatusStockMtx') || 'Stock MTX'}</SelectItem>
+                      <SelectItem value="stock_mm">{t('movements.history.addendaStatusStockMm') || 'Stock MM'}</SelectItem>
                       <SelectItem value="consumido_total">{t('movements.history.addendaStatusConsumidoTotal')}</SelectItem>
                       <SelectItem value="consumido_parcial">{t('movements.history.addendaStatusConsumidoParcial')}</SelectItem>
                       <SelectItem value="pendente">{t('movements.history.addendaStatusPendente')}</SelectItem>
