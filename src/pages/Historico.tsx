@@ -57,6 +57,7 @@ export default function Historico() {
   // UI State
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [addendaModalOpen, setAddendaModalOpen] = useState(false);
   const [selectedMovimento, setSelectedMovimento] = useState<MovimentoComDetalhes | null>(null);
   const [motivoCancelamento, setMotivoCancelamento] = useState('');
 
