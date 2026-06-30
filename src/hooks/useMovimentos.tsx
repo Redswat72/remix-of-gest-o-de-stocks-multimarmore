@@ -226,3 +226,62 @@ export function useCancelMovimento() {
     },
   });
 }
+
+export function useCreateAdenda() {
+  const supabase = useSupabaseEmpresa();
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async ({
+      movimentoId,
+      descricao,
+      estadoValidacao,
+      anexos
+    }: {
+      movimentoId: string;
+      descricao: string;
+      estadoValidacao: import('@/types/database').EstadoAdenda;
+      anexos: { url: string; nome: string; tipo?: string }[];
+    }) => {
+      if (!user) throw new Error('Utilizador não autenticado');
+
+      // 1. Criar adenda
+      const { data: adenda, error: errAdenda } = await supabase
+        .from('movimento_adendas')
+        .insert({
+          movimento_id: movimentoId,
+          validado_por: user.id,
+          descricao,
+          estado_validacao: estadoValidacao,
+        })
+        .select()
+        .single();
+
+      if (errAdenda || !adenda) throw errAdenda || new Error('Erro ao criar adenda');
+
+      // 2. Inserir anexos se existirem
+      if (anexos && anexos.length > 0) {
+        const anexosPayload = anexos.map(a => ({
+          adenda_id: adenda.id,
+          ficheiro_url: a.url,
+          ficheiro_nome: a.nome,
+          tipo_ficheiro: a.tipo || null,
+        }));
+
+        const { error: errAnexos } = await supabase
+          .from('movimento_anexos')
+          .insert(anexosPayload);
+
+        if (errAnexos) throw errAnexos;
+      }
+
+      return adenda;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['movimentos'] });
+      queryClient.invalidateQueries({ queryKey: ['auditoria'] });
+    },
+  });
+}
+
