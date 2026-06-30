@@ -8,6 +8,7 @@
     "producao": "Production",
     "consultarStock": "View Stock",
     "registarMovimento": "Register Movement",
+    "movimentosValidar": "Pending Validation",
     "historico": "History",
     "produtos": "Products",
     "clientes": "Customers",
