@@ -172,7 +172,7 @@ export default function MovimentosValidar() {
                           {ultimaAdenda ? (
                             <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 gap-1.5 text-xs">
                               <CheckCircle className="w-3 h-3 text-emerald-500" />
-                              <span className="uppercase tracking-wide">{ultimaAdenda.estado_validacao}</span>
+                              <span className="uppercase tracking-wide">{ultimaAdenda.estado_validacao.replace('_', ' ')}</span>
                               <span className="text-[10px] opacity-70">({mov.adendas.length} adenda(s))</span>
                             </Badge>
                           ) : (
