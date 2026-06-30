@@ -86,16 +86,34 @@ export function useMovimentos(options: UseMovimentosOptions = {}) {
 
       const { data, error, count } = await query;
 
-      console.log('[useMovimentos] Query result:', { 
-        dataLength: data?.length, 
-        count, 
-        error, 
-        filters: { dataInicio, dataFim, tipo, localId, produtoId, idMm, operadorId, cancelados },
-        firstRow: data?.[0] ?? null 
-      });
-
       if (error) throw error;
-      return { data: data as unknown as MovimentoComDetalhes[], count: count ?? 0 };
+
+      // Buscar adendas dos movimentos retornados
+      const movIds = (data || []).map(m => m.id);
+      let adendasMap = new Map<string, any[]>();
+
+      if (movIds.length > 0) {
+        const { data: adendasData } = await supabase
+          .from('movimento_adendas')
+          .select('*, anexos:movimento_anexos(*)')
+          .in('movimento_id', movIds)
+          .order('created_at', { ascending: true });
+
+        if (adendasData) {
+          adendasData.forEach(adenda => {
+            const list = adendasMap.get(adenda.movimento_id) || [];
+            list.push(adenda);
+            adendasMap.set(adenda.movimento_id, list);
+          });
+        }
+      }
+
+      const enrichedData = (data || []).map(mov => ({
+        ...mov,
+        adendas: adendasMap.get(mov.id) || []
+      }));
+
+      return { data: enrichedData as unknown as MovimentoComDetalhes[], count: count ?? 0 };
     },
   });
 }
