@@ -16,7 +16,7 @@ import type { MovimentoComDetalhes } from '@/hooks/useMovimentos';
 
 export default function MovimentosValidar() {
   const t = useAppT();
-  const { supabaseEmpresa: supabase } = useEmpresa();
+  const { supabaseEmpresa: supabase, empresa } = useEmpresa();
   const enumLabel = useEnumLabel();
 
   const [busca, setBusca] = useState('');
@@ -25,17 +25,15 @@ export default function MovimentosValidar() {
 
   // Buscar movimentos recentes (últimos 100) e as respetivas adendas
   const { data: movimentos, isLoading } = useQuery({
-    queryKey: ['movimentos-validar', supabase],
+    queryKey: ['movimentos-validar', empresa],
     queryFn: async () => {
       if (!supabase) return [];
       const { data, error } = await supabase
         .from('movimentos')
         .select(`
           *,
-          produto:produtos(*),
           local_origem:locais!movimentos_local_origem_id_fkey(nome, codigo),
-          local_destino:locais!movimentos_local_destino_id_fkey(nome, codigo),
-          operador:profiles!movimentos_operador_id_fkey(nome)
+          local_destino:locais!movimentos_local_destino_id_fkey(nome, codigo)
         `)
         .order('data_movimento', { ascending: false })
         .limit(100);
@@ -66,7 +64,7 @@ export default function MovimentosValidar() {
         adendas: adendasMap.get(mov.id) || []
       })) as unknown as MovimentoComDetalhes[];
     },
-    enabled: !!supabase,
+    enabled: !!supabase && !!empresa,
   });
 
   const getClienteNome = (mov: any) => {
