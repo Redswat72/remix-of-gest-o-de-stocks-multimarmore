@@ -20,6 +20,7 @@ import {
   LayoutDashboard,
   Store,
   ExternalLink,
+  ShieldCheck,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -47,6 +48,7 @@ const navItems: NavItem[] = [
   { href: '/producao', labelKey: 'nav.producao', icon: Scissors, producaoOnly: true },
   { href: '/stock', labelKey: 'nav.consultarStock', icon: Boxes },
   { href: '/movimento/novo', labelKey: 'nav.registarMovimento', icon: PlusCircle, operadorOnly: true },
+  { href: '/movimentos/validar', labelKey: 'nav.movimentosValidar', icon: ShieldCheck, adminOnly: true },
   { href: '/historico', labelKey: 'nav.historico', icon: History },
   { href: '/produtos', labelKey: 'nav.produtos', icon: Boxes },
   { href: '/clientes', labelKey: 'nav.clientes', icon: Users, adminOnly: true },

@@ -24,6 +24,7 @@ import Bandas from "./pages/Bandas";
 import Stock from "./pages/Stock";
 import NovoMovimento from "./pages/NovoMovimento";
 import Historico from "./pages/Historico";
+import MovimentosValidar from "./pages/MovimentosValidar";
 import Superadmin from "./pages/Superadmin";
 import Auditoria from "./pages/Auditoria";
 import Produtos from "./pages/Produtos";
@@ -86,6 +87,7 @@ const App = () => (
                 <Route path="/producao" element={<ProtectedRoute><AppLayout><Producao /></AppLayout></ProtectedRoute>} />
                 <Route path="/stock" element={<ProtectedRoute><AppLayout><Stock /></AppLayout></ProtectedRoute>} />
                 <Route path="/movimento/novo" element={<ProtectedRoute><AppLayout><NovoMovimento /></AppLayout></ProtectedRoute>} />
+                <Route path="/movimentos/validar" element={<ProtectedRoute adminOnly><AppLayout><MovimentosValidar /></AppLayout></ProtectedRoute>} />
                 <Route path="/historico" element={<ProtectedRoute><AppLayout><Historico /></AppLayout></ProtectedRoute>} />
                 <Route path="/superadmin" element={<ProtectedRoute superadminOnly><AppLayout><Superadmin /></AppLayout></ProtectedRoute>} />
                 <Route path="/auditoria" element={<ProtectedRoute superadminOnly><AppLayout><Auditoria /></AppLayout></ProtectedRoute>} />

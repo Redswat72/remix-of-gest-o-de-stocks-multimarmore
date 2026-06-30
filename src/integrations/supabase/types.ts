@@ -440,6 +440,79 @@ export type Database = {
         }
         Relationships: []
       }
+      movimento_adendas: {
+        Row: {
+          created_at: string
+          descricao: string
+          estado_validacao: string
+          id: string
+          movimento_id: string
+          updated_at: string
+          validado_por: string | null
+        }
+        Insert: {
+          created_at?: string
+          descricao: string
+          estado_validacao?: string
+          id?: string
+          movimento_id: string
+          updated_at?: string
+          validado_por?: string | null
+        }
+        Update: {
+          created_at?: string
+          descricao?: string
+          estado_validacao?: string
+          id?: string
+          movimento_id?: string
+          updated_at?: string
+          validado_por?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "movimento_adendas_movimento_id_fkey"
+            columns: ["movimento_id"]
+            isOneToOne: false
+            referencedRelation: "movimentos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      movimento_anexos: {
+        Row: {
+          adenda_id: string
+          created_at: string
+          ficheiro_nome: string
+          ficheiro_url: string
+          id: string
+          tipo_ficheiro: string | null
+        }
+        Insert: {
+          adenda_id: string
+          created_at?: string
+          ficheiro_nome: string
+          ficheiro_url: string
+          id?: string
+          tipo_ficheiro?: string | null
+        }
+        Update: {
+          adenda_id?: string
+          created_at?: string
+          ficheiro_nome?: string
+          ficheiro_url?: string
+          id?: string
+          tipo_ficheiro?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "movimento_anexos_adenda_id_fkey"
+            columns: ["adenda_id"]
+            isOneToOne: false
+            referencedRelation: "movimento_adendas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       movimentos: {
         Row: {
           cancelado: boolean

@@ -6,6 +6,30 @@ export type TipoMovimento = 'entrada' | 'transferencia' | 'saida' | 'producao';
 export type TipoDocumento = 'guia_transporte' | 'guia_transferencia' | 'factura' | 'sem_documento';
 export type OrigemMaterial = 'adquirido' | 'producao_propria';
 
+export type EstadoAdenda = 'pendente' | 'consumido_parcial' | 'consumido_total' | 'faturado';
+
+export interface MovimentoAnexo {
+  id: string;
+  adenda_id: string;
+  ficheiro_url: string;
+  ficheiro_nome: string;
+  tipo_ficheiro: string | null;
+  created_at: string;
+}
+
+export interface MovimentoAdenda {
+  id: string;
+  movimento_id: string;
+  validado_por: string | null;
+  descricao: string;
+  estado_validacao: EstadoAdenda;
+  created_at: string;
+  updated_at: string;
+  anexos?: MovimentoAnexo[];
+  validado_por_user?: { id: string; nome: string; email: string } | null;
+}
+
+
 export interface Local {
   id: string;
   codigo: string;
@@ -153,6 +177,7 @@ export interface Movimento {
   local_destino?: Local;
   cliente?: Cliente;
   operador?: Profile;
+  adendas?: MovimentoAdenda[];
 }
 
 // Tipos para formulários

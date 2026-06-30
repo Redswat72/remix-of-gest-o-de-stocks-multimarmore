@@ -30,6 +30,7 @@ export interface MovimentoComDetalhes {
   local_origem?: { id: string; nome: string; codigo: string } | null;
   local_destino?: { id: string; nome: string; codigo: string } | null;
   operador?: { id: string; nome: string; email: string } | null;
+  adendas?: import('@/types/database').MovimentoAdenda[];
 }
 
 interface UseMovimentosOptions {
@@ -85,16 +86,34 @@ export function useMovimentos(options: UseMovimentosOptions = {}) {
 
       const { data, error, count } = await query;
 
-      console.log('[useMovimentos] Query result:', { 
-        dataLength: data?.length, 
-        count, 
-        error, 
-        filters: { dataInicio, dataFim, tipo, localId, produtoId, idMm, operadorId, cancelados },
-        firstRow: data?.[0] ?? null 
-      });
-
       if (error) throw error;
-      return { data: data as unknown as MovimentoComDetalhes[], count: count ?? 0 };
+
+      // Buscar adendas dos movimentos retornados
+      const movIds = (data || []).map(m => m.id);
+      let adendasMap = new Map<string, any[]>();
+
+      if (movIds.length > 0) {
+        const { data: adendasData } = await supabase
+          .from('movimento_adendas')
+          .select('*, anexos:movimento_anexos(*)')
+          .in('movimento_id', movIds)
+          .order('created_at', { ascending: true });
+
+        if (adendasData) {
+          adendasData.forEach(adenda => {
+            const list = adendasMap.get(adenda.movimento_id) || [];
+            list.push(adenda);
+            adendasMap.set(adenda.movimento_id, list);
+          });
+        }
+      }
+
+      const enrichedData = (data || []).map(mov => ({
+        ...mov,
+        adendas: adendasMap.get(mov.id) || []
+      }));
+
+      return { data: enrichedData as unknown as MovimentoComDetalhes[], count: count ?? 0 };
     },
   });
 }
@@ -207,3 +226,62 @@ export function useCancelMovimento() {
     },
   });
 }
+
+export function useCreateAdenda() {
+  const supabase = useSupabaseEmpresa();
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async ({
+      movimentoId,
+      descricao,
+      estadoValidacao,
+      anexos
+    }: {
+      movimentoId: string;
+      descricao: string;
+      estadoValidacao: import('@/types/database').EstadoAdenda;
+      anexos: { url: string; nome: string; tipo?: string }[];
+    }) => {
+      if (!user) throw new Error('Utilizador não autenticado');
+
+      // 1. Criar adenda
+      const { data: adenda, error: errAdenda } = await supabase
+        .from('movimento_adendas')
+        .insert({
+          movimento_id: movimentoId,
+          validado_por: user.id,
+          descricao,
+          estado_validacao: estadoValidacao,
+        })
+        .select()
+        .single();
+
+      if (errAdenda || !adenda) throw errAdenda || new Error('Erro ao criar adenda');
+
+      // 2. Inserir anexos se existirem
+      if (anexos && anexos.length > 0) {
+        const anexosPayload = anexos.map(a => ({
+          adenda_id: adenda.id,
+          ficheiro_url: a.url,
+          ficheiro_nome: a.nome,
+          tipo_ficheiro: a.tipo || null,
+        }));
+
+        const { error: errAnexos } = await supabase
+          .from('movimento_anexos')
+          .insert(anexosPayload);
+
+        if (errAnexos) throw errAnexos;
+      }
+
+      return adenda;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['movimentos'] });
+      queryClient.invalidateQueries({ queryKey: ['auditoria'] });
+    },
+  });
+}
+

@@ -11,8 +11,11 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronUp,
-  AlertTriangle
+  AlertTriangle,
+  FileText,
+  ShieldCheck
 } from 'lucide-react';
+import { MovimentoAddendaModal } from '@/components/movimentos/MovimentoAddendaModal';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -54,6 +57,7 @@ export default function Historico() {
   // UI State
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
+  const [addendaModalOpen, setAddendaModalOpen] = useState(false);
   const [selectedMovimento, setSelectedMovimento] = useState<MovimentoComDetalhes | null>(null);
   const [motivoCancelamento, setMotivoCancelamento] = useState('');
 
@@ -442,6 +446,53 @@ export default function Historico() {
                                     <p className="font-medium">{mov.motivo_cancelamento}</p>
                                   </div>
                                 )}
+
+                                {/* Secção de Adendas Registadas neste movimento */}
+                                {mov.adendas && mov.adendas.length > 0 && (
+                                  <div className="sm:col-span-2 lg:col-span-3 pt-2 border-t border-border/60">
+                                    <span className="font-semibold text-primary flex items-center gap-1.5 mb-2">
+                                      <ShieldCheck className="w-4 h-4" />
+                                      {t('movements.history.addendaHistoryTitle')} ({mov.adendas.length}):
+                                    </span>
+                                    <div className="grid gap-2 sm:grid-cols-2">
+                                      {mov.adendas.map((ax: any, axIdx: number) => (
+                                        <div key={ax.id || axIdx} className="bg-background border border-border p-3 rounded-lg text-xs space-y-1.5 shadow-2xs">
+                                          <div className="flex items-center justify-between">
+                                            <span className="font-semibold text-primary uppercase">{ax.estado_validacao}</span>
+                                            <span className="text-[11px] text-muted-foreground">{formatDateTime(ax.created_at)}</span>
+                                          </div>
+                                          <p className="text-foreground whitespace-pre-wrap">{ax.descricao}</p>
+                                          {ax.anexos && ax.anexos.length > 0 && (
+                                            <div className="pt-1 flex flex-wrap gap-1">
+                                              {ax.anexos.map((fnx: any, fnIdx: number) => (
+                                                <Badge key={fnIdx} variant="secondary" className="text-[10px] gap-1 font-normal">
+                                                  <FileText className="w-2.5 h-2.5" />
+                                                  {fnx.ficheiro_nome}
+                                                </Badge>
+                                              ))}
+                                            </div>
+                                          )}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {/* Botão para Adenda / Validação */}
+                                <div className="sm:col-span-2 lg:col-span-3 pt-2 flex justify-end">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="gap-2 border-primary/40 text-primary hover:bg-primary/10"
+                                    onClick={() => {
+                                      setSelectedMovimento(mov);
+                                      setAddendaModalOpen(true);
+                                    }}
+                                  >
+                                    <ShieldCheck className="w-4 h-4" />
+                                    {t('movements.history.addendaBtn')}
+                                  </Button>
+                                </div>
                               </div>
                             </TableCell>
                           </TableRow>
@@ -538,6 +589,12 @@ export default function Historico() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <MovimentoAddendaModal
+        open={addendaModalOpen}
+        onOpenChange={setAddendaModalOpen}
+        movimento={selectedMovimento}
+      />
     </div>
   );
 }
