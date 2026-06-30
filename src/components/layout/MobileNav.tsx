@@ -41,16 +41,18 @@ export function MobileNav() {
   const location = useLocation();
   const navigate = useNavigate();
   const [inventarioOpen, setInventarioOpen] = useState(false);
-  const { podeVerProducao, hasRole, isSuperadmin } = useAuth();
+  const { podeVerProducao, hasRole, isAdmin, isSuperadmin } = useAuth();
   const t = useAppT();
 
   const inventarioItems = inventarioItemsBase.filter(
     (i) => !('producaoOnly' in i && i.producaoOnly) || podeVerProducao
   );
 
-  const navItems = navItemsBase.filter(
-    (i) => !('operadorOnly' in i && i.operadorOnly) || hasRole('operador') || isSuperadmin
-  );
+  const navItems = navItemsBase.filter((i) => {
+    if ('operadorOnly' in i && i.operadorOnly && !hasRole('operador') && !isSuperadmin) return false;
+    if ('adminOnly' in i && i.adminOnly && !isAdmin) return false;
+    return true;
+  });
 
   const inventarioActive = inventarioItems.some(i => location.pathname === i.href);
 
