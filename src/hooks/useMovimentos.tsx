@@ -30,6 +30,7 @@ export interface MovimentoComDetalhes {
   local_origem?: { id: string; nome: string; codigo: string } | null;
   local_destino?: { id: string; nome: string; codigo: string } | null;
   operador?: { id: string; nome: string; email: string } | null;
+  adendas?: import('@/types/database').MovimentoAdenda[];
 }
 
 interface UseMovimentosOptions {
