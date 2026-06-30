@@ -8,7 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { ShieldCheck, Search, FileText, Calendar, CheckCircle, Clock } from 'lucide-react';
 import { useAppT } from '@/hooks/useAppT';
-import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
+import { useEmpresa } from '@/context/EmpresaContext';
 import { useEnumLabel } from '@/lib/enumLabels';
 import { formatDateTime } from '@/lib/format';
 import { MovimentoAddendaModal } from '@/components/movimentos/MovimentoAddendaModal';
@@ -16,7 +16,7 @@ import type { MovimentoComDetalhes } from '@/hooks/useMovimentos';
 
 export default function MovimentosValidar() {
   const t = useAppT();
-  const supabase = useSupabaseEmpresa();
+  const { supabaseEmpresa: supabase } = useEmpresa();
   const enumLabel = useEnumLabel();
 
   const [busca, setBusca] = useState('');
@@ -25,8 +25,9 @@ export default function MovimentosValidar() {
 
   // Buscar movimentos recentes (últimos 100) e as respetivas adendas
   const { data: movimentos, isLoading } = useQuery({
-    queryKey: ['movimentos-validar', supabase.supabaseUrl],
+    queryKey: ['movimentos-validar', supabase],
     queryFn: async () => {
+      if (!supabase) return [];
       const { data, error } = await supabase
         .from('movimentos')
         .select(`
@@ -65,6 +66,7 @@ export default function MovimentosValidar() {
         adendas: adendasMap.get(mov.id) || []
       })) as unknown as MovimentoComDetalhes[];
     },
+    enabled: !!supabase,
   });
 
   const getClienteNome = (mov: any) => {
