@@ -177,6 +177,7 @@ export interface Movimento {
   local_destino?: Local;
   cliente?: Cliente;
   operador?: Profile;
+  adendas?: MovimentoAdenda[];
 }
 
 // Tipos para formulários
