@@ -25,12 +25,14 @@ const inventarioItemsBase = [
   { href: '/bandas', labelKey: 'nav.bandas', icon: Layers },
   { href: '/producao', labelKey: 'nav.producao', icon: Scissors, producaoOnly: true },
   { href: '/stock', labelKey: 'nav.consultarStock', icon: Boxes },
+  { href: '/produtos', labelKey: 'nav.produtos', icon: Boxes },
 ];
 
 const navItemsBase = [
   { href: '/', labelKey: 'nav.inicio', icon: Home },
   { type: 'inventario' as const, labelKey: 'nav.inventario', icon: Package },
   { href: '/movimento/novo', labelKey: 'nav.novo', icon: PlusCircle, primary: true, operadorOnly: true },
+  { href: '/movimentos/validar', labelKey: 'nav.movimentosValidar', icon: ShieldCheck, adminOnly: true },
   { href: '/historico', labelKey: 'nav.historico', icon: History },
   { href: '/perfil', labelKey: 'nav.perfil', icon: User },
 ];
