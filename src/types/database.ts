@@ -6,7 +6,7 @@ export type TipoMovimento = 'entrada' | 'transferencia' | 'saida' | 'producao';
 export type TipoDocumento = 'guia_transporte' | 'guia_transferencia' | 'factura' | 'sem_documento';
 export type OrigemMaterial = 'adquirido' | 'producao_propria';
 
-export type EstadoAdenda = 'pendente' | 'consumido_parcial' | 'consumido_total' | 'faturado';
+export type EstadoAdenda = 'pendente' | 'consumido_parcial' | 'consumido_total' | 'faturado' | 'stock_mtx' | 'stock_mm';
 
 export interface MovimentoAnexo {
   id: string;

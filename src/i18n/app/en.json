@@ -489,6 +489,8 @@
       "addendaStatusConsumidoParcial": "Partially Consumed",
       "addendaStatusConsumidoTotal": "Fully Consumed",
       "addendaStatusFaturado": "Invoiced / Billed",
+      "addendaStatusStockMtx": "Stock MTX",
+      "addendaStatusStockMm": "Stock MM",
       "addendaDescLabel": "Description of actions taken *",
       "addendaDescPlaceholder": "Explain in detail (e.g., Block consumed at MTX, issued invoices #X and Y)...",
       "addendaFilesLabel": "Attach Documents / Invoices (optional)",
