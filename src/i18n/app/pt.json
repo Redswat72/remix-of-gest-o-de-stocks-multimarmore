@@ -489,6 +489,8 @@
       "addendaStatusConsumidoParcial": "Consumido Parcialmente",
       "addendaStatusConsumidoTotal": "Consumido na Totalidade",
       "addendaStatusFaturado": "Faturado",
+      "addendaStatusStockMtx": "Stock MTX",
+      "addendaStatusStockMm": "Stock MM",
       "addendaDescLabel": "Descrição do que foi feito *",
       "addendaDescPlaceholder": "Explique detalhadamente o contexto (ex: Bloco consumido na MTX, emitidas faturas nº X e Y)...",
       "addendaFilesLabel": "Anexar Documentos / Faturas (opcional)",
