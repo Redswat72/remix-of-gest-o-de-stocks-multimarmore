@@ -589,6 +589,12 @@ export default function Historico() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <MovimentoAddendaModal
+        open={addendaModalOpen}
+        onOpenChange={setAddendaModalOpen}
+        movimento={selectedMovimento}
+      />
     </div>
   );
 }
