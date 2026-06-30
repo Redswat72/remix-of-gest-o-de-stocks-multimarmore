@@ -11,8 +11,11 @@ import {
   CheckCircle2,
   ChevronDown,
   ChevronUp,
-  AlertTriangle
+  AlertTriangle,
+  FileText,
+  ShieldCheck
 } from 'lucide-react';
+import { MovimentoAddendaModal } from '@/components/movimentos/MovimentoAddendaModal';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
