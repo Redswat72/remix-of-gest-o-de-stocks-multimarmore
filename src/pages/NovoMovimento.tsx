@@ -309,7 +309,7 @@ export default function NovoMovimento() {
             origem_material: origemMaterial,
             id_mm: novoProdutoIdMM,
             tipo_produto: novoProdutoForma,
-            quantidade,
+            quantidade: Number(quantidade),
             local_destino_id: novoProdutoParqueDestinoId,
             matricula_viatura: matriculaViatura || undefined,
             observacoes: observacoes || undefined,
