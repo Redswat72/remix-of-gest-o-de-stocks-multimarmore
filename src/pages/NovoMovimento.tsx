@@ -58,7 +58,7 @@ export default function NovoMovimento() {
   const [fornecedor, setFornecedor] = useState('');
   const [pedreiraOrigem, setPedreiraOrigem] = useState('');
   const [produtoId, setProdutoId] = useState('');
-  const [quantidade, setQuantidade] = useState<number>(1);
+  const [quantidade, setQuantidade] = useState<number | ''>('');
   const [localOrigemId, setLocalOrigemId] = useState('');
   const [localDestinoId, setLocalDestinoId] = useState('');
   const [clienteNome, setClienteNome] = useState('');
@@ -142,9 +142,9 @@ export default function NovoMovimento() {
         return true;
       case 3:
         if (tipo === 'entrada') {
-          return !!novoProdutoIdMM.trim() && !!novoProdutoParqueDestinoId && quantidade > 0;
+          return !!novoProdutoIdMM.trim() && !!novoProdutoParqueDestinoId && typeof quantidade === 'number' && quantidade > 0;
         }
-        return !!produtoId && quantidade > 0;
+        return !!produtoId && typeof quantidade === 'number' && quantidade > 0;
       case 4:
         if (tipo === 'entrada') return true;
         if (tipo === 'transferencia') {
@@ -309,7 +309,7 @@ export default function NovoMovimento() {
             origem_material: origemMaterial,
             id_mm: novoProdutoIdMM,
             tipo_produto: novoProdutoForma,
-            quantidade,
+            quantidade: Number(quantidade),
             local_destino_id: novoProdutoParqueDestinoId,
             matricula_viatura: matriculaViatura || undefined,
             observacoes: observacoes || undefined,
@@ -369,7 +369,7 @@ export default function NovoMovimento() {
         numero_documento: numeroDocumento || undefined,
         id_mm: itemIdMm,
         tipo_produto: itemTipo,
-        quantidade,
+        quantidade: Number(quantidade),
         local_origem_id: localOrigemId || undefined,
         local_destino_id: tipo !== 'saida' ? localDestinoId : undefined,
         cliente_nome: tipo === 'saida' ? clienteNome.trim() : undefined,
@@ -857,10 +857,21 @@ export default function NovoMovimento() {
                 <Input
                   type="number"
                   min={1}
+                  step={1}
                   value={quantidade}
-                  onChange={(e) => setQuantidade(parseInt(e.target.value) || 1)}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (v === '') { setQuantidade(''); return; }
+                    const n = parseInt(v);
+                    setQuantidade(Number.isFinite(n) && n > 0 ? n : '');
+                  }}
+                  placeholder="Indique a quantidade"
+                  required
                   className="text-lg font-semibold"
                 />
+                {quantidade === '' && (
+                  <p className="text-sm text-destructive">Indique a quantidade</p>
+                )}
               </div>
             </div>
           )}
@@ -938,10 +949,21 @@ export default function NovoMovimento() {
                 <Input
                   type="number"
                   min={1}
+                  step={1}
                   value={quantidade}
-                  onChange={(e) => setQuantidade(parseInt(e.target.value) || 1)}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (v === '') { setQuantidade(''); return; }
+                    const n = parseInt(v);
+                    setQuantidade(Number.isFinite(n) && n > 0 ? n : '');
+                  }}
+                  placeholder="Indique a quantidade"
+                  required
                   className="text-lg font-semibold"
                 />
+                {quantidade === '' && (
+                  <p className="text-sm text-destructive">Indique a quantidade</p>
+                )}
               </div>
             </div>
           )}
