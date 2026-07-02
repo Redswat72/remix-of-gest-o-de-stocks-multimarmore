@@ -949,10 +949,21 @@ export default function NovoMovimento() {
                 <Input
                   type="number"
                   min={1}
+                  step={1}
                   value={quantidade}
-                  onChange={(e) => setQuantidade(parseInt(e.target.value) || 1)}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (v === '') { setQuantidade(''); return; }
+                    const n = parseInt(v);
+                    setQuantidade(Number.isFinite(n) && n > 0 ? n : '');
+                  }}
+                  placeholder="Indique a quantidade"
+                  required
                   className="text-lg font-semibold"
                 />
+                {quantidade === '' && (
+                  <p className="text-sm text-destructive">Indique a quantidade</p>
+                )}
               </div>
             </div>
           )}
