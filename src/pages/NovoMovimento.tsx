@@ -142,9 +142,9 @@ export default function NovoMovimento() {
         return true;
       case 3:
         if (tipo === 'entrada') {
-          return !!novoProdutoIdMM.trim() && !!novoProdutoParqueDestinoId && quantidade > 0;
+          return !!novoProdutoIdMM.trim() && !!novoProdutoParqueDestinoId && typeof quantidade === 'number' && quantidade > 0;
         }
-        return !!produtoId && quantidade > 0;
+        return !!produtoId && typeof quantidade === 'number' && quantidade > 0;
       case 4:
         if (tipo === 'entrada') return true;
         if (tipo === 'transferencia') {
