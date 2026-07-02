@@ -58,7 +58,7 @@ export default function NovoMovimento() {
   const [fornecedor, setFornecedor] = useState('');
   const [pedreiraOrigem, setPedreiraOrigem] = useState('');
   const [produtoId, setProdutoId] = useState('');
-  const [quantidade, setQuantidade] = useState<number>(1);
+  const [quantidade, setQuantidade] = useState<number | ''>('');
   const [localOrigemId, setLocalOrigemId] = useState('');
   const [localDestinoId, setLocalDestinoId] = useState('');
   const [clienteNome, setClienteNome] = useState('');
