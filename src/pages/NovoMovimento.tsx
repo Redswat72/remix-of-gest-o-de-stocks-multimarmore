@@ -369,7 +369,7 @@ export default function NovoMovimento() {
         numero_documento: numeroDocumento || undefined,
         id_mm: itemIdMm,
         tipo_produto: itemTipo,
-        quantidade,
+        quantidade: Number(quantidade),
         local_origem_id: localOrigemId || undefined,
         local_destino_id: tipo !== 'saida' ? localDestinoId : undefined,
         cliente_nome: tipo === 'saida' ? clienteNome.trim() : undefined,
