@@ -78,9 +78,10 @@ export function MovimentoAddendaModal({ open, onOpenChange, movimento }: Addenda
 
       await createAdenda.mutateAsync({
         movimentoId: movimento.id,
+        idMm: movimento.id_mm ?? null,
         descricao: descricao.trim(),
-        estadoValidacao: estado,
-        anexos: uploadedAnexos,
+        estadoOperacao: estado,
+        documentos: uploadedAnexos,
       });
 
       toast({
@@ -266,7 +267,7 @@ export function MovimentoAddendaModal({ open, onOpenChange, movimento }: Addenda
                     <div key={ad.id || index} className="border border-border rounded-xl p-4 bg-card/60 space-y-2 text-sm">
                       <div className="flex items-center justify-between border-b border-border/60 pb-2">
                         <div className="flex items-center gap-2">
-                          {getStatusBadge(ad.estado_validacao)}
+                          {getStatusBadge((ad.estado_operacao ?? ad.estado_validacao) as EstadoAdenda)}
                           <span className="text-xs text-muted-foreground">
                             registado em {formatDateTime(ad.created_at)}
                           </span>
@@ -275,21 +276,21 @@ export function MovimentoAddendaModal({ open, onOpenChange, movimento }: Addenda
 
                       <p className="text-foreground whitespace-pre-wrap py-1 leading-relaxed">{ad.descricao}</p>
 
-                      {ad.anexos && ad.anexos.length > 0 && (
+                      {ad.documentos && ad.documentos.length > 0 && (
                         <div className="pt-2 border-t border-border/40 flex flex-wrap items-center gap-2">
                           <span className="text-xs text-muted-foreground flex items-center gap-1">
-                            <Paperclip className="w-3 h-3" /> Anexos ({ad.anexos.length}):
+                            <Paperclip className="w-3 h-3" /> Anexos ({ad.documentos.length}):
                           </span>
-                          {ad.anexos.map((ax, aIdx) => (
+                          {ad.documentos.map((ax, aIdx) => (
                             <Button
                               key={ax.id || aIdx}
                               variant="secondary"
                               size="sm"
                               className="h-7 text-xs gap-1.5 font-normal"
-                              onClick={() => handleOpenFile(ax.ficheiro_url)}
+                              onClick={() => handleOpenFile(ax.url)}
                             >
                               <FileText className="w-3 h-3 text-primary" />
-                              <span className="max-w-[150px] truncate">{ax.ficheiro_nome}</span>
+                              <span className="max-w-[150px] truncate">{ax.nome}</span>
                               <ExternalLink className="w-2.5 h-2.5 opacity-60" />
                             </Button>
                           ))}

@@ -443,27 +443,39 @@ export type Database = {
       movimento_adendas: {
         Row: {
           created_at: string
+          criado_por: string | null
           descricao: string
+          documentos: Json
+          estado_operacao: string | null
           estado_validacao: string
           id: string
+          id_mm: string | null
           movimento_id: string
           updated_at: string
           validado_por: string | null
         }
         Insert: {
           created_at?: string
+          criado_por?: string | null
           descricao: string
+          documentos?: Json
+          estado_operacao?: string | null
           estado_validacao?: string
           id?: string
+          id_mm?: string | null
           movimento_id: string
           updated_at?: string
           validado_por?: string | null
         }
         Update: {
           created_at?: string
+          criado_por?: string | null
           descricao?: string
+          documentos?: Json
+          estado_operacao?: string | null
           estado_validacao?: string
           id?: string
+          id_mm?: string | null
           movimento_id?: string
           updated_at?: string
           validado_por?: string | null

@@ -95,14 +95,20 @@ export function useMovimentos(options: UseMovimentosOptions = {}) {
       if (movIds.length > 0) {
         const { data: adendasData } = await supabase
           .from('movimento_adendas')
-          .select('*, anexos:movimento_anexos(*)')
+          .select('*')
           .in('movimento_id', movIds)
           .order('created_at', { ascending: true });
 
         if (adendasData) {
-          adendasData.forEach(adenda => {
+          adendasData.forEach((adenda: any) => {
+            const normalized = {
+              ...adenda,
+              estado_operacao: adenda.estado_operacao ?? adenda.estado_validacao,
+              criado_por: adenda.criado_por ?? adenda.validado_por,
+              documentos: Array.isArray(adenda.documentos) ? adenda.documentos : [],
+            };
             const list = adendasMap.get(adenda.movimento_id) || [];
-            list.push(adenda);
+            list.push(normalized);
             adendasMap.set(adenda.movimento_id, list);
           });
         }
@@ -235,46 +241,36 @@ export function useCreateAdenda() {
   return useMutation({
     mutationFn: async ({
       movimentoId,
+      idMm,
       descricao,
-      estadoValidacao,
-      anexos
+      estadoOperacao,
+      documentos,
     }: {
       movimentoId: string;
+      idMm: string | null;
       descricao: string;
-      estadoValidacao: import('@/types/database').EstadoAdenda;
-      anexos: { url: string; nome: string; tipo?: string }[];
+      estadoOperacao: import('@/types/database').EstadoAdenda;
+      documentos: { url: string; nome: string; tipo?: string }[];
     }) => {
       if (!user) throw new Error('Utilizador não autenticado');
 
-      // 1. Criar adenda
       const { data: adenda, error: errAdenda } = await supabase
         .from('movimento_adendas')
         .insert({
           movimento_id: movimentoId,
-          validado_por: user.id,
+          id_mm: idMm,
+          criado_por: user.id,
           descricao,
-          estado_validacao: estadoValidacao,
-        })
+          estado_operacao: estadoOperacao,
+          // manter colunas legadas preenchidas para compatibilidade
+          validado_por: user.id,
+          estado_validacao: estadoOperacao,
+          documentos: documentos ?? [],
+        } as any)
         .select()
         .single();
 
       if (errAdenda || !adenda) throw errAdenda || new Error('Erro ao criar adenda');
-
-      // 2. Inserir anexos se existirem
-      if (anexos && anexos.length > 0) {
-        const anexosPayload = anexos.map(a => ({
-          adenda_id: adenda.id,
-          ficheiro_url: a.url,
-          ficheiro_nome: a.nome,
-          tipo_ficheiro: a.tipo || null,
-        }));
-
-        const { error: errAnexos } = await supabase
-          .from('movimento_anexos')
-          .insert(anexosPayload);
-
-        if (errAnexos) throw errAnexos;
-      }
 
       return adenda;
     },
