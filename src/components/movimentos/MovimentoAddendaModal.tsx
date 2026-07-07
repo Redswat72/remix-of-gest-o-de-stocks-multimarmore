@@ -78,9 +78,10 @@ export function MovimentoAddendaModal({ open, onOpenChange, movimento }: Addenda
 
       await createAdenda.mutateAsync({
         movimentoId: movimento.id,
+        idMm: movimento.id_mm ?? null,
         descricao: descricao.trim(),
-        estadoValidacao: estado,
-        anexos: uploadedAnexos,
+        estadoOperacao: estado,
+        documentos: uploadedAnexos,
       });
 
       toast({
