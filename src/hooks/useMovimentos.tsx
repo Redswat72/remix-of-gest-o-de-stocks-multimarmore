@@ -262,9 +262,6 @@ export function useCreateAdenda() {
           criado_por: user.id,
           descricao,
           estado_operacao: estadoOperacao,
-          // manter colunas legadas preenchidas para compatibilidade
-          validado_por: user.id,
-          estado_validacao: estadoOperacao,
           documentos: documentos ?? [],
         } as any)
         .select()
