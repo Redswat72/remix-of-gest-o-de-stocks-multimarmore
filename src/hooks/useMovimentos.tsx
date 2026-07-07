@@ -23,6 +23,9 @@ export interface MovimentoComDetalhes {
   cancelado_por: string | null;
   cancelado_em: string | null;
   motivo_cancelamento: string | null;
+  validado?: boolean | null;
+  validado_por?: string | null;
+  validado_em?: string | null;
   observacoes: string | null;
   data_movimento: string;
   created_at: string;
