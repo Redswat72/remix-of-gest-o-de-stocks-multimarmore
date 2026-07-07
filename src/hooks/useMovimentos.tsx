@@ -95,14 +95,20 @@ export function useMovimentos(options: UseMovimentosOptions = {}) {
       if (movIds.length > 0) {
         const { data: adendasData } = await supabase
           .from('movimento_adendas')
-          .select('*, anexos:movimento_anexos(*)')
+          .select('*')
           .in('movimento_id', movIds)
           .order('created_at', { ascending: true });
 
         if (adendasData) {
-          adendasData.forEach(adenda => {
+          adendasData.forEach((adenda: any) => {
+            const normalized = {
+              ...adenda,
+              estado_operacao: adenda.estado_operacao ?? adenda.estado_validacao,
+              criado_por: adenda.criado_por ?? adenda.validado_por,
+              documentos: Array.isArray(adenda.documentos) ? adenda.documentos : [],
+            };
             const list = adendasMap.get(adenda.movimento_id) || [];
-            list.push(adenda);
+            list.push(normalized);
             adendasMap.set(adenda.movimento_id, list);
           });
         }
