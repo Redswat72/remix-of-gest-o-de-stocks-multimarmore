@@ -37,17 +37,18 @@ export default function MovimentosValidar() {
     queryKey: ['movimentos-validar', empresa],
     queryFn: async () => {
       if (!supabase) return [];
-      const { data, error } = await supabase
+      const { data, error, count } = await supabase
         .from('movimentos')
         .select(`
           *,
           local_origem:locais!movimentos_local_origem_id_fkey(nome, codigo),
           local_destino:locais!movimentos_local_destino_id_fkey(nome, codigo)
-        `)
-        .order('data_movimento', { ascending: false })
-        .limit(100);
+        `, { count: 'exact' })
+        .order('created_at', { ascending: false })
+        .limit(500);
 
       if (error) throw error;
+      console.log('[MovimentosValidar] devolvidos:', data?.length, 'total BD:', count);
 
       const movIds = (data || []).map((m: any) => m.id);
       const adendasMap = new Map<string, any[]>();
