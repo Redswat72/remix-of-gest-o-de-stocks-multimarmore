@@ -9,24 +9,25 @@ export type OrigemMaterial = 'adquirido' | 'producao_propria';
 export type EstadoAdenda = 'pendente' | 'consumido_parcial' | 'consumido_total' | 'faturado' | 'stock_mtx' | 'stock_mm';
 
 export interface MovimentoAnexo {
-  id: string;
-  adenda_id: string;
-  ficheiro_url: string;
-  ficheiro_nome: string;
-  tipo_ficheiro: string | null;
-  created_at: string;
+  id?: string;
+  url: string;
+  nome: string;
+  tipo?: string | null;
 }
 
 export interface MovimentoAdenda {
   id: string;
   movimento_id: string;
-  validado_por: string | null;
+  id_mm: string | null;
+  criado_por: string | null;
   descricao: string;
-  estado_validacao: EstadoAdenda;
+  estado_operacao: EstadoAdenda;
+  estado_validacao?: EstadoAdenda;
+  validado_por?: string | null;
+  documentos: MovimentoAnexo[];
   created_at: string;
   updated_at: string;
-  anexos?: MovimentoAnexo[];
-  validado_por_user?: { id: string; nome: string; email: string } | null;
+  criado_por_user?: { id: string; nome: string; email: string } | null;
 }
 
 
