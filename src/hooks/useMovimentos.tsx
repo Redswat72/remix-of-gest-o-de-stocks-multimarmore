@@ -90,6 +90,7 @@ export function useMovimentos(options: UseMovimentosOptions = {}) {
       const { data, error, count } = await query;
 
       if (error) throw error;
+      console.log('[useMovimentos] page:', page, 'devolvidos:', data?.length, 'total BD:', count, 'filtros:', { dataInicio, dataFim, tipo, localId, produtoId, idMm, operadorId, cancelados });
 
       // Buscar adendas dos movimentos retornados
       const movIds = (data || []).map(m => m.id);
