@@ -23,6 +23,9 @@ export interface MovimentoComDetalhes {
   cancelado_por: string | null;
   cancelado_em: string | null;
   motivo_cancelamento: string | null;
+  validado?: boolean | null;
+  validado_por?: string | null;
+  validado_em?: string | null;
   observacoes: string | null;
   data_movimento: string;
   created_at: string;
@@ -229,6 +232,35 @@ export function useCancelMovimento() {
       queryClient.invalidateQueries({ queryKey: ['blocos-unificado'] });
       queryClient.invalidateQueries({ queryKey: ['chapas-unificado'] });
       queryClient.invalidateQueries({ queryKey: ['ladrilho-unificado'] });
+    },
+  });
+}
+
+export function useValidarMovimento() {
+  const supabase = useSupabaseEmpresa();
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async ({ movimentoId }: { movimentoId: string }) => {
+      if (!user) throw new Error('Utilizador não autenticado');
+      const { data, error } = await supabase
+        .from('movimentos')
+        .update({
+          validado: true,
+          validado_por: user.id,
+          validado_em: new Date().toISOString(),
+        } as any)
+        .eq('id', movimentoId)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['movimentos'] });
+      queryClient.invalidateQueries({ queryKey: ['movimentos-validar'] });
+      queryClient.invalidateQueries({ queryKey: ['auditoria'] });
     },
   });
 }
