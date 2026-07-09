@@ -64,7 +64,7 @@ export function MovimentoAddendaModal({ open, onOpenChange, movimento }: Addenda
         const fileName = `${movimento.id}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
 
         const { error: uploadErr } = await supabase.storage
-          .from('movimentos_anexos')
+          .from('documentos-adendas')
           .upload(fileName, file);
 
         if (uploadErr) throw uploadErr;
@@ -126,7 +126,7 @@ export function MovimentoAddendaModal({ open, onOpenChange, movimento }: Addenda
   const handleOpenFile = async (path: string) => {
     try {
       const { data, error } = await supabase.storage
-        .from('movimentos_anexos')
+        .from('documentos-adendas')
         .createSignedUrl(path, 3600); // 1 hora de acesso
 
       if (error || !data?.signedUrl) throw error || new Error('URL indisponível');
