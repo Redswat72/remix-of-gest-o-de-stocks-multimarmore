@@ -296,7 +296,7 @@ export function MovimentoAddendaModal({ open, onOpenChange, movimento }: Addenda
                               variant="secondary"
                               size="sm"
                               className="h-7 text-xs gap-1.5 font-normal"
-                              onClick={() => handleOpenFile(ax.url)}
+                              onClick={() => handleOpenFile(ax)}
                             >
                               <FileText className="w-3 h-3 text-primary" />
                               <span className="max-w-[150px] truncate">{ax.nome}</span>
