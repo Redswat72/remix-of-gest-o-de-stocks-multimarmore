@@ -62,8 +62,13 @@ export default function MovimentosValidar() {
 
         if (adendasData) {
           adendasData.forEach((adenda: any) => {
+            let docs = adenda.documentos;
+            if (typeof docs === 'string') {
+              try { docs = JSON.parse(docs); } catch { docs = []; }
+            }
+            if (!Array.isArray(docs)) docs = [];
             const list = adendasMap.get(adenda.movimento_id) || [];
-            list.push(adenda);
+            list.push({ ...adenda, documentos: docs });
             adendasMap.set(adenda.movimento_id, list);
           });
         }

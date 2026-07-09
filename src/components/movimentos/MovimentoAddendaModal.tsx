@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { FileText, Paperclip, Upload, Loader2, CheckCircle, ExternalLink, ShieldCheck } from 'lucide-react';
+import { FileText, Paperclip, Upload, Loader2, CheckCircle, ExternalLink, ShieldCheck, ImageIcon } from 'lucide-react';
 import { useAppT } from '@/hooks/useAppT';
 import { useToast } from '@/hooks/use-toast';
 import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
@@ -298,7 +298,11 @@ export function MovimentoAddendaModal({ open, onOpenChange, movimento }: Addenda
                               className="h-7 text-xs gap-1.5 font-normal"
                               onClick={() => handleOpenFile(ax)}
                             >
-                              <FileText className="w-3 h-3 text-primary" />
+                              {(ax.tipo?.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp)$/i.test(ax.nome || '')) ? (
+                                <ImageIcon className="w-3 h-3 text-primary" />
+                              ) : (
+                                <FileText className="w-3 h-3 text-primary" />
+                              )}
                               <span className="max-w-[150px] truncate">{ax.nome}</span>
                               <ExternalLink className="w-2.5 h-2.5 opacity-60" />
                             </Button>
