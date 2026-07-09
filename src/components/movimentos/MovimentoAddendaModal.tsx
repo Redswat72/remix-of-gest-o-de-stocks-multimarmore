@@ -65,15 +65,19 @@ export function MovimentoAddendaModal({ open, onOpenChange, movimento }: Addenda
 
         const { error: uploadErr } = await supabase.storage
           .from('documentos-adendas')
-          .upload(fileName, file);
+          .upload(fileName, file, { contentType: file.type || undefined, upsert: false });
 
         if (uploadErr) throw uploadErr;
 
+        const { data: pub } = supabase.storage.from('documentos-adendas').getPublicUrl(fileName);
+
         uploadedAnexos.push({
           url: fileName,
+          caminho: fileName,
+          public_url: pub?.publicUrl,
           nome: file.name,
           tipo: file.type || undefined,
-        });
+        } as any);
       }
 
       await createAdenda.mutateAsync({
