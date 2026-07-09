@@ -105,11 +105,16 @@ export function useMovimentos(options: UseMovimentosOptions = {}) {
 
         if (adendasData) {
           adendasData.forEach((adenda: any) => {
+            let docs = adenda.documentos;
+            if (typeof docs === 'string') {
+              try { docs = JSON.parse(docs); } catch { docs = []; }
+            }
+            if (!Array.isArray(docs)) docs = [];
             const normalized = {
               ...adenda,
               estado_operacao: adenda.estado_operacao ?? adenda.estado_validacao,
               criado_por: adenda.criado_por ?? adenda.validado_por,
-              documentos: Array.isArray(adenda.documentos) ? adenda.documentos : [],
+              documentos: docs,
             };
             const list = adendasMap.get(adenda.movimento_id) || [];
             list.push(normalized);
