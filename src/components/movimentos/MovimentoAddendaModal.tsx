@@ -64,16 +64,20 @@ export function MovimentoAddendaModal({ open, onOpenChange, movimento }: Addenda
         const fileName = `${movimento.id}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
 
         const { error: uploadErr } = await supabase.storage
-          .from('movimentos_anexos')
-          .upload(fileName, file);
+          .from('documentos-adendas')
+          .upload(fileName, file, { contentType: file.type || undefined, upsert: false });
 
         if (uploadErr) throw uploadErr;
 
+        const { data: pub } = supabase.storage.from('documentos-adendas').getPublicUrl(fileName);
+
         uploadedAnexos.push({
           url: fileName,
+          caminho: fileName,
+          public_url: pub?.publicUrl,
           nome: file.name,
           tipo: file.type || undefined,
-        });
+        } as any);
       }
 
       await createAdenda.mutateAsync({
@@ -123,11 +127,16 @@ export function MovimentoAddendaModal({ open, onOpenChange, movimento }: Addenda
     }
   };
 
-  const handleOpenFile = async (path: string) => {
+  const handleOpenFile = async (anexo: any) => {
     try {
+      if (anexo?.public_url) {
+        window.open(anexo.public_url, '_blank', 'noopener,noreferrer');
+        return;
+      }
+      const path = anexo?.caminho || anexo?.url || anexo;
       const { data, error } = await supabase.storage
-        .from('movimentos_anexos')
-        .createSignedUrl(path, 3600); // 1 hora de acesso
+        .from('documentos-adendas')
+        .createSignedUrl(path, 3600);
 
       if (error || !data?.signedUrl) throw error || new Error('URL indisponível');
       window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
@@ -287,7 +296,7 @@ export function MovimentoAddendaModal({ open, onOpenChange, movimento }: Addenda
                               variant="secondary"
                               size="sm"
                               className="h-7 text-xs gap-1.5 font-normal"
-                              onClick={() => handleOpenFile(ax.url)}
+                              onClick={() => handleOpenFile(ax)}
                             >
                               <FileText className="w-3 h-3 text-primary" />
                               <span className="max-w-[150px] truncate">{ax.nome}</span>
