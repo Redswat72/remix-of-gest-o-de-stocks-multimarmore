@@ -127,11 +127,16 @@ export function MovimentoAddendaModal({ open, onOpenChange, movimento }: Addenda
     }
   };
 
-  const handleOpenFile = async (path: string) => {
+  const handleOpenFile = async (anexo: any) => {
     try {
+      if (anexo?.public_url) {
+        window.open(anexo.public_url, '_blank', 'noopener,noreferrer');
+        return;
+      }
+      const path = anexo?.caminho || anexo?.url || anexo;
       const { data, error } = await supabase.storage
         .from('documentos-adendas')
-        .createSignedUrl(path, 3600); // 1 hora de acesso
+        .createSignedUrl(path, 3600);
 
       if (error || !data?.signedUrl) throw error || new Error('URL indisponível');
       window.open(data.signedUrl, '_blank', 'noopener,noreferrer');
