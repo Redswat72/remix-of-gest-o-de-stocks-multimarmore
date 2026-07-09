@@ -298,7 +298,11 @@ export function MovimentoAddendaModal({ open, onOpenChange, movimento }: Addenda
                               className="h-7 text-xs gap-1.5 font-normal"
                               onClick={() => handleOpenFile(ax)}
                             >
-                              <FileText className="w-3 h-3 text-primary" />
+                              {(ax.tipo?.startsWith('image/') || /\.(jpg|jpeg|png|gif|webp)$/i.test(ax.nome || '')) ? (
+                                <ImageIcon className="w-3 h-3 text-primary" />
+                              ) : (
+                                <FileText className="w-3 h-3 text-primary" />
+                              )}
                               <span className="max-w-[150px] truncate">{ax.nome}</span>
                               <ExternalLink className="w-2.5 h-2.5 opacity-60" />
                             </Button>
