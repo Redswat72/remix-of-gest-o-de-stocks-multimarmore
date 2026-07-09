@@ -462,13 +462,19 @@ export default function Historico() {
                                             <span className="text-[11px] text-muted-foreground">{formatDateTime(ax.created_at)}</span>
                                           </div>
                                           <p className="text-foreground whitespace-pre-wrap">{ax.descricao}</p>
-                                          {ax.anexos && ax.anexos.length > 0 && (
+                                          {((ax.documentos ?? ax.anexos) as any[])?.length > 0 && (
                                             <div className="pt-1 flex flex-wrap gap-1">
-                                              {ax.anexos.map((fnx: any, fnIdx: number) => (
-                                                <Badge key={fnIdx} variant="secondary" className="text-[10px] gap-1 font-normal">
+                                              {((ax.documentos ?? ax.anexos) as any[]).map((fnx: any, fnIdx: number) => (
+                                                <a
+                                                  key={fnIdx}
+                                                  href={fnx.public_url || fnx.url || '#'}
+                                                  target="_blank"
+                                                  rel="noopener noreferrer"
+                                                  className="inline-flex items-center gap-1 rounded-md bg-secondary hover:bg-secondary/80 px-2 py-0.5 text-[10px] font-normal text-secondary-foreground transition-colors"
+                                                >
                                                   <FileText className="w-2.5 h-2.5" />
-                                                  {fnx.ficheiro_nome}
-                                                </Badge>
+                                                  {fnx.nome || fnx.ficheiro_nome || 'Documento'}
+                                                </a>
                                               ))}
                                             </div>
                                           )}
