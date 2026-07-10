@@ -123,42 +123,19 @@ export function ChapaFormSection({
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <PargaCard
-            pargaIndex={1}
-            form={form}
-            idmm={idmm}
-            foto1Url={pargaFotos.parga1_foto1_url}
-            foto2Url={pargaFotos.parga1_foto2_url}
-            onFoto1Change={(url) => updatePargaFoto('parga1_foto1_url', url)}
-            onFoto2Change={(url) => updatePargaFoto('parga1_foto2_url', url)}
-          />
-          <PargaCard
-            pargaIndex={2}
-            form={form}
-            idmm={idmm}
-            foto1Url={pargaFotos.parga2_foto1_url}
-            foto2Url={pargaFotos.parga2_foto2_url}
-            onFoto1Change={(url) => updatePargaFoto('parga2_foto1_url', url)}
-            onFoto2Change={(url) => updatePargaFoto('parga2_foto2_url', url)}
-          />
-          <PargaCard
-            pargaIndex={3}
-            form={form}
-            idmm={idmm}
-            foto1Url={pargaFotos.parga3_foto1_url}
-            foto2Url={pargaFotos.parga3_foto2_url}
-            onFoto1Change={(url) => updatePargaFoto('parga3_foto1_url', url)}
-            onFoto2Change={(url) => updatePargaFoto('parga3_foto2_url', url)}
-          />
-          <PargaCard
-            pargaIndex={4}
-            form={form}
-            idmm={idmm}
-            foto1Url={pargaFotos.parga4_foto1_url}
-            foto2Url={pargaFotos.parga4_foto2_url}
-            onFoto1Change={(url) => updatePargaFoto('parga4_foto1_url', url)}
-            onFoto2Change={(url) => updatePargaFoto('parga4_foto2_url', url)}
-          />
+          {([1, 2, 3, 4] as const).map((n) => (
+            <PargaCard
+              key={n}
+              pargaIndex={n}
+              form={form}
+              idmm={idmm}
+              foto1Url={pargaFotos[`parga${n}_foto1_url` as keyof PargaFotos]}
+              foto2Url={pargaFotos[`parga${n}_foto2_url` as keyof PargaFotos]}
+              onFoto1Change={(url) => updatePargaFoto(`parga${n}_foto1_url` as keyof PargaFotos, url)}
+              onFoto2Change={(url) => updatePargaFoto(`parga${n}_foto2_url` as keyof PargaFotos, url)}
+              onRemove={isPargaFilled(n) ? () => removeParga(n) : undefined}
+            />
+          ))}
         </div>
       </div>
 
