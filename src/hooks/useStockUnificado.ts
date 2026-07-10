@@ -52,6 +52,8 @@ export interface ItemUnificado {
   precoUnitario: number | null;
   // Campos extras por forma
   blocoOrigem?: string | null;
+  pedreiraOrigem?: string | null;
+  fornecedor?: string | null;
   comprimento?: number | null;
   largura?: number | null;
   altura?: number | null;
@@ -119,6 +121,8 @@ export function useStockUnificado(options: UseStockUnificadoOptions = {}) {
         valor: b.valor_inventario,
         precoUnitario: b.preco_unitario,
         blocoOrigem: b.bloco_origem,
+        pedreiraOrigem: b.pedreira_origem,
+        fornecedor: b.fornecedor,
         comprimento: b.comprimento,
         largura: b.largura,
         altura: b.altura,
@@ -145,6 +149,7 @@ export function useStockUnificado(options: UseStockUnificadoOptions = {}) {
         bundleId: c.bundle_id,
         numChapas: c.num_chapas,
         acabamento: c.acabamento,
+        fornecedor: c.fornecedor,
         raw: c,
       });
     }
@@ -198,8 +203,11 @@ export function useStockUnificado(options: UseStockUnificadoOptions = {}) {
       i.variedade?.toLowerCase().includes(search) ||
       i.parque.toLowerCase().includes(search) ||
       i.acabamento?.toLowerCase().includes(search) ||
-      (i.bundleId?.toLowerCase().includes(search)) ||
-      (i.butchNo?.toLowerCase().includes(search))
+      i.bundleId?.toLowerCase().includes(search) ||
+      i.butchNo?.toLowerCase().includes(search) ||
+      i.fornecedor?.toLowerCase().includes(search) ||
+      i.blocoOrigem?.toLowerCase().includes(search) ||
+      i.pedreiraOrigem?.toLowerCase().includes(search)
     );
   }
 

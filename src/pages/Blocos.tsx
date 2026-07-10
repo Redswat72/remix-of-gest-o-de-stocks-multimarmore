@@ -44,6 +44,9 @@ export default function Blocos() {
       bloco.id_mm.toLowerCase().includes(searchLower) ||
       bloco.parque.toLowerCase().includes(searchLower) ||
       bloco.variedade?.toLowerCase().includes(searchLower) ||
+      bloco.fornecedor?.toLowerCase().includes(searchLower) ||
+      bloco.bloco_origem?.toLowerCase().includes(searchLower) ||
+      bloco.pedreira_origem?.toLowerCase().includes(searchLower) ||
       false
     );
   });

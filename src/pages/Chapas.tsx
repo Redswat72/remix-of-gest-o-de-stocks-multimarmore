@@ -36,6 +36,7 @@ export default function Chapas() {
       chapa.bundle_id?.toLowerCase().includes(searchLower) ||
       chapa.variedade?.toLowerCase().includes(searchLower) ||
       chapa.acabamento?.toLowerCase().includes(searchLower) ||
+      chapa.fornecedor?.toLowerCase().includes(searchLower) ||
       false
     );
   });
