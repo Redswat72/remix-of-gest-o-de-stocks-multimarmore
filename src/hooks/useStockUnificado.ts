@@ -149,6 +149,7 @@ export function useStockUnificado(options: UseStockUnificadoOptions = {}) {
         bundleId: c.bundle_id,
         numChapas: c.num_chapas,
         acabamento: c.acabamento,
+        fornecedor: c.fornecedor,
         raw: c,
       });
     }
