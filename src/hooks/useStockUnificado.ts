@@ -52,6 +52,8 @@ export interface ItemUnificado {
   precoUnitario: number | null;
   // Campos extras por forma
   blocoOrigem?: string | null;
+  pedreiraOrigem?: string | null;
+  fornecedor?: string | null;
   comprimento?: number | null;
   largura?: number | null;
   altura?: number | null;
