@@ -50,6 +50,26 @@ export function ChapaFormSection({
     });
   };
 
+  const removeParga = (n: 1 | 2 | 3 | 4) => {
+    // Limpa TODOS os campos da parga (BD fica null)
+    form.setValue(`parga${n}_nome`, '', { shouldDirty: true });
+    form.setValue(`parga${n}_quantidade`, null, { shouldDirty: true });
+    form.setValue(`parga${n}_comprimento_cm`, null, { shouldDirty: true });
+    form.setValue(`parga${n}_altura_cm`, null, { shouldDirty: true });
+    form.setValue(`parga${n}_espessura_cm`, null, { shouldDirty: true });
+    updatePargaFoto(`parga${n}_foto1_url` as keyof PargaFotos, null);
+    updatePargaFoto(`parga${n}_foto2_url` as keyof PargaFotos, null);
+  };
+
+  const isPargaFilled = (n: 1 | 2 | 3 | 4) => {
+    const q = form.watch(`parga${n}_quantidade`);
+    const c = form.watch(`parga${n}_comprimento_cm`);
+    const a = form.watch(`parga${n}_altura_cm`);
+    const e = form.watch(`parga${n}_espessura_cm`);
+    const nome = form.watch(`parga${n}_nome`);
+    return !!(q || c || a || e || (nome && String(nome).trim()));
+  };
+
   return (
     <div className="space-y-6">
       {produto && (
