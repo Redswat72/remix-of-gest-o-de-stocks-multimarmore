@@ -1,4 +1,4 @@
-import { Camera, X, ImagePlus } from 'lucide-react';
+import { Camera, X, ImagePlus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,6 +15,7 @@ interface PargaCardProps {
   foto2Url: string | null;
   onFoto1Change: (url: string | null) => void;
   onFoto2Change: (url: string | null) => void;
+  onRemove?: () => void;
 }
 
 export function PargaCard({
@@ -25,6 +26,7 @@ export function PargaCard({
   foto2Url,
   onFoto1Change,
   onFoto2Change,
+  onRemove,
 }: PargaCardProps) {
   const { uploadImage, isUploading } = useImageUpload();
 
