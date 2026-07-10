@@ -144,6 +144,7 @@ export function useCreateProduto() {
         variedade: formData.variedade ?? null,
         peso_ton: formData.peso_ton ?? null,
         origem_bloco: formData.origem_bloco ?? null,
+        ...pargaWrite,
       };
 
       const { data, error } = await supabase
