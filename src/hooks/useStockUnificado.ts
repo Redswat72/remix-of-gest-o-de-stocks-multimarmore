@@ -203,8 +203,11 @@ export function useStockUnificado(options: UseStockUnificadoOptions = {}) {
       i.variedade?.toLowerCase().includes(search) ||
       i.parque.toLowerCase().includes(search) ||
       i.acabamento?.toLowerCase().includes(search) ||
-      (i.bundleId?.toLowerCase().includes(search)) ||
-      (i.butchNo?.toLowerCase().includes(search))
+      i.bundleId?.toLowerCase().includes(search) ||
+      i.butchNo?.toLowerCase().includes(search) ||
+      i.fornecedor?.toLowerCase().includes(search) ||
+      i.blocoOrigem?.toLowerCase().includes(search) ||
+      i.pedreiraOrigem?.toLowerCase().includes(search)
     );
   }
 
