@@ -261,8 +261,29 @@ export function useUpdateProduto() {
 
   return useMutation({
     mutationFn: async ({ id, ...updateData }: UpdateProdutoData) => {
+      // Normalizar pargas: default espessura=2 se houver quantidade sem espessura;
+      // pargas totalmente vazias ficam com todos os campos a null (limpas).
+      const normalized: Record<string, unknown> = { ...(updateData as any) };
+      for (const n of [1, 2, 3, 4] as const) {
+        const q = normalized[`parga${n}_quantidade`] ?? null;
+        const c = normalized[`parga${n}_comprimento_cm`] ?? null;
+        const a = normalized[`parga${n}_altura_cm`] ?? null;
+        let e = normalized[`parga${n}_espessura_cm`] ?? null;
+        const nome = (normalized[`parga${n}_nome`] as string | null) || null;
+        const hasData = !!(q || c || a || e || (nome && String(nome).trim()));
+        if (!hasData) {
+          normalized[`parga${n}_nome`] = null;
+          normalized[`parga${n}_quantidade`] = null;
+          normalized[`parga${n}_comprimento_cm`] = null;
+          normalized[`parga${n}_altura_cm`] = null;
+          normalized[`parga${n}_espessura_cm`] = null;
+        } else if (e == null || e === '') {
+          normalized[`parga${n}_espessura_cm`] = 2;
+        }
+      }
+
       const { data, error } = await withSchemaSafeRetry(
-        updateData as Record<string, unknown>,
+        normalized,
         async (safeData) => {
           return await supabase
             .from('produtos')
