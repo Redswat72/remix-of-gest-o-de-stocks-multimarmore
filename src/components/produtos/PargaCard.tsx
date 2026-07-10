@@ -1,4 +1,4 @@
-import { Camera, X, ImagePlus } from 'lucide-react';
+import { Camera, X, ImagePlus, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,6 +15,7 @@ interface PargaCardProps {
   foto2Url: string | null;
   onFoto1Change: (url: string | null) => void;
   onFoto2Change: (url: string | null) => void;
+  onRemove?: () => void;
 }
 
 export function PargaCard({
@@ -25,6 +26,7 @@ export function PargaCard({
   foto2Url,
   onFoto1Change,
   onFoto2Change,
+  onRemove,
 }: PargaCardProps) {
   const { uploadImage, isUploading } = useImageUpload();
 
@@ -72,13 +74,26 @@ export function PargaCard({
 
   return (
     <Card className="border-2 border-dashed border-muted-foreground/20 hover:border-muted-foreground/40 transition-colors">
-      <CardHeader className="pb-3">
+      <CardHeader className="pb-3 flex flex-row items-center justify-between space-y-0">
         <CardTitle className="text-base font-semibold flex items-center gap-2">
           <span className="h-6 w-6 rounded-full bg-primary/10 text-primary text-sm flex items-center justify-center font-bold">
             {pargaIndex}
           </span>
           Parga {pargaIndex}
         </CardTitle>
+        {onRemove && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={onRemove}
+            className="h-8 px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+            title="Remover parga"
+          >
+            <Trash2 className="h-4 w-4 mr-1" />
+            <span className="text-xs">Remover</span>
+          </Button>
+        )}
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Nome e Quantidade */}

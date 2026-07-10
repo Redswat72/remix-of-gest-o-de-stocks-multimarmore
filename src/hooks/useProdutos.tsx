@@ -113,6 +113,23 @@ export function useCreateProduto() {
 
   return useMutation({
     mutationFn: async (formData: CreateProdutoData) => {
+      // Default espessura=2cm quando a parga tem quantidade mas espessura ficou vazia
+      const pargaWrite: Record<string, unknown> = {};
+      for (const n of [1, 2, 3, 4] as const) {
+        const q = (formData as any)[`parga${n}_quantidade`] ?? null;
+        const c = (formData as any)[`parga${n}_comprimento_cm`] ?? null;
+        const a = (formData as any)[`parga${n}_altura_cm`] ?? null;
+        let e = (formData as any)[`parga${n}_espessura_cm`] ?? null;
+        const nome = (formData as any)[`parga${n}_nome`] || null;
+        const hasData = !!(q || c || a || e || nome);
+        if (hasData && (e == null || e === '')) e = 2;
+        pargaWrite[`parga${n}_nome`] = hasData ? nome : null;
+        pargaWrite[`parga${n}_quantidade`] = q;
+        pargaWrite[`parga${n}_comprimento_cm`] = c;
+        pargaWrite[`parga${n}_altura_cm`] = a;
+        pargaWrite[`parga${n}_espessura_cm`] = e;
+      }
+
       const insertData: Record<string, unknown> = {
         idmm: formData.idmm,
         tipo_pedra: formData.tipo_pedra,
@@ -127,6 +144,7 @@ export function useCreateProduto() {
         variedade: formData.variedade ?? null,
         peso_ton: formData.peso_ton ?? null,
         origem_bloco: formData.origem_bloco ?? null,
+        ...pargaWrite,
       };
 
       const { data, error } = await supabase
@@ -243,8 +261,29 @@ export function useUpdateProduto() {
 
   return useMutation({
     mutationFn: async ({ id, ...updateData }: UpdateProdutoData) => {
+      // Normalizar pargas: default espessura=2 se houver quantidade sem espessura;
+      // pargas totalmente vazias ficam com todos os campos a null (limpas).
+      const normalized: Record<string, unknown> = { ...(updateData as any) };
+      for (const n of [1, 2, 3, 4] as const) {
+        const q = normalized[`parga${n}_quantidade`] ?? null;
+        const c = normalized[`parga${n}_comprimento_cm`] ?? null;
+        const a = normalized[`parga${n}_altura_cm`] ?? null;
+        let e = normalized[`parga${n}_espessura_cm`] ?? null;
+        const nome = (normalized[`parga${n}_nome`] as string | null) || null;
+        const hasData = !!(q || c || a || e || (nome && String(nome).trim()));
+        if (!hasData) {
+          normalized[`parga${n}_nome`] = null;
+          normalized[`parga${n}_quantidade`] = null;
+          normalized[`parga${n}_comprimento_cm`] = null;
+          normalized[`parga${n}_altura_cm`] = null;
+          normalized[`parga${n}_espessura_cm`] = null;
+        } else if (e == null || e === '') {
+          normalized[`parga${n}_espessura_cm`] = 2;
+        }
+      }
+
       const { data, error } = await withSchemaSafeRetry(
-        updateData as Record<string, unknown>,
+        normalized,
         async (safeData) => {
           return await supabase
             .from('produtos')
