@@ -113,6 +113,23 @@ export function useCreateProduto() {
 
   return useMutation({
     mutationFn: async (formData: CreateProdutoData) => {
+      // Default espessura=2cm quando a parga tem quantidade mas espessura ficou vazia
+      const pargaWrite: Record<string, unknown> = {};
+      for (const n of [1, 2, 3, 4] as const) {
+        const q = (formData as any)[`parga${n}_quantidade`] ?? null;
+        const c = (formData as any)[`parga${n}_comprimento_cm`] ?? null;
+        const a = (formData as any)[`parga${n}_altura_cm`] ?? null;
+        let e = (formData as any)[`parga${n}_espessura_cm`] ?? null;
+        const nome = (formData as any)[`parga${n}_nome`] || null;
+        const hasData = !!(q || c || a || e || nome);
+        if (hasData && (e == null || e === '')) e = 2;
+        pargaWrite[`parga${n}_nome`] = hasData ? nome : null;
+        pargaWrite[`parga${n}_quantidade`] = q;
+        pargaWrite[`parga${n}_comprimento_cm`] = c;
+        pargaWrite[`parga${n}_altura_cm`] = a;
+        pargaWrite[`parga${n}_espessura_cm`] = e;
+      }
+
       const insertData: Record<string, unknown> = {
         idmm: formData.idmm,
         tipo_pedra: formData.tipo_pedra,
