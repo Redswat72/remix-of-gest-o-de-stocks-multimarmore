@@ -121,6 +121,8 @@ export function useStockUnificado(options: UseStockUnificadoOptions = {}) {
         valor: b.valor_inventario,
         precoUnitario: b.preco_unitario,
         blocoOrigem: b.bloco_origem,
+        pedreiraOrigem: b.pedreira_origem,
+        fornecedor: b.fornecedor,
         comprimento: b.comprimento,
         largura: b.largura,
         altura: b.altura,
