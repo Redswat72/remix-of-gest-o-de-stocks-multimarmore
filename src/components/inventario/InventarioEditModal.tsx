@@ -81,6 +81,7 @@ function getEditableFields(forma: FormaInventario, data: Bloco | Chapa | Ladrilh
       { label: t('inventory.edit.fields.variety'), field: 'variedade', value: d.variedade, type: 'text' },
       { label: t('inventory.edit.fields.yard'), field: 'parque', value: d.parque, type: 'text' },
       { label: t('inventory.edit.fields.bundleId'), field: 'bundle_id', value: d.bundle_id, type: 'text' },
+      { label: t('inventory.edit.fields.supplier'), field: 'fornecedor', value: d.fornecedor, type: 'text' },
       { label: t('inventory.edit.fields.numSlabs'), field: 'num_chapas', value: d.num_chapas, type: 'number' },
       { label: t('inventory.edit.fields.areaM2'), field: 'quantidade_m2', value: d.quantidade_m2, type: 'number' },
       { label: t('inventory.edit.fields.pricePerM2'), field: 'preco_unitario', value: d.preco_unitario, type: 'number' },
@@ -127,8 +128,8 @@ export default function InventarioEditModal({ forma, data, itemId }: InventarioE
   const supabase = useSupabaseEmpresa();
   const queryClient = useQueryClient();
   const { uploadImage, isUploading } = useImageUpload();
-  const { hasRole } = useAuth();
-  const isOperador = hasRole('operador') && (forma === 'bloco' || forma === 'chapa');
+  const { hasRole, isAdmin } = useAuth();
+  const isOperador = hasRole('operador') && !isAdmin && (forma === 'bloco' || forma === 'chapa');
 
   const tableName = forma === 'bloco' ? 'blocos' : forma === 'chapa' ? 'chapas' : 'ladrilho';
 
