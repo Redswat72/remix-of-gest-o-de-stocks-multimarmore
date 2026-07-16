@@ -28,7 +28,9 @@ const FORMA_COLORS: Record<string, string> = {
 
 export default function InventarioFicha() {
   const t = useAppT();
-  const { forma, id } = useParams<{ forma: string; id: string }>();
+  const params = useParams<{ forma: string; id?: string; idMm?: string }>();
+  const { forma } = params;
+  const lookupByIdMm = !!params.idMm;
   const navigate = useNavigate();
   const supabase = useSupabaseEmpresa();
   const { empresaConfig, empresa } = useEmpresa();
@@ -40,18 +42,33 @@ export default function InventarioFicha() {
   const tableName = forma === 'bloco' ? 'blocos' : forma === 'chapa' ? 'chapas' : 'ladrilho';
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['inventario-ficha', forma, id],
+    queryKey: ['inventario-ficha', forma, params.id ?? `idmm:${params.idMm}`, empresa],
     queryFn: async () => {
+      if (lookupByIdMm) {
+        const { data, error } = await supabase
+          .from(tableName)
+          .select('*')
+          .eq('id_mm', params.idMm!)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (error) throw error;
+        if (!data) throw new Error('Registo não encontrado');
+        return data;
+      }
       const { data, error } = await supabase
         .from(tableName)
         .select('*')
-        .eq('id', id!)
+        .eq('id', params.id!)
         .single();
       if (error) throw error;
       return data;
     },
-    enabled: !!forma && !!id,
+    enabled: !!forma && (!!params.id || !!params.idMm),
   });
+
+  const id = (data as { id?: string } | undefined)?.id ?? params.id;
+  const isInactive = (data as { ativo?: boolean | null } | undefined)?.ativo === false;
 
   if (isLoading) {
     return (
@@ -106,11 +123,14 @@ export default function InventarioFicha() {
               <Badge className={FORMA_COLORS[forma || '']}>
                 {formaLabel}
               </Badge>
+              {isInactive && (
+                <Badge variant="destructive">Fora de stock (histórico)</Badge>
+              )}
             </div>
             <p className="text-muted-foreground">{empresaConfig?.nome}</p>
           </div>
         </div>
-        {canEdit && data && forma && (
+        {canEdit && data && forma && !isInactive && (
           <InventarioEditModal
             forma={forma as 'bloco' | 'chapa' | 'ladrilho'}
             data={data as Bloco | Chapa | Ladrilho}

@@ -96,6 +96,7 @@ const App = () => (
                 <Route path="/produtos" element={<ProtectedRoute><AppLayout><Produtos /></AppLayout></ProtectedRoute>} />
                 <Route path="/produto/:id" element={<ProtectedRoute><AppLayout><ProdutoFicha /></AppLayout></ProtectedRoute>} />
                 <Route path="/inventario/:forma/:id" element={<ProtectedRoute><AppLayout><InventarioFicha /></AppLayout></ProtectedRoute>} />
+                <Route path="/inventario/:forma/idmm/:idMm" element={<ProtectedRoute><AppLayout><InventarioFicha /></AppLayout></ProtectedRoute>} />
                 <Route path="/clientes" element={<ProtectedRoute adminOnly><AppLayout><div className="text-center py-12"><h1 className="text-2xl font-bold mb-2">Gestão de Clientes</h1><p className="text-muted-foreground">Em desenvolvimento...</p></div></AppLayout></ProtectedRoute>} />
                 <Route path="/perfil" element={<ProtectedRoute><AppLayout><Perfil /></AppLayout></ProtectedRoute>} />
                 <Route path="/configuracoes" element={<ProtectedRoute><AppLayout><div className="text-center py-12"><h1 className="text-2xl font-bold mb-2">Configurações</h1><p className="text-muted-foreground">Em desenvolvimento...</p></div></AppLayout></ProtectedRoute>} />
