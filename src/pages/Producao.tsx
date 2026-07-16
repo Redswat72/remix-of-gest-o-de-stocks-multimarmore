@@ -56,8 +56,75 @@ export default function Producao() {
   const [latitude, setLatitude] = useState('');
   const [longitude, setLongitude] = useState('');
   const [linha, setLinha] = useState(searchParams.get('linha') || '');
+  const [tipoResultado, setTipoResultado] = useState<'chapas' | 'blocos' | ''>('');
   const [tipoCorte, setTipoCorte] = useState<'total' | 'parcial' | ''>('');
   const [pargas, setPargas] = useState<PargaData[]>([emptyParga(), emptyParga(), emptyParga(), emptyParga()]);
+
+  // ---- Fluxo "Blocos" (divisão em blocos menores) ----
+  interface BlocoResultante {
+    suffix: string;
+    comprimento: number | null;
+    largura: number | null;
+    altura: number | null;
+    peso_kg: number | null;
+    variedade: string;
+    preco_unitario: number | null;
+    parque: string;
+    pesoManual: boolean;
+  }
+  const suffixFor = (i: number) => {
+    // A..Z, depois AA, AB...
+    let n = i;
+    let s = '';
+    do {
+      s = String.fromCharCode(65 + (n % 26)) + s;
+      n = Math.floor(n / 26) - 1;
+    } while (n >= 0);
+    return s;
+  };
+  const makeBlocoResultante = (i: number, base?: Bloco | null): BlocoResultante => ({
+    suffix: suffixFor(i),
+    comprimento: null,
+    largura: null,
+    altura: null,
+    peso_kg: null,
+    variedade: base?.variedade ?? '',
+    preco_unitario: base?.preco_unitario ?? null,
+    parque: base?.parque ?? '',
+    pesoManual: false,
+  });
+  const [blocosResultantes, setBlocosResultantes] = useState<BlocoResultante[]>([]);
+
+  const DENSIDADE_KG_M3 = 2750;
+  const calcPesoAuto = (c: number | null, l: number | null, a: number | null) => {
+    if (!c || !l || !a) return null;
+    // dimensões em cm → volume m³ = c*l*a / 1_000_000
+    const vol = (c * l * a) / 1_000_000;
+    return Math.round(vol * DENSIDADE_KG_M3);
+  };
+
+  const setNumBlocos = (n: number) => {
+    if (!Number.isFinite(n) || n < 2) return;
+    setBlocosResultantes(prev => {
+      const next = [...prev];
+      while (next.length < n) next.push(makeBlocoResultante(next.length, bloco));
+      while (next.length > n) next.pop();
+      return next;
+    });
+  };
+
+  const updateBlocoResultante = (idx: number, patch: Partial<BlocoResultante>) => {
+    setBlocosResultantes(prev => {
+      const next = [...prev];
+      next[idx] = { ...next[idx], ...patch };
+      // Recalcular peso automático se não foi editado manualmente
+      const b = next[idx];
+      if (!b.pesoManual) {
+        b.peso_kg = calcPesoAuto(b.comprimento, b.largura, b.altura);
+      }
+      return next;
+    });
+  };
 
   const searchBloco = async () => {
     if (!idMm.trim()) return;
