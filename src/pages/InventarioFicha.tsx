@@ -355,6 +355,7 @@ function ChapaDetails({ data }: { data: Chapa }) {
       <DetailRow label={t('inventory.detail.yard')} value={data.parque} />
       <DetailRow label={t('inventory.detail.variety')} value={data.variedade} />
       <DetailRow label={t('inventory.detail.finish')} value={data.acabamento} />
+      <DetailRow label={t('inventory.detail.supplier')} value={data.fornecedor} />
       <Separator />
       <DetailRow label={t('inventory.detail.numSlabs')} value={data.num_chapas} />
       <DetailRow label={t('inventory.detail.area')} value={formatNumber(data.quantidade_m2) || '—'} />
