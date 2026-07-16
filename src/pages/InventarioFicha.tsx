@@ -299,6 +299,7 @@ function BlocoDetails({ data }: { data: Bloco }) {
       <DetailRow label={t('inventory.detail.yard')} value={data.parque} />
       <DetailRow label={t('inventory.detail.variety')} value={data.variedade} />
       <DetailRow label={t('inventory.detail.origin')} value={data.bloco_origem} />
+      <DetailRow label={t('inventory.detail.supplier')} value={data.fornecedor} />
       <Separator />
       <DetailRow label={t('inventory.detail.weight')} value={data.quantidade_kg != null ? `${formatNumber(data.quantidade_kg)} kg` : null} />
       {podeVerValores && <DetailRow label={t('inventory.detail.pricePerKg')} value={formatCurrency(data.preco_unitario) || '—'} />}
