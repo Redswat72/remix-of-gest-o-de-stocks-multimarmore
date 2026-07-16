@@ -193,15 +193,14 @@ export default function Producao() {
     }
   };
 
+  // ---- Save: fluxo Chapas (existente) ----
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!bloco) throw new Error(t('production.blocoNaoSelecionado'));
       if (!tipoCorte) throw new Error(t('production.selecioneTipoCorte'));
 
-      // BUG 2 fix: id_mm da chapa = id_mm do bloco (sem prefixos nem timestamps)
       const chapaIdMm = bloco.id_mm;
 
-      // Verifica se já existe chapa com este id_mm (evita duplicados)
       const { data: existingChapa, error: existsErr } = await supabase
         .from('chapas')
         .select('id')
@@ -212,20 +211,14 @@ export default function Producao() {
         throw new Error(`Já existe uma chapa com id_mm "${chapaIdMm}". Não foi criado registo duplicado.`);
       }
 
-      // Normaliza pargas (espessura default = 2 cm)
-      const pargasNorm = pargas.map(p => ({
-        ...p,
-        espessura: p.espessura ?? 2,
-      }));
+      const pargasNorm = pargas.map(p => ({ ...p, espessura: p.espessura ?? 2 }));
 
-      // Calcula área total (m²) = Σ (qtd × C × A) / 10000
       const areaTotal = pargasNorm.reduce((sum, p) => {
         if (!p.quantidade || !p.comprimento || !p.altura) return sum;
         return sum + (p.quantidade * p.comprimento * p.altura) / 10000;
       }, 0);
       const areaRounded = Math.round(areaTotal * 100) / 100;
 
-      // Preço unitário herdado do bloco; valor_inventario = área × preço
       const precoUnit = bloco.preco_unitario ?? null;
       const valorInv = precoUnit != null ? Math.round(areaRounded * precoUnit * 100) / 100 : null;
       const totalChapas = pargasNorm.reduce((sum, p) => sum + (p.quantidade || 0), 0);
@@ -257,7 +250,6 @@ export default function Producao() {
         }
       }
 
-      // 1) Inserir chapa
       const { data: chapaInserted, error: chapaError } = await supabase
         .from('chapas')
         .insert(chapaData)
@@ -266,7 +258,6 @@ export default function Producao() {
       if (chapaError) throw chapaError;
       const chapaId = (chapaInserted as { id: string }).id;
 
-      // 2) Atualizar bloco (consumir / corte parcial). Se falhar → rollback chapa.
       const blocoUpdate = tipoCorte === 'total'
         ? { ativo: false, valor_inventario: 0, quantidade_kg: 0 }
         : { corte_parcial: true, medicao_pendente: true, comprimento: null, largura: null, altura: null, quantidade_kg: null };
@@ -280,8 +271,6 @@ export default function Producao() {
         throw blocoError;
       }
 
-      // 3) Registar movimento de produção. Se falhar → rollback chapa + bloco.
-      // Lookup local de origem (Plurirochas / MM002) — produção acontece sempre aqui.
       if (!user?.id) {
         await supabase.from('chapas').delete().eq('id', chapaId);
         throw new Error('Utilizador não autenticado: operador_id é obrigatório.');
@@ -309,7 +298,6 @@ export default function Producao() {
         observacoes: `Bloco ${bloco.id_mm} serrado em ${totalChapas} chapas (${areaRounded} m², corte ${tipoCorte})`,
       } as Record<string, unknown>);
       if (movError) {
-        // Best-effort rollback
         await supabase.from('chapas').delete().eq('id', chapaId);
         if (tipoCorte === 'total') {
           await supabase.from('blocos').update({ ativo: true, valor_inventario: bloco.valor_inventario, quantidade_kg: bloco.quantidade_kg }).eq('id', bloco.id);
@@ -320,7 +308,6 @@ export default function Producao() {
       return { chapaIdMm, tipoCorte };
     },
     onSuccess: (result) => {
-      // Invalidar TODAS as queries que listam inventário (chaves corretas do useStockUnificado)
       queryClient.invalidateQueries({ queryKey: ['blocos-unificado'] });
       queryClient.invalidateQueries({ queryKey: ['chapas-unificado'] });
       queryClient.invalidateQueries({ queryKey: ['ladrilho-unificado'] });
@@ -333,18 +320,190 @@ export default function Producao() {
           ? t('production.guardadoTotal', { id: result.chapaIdMm })
           : t('production.guardadoParcial', { id: result.chapaIdMm })
       );
-      setBloco(null);
-      setIdMm('');
-      setTipoCorte('');
-      setPargas([emptyParga(), emptyParga(), emptyParga(), emptyParga()]);
+      resetForm();
     },
     onError: (err: Error) => {
       toast.error(t('production.erroGuardar', { msg: err.message }));
     },
   });
 
+  // ---- Save: fluxo Blocos (divisão em blocos menores) ----
+  const saveBlocosMutation = useMutation({
+    mutationFn: async () => {
+      if (!bloco) throw new Error(t('production.blocoNaoSelecionado'));
+      if (!user?.id) throw new Error('Utilizador não autenticado: operador_id é obrigatório.');
+      if (blocosResultantes.length < 2) throw new Error('Indique pelo menos 2 blocos resultantes.');
+
+      // Validação: todos os campos essenciais preenchidos
+      for (const [i, b] of blocosResultantes.entries()) {
+        if (!b.comprimento || !b.largura || !b.altura) {
+          throw new Error(`Bloco ${bloco.id_mm}${b.suffix}: preencha comprimento, largura e altura.`);
+        }
+        if (!b.peso_kg || b.peso_kg <= 0) {
+          throw new Error(`Bloco ${bloco.id_mm}${b.suffix}: peso obrigatório (kg).`);
+        }
+        if (!b.parque) {
+          throw new Error(`Bloco ${bloco.id_mm}${b.suffix}: parque obrigatório.`);
+        }
+        // detetar duplicados dentro do lote
+        const dup = blocosResultantes.findIndex((x, j) => j !== i && x.suffix === b.suffix);
+        if (dup !== -1) throw new Error(`Sufixos duplicados: ${b.suffix}.`);
+      }
+
+      // Verificar que os novos id_mm ainda não existem
+      const novosIdMm = blocosResultantes.map(b => `${bloco.id_mm}${b.suffix}`);
+      const { data: existentes, error: existErr } = await supabase
+        .from('blocos')
+        .select('id_mm')
+        .in('id_mm', novosIdMm);
+      if (existErr) throw existErr;
+      if (existentes && existentes.length > 0) {
+        throw new Error(`Já existem blocos com estes ids: ${(existentes as { id_mm: string }[]).map(x => x.id_mm).join(', ')}`);
+      }
+
+      // Lookup dos locais (por código de parque) — para local_destino_id dos entradas
+      const parquesUnicos = Array.from(new Set([bloco.parque, ...blocosResultantes.map(b => b.parque)].filter(Boolean)));
+      const { data: locais } = await supabase
+        .from('locais')
+        .select('id, codigo')
+        .in('codigo', parquesUnicos);
+      const localByCodigo = new Map<string, string>();
+      ((locais as { id: string; codigo: string }[]) || []).forEach(l => localByCodigo.set(l.codigo, l.id));
+
+      const detalhes = blocosResultantes
+        .map(b => `${bloco.id_mm}${b.suffix} (${b.comprimento}×${b.largura}×${b.altura} cm, ${b.peso_kg} kg, ${b.parque})`)
+        .join('; ');
+
+      // 1) Inserir novos blocos
+      const inserts = blocosResultantes.map(b => ({
+        id_mm: `${bloco.id_mm}${b.suffix}`,
+        parque: b.parque,
+        variedade: b.variedade || null,
+        comprimento: b.comprimento,
+        largura: b.largura,
+        altura: b.altura,
+        quantidade_kg: b.peso_kg,
+        preco_unitario: b.preco_unitario,
+        valor_inventario: b.preco_unitario != null && b.peso_kg != null
+          ? Math.round((b.preco_unitario * b.peso_kg) * 100) / 100
+          : null,
+        fornecedor: bloco.fornecedor,
+        pedreira_origem: bloco.pedreira_origem,
+        bloco_origem: bloco.id_mm,
+        entrada_stock: data,
+        ativo: true,
+        observacoes: `Resultante da divisão do bloco ${bloco.id_mm} (id origem: ${bloco.id})`,
+      }));
+
+      const { data: inseridos, error: insErr } = await supabase
+        .from('blocos')
+        .insert(inserts)
+        .select('id, id_mm');
+      if (insErr) throw insErr;
+      const inseridosArr = (inseridos as { id: string; id_mm: string }[]) || [];
+
+      // Rollback helper
+      const rollbackInseridos = async () => {
+        if (inseridosArr.length) {
+          await supabase.from('blocos').delete().in('id', inseridosArr.map(x => x.id));
+        }
+      };
+
+      // 2) Inativar bloco original
+      const { error: updErr } = await supabase
+        .from('blocos')
+        .update({
+          ativo: false,
+          valor_inventario: 0,
+          quantidade_kg: 0,
+          observacoes: `${bloco.observacoes ? bloco.observacoes + '\n' : ''}Dividido em ${blocosResultantes.length} blocos: ${detalhes}`,
+        })
+        .eq('id', bloco.id);
+      if (updErr) {
+        await rollbackInseridos();
+        throw updErr;
+      }
+
+      // 3) Movimento de produção (origem)
+      const localOrigemId = localByCodigo.get(bloco.parque) ?? null;
+      const { error: movProdErr } = await supabase.from('movimentos').insert({
+        tipo: 'producao',
+        tipo_documento: 'sem_documento',
+        local_origem_id: localOrigemId,
+        local_destino_id: null,
+        id_mm: bloco.id_mm,
+        tipo_produto: 'bloco',
+        quantidade: 1,
+        data_movimento: data,
+        operador_id: user.id,
+        observacoes: `Bloco ${bloco.id_mm} dividido em ${blocosResultantes.length} blocos: ${detalhes}`,
+      } as Record<string, unknown>);
+      if (movProdErr) {
+        await rollbackInseridos();
+        await supabase.from('blocos').update({
+          ativo: true,
+          valor_inventario: bloco.valor_inventario,
+          quantidade_kg: bloco.quantidade_kg,
+          observacoes: bloco.observacoes,
+        }).eq('id', bloco.id);
+        throw movProdErr;
+      }
+
+      // 4) Movimentos de entrada por cada bloco novo
+      const entradas = blocosResultantes.map(b => ({
+        tipo: 'entrada',
+        tipo_documento: 'sem_documento',
+        local_origem_id: null,
+        local_destino_id: localByCodigo.get(b.parque) ?? null,
+        id_mm: `${bloco.id_mm}${b.suffix}`,
+        tipo_produto: 'bloco',
+        quantidade: 1,
+        data_movimento: data,
+        operador_id: user.id,
+        observacoes: `Entrada por divisão do bloco ${bloco.id_mm}`,
+      }));
+      const { error: movEntErr } = await supabase.from('movimentos').insert(entradas as Record<string, unknown>[]);
+      if (movEntErr) {
+        // Rollback é limitado (o movimento de producao já foi criado). Apagar inseridos e reverter bloco.
+        await rollbackInseridos();
+        await supabase.from('blocos').update({
+          ativo: true,
+          valor_inventario: bloco.valor_inventario,
+          quantidade_kg: bloco.quantidade_kg,
+          observacoes: bloco.observacoes,
+        }).eq('id', bloco.id);
+        throw movEntErr;
+      }
+
+      return { count: blocosResultantes.length, idsMm: novosIdMm };
+    },
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['blocos-unificado'] });
+      queryClient.invalidateQueries({ queryKey: ['chapas-unificado'] });
+      queryClient.invalidateQueries({ queryKey: ['ladrilho-unificado'] });
+      queryClient.invalidateQueries({ queryKey: ['stock-unificado'] });
+      queryClient.invalidateQueries({ queryKey: ['blocos'] });
+      queryClient.invalidateQueries({ queryKey: ['movimentos'] });
+      toast.success(`Bloco dividido em ${result.count}: ${result.idsMm.join(', ')}`);
+      resetForm();
+    },
+    onError: (err: Error) => {
+      toast.error(`Erro ao dividir bloco: ${err.message}`);
+    },
+  });
+
+  const resetForm = () => {
+    setBloco(null);
+    setIdMm('');
+    setTipoResultado('');
+    setTipoCorte('');
+    setPargas([emptyParga(), emptyParga(), emptyParga(), emptyParga()]);
+    setBlocosResultantes([]);
+  };
+
   const hasAnyParga = pargas.some(p => p.quantidade && p.quantidade > 0);
-  const canSave = bloco && tipoCorte && hasAnyParga && !saveMutation.isPending;
+  const canSaveChapas = bloco && tipoResultado === 'chapas' && tipoCorte && hasAnyParga && !saveMutation.isPending;
+  const canSaveBlocos = bloco && tipoResultado === 'blocos' && blocosResultantes.length >= 2 && !saveBlocosMutation.isPending;
 
   return (
     <div className="space-y-6">
