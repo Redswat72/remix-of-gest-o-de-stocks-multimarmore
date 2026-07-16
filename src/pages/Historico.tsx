@@ -366,7 +366,17 @@ export default function Historico() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <span className="font-mono font-medium">{mov.id_mm || '—'}</span>
+                            {mov.id_mm && (mov.tipo_produto === 'bloco' || mov.tipo_produto === 'chapa' || mov.tipo_produto === 'ladrilho') ? (
+                              <Link
+                                to={`/inventario/${mov.tipo_produto}/idmm/${encodeURIComponent(mov.id_mm)}`}
+                                className="font-mono font-medium text-primary hover:underline"
+                                title="Ver ficha do produto"
+                              >
+                                {mov.id_mm}
+                              </Link>
+                            ) : (
+                              <span className="font-mono font-medium">{mov.id_mm || '—'}</span>
+                            )}
                           </TableCell>
                           <TableCell>
                             <Badge variant="outline" className="capitalize">
