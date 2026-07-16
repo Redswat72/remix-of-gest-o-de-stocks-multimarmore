@@ -123,11 +123,14 @@ export default function InventarioFicha() {
               <Badge className={FORMA_COLORS[forma || '']}>
                 {formaLabel}
               </Badge>
+              {isInactive && (
+                <Badge variant="destructive">Fora de stock (histórico)</Badge>
+              )}
             </div>
             <p className="text-muted-foreground">{empresaConfig?.nome}</p>
           </div>
         </div>
-        {canEdit && data && forma && (
+        {canEdit && data && forma && !isInactive && (
           <InventarioEditModal
             forma={forma as 'bloco' | 'chapa' | 'ladrilho'}
             data={data as Bloco | Chapa | Ladrilho}
