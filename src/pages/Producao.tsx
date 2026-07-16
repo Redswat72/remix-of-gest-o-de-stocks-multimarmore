@@ -579,169 +579,348 @@ export default function Producao() {
         <>
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">{t('production.dadosProducao')}</CardTitle>
+              <CardTitle className="text-lg">Tipo de resultado</CardTitle>
+              <CardDescription>Escolhe o que resultou desta produção.</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div className="space-y-1">
-                  <Label>{t('production.data')}</Label>
-                  <Input type="date" value={data} onChange={e => setData(e.target.value)} />
-                </div>
-                <div className="space-y-1">
-                  <Label>{t('production.numLinha')}</Label>
-                  <Select value={linha} onValueChange={setLinha}>
-                    <SelectTrigger>
-                      <SelectValue placeholder={t('production.linhaPlaceholder')} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {LINHAS_OPTIONS.map(l => (
-                        <SelectItem key={l} value={l}>{l}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-1">
-                  <Label>{t('production.gps')}</Label>
-                  <div className="flex gap-2">
-                    <Input placeholder="Lat" value={latitude} onChange={e => setLatitude(e.target.value)} className="flex-1" />
-                    <Input placeholder="Lng" value={longitude} onChange={e => setLongitude(e.target.value)} className="flex-1" />
-                    <Button variant="outline" size="icon" onClick={getLocation} title={t('production.gpsTitle')}>
-                      <MapPin className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">{t('production.pargas.title')}</CardTitle>
-              <CardDescription>{t('production.pargas.description')}</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {pargas.map((parga, idx) => (
-                <div key={idx}>
-                  {idx > 0 && <Separator className="mb-4" />}
-                  <h4 className="font-semibold mb-3 flex items-center gap-2">
-                    <Badge variant="secondary">{t('production.parga', { n: idx + 1 })}</Badge>
-                  </h4>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                    <div className="space-y-1">
-                      <Label className="text-xs">{t('production.qtdChapas')}</Label>
-                      <Input
-                        type="number"
-                        min={0}
-                        value={parga.quantidade ?? ''}
-                        onChange={e => updateParga(idx, 'quantidade', e.target.value ? Number(e.target.value) : null)}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">{t('production.comprimento')}</Label>
-                      <Input
-                        type="number"
-                        min={0}
-                        value={parga.comprimento ?? ''}
-                        onChange={e => updateParga(idx, 'comprimento', e.target.value ? Number(e.target.value) : null)}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">{t('production.altura')}</Label>
-                      <Input
-                        type="number"
-                        min={0}
-                        value={parga.altura ?? ''}
-                        onChange={e => updateParga(idx, 'altura', e.target.value ? Number(e.target.value) : null)}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">{t('production.espessura')}</Label>
-                      <Input
-                        type="number"
-                        min={0}
-                        value={parga.espessura ?? ''}
-                        onChange={e => updateParga(idx, 'espessura', e.target.value ? Number(e.target.value) : null)}
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3 mt-3">
-                    <div className="space-y-1">
-                      <Label className="text-xs">{t('production.fotoPrimeira')}</Label>
-                      {parga.foto_primeira ? (
-                        <div className="relative">
-                          <img src={parga.foto_primeira} alt="Primeira" className="h-24 w-full object-cover rounded border" />
-                          <button onClick={() => updateParga(idx, 'foto_primeira', null)} className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 text-xs">✕</button>
-                        </div>
-                      ) : (
-                        <div className="grid grid-cols-2 gap-1 h-24">
-                          <label className="flex flex-col items-center justify-center border-2 border-dashed rounded cursor-pointer hover:border-primary text-muted-foreground text-xs gap-1">
-                            {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Camera className="h-4 w-4" /><span>{t('production.camera')}</span></>}
-                            <input type="file" accept="image/*" capture="environment" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handlePhotoUpload(idx, 'foto_primeira', f); e.target.value = ''; }} />
-                          </label>
-                          <label className="flex flex-col items-center justify-center border-2 border-dashed rounded cursor-pointer hover:border-primary text-muted-foreground text-xs gap-1">
-                            <Upload className="h-4 w-4" /><span>{t('production.galeria')}</span>
-                            <input type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handlePhotoUpload(idx, 'foto_primeira', f); e.target.value = ''; }} />
-                          </label>
-                        </div>
-                      )}
-                    </div>
-                    <div className="space-y-1">
-                      <Label className="text-xs">{t('production.fotoUltima')}</Label>
-                      {parga.foto_ultima ? (
-                        <div className="relative">
-                          <img src={parga.foto_ultima} alt="Última" className="h-24 w-full object-cover rounded border" />
-                          <button onClick={() => updateParga(idx, 'foto_ultima', null)} className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 text-xs">✕</button>
-                        </div>
-                      ) : (
-                        <div className="grid grid-cols-2 gap-1 h-24">
-                          <label className="flex flex-col items-center justify-center border-2 border-dashed rounded cursor-pointer hover:border-primary text-muted-foreground text-xs gap-1">
-                            {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Camera className="h-4 w-4" /><span>{t('production.camera')}</span></>}
-                            <input type="file" accept="image/*" capture="environment" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handlePhotoUpload(idx, 'foto_ultima', f); e.target.value = ''; }} />
-                          </label>
-                          <label className="flex flex-col items-center justify-center border-2 border-dashed rounded cursor-pointer hover:border-primary text-muted-foreground text-xs gap-1">
-                            <Upload className="h-4 w-4" /><span>{t('production.galeria')}</span>
-                            <input type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handlePhotoUpload(idx, 'foto_ultima', f); e.target.value = ''; }} />
-                          </label>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">{t('production.tipoCorte.title')}</CardTitle>
-              <CardDescription>{t('production.tipoCorte.description')}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <RadioGroup value={tipoCorte} onValueChange={v => setTipoCorte(v as 'total' | 'parcial')}>
+              <RadioGroup
+                value={tipoResultado}
+                onValueChange={v => {
+                  const val = v as 'chapas' | 'blocos';
+                  setTipoResultado(val);
+                  if (val === 'blocos' && blocosResultantes.length === 0) {
+                    setBlocosResultantes([makeBlocoResultante(0, bloco), makeBlocoResultante(1, bloco)]);
+                  }
+                }}
+              >
                 <div className="flex items-start gap-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer">
-                  <RadioGroupItem value="total" id="corte-total" className="mt-1" />
+                  <RadioGroupItem value="chapas" id="res-chapas" className="mt-1" />
                   <div>
-                    <Label htmlFor="corte-total" className="font-medium cursor-pointer">{t('production.corteTotal.label')}</Label>
-                    <p className="text-sm text-muted-foreground">{t('production.corteTotal.desc')}</p>
+                    <Label htmlFor="res-chapas" className="font-medium cursor-pointer flex items-center gap-2">
+                      <Layers className="h-4 w-4" /> Chapas
+                    </Label>
+                    <p className="text-sm text-muted-foreground">Bloco serrado em chapas (pargas).</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer">
-                  <RadioGroupItem value="parcial" id="corte-parcial" className="mt-1" />
+                  <RadioGroupItem value="blocos" id="res-blocos" className="mt-1" />
                   <div>
-                    <Label htmlFor="corte-parcial" className="font-medium cursor-pointer">{t('production.corteParcial.label')}</Label>
-                    <p className="text-sm text-muted-foreground">{t('production.corteParcial.desc')}</p>
+                    <Label htmlFor="res-blocos" className="font-medium cursor-pointer flex items-center gap-2">
+                      <Boxes className="h-4 w-4" /> Blocos
+                    </Label>
+                    <p className="text-sm text-muted-foreground">Bloco dividido em blocos menores.</p>
                   </div>
                 </div>
               </RadioGroup>
             </CardContent>
           </Card>
 
-          <div className="flex justify-end">
-            <Button size="lg" onClick={() => saveMutation.mutate()} disabled={!canSave}>
-              {saveMutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-              {t('production.guardarProducao')}
-            </Button>
-          </div>
+          {tipoResultado && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">{t('production.dadosProducao')}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="space-y-1">
+                    <Label>{t('production.data')}</Label>
+                    <Input type="date" value={data} onChange={e => setData(e.target.value)} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label>{t('production.numLinha')}</Label>
+                    <Select value={linha} onValueChange={setLinha}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={t('production.linhaPlaceholder')} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {LINHAS_OPTIONS.map(l => (
+                          <SelectItem key={l} value={l}>{l}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1">
+                    <Label>{t('production.gps')}</Label>
+                    <div className="flex gap-2">
+                      <Input placeholder="Lat" value={latitude} onChange={e => setLatitude(e.target.value)} className="flex-1" />
+                      <Input placeholder="Lng" value={longitude} onChange={e => setLongitude(e.target.value)} className="flex-1" />
+                      <Button variant="outline" size="icon" onClick={getLocation} title={t('production.gpsTitle')}>
+                        <MapPin className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {tipoResultado === 'chapas' && (
+            <>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">{t('production.pargas.title')}</CardTitle>
+                  <CardDescription>{t('production.pargas.description')}</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {pargas.map((parga, idx) => (
+                    <div key={idx}>
+                      {idx > 0 && <Separator className="mb-4" />}
+                      <h4 className="font-semibold mb-3 flex items-center gap-2">
+                        <Badge variant="secondary">{t('production.parga', { n: idx + 1 })}</Badge>
+                      </h4>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div className="space-y-1">
+                          <Label className="text-xs">{t('production.qtdChapas')}</Label>
+                          <Input
+                            type="number"
+                            min={0}
+                            value={parga.quantidade ?? ''}
+                            onChange={e => updateParga(idx, 'quantidade', e.target.value ? Number(e.target.value) : null)}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">{t('production.comprimento')}</Label>
+                          <Input
+                            type="number"
+                            min={0}
+                            value={parga.comprimento ?? ''}
+                            onChange={e => updateParga(idx, 'comprimento', e.target.value ? Number(e.target.value) : null)}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">{t('production.altura')}</Label>
+                          <Input
+                            type="number"
+                            min={0}
+                            value={parga.altura ?? ''}
+                            onChange={e => updateParga(idx, 'altura', e.target.value ? Number(e.target.value) : null)}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">{t('production.espessura')}</Label>
+                          <Input
+                            type="number"
+                            min={0}
+                            value={parga.espessura ?? ''}
+                            onChange={e => updateParga(idx, 'espessura', e.target.value ? Number(e.target.value) : null)}
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3 mt-3">
+                        <div className="space-y-1">
+                          <Label className="text-xs">{t('production.fotoPrimeira')}</Label>
+                          {parga.foto_primeira ? (
+                            <div className="relative">
+                              <img src={parga.foto_primeira} alt="Primeira" className="h-24 w-full object-cover rounded border" />
+                              <button onClick={() => updateParga(idx, 'foto_primeira', null)} className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 text-xs">✕</button>
+                            </div>
+                          ) : (
+                            <div className="grid grid-cols-2 gap-1 h-24">
+                              <label className="flex flex-col items-center justify-center border-2 border-dashed rounded cursor-pointer hover:border-primary text-muted-foreground text-xs gap-1">
+                                {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Camera className="h-4 w-4" /><span>{t('production.camera')}</span></>}
+                                <input type="file" accept="image/*" capture="environment" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handlePhotoUpload(idx, 'foto_primeira', f); e.target.value = ''; }} />
+                              </label>
+                              <label className="flex flex-col items-center justify-center border-2 border-dashed rounded cursor-pointer hover:border-primary text-muted-foreground text-xs gap-1">
+                                <Upload className="h-4 w-4" /><span>{t('production.galeria')}</span>
+                                <input type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handlePhotoUpload(idx, 'foto_primeira', f); e.target.value = ''; }} />
+                              </label>
+                            </div>
+                          )}
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">{t('production.fotoUltima')}</Label>
+                          {parga.foto_ultima ? (
+                            <div className="relative">
+                              <img src={parga.foto_ultima} alt="Última" className="h-24 w-full object-cover rounded border" />
+                              <button onClick={() => updateParga(idx, 'foto_ultima', null)} className="absolute top-1 right-1 bg-destructive text-destructive-foreground rounded-full p-1 text-xs">✕</button>
+                            </div>
+                          ) : (
+                            <div className="grid grid-cols-2 gap-1 h-24">
+                              <label className="flex flex-col items-center justify-center border-2 border-dashed rounded cursor-pointer hover:border-primary text-muted-foreground text-xs gap-1">
+                                {isUploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <><Camera className="h-4 w-4" /><span>{t('production.camera')}</span></>}
+                                <input type="file" accept="image/*" capture="environment" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handlePhotoUpload(idx, 'foto_ultima', f); e.target.value = ''; }} />
+                              </label>
+                              <label className="flex flex-col items-center justify-center border-2 border-dashed rounded cursor-pointer hover:border-primary text-muted-foreground text-xs gap-1">
+                                <Upload className="h-4 w-4" /><span>{t('production.galeria')}</span>
+                                <input type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handlePhotoUpload(idx, 'foto_ultima', f); e.target.value = ''; }} />
+                              </label>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">{t('production.tipoCorte.title')}</CardTitle>
+                  <CardDescription>{t('production.tipoCorte.description')}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <RadioGroup value={tipoCorte} onValueChange={v => setTipoCorte(v as 'total' | 'parcial')}>
+                    <div className="flex items-start gap-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer">
+                      <RadioGroupItem value="total" id="corte-total" className="mt-1" />
+                      <div>
+                        <Label htmlFor="corte-total" className="font-medium cursor-pointer">{t('production.corteTotal.label')}</Label>
+                        <p className="text-sm text-muted-foreground">{t('production.corteTotal.desc')}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer">
+                      <RadioGroupItem value="parcial" id="corte-parcial" className="mt-1" />
+                      <div>
+                        <Label htmlFor="corte-parcial" className="font-medium cursor-pointer">{t('production.corteParcial.label')}</Label>
+                        <p className="text-sm text-muted-foreground">{t('production.corteParcial.desc')}</p>
+                      </div>
+                    </div>
+                  </RadioGroup>
+                </CardContent>
+              </Card>
+
+              <div className="flex justify-end">
+                <Button size="lg" onClick={() => saveMutation.mutate()} disabled={!canSaveChapas}>
+                  {saveMutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                  {t('production.guardarProducao')}
+                </Button>
+              </div>
+            </>
+          )}
+
+          {tipoResultado === 'blocos' && (
+            <>
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-lg">Divisão em blocos</CardTitle>
+                  <CardDescription>
+                    Indica em quantos blocos o original foi dividido e as dimensões/peso de cada um.
+                    Peso pré-calculado por defeito (volume × 2750 kg/m³) — pode ser ajustado.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-end gap-3">
+                    <div className="space-y-1">
+                      <Label>Nº de blocos resultantes</Label>
+                      <Input
+                        type="number"
+                        min={2}
+                        className="w-32"
+                        value={blocosResultantes.length || ''}
+                        onChange={e => setNumBlocos(Number(e.target.value) || 0)}
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setBlocosResultantes(prev => [...prev, makeBlocoResultante(prev.length, bloco)])}
+                    >
+                      <Plus className="h-4 w-4 mr-1" /> Adicionar
+                    </Button>
+                  </div>
+
+                  {blocosResultantes.map((b, idx) => (
+                    <div key={idx} className="p-4 rounded-lg border bg-muted/20 space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Badge>{bloco.id_mm}{b.suffix}</Badge>
+                          <span className="text-sm text-muted-foreground">Bloco resultante {idx + 1}</span>
+                        </div>
+                        {blocosResultantes.length > 2 && (
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setBlocosResultantes(prev => prev.filter((_, i) => i !== idx).map((x, i) => ({ ...x, suffix: suffixFor(i) })))}
+                            title="Remover"
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        )}
+                      </div>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div className="space-y-1">
+                          <Label className="text-xs">Comprimento (cm)</Label>
+                          <Input
+                            type="number"
+                            min={0}
+                            value={b.comprimento ?? ''}
+                            onChange={e => updateBlocoResultante(idx, { comprimento: e.target.value ? Number(e.target.value) : null })}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Largura (cm)</Label>
+                          <Input
+                            type="number"
+                            min={0}
+                            value={b.largura ?? ''}
+                            onChange={e => updateBlocoResultante(idx, { largura: e.target.value ? Number(e.target.value) : null })}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Altura (cm)</Label>
+                          <Input
+                            type="number"
+                            min={0}
+                            value={b.altura ?? ''}
+                            onChange={e => updateBlocoResultante(idx, { altura: e.target.value ? Number(e.target.value) : null })}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Peso (kg) {!b.pesoManual && b.peso_kg != null && <span className="text-muted-foreground">(auto)</span>}</Label>
+                          <Input
+                            type="number"
+                            min={0}
+                            value={b.peso_kg ?? ''}
+                            onChange={e => {
+                              const v = e.target.value ? Number(e.target.value) : null;
+                              setBlocosResultantes(prev => {
+                                const next = [...prev];
+                                next[idx] = { ...next[idx], peso_kg: v, pesoManual: true };
+                                return next;
+                              });
+                            }}
+                          />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        <div className="space-y-1">
+                          <Label className="text-xs">Variedade</Label>
+                          <Input
+                            value={b.variedade}
+                            onChange={e => updateBlocoResultante(idx, { variedade: e.target.value })}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Preço unitário (€/kg)</Label>
+                          <Input
+                            type="number"
+                            min={0}
+                            step="0.01"
+                            value={b.preco_unitario ?? ''}
+                            onChange={e => updateBlocoResultante(idx, { preco_unitario: e.target.value ? Number(e.target.value) : null })}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <Label className="text-xs">Parque</Label>
+                          <Input
+                            value={b.parque}
+                            onChange={e => updateBlocoResultante(idx, { parque: e.target.value.toUpperCase() })}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+
+              <div className="flex justify-end">
+                <Button size="lg" onClick={() => saveBlocosMutation.mutate()} disabled={!canSaveBlocos}>
+                  {saveBlocosMutation.isPending && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
+                  Guardar divisão
+                </Button>
+              </div>
+            </>
+          )}
         </>
       )}
     </div>
