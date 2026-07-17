@@ -503,8 +503,11 @@ export default function Producao() {
   };
 
   const hasAnyParga = pargas.some(p => p.quantidade && p.quantidade > 0);
-  const canSaveChapas = bloco && tipoResultado === 'chapas' && tipoCorte && hasAnyParga && !saveMutation.isPending;
-  const canSaveBlocos = bloco && tipoResultado === 'blocos' && blocosResultantes.length >= 2 && !saveBlocosMutation.isPending;
+  const blocoNoParqueProducao = !!bloco && bloco.parque === PARQUE_PRODUCAO;
+  const operadorAutorizado = isAdmin || isSuperadmin || userLocal?.codigo === PARQUE_PRODUCAO;
+  const podeProduzir = blocoNoParqueProducao && operadorAutorizado;
+  const canSaveChapas = bloco && podeProduzir && tipoResultado === 'chapas' && tipoCorte && hasAnyParga && !saveMutation.isPending;
+  const canSaveBlocos = bloco && podeProduzir && tipoResultado === 'blocos' && blocosResultantes.length >= 2 && !saveBlocosMutation.isPending;
 
   return (
     <div className="space-y-6">
