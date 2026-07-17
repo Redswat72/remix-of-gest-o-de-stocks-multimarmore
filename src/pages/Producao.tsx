@@ -579,7 +579,32 @@ export default function Producao() {
         </CardContent>
       </Card>
 
-      {bloco && (
+      {bloco && !blocoNoParqueProducao && (
+        <Card className="border-destructive">
+          <CardHeader>
+            <CardTitle className="text-lg text-destructive">Bloco fora do parque de produção</CardTitle>
+            <CardDescription>
+              Este bloco está no parque <strong>{bloco.parque}</strong>. Só é possível serrar/dividir blocos que estejam
+              registados na <strong>Plurirochas ({PARQUE_PRODUCAO})</strong>. Transfere o bloco para {PARQUE_PRODUCAO} antes de o produzir,
+              para que o percurso físico fique registado (transferência → produção).
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      )}
+
+      {bloco && blocoNoParqueProducao && !operadorAutorizado && (
+        <Card className="border-destructive">
+          <CardHeader>
+            <CardTitle className="text-lg text-destructive">Sem permissão para produzir</CardTitle>
+            <CardDescription>
+              Só operadores associados ao parque <strong>{PARQUE_PRODUCAO} (Plurirochas)</strong> ou administradores podem lançar produções.
+              O teu parque atual é <strong>{userLocal?.codigo ?? '—'}</strong>.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      )}
+
+      {bloco && podeProduzir && (
         <>
           <Card>
             <CardHeader>
