@@ -44,7 +44,8 @@ export default function Producao() {
   const { empresa, empresaConfig } = useEmpresa();
   const queryClient = useQueryClient();
   const { uploadImage, isUploading } = useImageUpload();
-  const { user } = useAuth();
+  const { user, isAdmin, isSuperadmin, userLocal } = useAuth();
+  const PARQUE_PRODUCAO = 'MM002';
   const t = useAppT();
 
   const [idMm, setIdMm] = useState(searchParams.get('id_mm') || searchParams.get('bloco') || '');
@@ -197,6 +198,8 @@ export default function Producao() {
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!bloco) throw new Error(t('production.blocoNaoSelecionado'));
+      if (bloco.parque !== PARQUE_PRODUCAO) throw new Error(`Este bloco está no parque ${bloco.parque}. Transfere-o para ${PARQUE_PRODUCAO} (Plurirochas) antes de serrar.`);
+      if (!operadorAutorizado) throw new Error(`Só operadores da Plurirochas (${PARQUE_PRODUCAO}) ou admins podem lançar produções.`);
       if (!tipoCorte) throw new Error(t('production.selecioneTipoCorte'));
 
       const chapaIdMm = bloco.id_mm;
@@ -331,6 +334,8 @@ export default function Producao() {
   const saveBlocosMutation = useMutation({
     mutationFn: async () => {
       if (!bloco) throw new Error(t('production.blocoNaoSelecionado'));
+      if (bloco.parque !== PARQUE_PRODUCAO) throw new Error(`Este bloco está no parque ${bloco.parque}. Transfere-o para ${PARQUE_PRODUCAO} (Plurirochas) antes de dividir.`);
+      if (!operadorAutorizado) throw new Error(`Só operadores da Plurirochas (${PARQUE_PRODUCAO}) ou admins podem lançar produções.`);
       if (!user?.id) throw new Error('Utilizador não autenticado: operador_id é obrigatório.');
       if (blocosResultantes.length < 2) throw new Error('Indique pelo menos 2 blocos resultantes.');
 
@@ -502,8 +507,11 @@ export default function Producao() {
   };
 
   const hasAnyParga = pargas.some(p => p.quantidade && p.quantidade > 0);
-  const canSaveChapas = bloco && tipoResultado === 'chapas' && tipoCorte && hasAnyParga && !saveMutation.isPending;
-  const canSaveBlocos = bloco && tipoResultado === 'blocos' && blocosResultantes.length >= 2 && !saveBlocosMutation.isPending;
+  const blocoNoParqueProducao = !!bloco && bloco.parque === PARQUE_PRODUCAO;
+  const operadorAutorizado = isAdmin || isSuperadmin || userLocal?.codigo === PARQUE_PRODUCAO;
+  const podeProduzir = blocoNoParqueProducao && operadorAutorizado;
+  const canSaveChapas = bloco && podeProduzir && tipoResultado === 'chapas' && tipoCorte && hasAnyParga && !saveMutation.isPending;
+  const canSaveBlocos = bloco && podeProduzir && tipoResultado === 'blocos' && blocosResultantes.length >= 2 && !saveBlocosMutation.isPending;
 
   return (
     <div className="space-y-6">
@@ -575,7 +583,32 @@ export default function Producao() {
         </CardContent>
       </Card>
 
-      {bloco && (
+      {bloco && !blocoNoParqueProducao && (
+        <Card className="border-destructive">
+          <CardHeader>
+            <CardTitle className="text-lg text-destructive">Bloco fora do parque de produção</CardTitle>
+            <CardDescription>
+              Este bloco está no parque <strong>{bloco.parque}</strong>. Só é possível serrar/dividir blocos que estejam
+              registados na <strong>Plurirochas ({PARQUE_PRODUCAO})</strong>. Transfere o bloco para {PARQUE_PRODUCAO} antes de o produzir,
+              para que o percurso físico fique registado (transferência → produção).
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      )}
+
+      {bloco && blocoNoParqueProducao && !operadorAutorizado && (
+        <Card className="border-destructive">
+          <CardHeader>
+            <CardTitle className="text-lg text-destructive">Sem permissão para produzir</CardTitle>
+            <CardDescription>
+              Só operadores associados ao parque <strong>{PARQUE_PRODUCAO} (Plurirochas)</strong> ou administradores podem lançar produções.
+              O teu parque atual é <strong>{userLocal?.codigo ?? '—'}</strong>.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      )}
+
+      {bloco && podeProduzir && (
         <>
           <Card>
             <CardHeader>
