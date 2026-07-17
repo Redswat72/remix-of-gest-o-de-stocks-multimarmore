@@ -44,7 +44,8 @@ export default function Producao() {
   const { empresa, empresaConfig } = useEmpresa();
   const queryClient = useQueryClient();
   const { uploadImage, isUploading } = useImageUpload();
-  const { user } = useAuth();
+  const { user, isAdmin, isSuperadmin, userLocal } = useAuth();
+  const PARQUE_PRODUCAO = 'MM002';
   const t = useAppT();
 
   const [idMm, setIdMm] = useState(searchParams.get('id_mm') || searchParams.get('bloco') || '');
