@@ -198,6 +198,8 @@ export default function Producao() {
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!bloco) throw new Error(t('production.blocoNaoSelecionado'));
+      if (bloco.parque !== PARQUE_PRODUCAO) throw new Error(`Este bloco está no parque ${bloco.parque}. Transfere-o para ${PARQUE_PRODUCAO} (Plurirochas) antes de serrar.`);
+      if (!operadorAutorizado) throw new Error(`Só operadores da Plurirochas (${PARQUE_PRODUCAO}) ou admins podem lançar produções.`);
       if (!tipoCorte) throw new Error(t('production.selecioneTipoCorte'));
 
       const chapaIdMm = bloco.id_mm;
