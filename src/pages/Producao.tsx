@@ -334,6 +334,8 @@ export default function Producao() {
   const saveBlocosMutation = useMutation({
     mutationFn: async () => {
       if (!bloco) throw new Error(t('production.blocoNaoSelecionado'));
+      if (bloco.parque !== PARQUE_PRODUCAO) throw new Error(`Este bloco está no parque ${bloco.parque}. Transfere-o para ${PARQUE_PRODUCAO} (Plurirochas) antes de dividir.`);
+      if (!operadorAutorizado) throw new Error(`Só operadores da Plurirochas (${PARQUE_PRODUCAO}) ou admins podem lançar produções.`);
       if (!user?.id) throw new Error('Utilizador não autenticado: operador_id é obrigatório.');
       if (blocosResultantes.length < 2) throw new Error('Indique pelo menos 2 blocos resultantes.');
 
