@@ -326,14 +326,54 @@ export function MovimentoAddendaModal({ open, onOpenChange, movimento }: Addenda
                     <div key={ad.id || index} className="border border-border rounded-xl p-4 bg-card/60 space-y-2 text-sm">
                       <div className="flex items-center justify-between border-b border-border/60 pb-2">
                         <div className="flex items-center gap-2">
-                          {getStatusBadge((ad.estado_operacao ?? ad.estado_validacao) as EstadoAdenda)}
+                          {editingId === ad.id ? (
+                            <Select value={editEstado} onValueChange={(v: EstadoAdenda) => setEditEstado(v)}>
+                              <SelectTrigger className="h-7 text-xs w-[180px]"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="faturado">{t('movements.history.addendaStatusFaturado')}</SelectItem>
+                                <SelectItem value="stock_mtx">Stock MTX</SelectItem>
+                                <SelectItem value="stock_mm">Stock MM</SelectItem>
+                                <SelectItem value="consumido_total">{t('movements.history.addendaStatusConsumidoTotal')}</SelectItem>
+                                <SelectItem value="consumido_parcial">{t('movements.history.addendaStatusConsumidoParcial')}</SelectItem>
+                                <SelectItem value="pendente">{t('movements.history.addendaStatusPendente')}</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            getStatusBadge((ad.estado_operacao ?? ad.estado_validacao) as EstadoAdenda)
+                          )}
                           <span className="text-xs text-muted-foreground">
                             registado em {formatDateTime(ad.created_at)}
                           </span>
                         </div>
+                        {canEdit && ad.id && (
+                          editingId === ad.id ? (
+                            <div className="flex items-center gap-1">
+                              <Button size="sm" variant="ghost" className="h-7 px-2" onClick={cancelEdit} disabled={savingEdit}>
+                                <X className="w-3.5 h-3.5" />
+                              </Button>
+                              <Button size="sm" className="h-7 px-2 gap-1" onClick={() => saveEdit(ad)} disabled={savingEdit}>
+                                {savingEdit ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle className="w-3.5 h-3.5" />}
+                                Guardar
+                              </Button>
+                            </div>
+                          ) : (
+                            <Button size="sm" variant="ghost" className="h-7 px-2 gap-1 text-xs" onClick={() => startEdit(ad)}>
+                              <Pencil className="w-3.5 h-3.5" /> Editar
+                            </Button>
+                          )
+                        )}
                       </div>
 
-                      <p className="text-foreground whitespace-pre-wrap py-1 leading-relaxed">{ad.descricao}</p>
+                      {editingId === ad.id ? (
+                        <Textarea
+                          rows={4}
+                          value={editDescricao}
+                          onChange={e => setEditDescricao(e.target.value)}
+                          className="resize-none"
+                        />
+                      ) : (
+                        <p className="text-foreground whitespace-pre-wrap py-1 leading-relaxed">{ad.descricao}</p>
+                      )}
 
                       {ad.documentos && ad.documentos.length > 0 && (
                         <div className="pt-2 border-t border-border/40 flex flex-wrap items-center gap-2">
