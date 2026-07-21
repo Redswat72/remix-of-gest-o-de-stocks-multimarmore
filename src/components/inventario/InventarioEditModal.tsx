@@ -204,9 +204,12 @@ export default function InventarioEditModal({ forma, data, itemId }: InventarioE
       const newVal = fieldValues[f.field];
       if (f.type === 'number') {
         updates[f.field] = newVal != null && newVal !== '' ? Number(newVal) : null;
+      } else if (f.type === 'date') {
+        updates[f.field] = newVal ? String(newVal) : null;
       } else {
         updates[f.field] = newVal || null;
       }
+
     });
 
     if (!isOperador) {
