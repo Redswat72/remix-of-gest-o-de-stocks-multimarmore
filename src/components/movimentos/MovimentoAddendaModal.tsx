@@ -15,7 +15,15 @@ import { useAuth } from '@/hooks/useAuth';
 import { formatDateTime } from '@/lib/format';
 import type { EstadoAdenda } from '@/types/database';
 
-const ADENDA_EDITORS = ['ana@multimarmore.pt', 'vanessa@multimarmore.pt', 'manuel.castanho@multimarmore.pt', 'manuelcastanho@multimarmore.pt'];
+const ADENDA_EDITOR_NAMES = ['ana', 'vanessa', 'manuel castanho'];
+
+function canEditAdendas(email?: string | null, nome?: string | null): boolean {
+  const e = (email || '').toLowerCase();
+  const n = (nome || '').toLowerCase();
+  if (ADENDA_EDITOR_NAMES.some(x => n.includes(x))) return true;
+  if (/(^|\W)(ana|vanessa|manuel\.?castanho|manuelcastanho)(@|\W)/.test(e)) return true;
+  return false;
+}
 
 interface AddendaModalProps {
   open: boolean;
