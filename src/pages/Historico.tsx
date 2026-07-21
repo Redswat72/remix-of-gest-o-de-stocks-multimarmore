@@ -472,7 +472,24 @@ export default function Historico() {
                                         <div key={ax.id || axIdx} className="bg-background border border-border p-3 rounded-lg text-xs space-y-1.5 shadow-2xs">
                                           <div className="flex items-center justify-between">
                                             <span className="font-semibold text-primary uppercase">{((ax as any).estado_operacao ?? (ax as any).estado_validacao ?? '').replace('_', ' ')}</span>
-                                            <span className="text-[11px] text-muted-foreground">{formatDateTime(ax.created_at)}</span>
+                                            <div className="flex items-center gap-2">
+                                              <span className="text-[11px] text-muted-foreground">{formatDateTime(ax.created_at)}</span>
+                                              {ax.id && (
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  className="h-6 px-1.5 gap-1 text-[10px]"
+                                                  onClick={() => {
+                                                    setSelectedMovimento(mov);
+                                                    setEditAdendaId(ax.id);
+                                                    setAddendaModalOpen(true);
+                                                  }}
+                                                >
+                                                  <Pencil className="w-3 h-3" />
+                                                  Editar
+                                                </Button>
+                                              )}
+                                            </div>
                                           </div>
                                           <p className="text-foreground whitespace-pre-wrap">{ax.descricao}</p>
                                           {((ax.documentos ?? ax.anexos) as any[])?.length > 0 && (
