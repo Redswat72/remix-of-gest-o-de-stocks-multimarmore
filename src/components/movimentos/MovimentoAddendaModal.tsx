@@ -6,13 +6,16 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { FileText, Paperclip, Upload, Loader2, CheckCircle, ExternalLink, ShieldCheck, ImageIcon } from 'lucide-react';
+import { FileText, Paperclip, Upload, Loader2, CheckCircle, ExternalLink, ShieldCheck, ImageIcon, Pencil, X } from 'lucide-react';
 import { useAppT } from '@/hooks/useAppT';
 import { useToast } from '@/hooks/use-toast';
 import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
-import { useCreateAdenda, type MovimentoComDetalhes } from '@/hooks/useMovimentos';
+import { useCreateAdenda, useUpdateAdenda, type MovimentoComDetalhes } from '@/hooks/useMovimentos';
+import { useAuth } from '@/hooks/useAuth';
 import { formatDateTime } from '@/lib/format';
 import type { EstadoAdenda } from '@/types/database';
+
+const ADENDA_EDITORS = ['ana@multimarmore.pt', 'vanessa@multimarmore.pt', 'manuel.castanho@multimarmore.pt', 'manuelcastanho@multimarmore.pt'];
 
 interface AddendaModalProps {
   open: boolean;
