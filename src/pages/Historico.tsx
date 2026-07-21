@@ -497,33 +497,35 @@ export default function Historico() {
                                             <div className="flex items-center gap-2">
                                               <span className="text-[11px] text-muted-foreground">{formatDateTime(ax.created_at)}</span>
                                               {ax.id && (
-                                                <Button
-                                                  variant="ghost"
-                                                  size="sm"
-                                                  className="h-6 px-1.5 gap-1 text-[10px]"
-                                                  onClick={() => {
-                                                    setSelectedMovimento(mov);
-                                                    setEditAdendaId(ax.id);
-                                                    setAddendaModalOpen(true);
-                                                  }}
-                                                >
-                                                  <Pencil className="w-3 h-3" />
-                                                  Editar
-                                                </Button>
-                                               <Button
-                                                 variant="ghost"
-                                                 size="sm"
-                                                 className="h-6 px-1.5 gap-1 text-[10px] text-destructive hover:text-destructive hover:bg-destructive/10"
-                                                 onClick={() => handleDeleteAdenda(ax.id)}
-                                                 disabled={deletingAdendaId === ax.id}
-                                               >
-                                                 {deletingAdendaId === ax.id ? (
-                                                   <Loader2 className="w-3 h-3 animate-spin" />
-                                                 ) : (
-                                                   <Trash2 className="w-3 h-3" />
-                                                 )}
-                                                 Apagar
-                                               </Button>
+                                                 <>
+                                                   <Button
+                                                     variant="ghost"
+                                                     size="sm"
+                                                     className="h-6 px-1.5 gap-1 text-[10px]"
+                                                     onClick={() => {
+                                                       setSelectedMovimento(mov);
+                                                       setEditAdendaId(ax.id);
+                                                       setAddendaModalOpen(true);
+                                                     }}
+                                                   >
+                                                     <Pencil className="w-3 h-3" />
+                                                     Editar
+                                                   </Button>
+                                                   <Button
+                                                     variant="ghost"
+                                                     size="sm"
+                                                     className="h-6 px-1.5 gap-1 text-[10px] text-destructive hover:text-destructive hover:bg-destructive/10"
+                                                     onClick={() => handleDeleteAdenda(ax.id)}
+                                                     disabled={deletingAdendaId === ax.id}
+                                                   >
+                                                     {deletingAdendaId === ax.id ? (
+                                                       <Loader2 className="w-3 h-3 animate-spin" />
+                                                     ) : (
+                                                       <Trash2 className="w-3 h-3" />
+                                                     )}
+                                                     Apagar
+                                                   </Button>
+                                                 </>
                                               )}
                                             </div>
                                           </div>
