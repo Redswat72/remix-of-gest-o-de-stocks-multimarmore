@@ -38,6 +38,7 @@ export function MovimentoAddendaModal({ open, onOpenChange, movimento, initialEd
   const supabase = useSupabaseEmpresa();
   const createAdenda = useCreateAdenda();
   const updateAdenda = useUpdateAdenda();
+  const deleteAdenda = useDeleteAdenda();
   const { user, profile, isSuperadmin, isAdmin } = useAuth();
   const canEdit = isSuperadmin || isAdmin || canEditAdendas(user?.email, profile?.nome);
 
@@ -49,6 +50,7 @@ export function MovimentoAddendaModal({ open, onOpenChange, movimento, initialEd
   const [editEstado, setEditEstado] = useState<EstadoAdenda>('faturado');
   const [editDescricao, setEditDescricao] = useState('');
   const [savingEdit, setSavingEdit] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (open && initialEditAdendaId && movimento?.adendas) {
