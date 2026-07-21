@@ -36,13 +36,52 @@ export function MovimentoAddendaModal({ open, onOpenChange, movimento }: Addenda
   const { toast } = useToast();
   const supabase = useSupabaseEmpresa();
   const createAdenda = useCreateAdenda();
+  const updateAdenda = useUpdateAdenda();
+  const { user, profile, isSuperadmin } = useAuth();
+  const canEdit = isSuperadmin || canEditAdendas(user?.email, profile?.nome);
 
   const [estado, setEstado] = useState<EstadoAdenda>('faturado');
   const [descricao, setDescricao] = useState('');
   const [files, setFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editEstado, setEditEstado] = useState<EstadoAdenda>('faturado');
+  const [editDescricao, setEditDescricao] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
 
   if (!movimento) return null;
+
+  const startEdit = (ad: any) => {
+    setEditingId(ad.id);
+    setEditEstado((ad.estado_operacao ?? ad.estado_validacao) as EstadoAdenda);
+    setEditDescricao(ad.descricao ?? '');
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+  };
+
+  const saveEdit = async (ad: any) => {
+    if (!editDescricao.trim()) {
+      toast({ title: 'Descrição obrigatória', variant: 'destructive' });
+      return;
+    }
+    try {
+      setSavingEdit(true);
+      await updateAdenda.mutateAsync({
+        adendaId: ad.id,
+        descricao: editDescricao.trim(),
+        estadoOperacao: editEstado,
+        documentos: ad.documentos ?? [],
+      });
+      toast({ title: 'Adenda atualizada' });
+      setEditingId(null);
+    } catch (err: any) {
+      toast({ title: 'Erro ao atualizar', description: err.message, variant: 'destructive' });
+    } finally {
+      setSavingEdit(false);
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
