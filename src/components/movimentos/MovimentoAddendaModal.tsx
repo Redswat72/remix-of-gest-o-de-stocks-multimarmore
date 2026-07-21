@@ -29,9 +29,10 @@ interface AddendaModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   movimento: MovimentoComDetalhes | null;
+  initialEditAdendaId?: string | null;
 }
 
-export function MovimentoAddendaModal({ open, onOpenChange, movimento }: AddendaModalProps) {
+export function MovimentoAddendaModal({ open, onOpenChange, movimento, initialEditAdendaId }: AddendaModalProps) {
   const t = useAppT();
   const { toast } = useToast();
   const supabase = useSupabaseEmpresa();
