@@ -200,6 +200,7 @@ function BlocoFields({ data, podeVerValores }: { data: Bloco; podeVerValores: bo
       <DetailRow label={t('inventory.detail.variety')} value={data.variedade} />
       <DetailRow label={t('inventory.detail.origin')} value={data.bloco_origem} />
       <DetailRow label={t('inventory.detail.supplier')} value={data.fornecedor} />
+      <DetailRow label={t('inventory.detail.entryYear')} value={anoEntrada((data as any).entrada_stock)} />
       <Separator />
       <DetailRow label={t('inventory.detail.weight')} value={data.quantidade_kg != null ? `${formatNumber(data.quantidade_kg)} kg` : null} />
       {data.comprimento && <DetailRow label={t('inventory.detail.length')} value={`${data.comprimento}`} />}
