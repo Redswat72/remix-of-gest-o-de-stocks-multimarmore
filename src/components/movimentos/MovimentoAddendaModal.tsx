@@ -6,13 +6,24 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { FileText, Paperclip, Upload, Loader2, CheckCircle, ExternalLink, ShieldCheck, ImageIcon } from 'lucide-react';
+import { FileText, Paperclip, Upload, Loader2, CheckCircle, ExternalLink, ShieldCheck, ImageIcon, Pencil, X } from 'lucide-react';
 import { useAppT } from '@/hooks/useAppT';
 import { useToast } from '@/hooks/use-toast';
 import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
-import { useCreateAdenda, type MovimentoComDetalhes } from '@/hooks/useMovimentos';
+import { useCreateAdenda, useUpdateAdenda, type MovimentoComDetalhes } from '@/hooks/useMovimentos';
+import { useAuth } from '@/hooks/useAuth';
 import { formatDateTime } from '@/lib/format';
 import type { EstadoAdenda } from '@/types/database';
+
+const ADENDA_EDITOR_NAMES = ['ana', 'vanessa', 'manuel castanho'];
+
+function canEditAdendas(email?: string | null, nome?: string | null): boolean {
+  const e = (email || '').toLowerCase();
+  const n = (nome || '').toLowerCase();
+  if (ADENDA_EDITOR_NAMES.some(x => n.includes(x))) return true;
+  if (/(^|\W)(ana|vanessa|manuel\.?castanho|manuelcastanho)(@|\W)/.test(e)) return true;
+  return false;
+}
 
 interface AddendaModalProps {
   open: boolean;
@@ -25,13 +36,52 @@ export function MovimentoAddendaModal({ open, onOpenChange, movimento }: Addenda
   const { toast } = useToast();
   const supabase = useSupabaseEmpresa();
   const createAdenda = useCreateAdenda();
+  const updateAdenda = useUpdateAdenda();
+  const { user, profile, isSuperadmin } = useAuth();
+  const canEdit = isSuperadmin || canEditAdendas(user?.email, profile?.nome);
 
   const [estado, setEstado] = useState<EstadoAdenda>('faturado');
   const [descricao, setDescricao] = useState('');
   const [files, setFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editEstado, setEditEstado] = useState<EstadoAdenda>('faturado');
+  const [editDescricao, setEditDescricao] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
 
   if (!movimento) return null;
+
+  const startEdit = (ad: any) => {
+    setEditingId(ad.id);
+    setEditEstado((ad.estado_operacao ?? ad.estado_validacao) as EstadoAdenda);
+    setEditDescricao(ad.descricao ?? '');
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+  };
+
+  const saveEdit = async (ad: any) => {
+    if (!editDescricao.trim()) {
+      toast({ title: 'Descrição obrigatória', variant: 'destructive' });
+      return;
+    }
+    try {
+      setSavingEdit(true);
+      await updateAdenda.mutateAsync({
+        adendaId: ad.id,
+        descricao: editDescricao.trim(),
+        estadoOperacao: editEstado,
+        documentos: ad.documentos ?? [],
+      });
+      toast({ title: 'Adenda atualizada' });
+      setEditingId(null);
+    } catch (err: any) {
+      toast({ title: 'Erro ao atualizar', description: err.message, variant: 'destructive' });
+    } finally {
+      setSavingEdit(false);
+    }
+  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -276,14 +326,54 @@ export function MovimentoAddendaModal({ open, onOpenChange, movimento }: Addenda
                     <div key={ad.id || index} className="border border-border rounded-xl p-4 bg-card/60 space-y-2 text-sm">
                       <div className="flex items-center justify-between border-b border-border/60 pb-2">
                         <div className="flex items-center gap-2">
-                          {getStatusBadge((ad.estado_operacao ?? ad.estado_validacao) as EstadoAdenda)}
+                          {editingId === ad.id ? (
+                            <Select value={editEstado} onValueChange={(v: EstadoAdenda) => setEditEstado(v)}>
+                              <SelectTrigger className="h-7 text-xs w-[180px]"><SelectValue /></SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="faturado">{t('movements.history.addendaStatusFaturado')}</SelectItem>
+                                <SelectItem value="stock_mtx">Stock MTX</SelectItem>
+                                <SelectItem value="stock_mm">Stock MM</SelectItem>
+                                <SelectItem value="consumido_total">{t('movements.history.addendaStatusConsumidoTotal')}</SelectItem>
+                                <SelectItem value="consumido_parcial">{t('movements.history.addendaStatusConsumidoParcial')}</SelectItem>
+                                <SelectItem value="pendente">{t('movements.history.addendaStatusPendente')}</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          ) : (
+                            getStatusBadge((ad.estado_operacao ?? ad.estado_validacao) as EstadoAdenda)
+                          )}
                           <span className="text-xs text-muted-foreground">
                             registado em {formatDateTime(ad.created_at)}
                           </span>
                         </div>
+                        {canEdit && ad.id && (
+                          editingId === ad.id ? (
+                            <div className="flex items-center gap-1">
+                              <Button size="sm" variant="ghost" className="h-7 px-2" onClick={cancelEdit} disabled={savingEdit}>
+                                <X className="w-3.5 h-3.5" />
+                              </Button>
+                              <Button size="sm" className="h-7 px-2 gap-1" onClick={() => saveEdit(ad)} disabled={savingEdit}>
+                                {savingEdit ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle className="w-3.5 h-3.5" />}
+                                Guardar
+                              </Button>
+                            </div>
+                          ) : (
+                            <Button size="sm" variant="ghost" className="h-7 px-2 gap-1 text-xs" onClick={() => startEdit(ad)}>
+                              <Pencil className="w-3.5 h-3.5" /> Editar
+                            </Button>
+                          )
+                        )}
                       </div>
 
-                      <p className="text-foreground whitespace-pre-wrap py-1 leading-relaxed">{ad.descricao}</p>
+                      {editingId === ad.id ? (
+                        <Textarea
+                          rows={4}
+                          value={editDescricao}
+                          onChange={e => setEditDescricao(e.target.value)}
+                          className="resize-none"
+                        />
+                      ) : (
+                        <p className="text-foreground whitespace-pre-wrap py-1 leading-relaxed">{ad.descricao}</p>
+                      )}
 
                       {ad.documentos && ad.documentos.length > 0 && (
                         <div className="pt-2 border-t border-border/40 flex flex-wrap items-center gap-2">
