@@ -522,6 +522,7 @@ export default function Historico() {
                                     className="gap-2 border-primary/40 text-primary hover:bg-primary/10"
                                     onClick={() => {
                                       setSelectedMovimento(mov);
+                                      setEditAdendaId(null);
                                       setAddendaModalOpen(true);
                                     }}
                                   >
