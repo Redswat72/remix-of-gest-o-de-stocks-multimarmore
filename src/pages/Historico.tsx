@@ -14,7 +14,8 @@ import {
   ChevronUp,
   AlertTriangle,
   FileText,
-  ShieldCheck
+  ShieldCheck,
+  Pencil
 } from 'lucide-react';
 import { MovimentoAddendaModal } from '@/components/movimentos/MovimentoAddendaModal';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
