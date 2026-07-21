@@ -884,6 +884,8 @@
         "yard": "Parque",
         "origin": "Origem",
         "supplier": "Fornecedor",
+        "entryDate": "Ano de Entrada",
+
         "lengthCm": "Comprimento (cm)",
         "widthCm": "Largura (cm)",
         "heightCm": "Altura (cm)",
