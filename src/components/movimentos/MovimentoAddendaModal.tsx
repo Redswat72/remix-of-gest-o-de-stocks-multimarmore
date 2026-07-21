@@ -75,6 +75,22 @@ export function MovimentoAddendaModal({ open, onOpenChange, movimento, initialEd
     setEditingId(null);
   };
 
+  const handleDelete = async (ad: any) => {
+    if (!ad?.id) return;
+    const ok = window.confirm('Apagar esta adenda? Esta ação não pode ser revertida.');
+    if (!ok) return;
+    try {
+      setDeletingId(ad.id);
+      await deleteAdenda.mutateAsync({ adendaId: ad.id });
+      toast({ title: 'Adenda apagada' });
+      if (editingId === ad.id) setEditingId(null);
+    } catch (err: any) {
+      toast({ title: 'Erro ao apagar', description: err.message, variant: 'destructive' });
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   const saveEdit = async (ad: any) => {
     if (!editDescricao.trim()) {
       toast({ title: 'Descrição obrigatória', variant: 'destructive' });
