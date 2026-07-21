@@ -58,7 +58,13 @@ function getPhotoSlots(forma: FormaInventario, data: Bloco | Chapa | Ladrilho, t
   ];
 }
 
-type EditableField = { label: string; field: string; value: string | number | null; type: 'text' | 'number'; operadorEditable?: boolean };
+type EditableField = { label: string; field: string; value: string | number | null; type: 'text' | 'number' | 'date'; operadorEditable?: boolean };
+
+function toDateInput(v: unknown): string | null {
+  if (!v) return null;
+  const s = String(v).slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(s) ? s : null;
+}
 
 function getEditableFields(forma: FormaInventario, data: Bloco | Chapa | Ladrilho, t: (key: string) => string): EditableField[] {
   if (forma === 'bloco') {
@@ -68,6 +74,7 @@ function getEditableFields(forma: FormaInventario, data: Bloco | Chapa | Ladrilh
       { label: t('inventory.edit.fields.yard'), field: 'parque', value: d.parque, type: 'text' },
       { label: t('inventory.edit.fields.origin'), field: 'bloco_origem', value: d.bloco_origem, type: 'text' },
       { label: t('inventory.edit.fields.supplier'), field: 'fornecedor', value: d.fornecedor, type: 'text' },
+      { label: t('inventory.edit.fields.entryDate'), field: 'entrada_stock', value: toDateInput(d.entrada_stock), type: 'date' },
       { label: t('inventory.edit.fields.lengthCm'), field: 'comprimento', value: d.comprimento, type: 'number', operadorEditable: true },
       { label: t('inventory.edit.fields.widthCm'), field: 'largura', value: d.largura, type: 'number', operadorEditable: true },
       { label: t('inventory.edit.fields.heightCm'), field: 'altura', value: d.altura, type: 'number', operadorEditable: true },
@@ -82,6 +89,7 @@ function getEditableFields(forma: FormaInventario, data: Bloco | Chapa | Ladrilh
       { label: t('inventory.edit.fields.yard'), field: 'parque', value: d.parque, type: 'text' },
       { label: t('inventory.edit.fields.bundleId'), field: 'bundle_id', value: d.bundle_id, type: 'text' },
       { label: t('inventory.edit.fields.supplier'), field: 'fornecedor', value: d.fornecedor, type: 'text' },
+      { label: t('inventory.edit.fields.entryDate'), field: 'entrada_stock', value: toDateInput((d as any).entrada_stock), type: 'date' },
       { label: t('inventory.edit.fields.numSlabs'), field: 'num_chapas', value: d.num_chapas, type: 'number' },
       { label: t('inventory.edit.fields.areaM2'), field: 'quantidade_m2', value: d.quantidade_m2, type: 'number' },
       { label: t('inventory.edit.fields.pricePerM2'), field: 'preco_unitario', value: d.preco_unitario, type: 'number' },
@@ -110,12 +118,14 @@ function getEditableFields(forma: FormaInventario, data: Bloco | Chapa | Ladrilh
     { label: t('inventory.edit.fields.variety'), field: 'variedade', value: d.variedade, type: 'text' },
     { label: t('inventory.edit.fields.yard'), field: 'parque', value: d.parque, type: 'text' },
     { label: t('inventory.edit.fields.supplier'), field: 'fornecedor', value: (d as any).fornecedor ?? null, type: 'text' },
+    { label: t('inventory.edit.fields.entryDate'), field: 'entrada_stock', value: toDateInput((d as any).entrada_stock), type: 'date' },
     { label: t('inventory.edit.fields.dimensions'), field: 'dimensoes', value: d.dimensoes, type: 'text' },
     { label: t('inventory.edit.fields.numPieces'), field: 'num_pecas', value: d.num_pecas, type: 'number' },
     { label: t('inventory.edit.fields.areaM2'), field: 'quantidade_m2', value: d.quantidade_m2, type: 'number' },
     { label: t('inventory.edit.fields.pricePerM2'), field: 'preco_unitario', value: d.preco_unitario, type: 'number' },
   ];
 }
+
 
 interface InventarioEditModalProps {
   forma: FormaInventario;
@@ -194,9 +204,12 @@ export default function InventarioEditModal({ forma, data, itemId }: InventarioE
       const newVal = fieldValues[f.field];
       if (f.type === 'number') {
         updates[f.field] = newVal != null && newVal !== '' ? Number(newVal) : null;
+      } else if (f.type === 'date') {
+        updates[f.field] = newVal ? String(newVal) : null;
       } else {
         updates[f.field] = newVal || null;
       }
+
     });
 
     if (!isOperador) {

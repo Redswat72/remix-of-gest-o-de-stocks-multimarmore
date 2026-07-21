@@ -310,6 +310,13 @@ function DetailRow({ label, value }: { label: string; value: string | number | n
   );
 }
 
+function anoEntrada(entrada_stock: string | null | undefined): string | null {
+  if (!entrada_stock) return null;
+  const y = String(entrada_stock).slice(0, 4);
+  return /^\d{4}$/.test(y) ? y : null;
+}
+
+
 function BlocoDetails({ data }: { data: Bloco }) {
   const t = useAppT();
   const { podeVerValores } = usePermissoes();
@@ -320,6 +327,8 @@ function BlocoDetails({ data }: { data: Bloco }) {
       <DetailRow label={t('inventory.detail.variety')} value={data.variedade} />
       <DetailRow label={t('inventory.detail.origin')} value={data.bloco_origem} />
       <DetailRow label={t('inventory.detail.supplier')} value={data.fornecedor} />
+      <DetailRow label={t('inventory.detail.entryYear')} value={anoEntrada(data.entrada_stock)} />
+
       <Separator />
       <DetailRow label={t('inventory.detail.weight')} value={data.quantidade_kg != null ? `${formatNumber(data.quantidade_kg)} kg` : null} />
       {podeVerValores && <DetailRow label={t('inventory.detail.pricePerKg')} value={formatCurrency(data.preco_unitario) || '—'} />}
@@ -376,6 +385,8 @@ function ChapaDetails({ data }: { data: Chapa }) {
       <DetailRow label={t('inventory.detail.variety')} value={data.variedade} />
       <DetailRow label={t('inventory.detail.finish')} value={data.acabamento} />
       <DetailRow label={t('inventory.detail.supplier')} value={data.fornecedor} />
+      <DetailRow label={t('inventory.detail.entryYear')} value={anoEntrada((data as any).entrada_stock)} />
+
       <Separator />
       <DetailRow label={t('inventory.detail.numSlabs')} value={data.num_chapas} />
       <DetailRow label={t('inventory.detail.area')} value={formatNumber(data.quantidade_m2) || '—'} />
@@ -395,6 +406,8 @@ function LadrilhoDetails({ data }: { data: Ladrilho }) {
       <DetailRow label={t('inventory.detail.dimensions')} value={data.dimensoes} />
       <DetailRow label={t('inventory.detail.butchNo')} value={data.butch_no} />
       <DetailRow label={t('inventory.detail.supplier')} value={(data as any).fornecedor} />
+      <DetailRow label={t('inventory.detail.entryYear')} value={anoEntrada((data as any).entrada_stock)} />
+
       <Separator />
       <DetailRow label={t('inventory.detail.pieces')} value={data.num_pecas} />
       <DetailRow label={t('inventory.detail.area')} value={formatNumber(data.quantidade_m2) || '—'} />

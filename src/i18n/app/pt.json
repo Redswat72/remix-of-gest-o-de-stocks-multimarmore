@@ -850,6 +850,8 @@
       "pieces": "Peças",
       "origin": "Origem",
       "supplier": "Fornecedor",
+      "entryYear": "Ano de Entrada",
+
       "dimensions": "Dimensões",
       "butchNo": "Butch No",
       "finish": "Acabamento",
@@ -882,6 +884,8 @@
         "yard": "Parque",
         "origin": "Origem",
         "supplier": "Fornecedor",
+        "entryDate": "Ano de Entrada",
+
         "lengthCm": "Comprimento (cm)",
         "widthCm": "Largura (cm)",
         "heightCm": "Altura (cm)",
