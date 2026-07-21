@@ -629,8 +629,9 @@ export default function Historico() {
 
       <MovimentoAddendaModal
         open={addendaModalOpen}
-        onOpenChange={setAddendaModalOpen}
+        onOpenChange={(o) => { setAddendaModalOpen(o); if (!o) setEditAdendaId(null); }}
         movimento={selectedMovimento}
+        initialEditAdendaId={editAdendaId}
       />
     </div>
   );
