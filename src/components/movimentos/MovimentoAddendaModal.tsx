@@ -6,11 +6,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { FileText, Paperclip, Upload, Loader2, CheckCircle, ExternalLink, ShieldCheck, ImageIcon, Pencil, X } from 'lucide-react';
+import { FileText, Paperclip, Upload, Loader2, CheckCircle, ExternalLink, ShieldCheck, ImageIcon, Pencil, X, Trash2 } from 'lucide-react';
 import { useAppT } from '@/hooks/useAppT';
 import { useToast } from '@/hooks/use-toast';
 import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
-import { useCreateAdenda, useUpdateAdenda, type MovimentoComDetalhes } from '@/hooks/useMovimentos';
+import { useCreateAdenda, useUpdateAdenda, useDeleteAdenda, type MovimentoComDetalhes } from '@/hooks/useMovimentos';
 import { useAuth } from '@/hooks/useAuth';
 import { formatDateTime } from '@/lib/format';
 import type { EstadoAdenda } from '@/types/database';
@@ -38,6 +38,7 @@ export function MovimentoAddendaModal({ open, onOpenChange, movimento, initialEd
   const supabase = useSupabaseEmpresa();
   const createAdenda = useCreateAdenda();
   const updateAdenda = useUpdateAdenda();
+  const deleteAdenda = useDeleteAdenda();
   const { user, profile, isSuperadmin, isAdmin } = useAuth();
   const canEdit = isSuperadmin || isAdmin || canEditAdendas(user?.email, profile?.nome);
 
@@ -49,6 +50,7 @@ export function MovimentoAddendaModal({ open, onOpenChange, movimento, initialEd
   const [editEstado, setEditEstado] = useState<EstadoAdenda>('faturado');
   const [editDescricao, setEditDescricao] = useState('');
   const [savingEdit, setSavingEdit] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   useEffect(() => {
     if (open && initialEditAdendaId && movimento?.adendas) {
@@ -71,6 +73,22 @@ export function MovimentoAddendaModal({ open, onOpenChange, movimento, initialEd
 
   const cancelEdit = () => {
     setEditingId(null);
+  };
+
+  const handleDelete = async (ad: any) => {
+    if (!ad?.id) return;
+    const ok = window.confirm('Apagar esta adenda? Esta ação não pode ser revertida.');
+    if (!ok) return;
+    try {
+      setDeletingId(ad.id);
+      await deleteAdenda.mutateAsync({ adendaId: ad.id });
+      toast({ title: 'Adenda apagada' });
+      if (editingId === ad.id) setEditingId(null);
+    } catch (err: any) {
+      toast({ title: 'Erro ao apagar', description: err.message, variant: 'destructive' });
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   const saveEdit = async (ad: any) => {
@@ -369,9 +387,21 @@ export function MovimentoAddendaModal({ open, onOpenChange, movimento, initialEd
                               </Button>
                             </div>
                           ) : (
-                            <Button size="sm" variant="ghost" className="h-7 px-2 gap-1 text-xs" onClick={() => startEdit(ad)}>
-                              <Pencil className="w-3.5 h-3.5" /> Editar
-                            </Button>
+                            <div className="flex items-center gap-1">
+                              <Button size="sm" variant="ghost" className="h-7 px-2 gap-1 text-xs" onClick={() => startEdit(ad)}>
+                                <Pencil className="w-3.5 h-3.5" /> Editar
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-7 px-2 gap-1 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                                onClick={() => handleDelete(ad)}
+                                disabled={deletingId === ad.id}
+                              >
+                                {deletingId === ad.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                                Apagar
+                              </Button>
+                            </div>
                           )
                         )}
                       </div>

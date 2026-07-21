@@ -340,11 +340,38 @@ export function useUpdateAdenda() {
           documentos: documentos ?? [],
         } as any)
         .eq('id', adendaId)
-        .select()
-        .single();
+        .select();
 
       if (error) throw error;
-      return data;
+      if (!data || data.length === 0) {
+        throw new Error('Não foi possível atualizar a adenda (sem permissões ou registo inexistente).');
+      }
+      return data[0];
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['movimentos'] });
+      queryClient.invalidateQueries({ queryKey: ['movimentos-validar'] });
+      queryClient.invalidateQueries({ queryKey: ['auditoria'] });
+    },
+  });
+}
+
+export function useDeleteAdenda() {
+  const supabase = useSupabaseEmpresa();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ adendaId }: { adendaId: string }) => {
+      const { error, count } = await supabase
+        .from('movimento_adendas')
+        .delete({ count: 'exact' })
+        .eq('id', adendaId);
+
+      if (error) throw error;
+      if (count === 0) {
+        throw new Error('Não foi possível apagar a adenda (sem permissões).');
+      }
+      return adendaId;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['movimentos'] });
