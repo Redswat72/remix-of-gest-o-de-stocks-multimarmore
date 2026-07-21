@@ -61,6 +61,7 @@ export default function Historico() {
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [addendaModalOpen, setAddendaModalOpen] = useState(false);
   const [selectedMovimento, setSelectedMovimento] = useState<MovimentoComDetalhes | null>(null);
+  const [editAdendaId, setEditAdendaId] = useState<string | null>(null);
   const [motivoCancelamento, setMotivoCancelamento] = useState('');
 
   // For non-admin users, always filter by their local
