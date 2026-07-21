@@ -15,7 +15,9 @@ import {
   AlertTriangle,
   FileText,
   ShieldCheck,
-  Pencil
+  Pencil,
+  Trash2,
+  Loader2
 } from 'lucide-react';
 import { MovimentoAddendaModal } from '@/components/movimentos/MovimentoAddendaModal';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,7 +33,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
-import { useMovimentos, useCancelMovimento, type MovimentoComDetalhes } from '@/hooks/useMovimentos';
+import { useMovimentos, useCancelMovimento, useDeleteAdenda, type MovimentoComDetalhes } from '@/hooks/useMovimentos';
 import { useLocaisAtivos } from '@/hooks/useLocais';
 import { useProfiles } from '@/hooks/useProfiles';
 import { exportToExcel } from '@/lib/exportExcel';
@@ -45,6 +47,7 @@ export default function Historico() {
   const { toast } = useToast();
   const { isAdmin, userLocal } = useAuth();
   const cancelMovimento = useCancelMovimento();
+  const deleteAdenda = useDeleteAdenda();
 
   // Filtros
   const [dataInicio, setDataInicio] = useState('');
@@ -62,6 +65,7 @@ export default function Historico() {
   const [addendaModalOpen, setAddendaModalOpen] = useState(false);
   const [selectedMovimento, setSelectedMovimento] = useState<MovimentoComDetalhes | null>(null);
   const [editAdendaId, setEditAdendaId] = useState<string | null>(null);
+  const [deletingAdendaId, setDeletingAdendaId] = useState<string | null>(null);
   const [motivoCancelamento, setMotivoCancelamento] = useState('');
 
   // For non-admin users, always filter by their local
@@ -85,6 +89,24 @@ export default function Historico() {
 
   const { data: locais } = useLocaisAtivos();
   const { data: profiles } = useProfiles();
+
+  const handleDeleteAdenda = async (adendaId: string) => {
+    if (!window.confirm('Apagar esta adenda? Esta ação não pode ser revertida.')) return;
+
+    try {
+      setDeletingAdendaId(adendaId);
+      await deleteAdenda.mutateAsync({ adendaId });
+      toast({ title: 'Adenda apagada' });
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao apagar adenda',
+        description: error?.message || 'Não foi possível apagar a adenda.',
+        variant: 'destructive',
+      });
+    } finally {
+      setDeletingAdendaId(null);
+    }
+  };
 
   // Build lookup maps
   const locaisMap = useMemo(() => {
@@ -488,6 +510,20 @@ export default function Historico() {
                                                   <Pencil className="w-3 h-3" />
                                                   Editar
                                                 </Button>
+                                               <Button
+                                                 variant="ghost"
+                                                 size="sm"
+                                                 className="h-6 px-1.5 gap-1 text-[10px] text-destructive hover:text-destructive hover:bg-destructive/10"
+                                                 onClick={() => handleDeleteAdenda(ax.id)}
+                                                 disabled={deletingAdendaId === ax.id}
+                                               >
+                                                 {deletingAdendaId === ax.id ? (
+                                                   <Loader2 className="w-3 h-3 animate-spin" />
+                                                 ) : (
+                                                   <Trash2 className="w-3 h-3" />
+                                                 )}
+                                                 Apagar
+                                               </Button>
                                               )}
                                             </div>
                                           </div>
