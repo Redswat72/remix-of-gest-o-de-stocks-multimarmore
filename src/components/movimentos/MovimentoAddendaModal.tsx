@@ -37,8 +37,8 @@ export function MovimentoAddendaModal({ open, onOpenChange, movimento }: Addenda
   const supabase = useSupabaseEmpresa();
   const createAdenda = useCreateAdenda();
   const updateAdenda = useUpdateAdenda();
-  const { user, profile, isSuperadmin } = useAuth();
-  const canEdit = isSuperadmin || canEditAdendas(user?.email, profile?.nome);
+  const { user, profile, isSuperadmin, isAdmin } = useAuth();
+  const canEdit = isSuperadmin || isAdmin || canEditAdendas(user?.email, profile?.nome);
 
   const [estado, setEstado] = useState<EstadoAdenda>('faturado');
   const [descricao, setDescricao] = useState('');
