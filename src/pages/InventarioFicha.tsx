@@ -310,6 +310,13 @@ function DetailRow({ label, value }: { label: string; value: string | number | n
   );
 }
 
+function anoEntrada(entrada_stock: string | null | undefined): string | null {
+  if (!entrada_stock) return null;
+  const y = String(entrada_stock).slice(0, 4);
+  return /^\d{4}$/.test(y) ? y : null;
+}
+
+
 function BlocoDetails({ data }: { data: Bloco }) {
   const t = useAppT();
   const { podeVerValores } = usePermissoes();
