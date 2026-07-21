@@ -58,7 +58,7 @@ function getPhotoSlots(forma: FormaInventario, data: Bloco | Chapa | Ladrilho, t
   ];
 }
 
-type EditableField = { label: string; field: string; value: string | number | null; type: 'text' | 'number'; operadorEditable?: boolean };
+type EditableField = { label: string; field: string; value: string | number | null; type: 'text' | 'number' | 'date'; operadorEditable?: boolean };
 
 function getEditableFields(forma: FormaInventario, data: Bloco | Chapa | Ladrilho, t: (key: string) => string): EditableField[] {
   if (forma === 'bloco') {
