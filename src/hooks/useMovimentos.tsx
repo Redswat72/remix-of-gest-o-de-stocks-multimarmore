@@ -316,3 +316,41 @@ export function useCreateAdenda() {
   });
 }
 
+export function useUpdateAdenda() {
+  const supabase = useSupabaseEmpresa();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      adendaId,
+      descricao,
+      estadoOperacao,
+      documentos,
+    }: {
+      adendaId: string;
+      descricao: string;
+      estadoOperacao: import('@/types/database').EstadoAdenda;
+      documentos: { url: string; nome: string; tipo?: string }[];
+    }) => {
+      const { data, error } = await supabase
+        .from('movimento_adendas')
+        .update({
+          descricao,
+          estado_operacao: estadoOperacao,
+          documentos: documentos ?? [],
+        } as any)
+        .eq('id', adendaId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['movimentos'] });
+      queryClient.invalidateQueries({ queryKey: ['movimentos-validar'] });
+      queryClient.invalidateQueries({ queryKey: ['auditoria'] });
+    },
+  });
+}
+
