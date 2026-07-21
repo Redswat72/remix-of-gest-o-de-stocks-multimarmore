@@ -850,6 +850,8 @@
       "pieces": "Pieces",
       "origin": "Origin",
       "supplier": "Supplier",
+      "entryYear": "Entry Year",
+
       "dimensions": "Dimensions",
       "butchNo": "Batch No",
       "finish": "Finish",
