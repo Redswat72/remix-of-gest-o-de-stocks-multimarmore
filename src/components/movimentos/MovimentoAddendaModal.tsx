@@ -387,9 +387,21 @@ export function MovimentoAddendaModal({ open, onOpenChange, movimento, initialEd
                               </Button>
                             </div>
                           ) : (
-                            <Button size="sm" variant="ghost" className="h-7 px-2 gap-1 text-xs" onClick={() => startEdit(ad)}>
-                              <Pencil className="w-3.5 h-3.5" /> Editar
-                            </Button>
+                            <div className="flex items-center gap-1">
+                              <Button size="sm" variant="ghost" className="h-7 px-2 gap-1 text-xs" onClick={() => startEdit(ad)}>
+                                <Pencil className="w-3.5 h-3.5" /> Editar
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-7 px-2 gap-1 text-xs text-destructive hover:text-destructive hover:bg-destructive/10"
+                                onClick={() => handleDelete(ad)}
+                                disabled={deletingId === ad.id}
+                              >
+                                {deletingId === ad.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                                Apagar
+                              </Button>
+                            </div>
                           )
                         )}
                       </div>
