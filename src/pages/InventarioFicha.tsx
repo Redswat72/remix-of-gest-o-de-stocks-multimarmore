@@ -394,6 +394,7 @@ function LadrilhoDetails({ data }: { data: Ladrilho }) {
       <DetailRow label={t('inventory.detail.variety')} value={data.variedade} />
       <DetailRow label={t('inventory.detail.dimensions')} value={data.dimensoes} />
       <DetailRow label={t('inventory.detail.butchNo')} value={data.butch_no} />
+      <DetailRow label={t('inventory.detail.supplier')} value={(data as any).fornecedor} />
       <Separator />
       <DetailRow label={t('inventory.detail.pieces')} value={data.num_pecas} />
       <DetailRow label={t('inventory.detail.area')} value={formatNumber(data.quantidade_m2) || '—'} />
