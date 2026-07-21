@@ -50,6 +50,17 @@ export function MovimentoAddendaModal({ open, onOpenChange, movimento, initialEd
   const [editDescricao, setEditDescricao] = useState('');
   const [savingEdit, setSavingEdit] = useState(false);
 
+  useEffect(() => {
+    if (open && initialEditAdendaId && movimento?.adendas) {
+      const ad = movimento.adendas.find((a: any) => a.id === initialEditAdendaId);
+      if (ad) {
+        setEditingId(ad.id);
+        setEditEstado(((ad as any).estado_operacao ?? (ad as any).estado_validacao) as EstadoAdenda);
+        setEditDescricao((ad as any).descricao ?? '');
+      }
+    }
+  }, [open, initialEditAdendaId, movimento]);
+
   if (!movimento) return null;
 
   const startEdit = (ad: any) => {
