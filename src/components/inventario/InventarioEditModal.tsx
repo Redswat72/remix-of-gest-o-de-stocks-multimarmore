@@ -109,6 +109,7 @@ function getEditableFields(forma: FormaInventario, data: Bloco | Chapa | Ladrilh
   return [
     { label: t('inventory.edit.fields.variety'), field: 'variedade', value: d.variedade, type: 'text' },
     { label: t('inventory.edit.fields.yard'), field: 'parque', value: d.parque, type: 'text' },
+    { label: t('inventory.edit.fields.supplier'), field: 'fornecedor', value: (d as any).fornecedor ?? null, type: 'text' },
     { label: t('inventory.edit.fields.dimensions'), field: 'dimensoes', value: d.dimensoes, type: 'text' },
     { label: t('inventory.edit.fields.numPieces'), field: 'num_pecas', value: d.num_pecas, type: 'number' },
     { label: t('inventory.edit.fields.areaM2'), field: 'quantidade_m2', value: d.quantidade_m2, type: 'number' },
