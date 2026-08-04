@@ -1,11 +1,12 @@
 import * as XLSX from 'xlsx';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import type { Bloco, Chapa, Ladrilho } from '@/types/inventario';
 
 interface ExportOptions {
   empresaNome: string;
   corHeader: string;
 }
+
+type Row = Record<string, unknown>;
 
 function hexToArgb(hex: string): string {
   return 'FF' + hex.replace('#', '').toUpperCase();
@@ -25,7 +26,7 @@ function applyHeaderStyle(ws: XLSX.WorkSheet, colCount: number, headerColor: str
   }
 }
 
-function autoWidth(ws: XLSX.WorkSheet, data: Record<string, unknown>[], headers: string[]) {
+function autoWidth(ws: XLSX.WorkSheet, data: Row[], headers: string[]) {
   ws['!cols'] = headers.map((h) => {
     let max = h.length;
     data.forEach(row => {
@@ -48,96 +49,102 @@ function addTotalsRow(ws: XLSX.WorkSheet, rowIndex: number, totals: Record<numbe
   ws['!ref'] = XLSX.utils.encode_range(range);
 }
 
+/** Converte snake_case em rótulo legível: quantidade_kg -> "Quantidade Kg" */
+function prettyLabel(key: string): string {
+  return key
+    .split('_')
+    .map(p => (p.length <= 2 ? p.toUpperCase() : p.charAt(0).toUpperCase() + p.slice(1)))
+    .join(' ');
+}
+
+/** Busca todas as linhas (contorna o limite de 1000 do PostgREST) */
+async function fetchAll(supabase: SupabaseClient, table: string): Promise<Row[]> {
+  const PAGE = 1000;
+  let from = 0;
+  const all: Row[] = [];
+  while (true) {
+    const { data, error } = await supabase
+      .from(table)
+      .select('*')
+      .order('id', { ascending: true })
+      .range(from, from + PAGE - 1);
+    if (error) throw error;
+    if (!data || data.length === 0) break;
+    all.push(...(data as Row[]));
+    if (data.length < PAGE) break;
+    from += PAGE;
+  }
+  return all;
+}
+
+/** Cria uma folha com TODAS as colunas existentes nos registos */
+function buildSheet(wb: XLSX.WorkBook, sheetName: string, rows: Row[], corHeader: string) {
+  if (rows.length === 0) return;
+
+  // Reunir todas as chaves presentes em qualquer registo
+  const keys: string[] = [];
+  rows.forEach(r => Object.keys(r).forEach(k => { if (!keys.includes(k)) keys.push(k); }));
+
+  const headers = keys.map(prettyLabel);
+
+  const mapped: Row[] = rows.map(r => {
+    const out: Row = {};
+    keys.forEach((k, i) => {
+      const v = r[k];
+      out[headers[i]] =
+        v === null || v === undefined
+          ? ''
+          : typeof v === 'object'
+            ? JSON.stringify(v)
+            : v;
+    });
+    return out;
+  });
+
+  const ws = XLSX.utils.json_to_sheet(mapped, { header: headers });
+  applyHeaderStyle(ws, headers.length, corHeader);
+  autoWidth(ws, mapped, headers);
+
+  // Totais automáticos para colunas numéricas
+  const totals: Record<number, number | string> = { 0: 'TOTAIS' };
+  headers.forEach((h, i) => {
+    if (i === 0) return;
+    const nums = mapped.map(r => r[h]).filter(v => typeof v === 'number') as number[];
+    if (nums.length > 0 && nums.length === mapped.filter(r => r[h] !== '').length) {
+      totals[i] = nums.reduce((s, n) => s + n, 0);
+    }
+  });
+  addTotalsRow(ws, mapped.length + 1, totals, headers.length);
+
+  XLSX.utils.book_append_sheet(wb, ws, sheetName);
+}
+
 export async function exportStockCompleto(supabase: SupabaseClient, opts: ExportOptions) {
-  // Fetch all 3 tables in parallel
-  const [blocosRes, chapasRes, ladrilhoRes] = await Promise.all([
-    supabase.from('blocos').select('*').order('created_at', { ascending: false }),
-    supabase.from('chapas').select('*').order('created_at', { ascending: false }),
-    supabase.from('ladrilho').select('*').order('created_at', { ascending: false }),
+  const [blocos, chapas, ladrilho] = await Promise.all([
+    fetchAll(supabase, 'blocos'),
+    fetchAll(supabase, 'chapas'),
+    fetchAll(supabase, 'ladrilho'),
   ]);
 
-  if (blocosRes.error) throw blocosRes.error;
-  if (chapasRes.error) throw chapasRes.error;
-  if (ladrilhoRes.error) throw ladrilhoRes.error;
-
   const wb = XLSX.utils.book_new();
-
-  // ─── BLOCOS SHEET ──────────────────────────────
-  const blocosData = (blocosRes.data || []) as Bloco[];
-  if (blocosData.length > 0) {
-    const blocosRows = blocosData.map(b => ({
-      'ID MM': b.id_mm,
-      'Parque': b.parque,
-      'Variedade': b.variedade ?? '',
-      'Origem': b.bloco_origem ?? '',
-      'Peso (kg)': b.quantidade_kg ?? 0,
-      'Preço/kg (€)': b.preco_unitario ?? 0,
-      'Valor (€)': b.valor_inventario ?? 0,
-    }));
-    const headers = Object.keys(blocosRows[0]);
-    const ws = XLSX.utils.json_to_sheet(blocosRows);
-    applyHeaderStyle(ws, headers.length, opts.corHeader);
-    autoWidth(ws, blocosRows, headers);
-    const totalKg = blocosRows.reduce((s, b) => s + (b['Peso (kg)'] || 0), 0);
-    const totalValor = blocosRows.reduce((s, b) => s + (b['Valor (€)'] || 0), 0);
-    addTotalsRow(ws, blocosData.length + 1, { 0: 'TOTAIS', 4: totalKg, 6: totalValor }, headers.length);
-    XLSX.utils.book_append_sheet(wb, ws, 'Blocos');
-  }
-
-  // ─── CHAPAS SHEET ──────────────────────────────
-  const chapasData = (chapasRes.data || []) as Chapa[];
-  if (chapasData.length > 0) {
-    const chapasRows = chapasData.map(c => ({
-      'ID MM': c.id_mm,
-      'Bundle/Parga': c.bundle_id ?? '',
-      'Parque': c.parque,
-      'Variedade': c.variedade ?? '',
-      'Chapas': c.num_chapas ?? 0,
-      'm²': c.quantidade_m2 ?? 0,
-      'Preço/m² (€)': c.preco_unitario ?? 0,
-      'Valor (€)': c.valor_inventario ?? 0,
-    }));
-    const headers = Object.keys(chapasRows[0]);
-    const ws = XLSX.utils.json_to_sheet(chapasRows);
-    applyHeaderStyle(ws, headers.length, opts.corHeader);
-    autoWidth(ws, chapasRows, headers);
-    const totalChapas = chapasRows.reduce((s, c) => s + (c['Chapas'] || 0), 0);
-    const totalM2 = chapasRows.reduce((s, c) => s + (c['m²'] || 0), 0);
-    const totalValor = chapasRows.reduce((s, c) => s + (c['Valor (€)'] || 0), 0);
-    addTotalsRow(ws, chapasData.length + 1, { 0: 'TOTAIS', 4: totalChapas, 5: totalM2, 7: totalValor }, headers.length);
-    XLSX.utils.book_append_sheet(wb, ws, 'Chapas');
-  }
-
-  // ─── LADRILHOS SHEET ───────────────────────────
-  const ladrilhoData = (ladrilhoRes.data || []) as Ladrilho[];
-  if (ladrilhoData.length > 0) {
-    const ladrilhoRows = ladrilhoData.map(l => ({
-      'Variedade': l.variedade ?? '',
-      'Dimensões': l.dimensoes ?? '',
-      'Butch No': l.butch_no ?? '',
-      'Peças': l.num_pecas ?? 0,
-      'm²': l.quantidade_m2 ?? 0,
-      'Peso (kg)': l.peso ?? 0,
-      'Preço/m² (€)': l.preco_unitario ?? 0,
-      'Valor (€)': l.valor_inventario ?? 0,
-    }));
-    const headers = Object.keys(ladrilhoRows[0]);
-    const ws = XLSX.utils.json_to_sheet(ladrilhoRows);
-    applyHeaderStyle(ws, headers.length, opts.corHeader);
-    autoWidth(ws, ladrilhoRows, headers);
-    const totalPecas = ladrilhoRows.reduce((s, l) => s + (l['Peças'] || 0), 0);
-    const totalM2 = ladrilhoRows.reduce((s, l) => s + (l['m²'] || 0), 0);
-    const totalPeso = ladrilhoRows.reduce((s, l) => s + (l['Peso (kg)'] || 0), 0);
-    const totalValor = ladrilhoRows.reduce((s, l) => s + (l['Valor (€)'] || 0), 0);
-    addTotalsRow(ws, ladrilhoData.length + 1, { 0: 'TOTAIS', 3: totalPecas, 4: totalM2, 5: totalPeso, 7: totalValor }, headers.length);
-    XLSX.utils.book_append_sheet(wb, ws, 'Ladrilhos');
-  }
-
+  buildSheet(wb, 'Blocos', blocos, opts.corHeader);
+  buildSheet(wb, 'Chapas', chapas, opts.corHeader);
+  buildSheet(wb, 'Ladrilhos', ladrilho, opts.corHeader);
 
   if (wb.SheetNames.length === 0) {
     throw new Error('Sem dados para exportar');
   }
 
   const dateStr = new Date().toISOString().split('T')[0];
-  XLSX.writeFile(wb, `stock_completo_${opts.empresaNome.toLowerCase()}_${dateStr}.xlsx`);
+  const fname = `stock_completo_${opts.empresaNome.toLowerCase()}_${dateStr}.xlsx`;
+  const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+  const blob = new Blob([wbout], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = fname;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
