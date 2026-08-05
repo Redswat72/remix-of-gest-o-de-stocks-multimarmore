@@ -1,5 +1,6 @@
 import * as XLSX from 'xlsx';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { formatChapaDimensoes } from '@/lib/chapaDimensoes';
 
 interface ExportOptions {
   empresaNome: string;
@@ -126,9 +127,15 @@ export async function exportStockCompleto(supabase: SupabaseClient, opts: Export
     fetchAll(supabase, 'ladrilho'),
   ]);
 
+  // Dimensões consolidadas (pargas ou, em fallback, largura/altura)
+  const chapasComDim = chapas.map(c => ({
+    ...c,
+    dimensoes_chapa: formatChapaDimensoes(c),
+  }));
+
   const wb = XLSX.utils.book_new();
   buildSheet(wb, 'Blocos', blocos, opts.corHeader);
-  buildSheet(wb, 'Chapas', chapas, opts.corHeader);
+  buildSheet(wb, 'Chapas', chapasComDim, opts.corHeader);
   buildSheet(wb, 'Ladrilhos', ladrilho, opts.corHeader);
 
   if (wb.SheetNames.length === 0) {

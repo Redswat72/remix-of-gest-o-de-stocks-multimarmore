@@ -16,6 +16,7 @@ import { PARQUES_OPTIONS } from "@/lib/parques";
 import InventarioDetailModal from "@/components/inventario/InventarioDetailModal";
 import { useAppT } from "@/hooks/useAppT";
 import { formatCurrency, formatNumber } from "@/lib/format";
+import { formatChapaDimensoes } from "@/lib/chapaDimensoes";
 
 export default function Chapas() {
   const t = useAppT();
@@ -93,6 +94,7 @@ export default function Chapas() {
               <TableHead>{t('inventory.col.yard')}</TableHead>
               <TableHead>{t('inventory.col.variety')}</TableHead>
               <TableHead>{t('inventory.col.finish')}</TableHead>
+              <TableHead>C×A×E (cm)</TableHead>
               <TableHead className="text-right">{t('inventory.col.numSlabs')}</TableHead>
               <TableHead className="text-right">{t('inventory.col.area')}</TableHead>
               {podeVerValores && <TableHead className="text-right">{t('inventory.col.pricePerM2')}</TableHead>}
@@ -107,6 +109,7 @@ export default function Chapas() {
                 <TableCell><Badge variant="outline">{chapa.parque}</Badge></TableCell>
                 <TableCell>{chapa.variedade || "—"}</TableCell>
                 <TableCell>{chapa.acabamento || "—"}</TableCell>
+                <TableCell>{formatChapaDimensoes(chapa as unknown as Record<string, unknown>) || "—"}</TableCell>
                 <TableCell className="text-right">{chapa.num_chapas || "—"}</TableCell>
                 <TableCell className="text-right">{formatNumber(chapa.quantidade_m2) || '—'}</TableCell>
                 {podeVerValores && <TableCell className="text-right">{formatCurrency(chapa.preco_unitario) || '—'}</TableCell>}
