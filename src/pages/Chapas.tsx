@@ -16,6 +16,7 @@ import { PARQUES_OPTIONS } from "@/lib/parques";
 import InventarioDetailModal from "@/components/inventario/InventarioDetailModal";
 import { useAppT } from "@/hooks/useAppT";
 import { formatCurrency, formatNumber } from "@/lib/format";
+import { formatChapaDimensoes } from "@/lib/chapaDimensoes";
 
 export default function Chapas() {
   const t = useAppT();
