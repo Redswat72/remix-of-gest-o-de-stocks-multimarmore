@@ -108,6 +108,7 @@ export default function Chapas() {
                 <TableCell><Badge variant="outline">{chapa.parque}</Badge></TableCell>
                 <TableCell>{chapa.variedade || "—"}</TableCell>
                 <TableCell>{chapa.acabamento || "—"}</TableCell>
+                <TableCell>{formatChapaDimensoes(chapa as unknown as Record<string, unknown>) || "—"}</TableCell>
                 <TableCell className="text-right">{chapa.num_chapas || "—"}</TableCell>
                 <TableCell className="text-right">{formatNumber(chapa.quantidade_m2) || '—'}</TableCell>
                 {podeVerValores && <TableCell className="text-right">{formatCurrency(chapa.preco_unitario) || '—'}</TableCell>}
