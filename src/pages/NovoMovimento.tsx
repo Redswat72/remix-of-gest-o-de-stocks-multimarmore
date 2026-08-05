@@ -34,6 +34,7 @@ export default function NovoMovimento() {
   const supabaseEmpresa = useSupabaseEmpresa();
   const t = useAppT();
   const enumLabel = useEnumLabel();
+  const { entradaParqueRestrito } = usePermissoes();
 
   const STEPS = [
     { id: 1, title: t('movements.steps.tipo.title'), description: t('movements.steps.tipo.description') },
@@ -99,7 +100,6 @@ export default function NovoMovimento() {
   );
   const { data: clientes } = useClientes();
   const { data: locais } = useLocaisAtivos();
-  const { entradaParqueRestrito } = usePermissoes();
   const localRestrito = entradaParqueRestrito
     ? locais?.find(l => l.codigo === entradaParqueRestrito)
     : undefined;
