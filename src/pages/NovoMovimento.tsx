@@ -45,7 +45,7 @@ export default function NovoMovimento() {
   ];
 
   // Apenas operadores e superadmins podem registar movimentos
-  if (!hasRole('operador') && !isSuperadmin) {
+  if (!hasRole('operador') && !isSuperadmin && !entradaParqueRestrito) {
     return <Navigate to="/" replace />;
   }
 
