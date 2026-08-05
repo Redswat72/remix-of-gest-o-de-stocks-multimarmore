@@ -1,5 +1,6 @@
 import * as XLSX from 'xlsx';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { formatChapaDimensoes } from '@/lib/chapaDimensoes';
 
 interface ExportOptions {
   empresaNome: string;
