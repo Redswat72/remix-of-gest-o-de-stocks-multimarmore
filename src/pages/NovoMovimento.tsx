@@ -22,6 +22,7 @@ import type { TipoMovimento, TipoDocumento, OrigemMaterial, FormaProduto, Movime
 import { PhotoUploadField } from '@/components/movimentos/PhotoUploadField';
 import { useAppT } from '@/hooks/useAppT';
 import { useEnumLabel } from '@/lib/enumLabels';
+import { usePermissoes } from '@/hooks/usePermissoes';
 
 const PEDREIRAS = ['Del Rey', 'Mol', 'Olival do Pires'];
 
@@ -33,6 +34,7 @@ export default function NovoMovimento() {
   const supabaseEmpresa = useSupabaseEmpresa();
   const t = useAppT();
   const enumLabel = useEnumLabel();
+  const { entradaParqueRestrito } = usePermissoes();
 
   const STEPS = [
     { id: 1, title: t('movements.steps.tipo.title'), description: t('movements.steps.tipo.description') },
@@ -44,7 +46,7 @@ export default function NovoMovimento() {
   ];
 
   // Apenas operadores e superadmins podem registar movimentos
-  if (!hasRole('operador') && !isSuperadmin) {
+  if (!hasRole('operador') && !isSuperadmin && !entradaParqueRestrito) {
     return <Navigate to="/" replace />;
   }
 
@@ -98,6 +100,10 @@ export default function NovoMovimento() {
   );
   const { data: clientes } = useClientes();
   const { data: locais } = useLocaisAtivos();
+  const localRestrito = entradaParqueRestrito
+    ? locais?.find(l => l.codigo === entradaParqueRestrito)
+    : undefined;
+  const locaisEntrada = localRestrito ? [localRestrito] : locais;
 
   // Stock validation
   const { data: stockDisponivel } = useStockProdutoLocal(
@@ -111,10 +117,14 @@ export default function NovoMovimento() {
 
   // Set default local for entrada
   useEffect(() => {
+    if (tipo === 'entrada' && localRestrito) {
+      setNovoProdutoParqueDestinoId(localRestrito.id);
+      return;
+    }
     if (tipo === 'entrada' && userLocal && !isAdmin && !novoProdutoParqueDestinoId) {
       setNovoProdutoParqueDestinoId(userLocal.id);
     }
-  }, [tipo, userLocal, isAdmin]);
+  }, [tipo, userLocal, isAdmin, localRestrito]);
 
   const canProceed = (): boolean => {
     switch (step) {
@@ -431,6 +441,10 @@ export default function NovoMovimento() {
     }
 
     setTimeout(() => {
+      if (newTipo === 'entrada' && localRestrito) {
+        setNovoProdutoParqueDestinoId(localRestrito.id);
+        return;
+      }
       if (userLocal && !isAdmin) {
         if (newTipo === 'entrada') {
           setNovoProdutoParqueDestinoId(userLocal.id);
@@ -834,18 +848,23 @@ export default function NovoMovimento() {
                 <Select
                   value={novoProdutoParqueDestinoId}
                   onValueChange={setNovoProdutoParqueDestinoId}
-                  disabled={!isAdmin && !!userLocal}
+                  disabled={!!localRestrito || (!isAdmin && !!userLocal)}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder={t('movements.parqueDestino.placeholder')} />
                   </SelectTrigger>
                   <SelectContent>
-                    {locais?.map(l => (
+                    {locaisEntrada?.map(l => (
                       <SelectItem key={l.id} value={l.id}>{l.nome}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                {!isAdmin && userLocal && (
+                {localRestrito && (
+                  <p className="text-sm text-muted-foreground">
+                    {localRestrito.codigo} — {localRestrito.nome}
+                  </p>
+                )}
+                {!localRestrito && !isAdmin && userLocal && (
                   <p className="text-sm text-muted-foreground">
                     {t('movements.parqueDestino.associado', { nome: userLocal.nome })}
                   </p>
