@@ -93,6 +93,7 @@ export default function Chapas() {
               <TableHead>{t('inventory.col.yard')}</TableHead>
               <TableHead>{t('inventory.col.variety')}</TableHead>
               <TableHead>{t('inventory.col.finish')}</TableHead>
+              <TableHead>C×A×E (cm)</TableHead>
               <TableHead className="text-right">{t('inventory.col.numSlabs')}</TableHead>
               <TableHead className="text-right">{t('inventory.col.area')}</TableHead>
               {podeVerValores && <TableHead className="text-right">{t('inventory.col.pricePerM2')}</TableHead>}
