@@ -872,6 +872,7 @@
       "editSlab": "Edit Slab",
       "editTile": "Edit Tile",
       "operatorNote": "You can only edit the dimensions and weight of this block.",
+      "photosOnlyNote": "You can only manage the photos of this record.",
       "photos": "Photos",
       "noPhotos": "No photos.",
       "updatedSuccess": "Item updated successfully",

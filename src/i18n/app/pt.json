@@ -872,6 +872,7 @@
       "editSlab": "Editar Chapa",
       "editTile": "Editar Ladrilho",
       "operatorNote": "Podes editar apenas as dimensões e o peso deste bloco.",
+      "photosOnlyNote": "Podes apenas gerir as fotografias deste registo.",
       "photos": "Fotografias",
       "noPhotos": "Sem fotografias.",
       "updatedSuccess": "Item atualizado com sucesso",
