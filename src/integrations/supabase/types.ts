@@ -978,6 +978,10 @@ export type Database = {
         Args: { p_id_mm: string; p_parque_destino: string; p_tipo: string }
         Returns: undefined
       }
+      update_item_fotos: {
+        Args: { p_fotos: Json; p_id: string; p_tabela: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "operador" | "admin" | "superadmin" | "area_comercial"
