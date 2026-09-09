@@ -170,6 +170,19 @@ export default function InventarioEditModal({ forma, data, itemId, photosOnly = 
 
   const updateMutation = useMutation({
     mutationFn: async (updates: Record<string, unknown>) => {
+      if (photosOnly) {
+        const fotos: Record<string, unknown> = {};
+        Object.entries(updates).forEach(([k, v]) => {
+          if (PHOTO_FIELDS.has(k)) fotos[k] = v;
+        });
+        const { error } = await supabase.rpc('update_item_fotos', {
+          p_tabela: tableName,
+          p_id: itemId,
+          p_fotos: fotos,
+        });
+        if (error) throw error;
+        return;
+      }
       const { error } = await supabase
         .from(tableName)
         .update(updates)
