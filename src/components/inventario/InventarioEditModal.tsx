@@ -273,12 +273,17 @@ export default function InventarioEditModal({ forma, data, itemId, photosOnly = 
               {t('inventory.edit.operatorNote')}
             </p>
           )}
+          {photosOnly && (
+            <p className="text-xs text-muted-foreground">
+              {t('inventory.edit.photosOnlyNote', { defaultValue: 'Pode apenas gerir as fotografias deste registo.' })}
+            </p>
+          )}
         </DialogHeader>
 
         <div className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {editableFields.map(f => {
-              const locked = isOperador && !f.operadorEditable;
+              const locked = photosOnly || (isOperador && !f.operadorEditable);
               return (
                 <div key={f.field} className="space-y-1">
                   <Label className="flex items-center gap-1">
@@ -306,9 +311,9 @@ export default function InventarioEditModal({ forma, data, itemId, photosOnly = 
             <h3 className="font-semibold mb-3 flex items-center gap-2">
               <ImageIcon className="h-4 w-4" />
               {t('inventory.edit.photos')}
-              {isOperador && <Lock className="h-3 w-3 text-muted-foreground" />}
+              {isOperador && !photosOnly && <Lock className="h-3 w-3 text-muted-foreground" />}
             </h3>
-            {isOperador ? (
+            {isOperador && !photosOnly ? (
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 {photoSlots.filter(s => photoUrls[s.field]).length === 0 ? (
                   <p className="text-sm text-muted-foreground col-span-full">{t('inventory.edit.noPhotos')}</p>
