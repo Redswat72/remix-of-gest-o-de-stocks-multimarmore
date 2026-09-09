@@ -131,16 +131,25 @@ interface InventarioEditModalProps {
   forma: FormaInventario;
   data: Bloco | Chapa | Ladrilho;
   itemId: string;
+  photosOnly?: boolean;
 }
 
-export default function InventarioEditModal({ forma, data, itemId }: InventarioEditModalProps) {
+const PHOTO_FIELDS = new Set([
+  'foto1_url', 'foto2_url', 'foto3_url', 'foto4_url', 'foto_amostra_url',
+  'parga1_foto_primeira', 'parga1_foto_ultima',
+  'parga2_foto_primeira', 'parga2_foto_ultima',
+  'parga3_foto_primeira', 'parga3_foto_ultima',
+  'parga4_foto_primeira', 'parga4_foto_ultima',
+]);
+
+export default function InventarioEditModal({ forma, data, itemId, photosOnly = false }: InventarioEditModalProps) {
   const t = useAppT();
   const [open, setOpen] = useState(false);
   const supabase = useSupabaseEmpresa();
   const queryClient = useQueryClient();
   const { uploadImage, isUploading } = useImageUpload();
   const { hasRole, isAdmin } = useAuth();
-  const isOperador = hasRole('operador') && !isAdmin && (forma === 'bloco' || forma === 'chapa');
+  const isOperador = !photosOnly && hasRole('operador') && !isAdmin && (forma === 'bloco' || forma === 'chapa');
 
   const tableName = forma === 'bloco' ? 'blocos' : forma === 'chapa' ? 'chapas' : 'ladrilho';
 
