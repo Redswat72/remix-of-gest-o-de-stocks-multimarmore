@@ -221,6 +221,14 @@ export default function InventarioEditModal({ forma, data, itemId, photosOnly = 
   const handleSave = () => {
     const updates: Record<string, unknown> = {};
 
+    if (photosOnly) {
+      photoSlots.forEach(s => {
+        updates[s.field] = photoUrls[s.field] || null;
+      });
+      updateMutation.mutate(updates);
+      return;
+    }
+
     editableFields.forEach(f => {
       if (isOperador && !f.operadorEditable) return;
       const newVal = fieldValues[f.field];
