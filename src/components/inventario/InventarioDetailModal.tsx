@@ -42,7 +42,8 @@ export default function InventarioDetailModal({ open, onOpenChange, forma, itemI
   const { podeVerValores } = usePermissoes();
   const { isSuperadmin, isAdmin, hasRole } = useAuth();
   const isOperador = hasRole('operador');
-  const canEdit = isSuperadmin || isAdmin || (isOperador && (forma === 'bloco' || forma === 'chapa'));
+  const isComercial = hasRole('area_comercial') && !isAdmin && !isSuperadmin;
+  const canEdit = isSuperadmin || isAdmin || isComercial || (isOperador && (forma === 'bloco' || forma === 'chapa'));
   const queryClient = useQueryClient();
 
   const tableName = forma === 'bloco' ? 'blocos' : forma === 'chapa' ? 'chapas' : forma === 'banda' ? 'produtos' : 'ladrilho';
@@ -163,6 +164,7 @@ export default function InventarioDetailModal({ open, onOpenChange, forma, itemI
                   forma={forma as 'bloco' | 'chapa' | 'ladrilho'}
                   data={data as Bloco | Chapa | Ladrilho}
                   itemId={itemId}
+                  photosOnly={isComercial}
                 />
               )}
               <Button variant="outline" onClick={() => handleOpenChange(false)} className="ml-auto">

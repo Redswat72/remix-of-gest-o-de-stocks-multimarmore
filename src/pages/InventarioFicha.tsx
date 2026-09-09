@@ -36,7 +36,8 @@ export default function InventarioFicha() {
   const { empresaConfig, empresa } = useEmpresa();
   const { isSuperadmin, isAdmin, hasRole } = useAuth();
   const isOperador = hasRole('operador');
-  const canEdit = isSuperadmin || isAdmin || (isOperador && forma === 'bloco');
+  const isComercial = hasRole('area_comercial') && !isAdmin && !isSuperadmin;
+  const canEdit = isSuperadmin || isAdmin || isComercial || (isOperador && forma === 'bloco');
   const queryClient = useQueryClient();
 
   const tableName = forma === 'bloco' ? 'blocos' : forma === 'chapa' ? 'chapas' : 'ladrilho';
@@ -135,6 +136,7 @@ export default function InventarioFicha() {
             forma={forma as 'bloco' | 'chapa' | 'ladrilho'}
             data={data as Bloco | Chapa | Ladrilho}
             itemId={id!}
+            photosOnly={isComercial}
           />
         )}
       </div>
