@@ -29,12 +29,12 @@ const PEDREIRAS = ['Del Rey', 'Mol', 'Olival do Pires'];
 export default function NovoMovimento() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, userLocal, hasRole, isAdmin, isSuperadmin } = useAuth();
+  const { user, userLocal, isAdmin, podeRegistarMovimento } = useAuth();
   const createMovimento = useCreateMovimento();
   const supabaseEmpresa = useSupabaseEmpresa();
   const t = useAppT();
   const enumLabel = useEnumLabel();
-  const { entradaParqueRestrito } = usePermissoes();
+  const { entradaParqueRestrito, restritoAoParque, parqueOperadorId, parqueOperadorNome } = usePermissoes();
 
   const STEPS = [
     { id: 1, title: t('movements.steps.tipo.title'), description: t('movements.steps.tipo.description') },
@@ -45,8 +45,8 @@ export default function NovoMovimento() {
     { id: 6, title: t('movements.steps.confirmacao.title'), description: t('movements.steps.confirmacao.description') },
   ];
 
-  // Apenas operadores e superadmins podem registar movimentos
-  if (!hasRole('operador') && !isSuperadmin && !entradaParqueRestrito) {
+  // Operadores, admins e superadmins podem registar movimentos. Comercial não.
+  if (!podeRegistarMovimento && !entradaParqueRestrito) {
     return <Navigate to="/" replace />;
   }
 
