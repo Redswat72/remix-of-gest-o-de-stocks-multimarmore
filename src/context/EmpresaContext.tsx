@@ -26,6 +26,16 @@ export const EMPRESAS_CONFIG = {
   },
 } as const;
 
+/** Prioridade de papéis: o de maior prioridade define o comportamento do utilizador. */
+export const ROLE_PRIORITY = ['superadmin', 'admin', 'comercial', 'area_comercial', 'operador'] as const;
+
+export function pickPrimaryRole(roles: string[]): string {
+  for (const r of ROLE_PRIORITY) {
+    if (roles.includes(r)) return r === 'area_comercial' ? 'comercial' : r;
+  }
+  return 'operador';
+}
+
 interface EmpresaContextValue {
   empresa: Empresa | null;
   empresaConfig: typeof EMPRESAS_CONFIG[Empresa] | null;
@@ -33,6 +43,7 @@ interface EmpresaContextValue {
   session: Session | null;
   user: User | null;
   userRole: string | null;
+  userRoles: string[];
   loading: boolean;
   selectEmpresa: (e: Empresa) => void;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
