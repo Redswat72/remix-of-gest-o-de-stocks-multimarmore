@@ -58,7 +58,15 @@ function getPhotoSlots(forma: FormaInventario, data: Bloco | Chapa | Ladrilho, t
   ];
 }
 
-type EditableField = { label: string; field: string; value: string | number | null; type: 'text' | 'number' | 'date'; operadorEditable?: boolean };
+type EditableField = {
+  label: string;
+  field: string;
+  value: string | number | null;
+  type: 'text' | 'number' | 'date';
+  operadorEditable?: boolean;
+  /** Campo calculado automaticamente ao gravar — sempre bloqueado */
+  computed?: boolean;
+};
 
 function toDateInput(v: unknown): string | null {
   if (!v) return null;
@@ -90,8 +98,8 @@ function getEditableFields(forma: FormaInventario, data: Bloco | Chapa | Ladrilh
       { label: t('inventory.edit.fields.bundleId'), field: 'bundle_id', value: d.bundle_id, type: 'text' },
       { label: t('inventory.edit.fields.supplier'), field: 'fornecedor', value: d.fornecedor, type: 'text' },
       { label: t('inventory.edit.fields.entryDate'), field: 'entrada_stock', value: toDateInput((d as any).entrada_stock), type: 'date' },
-      { label: t('inventory.edit.fields.numSlabs'), field: 'num_chapas', value: d.num_chapas, type: 'number' },
-      { label: t('inventory.edit.fields.areaM2'), field: 'quantidade_m2', value: d.quantidade_m2, type: 'number' },
+      { label: t('inventory.edit.fields.numSlabs'), field: 'num_chapas', value: d.num_chapas, type: 'number', computed: true },
+      { label: t('inventory.edit.fields.areaM2'), field: 'quantidade_m2', value: d.quantidade_m2, type: 'number', computed: true },
       { label: t('inventory.edit.fields.pricePerM2'), field: 'preco_unitario', value: d.preco_unitario, type: 'number' },
     ];
     const row = d as unknown as Record<string, unknown>;
@@ -101,25 +109,31 @@ function getEditableFields(forma: FormaInventario, data: Bloco | Chapa | Ladrilh
       const cmp = (row[`parga${i}_comprimento`] ?? null) as number | null;
       const alt = (row[`parga${i}_altura`] ?? null) as number | null;
       const esp = (row[`parga${i}_espessura`] ?? null) as number | null;
-      if (nome || qtd != null || cmp != null || alt != null || esp != null) {
-        base.push({
-          label: `Parga ${i} — ${t('inventory.edit.fields.thicknessCm') || 'Espessura (cm)'}`,
-          field: `parga${i}_espessura`,
-          value: esp,
-          type: 'number',
-          operadorEditable: true,
-        });
-      }
+      base.push({ label: `Parga ${i} — ${t('inventory.edit.fields.quantity') || 'Quantidade'}`, field: `parga${i}_quantidade`, value: qtd, type: 'number' });
+      base.push({ label: `Parga ${i} — ${t('inventory.edit.fields.lengthCm')}`, field: `parga${i}_comprimento`, value: cmp, type: 'number' });
+      base.push({ label: `Parga ${i} — ${t('inventory.edit.fields.heightCm')}`, field: `parga${i}_altura`, value: alt, type: 'number' });
+      base.push({
+        label: `Parga ${i} — ${t('inventory.edit.fields.thicknessCm') || 'Espessura (cm)'}`,
+        field: `parga${i}_espessura`,
+        value: esp,
+        type: 'number',
+        operadorEditable: !!(nome || qtd != null || cmp != null || alt != null || esp != null),
+      });
     }
     return base;
   }
   const d = data as Ladrilho;
+  const l = d as unknown as Record<string, unknown>;
   return [
     { label: t('inventory.edit.fields.variety'), field: 'variedade', value: d.variedade, type: 'text' },
     { label: t('inventory.edit.fields.yard'), field: 'parque', value: d.parque, type: 'text' },
     { label: t('inventory.edit.fields.supplier'), field: 'fornecedor', value: (d as any).fornecedor ?? null, type: 'text' },
     { label: t('inventory.edit.fields.entryDate'), field: 'entrada_stock', value: toDateInput((d as any).entrada_stock), type: 'date' },
     { label: t('inventory.edit.fields.dimensions'), field: 'dimensoes', value: d.dimensoes, type: 'text' },
+    { label: t('inventory.edit.fields.lengthCm'), field: 'comprimento', value: (l.comprimento ?? null) as number | null, type: 'number' },
+    { label: t('inventory.edit.fields.widthCm'), field: 'largura', value: (l.largura ?? null) as number | null, type: 'number' },
+    { label: t('inventory.edit.fields.heightCm'), field: 'altura', value: (l.altura ?? null) as number | null, type: 'number' },
+    { label: t('inventory.edit.fields.thicknessCm') || 'Espessura (cm)', field: 'espessura', value: (l.espessura ?? null) as number | null, type: 'number' },
     { label: t('inventory.edit.fields.numPieces'), field: 'num_pecas', value: d.num_pecas, type: 'number' },
     { label: t('inventory.edit.fields.areaM2'), field: 'quantidade_m2', value: d.quantidade_m2, type: 'number' },
     { label: t('inventory.edit.fields.pricePerM2'), field: 'preco_unitario', value: d.preco_unitario, type: 'number' },
@@ -148,8 +162,8 @@ export default function InventarioEditModal({ forma, data, itemId, photosOnly = 
   const supabase = useSupabaseEmpresa();
   const queryClient = useQueryClient();
   const { uploadImage, isUploading } = useImageUpload();
-  const { hasRole, isAdmin } = useAuth();
-  const isOperador = !photosOnly && hasRole('operador') && !isAdmin && (forma === 'bloco' || forma === 'chapa');
+  const { isAdmin, isOperador: isOperadorRole } = useAuth();
+  const isOperador = !photosOnly && isOperadorRole && !isAdmin;
 
   const tableName = forma === 'bloco' ? 'blocos' : forma === 'chapa' ? 'chapas' : 'ladrilho';
 
@@ -230,6 +244,7 @@ export default function InventarioEditModal({ forma, data, itemId, photosOnly = 
     }
 
     editableFields.forEach(f => {
+      if (f.computed) return;
       if (isOperador && !f.operadorEditable) return;
       const newVal = fieldValues[f.field];
       if (f.type === 'number') {
@@ -241,6 +256,33 @@ export default function InventarioEditModal({ forma, data, itemId, photosOnly = 
       }
 
     });
+
+    // Recálculos automáticos
+    const num = (v: unknown) => (v == null || v === '' ? null : Number(v));
+    const current = (field: string) =>
+      field in updates ? num(updates[field]) : num((data as unknown as Record<string, unknown>)[field]);
+    const preco = current('preco_unitario');
+
+    if (forma === 'chapa') {
+      let totalChapas = 0;
+      let totalM2 = 0;
+      for (let i = 1; i <= 4; i++) {
+        const qtd = current(`parga${i}_quantidade`) ?? 0;
+        const cmp = current(`parga${i}_comprimento`) ?? 0;
+        const alt = current(`parga${i}_altura`) ?? 0;
+        totalChapas += qtd;
+        totalM2 += (qtd * cmp * alt) / 10000;
+      }
+      updates.num_chapas = totalChapas;
+      updates.quantidade_m2 = Number(totalM2.toFixed(4));
+      updates.valor_inventario = preco != null ? Number((totalM2 * preco).toFixed(2)) : null;
+    } else if (forma === 'bloco') {
+      const kg = current('quantidade_kg');
+      updates.valor_inventario = kg != null && preco != null ? Number(((kg / 1000) * preco).toFixed(2)) : null;
+    } else {
+      const m2 = current('quantidade_m2');
+      updates.valor_inventario = m2 != null && preco != null ? Number((m2 * preco).toFixed(2)) : null;
+    }
 
     if (!isOperador) {
       photoSlots.forEach(s => {
@@ -283,7 +325,7 @@ export default function InventarioEditModal({ forma, data, itemId, photosOnly = 
         <div className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {editableFields.map(f => {
-              const locked = photosOnly || (isOperador && !f.operadorEditable);
+              const locked = photosOnly || !!f.computed || (isOperador && !f.operadorEditable);
               return (
                 <div key={f.field} className="space-y-1">
                   <Label className="flex items-center gap-1">

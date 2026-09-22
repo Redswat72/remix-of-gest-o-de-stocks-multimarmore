@@ -29,12 +29,12 @@ const PEDREIRAS = ['Del Rey', 'Mol', 'Olival do Pires'];
 export default function NovoMovimento() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, userLocal, hasRole, isAdmin, isSuperadmin } = useAuth();
+  const { user, userLocal, isAdmin, podeRegistarMovimento } = useAuth();
   const createMovimento = useCreateMovimento();
   const supabaseEmpresa = useSupabaseEmpresa();
   const t = useAppT();
   const enumLabel = useEnumLabel();
-  const { entradaParqueRestrito } = usePermissoes();
+  const { entradaParqueRestrito, restritoAoParque, parqueOperadorId, parqueOperadorNome } = usePermissoes();
 
   const STEPS = [
     { id: 1, title: t('movements.steps.tipo.title'), description: t('movements.steps.tipo.description') },
@@ -45,8 +45,8 @@ export default function NovoMovimento() {
     { id: 6, title: t('movements.steps.confirmacao.title'), description: t('movements.steps.confirmacao.description') },
   ];
 
-  // Apenas operadores e superadmins podem registar movimentos
-  if (!hasRole('operador') && !isSuperadmin && !entradaParqueRestrito) {
+  // Operadores, admins e superadmins podem registar movimentos. Comercial não.
+  if (!podeRegistarMovimento && !entradaParqueRestrito) {
     return <Navigate to="/" replace />;
   }
 
@@ -121,10 +121,17 @@ export default function NovoMovimento() {
       setNovoProdutoParqueDestinoId(localRestrito.id);
       return;
     }
-    if (tipo === 'entrada' && userLocal && !isAdmin && !novoProdutoParqueDestinoId) {
-      setNovoProdutoParqueDestinoId(userLocal.id);
+    if (tipo === 'entrada' && restritoAoParque && parqueOperadorId) {
+      setNovoProdutoParqueDestinoId(parqueOperadorId);
     }
-  }, [tipo, userLocal, isAdmin, localRestrito]);
+  }, [tipo, restritoAoParque, parqueOperadorId, localRestrito]);
+
+  // Operador: origem é sempre o seu parque (transferência e saída)
+  useEffect(() => {
+    if ((tipo === 'transferencia' || tipo === 'saida') && restritoAoParque && parqueOperadorId) {
+      setLocalOrigemId(parqueOperadorId);
+    }
+  }, [tipo, restritoAoParque, parqueOperadorId]);
 
   const canProceed = (): boolean => {
     switch (step) {
@@ -214,6 +221,28 @@ export default function NovoMovimento() {
 
   const handleSubmit = async () => {
     if (!tipo || !user) return;
+
+    // Operador só pode operar no seu parque
+    if (restritoAoParque && parqueOperadorId) {
+      const parqueLabel = parqueOperadorNome ?? '';
+      if (tipo === 'entrada' && novoProdutoParqueDestinoId !== parqueOperadorId) {
+        toast({
+          title: t('movements.campoObrigatorio'),
+          description: `Como operador só pode registar movimentos no seu parque (${parqueLabel}).`,
+          variant: 'destructive',
+        });
+        return;
+      }
+      if ((tipo === 'transferencia' || tipo === 'saida') && localOrigemId !== parqueOperadorId) {
+        toast({
+          title: t('movements.campoObrigatorio'),
+          description: `A origem do movimento tem de ser o seu parque (${parqueLabel}).`,
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -848,7 +877,7 @@ export default function NovoMovimento() {
                 <Select
                   value={novoProdutoParqueDestinoId}
                   onValueChange={setNovoProdutoParqueDestinoId}
-                  disabled={!!localRestrito || (!isAdmin && !!userLocal)}
+                  disabled={!!localRestrito || restritoAoParque}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder={t('movements.parqueDestino.placeholder')} />
@@ -864,9 +893,9 @@ export default function NovoMovimento() {
                     {localRestrito.codigo} — {localRestrito.nome}
                   </p>
                 )}
-                {!localRestrito && !isAdmin && userLocal && (
+                {!localRestrito && restritoAoParque && (
                   <p className="text-sm text-muted-foreground">
-                    {t('movements.parqueDestino.associado', { nome: userLocal.nome })}
+                    {t('movements.parqueDestino.associado', { nome: parqueOperadorNome ?? '' })}
                   </p>
                 )}
               </div>
@@ -997,13 +1026,13 @@ export default function NovoMovimento() {
                     <Select
                       value={localOrigemId}
                       onValueChange={setLocalOrigemId}
-                      disabled={!isAdmin && !!userLocal}
+                      disabled={restritoAoParque}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder={t('movements.parqueOrigem.placeholderOrigem')} />
                       </SelectTrigger>
                       <SelectContent>
-                        {locais?.map(l => (
+                        {(restritoAoParque ? locais?.filter(l => l.id === parqueOperadorId) : locais)?.map(l => (
                           <SelectItem key={l.id} value={l.id} disabled={l.id === localDestinoId}>
                             {l.nome}
                           </SelectItem>
@@ -1051,13 +1080,13 @@ export default function NovoMovimento() {
                     <Select
                       value={localOrigemId}
                       onValueChange={setLocalOrigemId}
-                      disabled={!isAdmin && !!userLocal}
+                      disabled={restritoAoParque}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder={t('movements.parqueOrigem.placeholder')} />
                       </SelectTrigger>
                       <SelectContent>
-                        {locais?.map(l => (
+                        {(restritoAoParque ? locais?.filter(l => l.id === parqueOperadorId) : locais)?.map(l => (
                           <SelectItem key={l.id} value={l.id}>{l.nome}</SelectItem>
                         ))}
                       </SelectContent>

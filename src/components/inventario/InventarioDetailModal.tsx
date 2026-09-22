@@ -40,9 +40,7 @@ export default function InventarioDetailModal({ open, onOpenChange, forma, itemI
   const supabase = useSupabaseEmpresa();
   const { empresa } = useEmpresa();
   const { podeVerValores } = usePermissoes();
-  const { isSuperadmin, isAdmin, hasRole } = useAuth();
-  const isOperador = hasRole('operador');
-  const isComercial = (hasRole('area_comercial') || hasRole('comercial')) && !isAdmin && !isSuperadmin;
+  const { isSuperadmin, isAdmin, isOperador, isComercial } = useAuth();
   const canEdit = isSuperadmin || isAdmin || isComercial || (isOperador && (forma === 'bloco' || forma === 'chapa'));
   const queryClient = useQueryClient();
 

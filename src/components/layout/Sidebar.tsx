@@ -36,7 +36,7 @@ interface NavItem {
   adminOnly?: boolean;
   superadminOnly?: boolean;
   producaoOnly?: boolean;
-  operadorOnly?: boolean;
+  movimentoOnly?: boolean;
 }
 
 const navItems: NavItem[] = [
@@ -47,7 +47,7 @@ const navItems: NavItem[] = [
   { href: '/bandas', labelKey: 'nav.bandas', icon: Layers },
   { href: '/producao', labelKey: 'nav.producao', icon: Scissors, producaoOnly: true },
   { href: '/stock', labelKey: 'nav.consultarStock', icon: Boxes },
-  { href: '/movimento/novo', labelKey: 'nav.registarMovimento', icon: PlusCircle, operadorOnly: true },
+  { href: '/movimento/novo', labelKey: 'nav.registarMovimento', icon: PlusCircle, movimentoOnly: true },
   { href: '/movimentos/validar', labelKey: 'nav.movimentosValidar', icon: ShieldCheck, adminOnly: true },
   { href: '/historico', labelKey: 'nav.historico', icon: History },
   { href: '/produtos', labelKey: 'nav.produtos', icon: Boxes },
@@ -61,8 +61,8 @@ const navItems: NavItem[] = [
 export function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { profile, isAdmin, isSuperadmin, hasRole, podeVerProducao, signOut } = useAuth();
-  const podeVerLojas = isAdmin || hasRole('comercial') || hasRole('area_comercial');
+  const { profile, isAdmin, isSuperadmin, isComercial, podeVerProducao, podeRegistarMovimento, signOut } = useAuth();
+  const podeVerLojas = isAdmin || isComercial;
   const { empresaConfig } = useEmpresa();
   const [collapsed, setCollapsed] = useState(false);
   const t = useAppT();
@@ -70,7 +70,7 @@ export function Sidebar() {
   const filteredItems = navItems.filter((item) => {
     if (item.superadminOnly && !isSuperadmin) return false;
     if (item.adminOnly && !isAdmin) return false;
-    if (item.operadorOnly && !hasRole('operador') && !isSuperadmin) return false;
+    if (item.movimentoOnly && !podeRegistarMovimento) return false;
     if (item.producaoOnly && !podeVerProducao) return false;
     return true;
   });

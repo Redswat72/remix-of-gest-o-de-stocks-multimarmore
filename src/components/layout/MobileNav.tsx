@@ -31,7 +31,7 @@ const inventarioItemsBase = [
 const navItemsBase = [
   { href: '/', labelKey: 'nav.inicio', icon: Home },
   { type: 'inventario' as const, labelKey: 'nav.inventario', icon: Package },
-  { href: '/movimento/novo', labelKey: 'nav.novo', icon: PlusCircle, primary: true, operadorOnly: true },
+  { href: '/movimento/novo', labelKey: 'nav.novo', icon: PlusCircle, primary: true, movimentoOnly: true },
   { href: '/movimentos/validar', labelKey: 'nav.movimentosValidar', icon: ShieldCheck, adminOnly: true },
   { href: '/historico', labelKey: 'nav.historico', icon: History },
   { href: '/perfil', labelKey: 'nav.perfil', icon: User },
@@ -41,7 +41,7 @@ export function MobileNav() {
   const location = useLocation();
   const navigate = useNavigate();
   const [inventarioOpen, setInventarioOpen] = useState(false);
-  const { podeVerProducao, hasRole, isAdmin, isSuperadmin } = useAuth();
+  const { podeVerProducao, isAdmin, podeRegistarMovimento } = useAuth();
   const t = useAppT();
 
   const inventarioItems = inventarioItemsBase.filter(
@@ -49,7 +49,7 @@ export function MobileNav() {
   );
 
   const navItems = navItemsBase.filter((i) => {
-    if ('operadorOnly' in i && i.operadorOnly && !hasRole('operador') && !isSuperadmin) return false;
+    if ('movimentoOnly' in i && i.movimentoOnly && !podeRegistarMovimento) return false;
     if ('adminOnly' in i && i.adminOnly && !isAdmin) return false;
     return true;
   });

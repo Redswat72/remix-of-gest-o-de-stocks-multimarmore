@@ -39,7 +39,7 @@ export default function ProdutoFicha() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const t = useAppT();
-  const { hasRole, isAdmin, isSuperadmin, roles } = useAuth();
+  const { hasRole, isAdmin, isSuperadmin, roles, podeRegistarMovimento } = useAuth();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -52,7 +52,7 @@ export default function ProdutoFicha() {
 
   const canEdit = isAdmin || isSuperadmin;
   const canUploadHd = isAdmin || isSuperadmin;
-  const canCreateMovimento = roles.length > 0 && (hasRole('operador') || isSuperadmin);
+  const canCreateMovimento = podeRegistarMovimento;
 
   const FORMA_LABELS: Record<string, string> = {
     bloco: t('enums.tipoProduto.bloco'),

@@ -26,6 +26,16 @@ export const EMPRESAS_CONFIG = {
   },
 } as const;
 
+/** Prioridade de papéis: o de maior prioridade define o comportamento do utilizador. */
+export const ROLE_PRIORITY = ['superadmin', 'admin', 'comercial', 'area_comercial', 'operador'] as const;
+
+export function pickPrimaryRole(roles: string[]): string {
+  for (const r of ROLE_PRIORITY) {
+    if (roles.includes(r)) return r === 'area_comercial' ? 'comercial' : r;
+  }
+  return 'operador';
+}
+
 interface EmpresaContextValue {
   empresa: Empresa | null;
   empresaConfig: typeof EMPRESAS_CONFIG[Empresa] | null;
@@ -33,6 +43,7 @@ interface EmpresaContextValue {
   session: Session | null;
   user: User | null;
   userRole: string | null;
+  userRoles: string[];
   loading: boolean;
   selectEmpresa: (e: Empresa) => void;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
@@ -46,6 +57,7 @@ export function EmpresaProvider({ children }: { children: React.ReactNode }) {
   const [empresa, setEmpresa] = useState<Empresa | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [userRoles, setUserRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
   const empresaConfig = empresa ? EMPRESAS_CONFIG[empresa] : null;
@@ -74,7 +86,7 @@ export function EmpresaProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabaseEmpresa.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);
       if (newSession) fetchRole(supabaseEmpresa, newSession.user.id);
-      else { setUserRole(null); setLoading(false); }
+      else { setUserRole(null); setUserRoles([]); setLoading(false); }
     });
 
     return () => subscription.unsubscribe();
@@ -82,9 +94,15 @@ export function EmpresaProvider({ children }: { children: React.ReactNode }) {
 
   async function fetchRole(client: SupabaseClient, userId: string) {
     try {
-      const { data } = await client.from('user_roles').select('role').eq('user_id', userId).single();
-      setUserRole(data?.role ?? 'operador');
+      // Um utilizador pode ter VÁRIOS papéis (ex.: admin + operador).
+      // Lemos todos e usamos o de maior prioridade.
+      const { data, error } = await client.from('user_roles').select('role').eq('user_id', userId);
+      if (error) throw error;
+      const roles = ((data ?? []) as { role: string }[]).map(r => r.role).filter(Boolean);
+      setUserRoles(roles);
+      setUserRole(pickPrimaryRole(roles));
     } catch {
+      setUserRoles([]);
       setUserRole('operador');
     } finally {
       setLoading(false);
@@ -95,6 +113,7 @@ export function EmpresaProvider({ children }: { children: React.ReactNode }) {
     setEmpresa(e);
     setSession(null);
     setUserRole(null);
+    setUserRoles([]);
     localStorage.setItem(EMPRESA_STORAGE_KEY, e);
   }, []);
 
@@ -109,11 +128,12 @@ export function EmpresaProvider({ children }: { children: React.ReactNode }) {
     await supabaseEmpresa.auth.signOut();
     setSession(null);
     setUserRole(null);
+    setUserRoles([]);
   }, [supabaseEmpresa]);
 
   return (
     <EmpresaContext.Provider value={{
-      empresa, empresaConfig, supabaseEmpresa, session, user, userRole, loading, selectEmpresa, signIn, signOut,
+      empresa, empresaConfig, supabaseEmpresa, session, user, userRole, userRoles, loading, selectEmpresa, signIn, signOut,
     }}>
       {children}
     </EmpresaContext.Provider>
