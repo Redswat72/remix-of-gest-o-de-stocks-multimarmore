@@ -57,6 +57,7 @@ export function EmpresaProvider({ children }: { children: React.ReactNode }) {
   const [empresa, setEmpresa] = useState<Empresa | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
+  const [userRoles, setUserRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
 
   const empresaConfig = empresa ? EMPRESAS_CONFIG[empresa] : null;
