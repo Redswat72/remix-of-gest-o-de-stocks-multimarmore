@@ -162,8 +162,8 @@ export default function InventarioEditModal({ forma, data, itemId, photosOnly = 
   const supabase = useSupabaseEmpresa();
   const queryClient = useQueryClient();
   const { uploadImage, isUploading } = useImageUpload();
-  const { hasRole, isAdmin } = useAuth();
-  const isOperador = !photosOnly && hasRole('operador') && !isAdmin && (forma === 'bloco' || forma === 'chapa');
+  const { isAdmin, isOperador: isOperadorRole } = useAuth();
+  const isOperador = !photosOnly && isOperadorRole && !isAdmin;
 
   const tableName = forma === 'bloco' ? 'blocos' : forma === 'chapa' ? 'chapas' : 'ladrilho';
 
