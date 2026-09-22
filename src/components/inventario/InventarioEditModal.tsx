@@ -244,6 +244,7 @@ export default function InventarioEditModal({ forma, data, itemId, photosOnly = 
     }
 
     editableFields.forEach(f => {
+      if (f.computed) return;
       if (isOperador && !f.operadorEditable) return;
       const newVal = fieldValues[f.field];
       if (f.type === 'number') {
@@ -255,6 +256,33 @@ export default function InventarioEditModal({ forma, data, itemId, photosOnly = 
       }
 
     });
+
+    // Recálculos automáticos
+    const num = (v: unknown) => (v == null || v === '' ? null : Number(v));
+    const current = (field: string) =>
+      field in updates ? num(updates[field]) : num((data as unknown as Record<string, unknown>)[field]);
+    const preco = current('preco_unitario');
+
+    if (forma === 'chapa') {
+      let totalChapas = 0;
+      let totalM2 = 0;
+      for (let i = 1; i <= 4; i++) {
+        const qtd = current(`parga${i}_quantidade`) ?? 0;
+        const cmp = current(`parga${i}_comprimento`) ?? 0;
+        const alt = current(`parga${i}_altura`) ?? 0;
+        totalChapas += qtd;
+        totalM2 += (qtd * cmp * alt) / 10000;
+      }
+      updates.num_chapas = totalChapas;
+      updates.quantidade_m2 = Number(totalM2.toFixed(4));
+      updates.valor_inventario = preco != null ? Number((totalM2 * preco).toFixed(2)) : null;
+    } else if (forma === 'bloco') {
+      const kg = current('quantidade_kg');
+      updates.valor_inventario = kg != null && preco != null ? Number(((kg / 1000) * preco).toFixed(2)) : null;
+    } else {
+      const m2 = current('quantidade_m2');
+      updates.valor_inventario = m2 != null && preco != null ? Number((m2 * preco).toFixed(2)) : null;
+    }
 
     if (!isOperador) {
       photoSlots.forEach(s => {
