@@ -58,7 +58,15 @@ function getPhotoSlots(forma: FormaInventario, data: Bloco | Chapa | Ladrilho, t
   ];
 }
 
-type EditableField = { label: string; field: string; value: string | number | null; type: 'text' | 'number' | 'date'; operadorEditable?: boolean };
+type EditableField = {
+  label: string;
+  field: string;
+  value: string | number | null;
+  type: 'text' | 'number' | 'date';
+  operadorEditable?: boolean;
+  /** Campo calculado automaticamente ao gravar — sempre bloqueado */
+  computed?: boolean;
+};
 
 function toDateInput(v: unknown): string | null {
   if (!v) return null;
