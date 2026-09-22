@@ -325,7 +325,7 @@ export default function InventarioEditModal({ forma, data, itemId, photosOnly = 
         <div className="space-y-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {editableFields.map(f => {
-              const locked = photosOnly || (isOperador && !f.operadorEditable);
+              const locked = photosOnly || !!f.computed || (isOperador && !f.operadorEditable);
               return (
                 <div key={f.field} className="space-y-1">
                   <Label className="flex items-center gap-1">
