@@ -52,7 +52,7 @@ export default function ProdutoFicha() {
 
   const canEdit = isAdmin || isSuperadmin;
   const canUploadHd = isAdmin || isSuperadmin;
-  const canCreateMovimento = roles.length > 0 && (hasRole('operador') || isSuperadmin);
+  const canCreateMovimento = podeRegistarMovimento;
 
   const FORMA_LABELS: Record<string, string> = {
     bloco: t('enums.tipoProduto.bloco'),

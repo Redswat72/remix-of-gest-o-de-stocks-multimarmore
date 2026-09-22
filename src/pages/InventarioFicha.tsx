@@ -34,9 +34,7 @@ export default function InventarioFicha() {
   const navigate = useNavigate();
   const supabase = useSupabaseEmpresa();
   const { empresaConfig, empresa } = useEmpresa();
-  const { isSuperadmin, isAdmin, hasRole } = useAuth();
-  const isOperador = hasRole('operador');
-  const isComercial = (hasRole('area_comercial') || hasRole('comercial')) && !isAdmin && !isSuperadmin;
+  const { isSuperadmin, isAdmin, isOperador, isComercial } = useAuth();
   const canEdit = isSuperadmin || isAdmin || isComercial || (isOperador && forma === 'bloco');
   const queryClient = useQueryClient();
 
