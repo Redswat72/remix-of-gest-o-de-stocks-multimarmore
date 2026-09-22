@@ -1,6 +1,6 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
-import { useEmpresa } from '@/context/EmpresaContext';
+import { useEmpresa, pickPrimaryRole } from '@/context/EmpresaContext';
 import type { Profile, UserRole, AppRole, Local } from '@/types/database';
 
 interface AuthContextType {
@@ -8,6 +8,8 @@ interface AuthContextType {
   session: Session | null;
   profile: Profile | null;
   roles: AppRole[];
+  /** Papel de maior prioridade: superadmin > admin > comercial > operador */
+  primaryRole: string;
   userLocal: Local | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
@@ -16,6 +18,11 @@ interface AuthContextType {
   hasRole: (role: AppRole) => boolean;
   isAdmin: boolean;
   isSuperadmin: boolean;
+  isComercial: boolean;
+  /** Operador "puro" — limitado ao seu parque */
+  isOperador: boolean;
+  /** Pode registar movimentos: operador, admin e superadmin (nunca comercial) */
+  podeRegistarMovimento: boolean;
   podeVerProducao: boolean;
   refreshProfile: () => Promise<void>;
 }
