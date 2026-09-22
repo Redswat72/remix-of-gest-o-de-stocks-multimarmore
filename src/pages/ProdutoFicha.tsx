@@ -39,7 +39,7 @@ export default function ProdutoFicha() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const t = useAppT();
-  const { hasRole, isAdmin, isSuperadmin, roles } = useAuth();
+  const { hasRole, isAdmin, isSuperadmin, roles, podeRegistarMovimento } = useAuth();
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
