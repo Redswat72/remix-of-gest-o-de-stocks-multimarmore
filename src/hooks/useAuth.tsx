@@ -131,15 +131,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUserLocal(null);
   };
 
-  const hasRole = (role: AppRole) => roles.includes(role);
-  const isAdmin = hasRole('admin') || hasRole('superadmin');
-  const isSuperadmin = hasRole('superadmin');
-  const podeVerProducao = isAdmin || profile?.tem_producao === true;
+  // Lista efetiva de papéis (fallback para a lista lida no EmpresaContext)
+  const efetivas: string[] = roles.length > 0 ? (roles as unknown as string[]) : empresaRoles;
+  const hasRole = (role: AppRole) => efetivas.includes(role as unknown as string);
+  const primaryRole = pickPrimaryRole(efetivas);
+  const isSuperadmin = primaryRole === 'superadmin';
+  const isAdmin = primaryRole === 'superadmin' || primaryRole === 'admin';
+  const isComercial = primaryRole === 'comercial';
+  const isOperador = primaryRole === 'operador';
+  const podeRegistarMovimento = isSuperadmin || isAdmin || isOperador;
+  const podeVerProducao = isAdmin || (!isComercial && profile?.tem_producao === true);
 
   return (
     <AuthContext.Provider value={{
-      user, session, profile, roles, userLocal, loading,
-      signIn, signUp, signOut, hasRole, isAdmin, isSuperadmin, podeVerProducao, refreshProfile,
+      user, session, profile, roles, primaryRole, userLocal, loading,
+      signIn, signUp, signOut, hasRole, isAdmin, isSuperadmin, isComercial, isOperador,
+      podeRegistarMovimento, podeVerProducao, refreshProfile,
     }}>
       {children}
     </AuthContext.Provider>
