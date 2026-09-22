@@ -86,7 +86,7 @@ export function EmpresaProvider({ children }: { children: React.ReactNode }) {
     const { data: { subscription } } = supabaseEmpresa.auth.onAuthStateChange((_event, newSession) => {
       setSession(newSession);
       if (newSession) fetchRole(supabaseEmpresa, newSession.user.id);
-      else { setUserRole(null); setLoading(false); }
+      else { setUserRole(null); setUserRoles([]); setLoading(false); }
     });
 
     return () => subscription.unsubscribe();
@@ -94,9 +94,15 @@ export function EmpresaProvider({ children }: { children: React.ReactNode }) {
 
   async function fetchRole(client: SupabaseClient, userId: string) {
     try {
-      const { data } = await client.from('user_roles').select('role').eq('user_id', userId).single();
-      setUserRole(data?.role ?? 'operador');
+      // Um utilizador pode ter VÁRIOS papéis (ex.: admin + operador).
+      // Lemos todos e usamos o de maior prioridade.
+      const { data, error } = await client.from('user_roles').select('role').eq('user_id', userId);
+      if (error) throw error;
+      const roles = ((data ?? []) as { role: string }[]).map(r => r.role).filter(Boolean);
+      setUserRoles(roles);
+      setUserRole(pickPrimaryRole(roles));
     } catch {
+      setUserRoles([]);
       setUserRole('operador');
     } finally {
       setLoading(false);
@@ -107,6 +113,7 @@ export function EmpresaProvider({ children }: { children: React.ReactNode }) {
     setEmpresa(e);
     setSession(null);
     setUserRole(null);
+    setUserRoles([]);
     localStorage.setItem(EMPRESA_STORAGE_KEY, e);
   }, []);
 
