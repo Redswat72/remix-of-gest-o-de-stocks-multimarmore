@@ -221,6 +221,28 @@ export default function NovoMovimento() {
 
   const handleSubmit = async () => {
     if (!tipo || !user) return;
+
+    // Operador só pode operar no seu parque
+    if (restritoAoParque && parqueOperadorId) {
+      const parqueLabel = parqueOperadorNome ?? '';
+      if (tipo === 'entrada' && novoProdutoParqueDestinoId !== parqueOperadorId) {
+        toast({
+          title: t('movements.campoObrigatorio'),
+          description: `Como operador só pode registar movimentos no seu parque (${parqueLabel}).`,
+          variant: 'destructive',
+        });
+        return;
+      }
+      if ((tipo === 'transferencia' || tipo === 'saida') && localOrigemId !== parqueOperadorId) {
+        toast({
+          title: t('movements.campoObrigatorio'),
+          description: `A origem do movimento tem de ser o seu parque (${parqueLabel}).`,
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+
     setIsSubmitting(true);
 
     try {
