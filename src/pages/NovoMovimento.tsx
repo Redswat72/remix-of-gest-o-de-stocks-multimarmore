@@ -121,10 +121,17 @@ export default function NovoMovimento() {
       setNovoProdutoParqueDestinoId(localRestrito.id);
       return;
     }
-    if (tipo === 'entrada' && userLocal && !isAdmin && !novoProdutoParqueDestinoId) {
-      setNovoProdutoParqueDestinoId(userLocal.id);
+    if (tipo === 'entrada' && restritoAoParque && parqueOperadorId) {
+      setNovoProdutoParqueDestinoId(parqueOperadorId);
     }
-  }, [tipo, userLocal, isAdmin, localRestrito]);
+  }, [tipo, restritoAoParque, parqueOperadorId, localRestrito]);
+
+  // Operador: origem é sempre o seu parque (transferência e saída)
+  useEffect(() => {
+    if ((tipo === 'transferencia' || tipo === 'saida') && restritoAoParque && parqueOperadorId) {
+      setLocalOrigemId(parqueOperadorId);
+    }
+  }, [tipo, restritoAoParque, parqueOperadorId]);
 
   const canProceed = (): boolean => {
     switch (step) {
