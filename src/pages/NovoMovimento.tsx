@@ -855,7 +855,7 @@ export default function NovoMovimento() {
                 <Select
                   value={novoProdutoParqueDestinoId}
                   onValueChange={setNovoProdutoParqueDestinoId}
-                  disabled={!!localRestrito || (!isAdmin && !!userLocal)}
+                  disabled={!!localRestrito || restritoAoParque}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder={t('movements.parqueDestino.placeholder')} />
@@ -871,9 +871,9 @@ export default function NovoMovimento() {
                     {localRestrito.codigo} — {localRestrito.nome}
                   </p>
                 )}
-                {!localRestrito && !isAdmin && userLocal && (
+                {!localRestrito && restritoAoParque && (
                   <p className="text-sm text-muted-foreground">
-                    {t('movements.parqueDestino.associado', { nome: userLocal.nome })}
+                    {t('movements.parqueDestino.associado', { nome: parqueOperadorNome ?? '' })}
                   </p>
                 )}
               </div>
@@ -1004,13 +1004,13 @@ export default function NovoMovimento() {
                     <Select
                       value={localOrigemId}
                       onValueChange={setLocalOrigemId}
-                      disabled={!isAdmin && !!userLocal}
+                      disabled={restritoAoParque}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder={t('movements.parqueOrigem.placeholderOrigem')} />
                       </SelectTrigger>
                       <SelectContent>
-                        {locais?.map(l => (
+                        {(restritoAoParque ? locais?.filter(l => l.id === parqueOperadorId) : locais)?.map(l => (
                           <SelectItem key={l.id} value={l.id} disabled={l.id === localDestinoId}>
                             {l.nome}
                           </SelectItem>
@@ -1058,13 +1058,13 @@ export default function NovoMovimento() {
                     <Select
                       value={localOrigemId}
                       onValueChange={setLocalOrigemId}
-                      disabled={!isAdmin && !!userLocal}
+                      disabled={restritoAoParque}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder={t('movements.parqueOrigem.placeholder')} />
                       </SelectTrigger>
                       <SelectContent>
-                        {locais?.map(l => (
+                        {(restritoAoParque ? locais?.filter(l => l.id === parqueOperadorId) : locais)?.map(l => (
                           <SelectItem key={l.id} value={l.id}>{l.nome}</SelectItem>
                         ))}
                       </SelectContent>
