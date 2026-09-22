@@ -30,7 +30,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const { supabaseEmpresa, session: empresaSession, user: empresaUser, signIn: empresaSignIn, signOut: empresaSignOut, loading: empresaLoading } = useEmpresa();
+  const { supabaseEmpresa, session: empresaSession, user: empresaUser, userRoles: empresaRoles, signIn: empresaSignIn, signOut: empresaSignOut, loading: empresaLoading } = useEmpresa();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [roles, setRoles] = useState<AppRole[]>([]);
   const [userLocal, setUserLocal] = useState<Local | null>(null);
