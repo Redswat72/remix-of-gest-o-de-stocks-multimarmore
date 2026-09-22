@@ -128,11 +128,12 @@ export function EmpresaProvider({ children }: { children: React.ReactNode }) {
     await supabaseEmpresa.auth.signOut();
     setSession(null);
     setUserRole(null);
+    setUserRoles([]);
   }, [supabaseEmpresa]);
 
   return (
     <EmpresaContext.Provider value={{
-      empresa, empresaConfig, supabaseEmpresa, session, user, userRole, loading, selectEmpresa, signIn, signOut,
+      empresa, empresaConfig, supabaseEmpresa, session, user, userRole, userRoles, loading, selectEmpresa, signIn, signOut,
     }}>
       {children}
     </EmpresaContext.Provider>
