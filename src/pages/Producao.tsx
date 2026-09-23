@@ -17,6 +17,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useAppT } from '@/hooks/useAppT';
 import { toast } from 'sonner';
 import type { Bloco } from '@/types/inventario';
+import { procurarIdMm, type IdMmExistente } from '@/lib/idMmExistente';
 
 const LINHAS_OPTIONS = Array.from({ length: 20 }, (_, i) => `L${i + 1}`);
 
@@ -109,6 +110,15 @@ export default function Producao() {
     }
     return null;
   };
+
+  useEffect(() => {
+    if (!bloco?.id_mm || tipoResultado !== 'blocos') { setIdsOcupados([]); return; }
+    const candidatos = Array.from({ length: 52 }, (_, i) => `${bloco.id_mm}${suffixFor(i)}`);
+    let ativo = true;
+    procurarIdMm(supabase as any, candidatos).then(r => { if (ativo) setIdsOcupados(r); });
+    return () => { ativo = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bloco?.id_mm, tipoResultado]);
 
   const DENSIDADE_KG_M3 = 2750;
   const calcPesoAuto = (c: number | null, l: number | null, a: number | null) => {
@@ -867,11 +877,31 @@ export default function Producao() {
 
                   {blocosResultantes.map((b, idx) => (
                     <div key={idx} className="p-4 rounded-lg border bg-muted/20 space-y-3">
-                      <div className="flex items-center justify-between">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="flex items-center gap-2">
                           <Badge>{bloco.id_mm}{b.suffix}</Badge>
                           <span className="text-sm text-muted-foreground">Bloco resultante {idx + 1}</span>
                         </div>
+                        {(() => {
+                          const ocup = idsOcupados.filter(e => e.id_mm.toUpperCase() === `${bloco.id_mm}${b.suffix}`.toUpperCase());
+                          if (!ocup.length) return null;
+                          const livre = proximoSufixoLivre(idx);
+                          return (
+                            <div className="basis-full order-last text-sm rounded-md border border-destructive/40 bg-destructive/5 p-2 space-y-1">
+                              {ocup.map(e => (
+                                <div key={`${e.tipo}-${e.id}`}>
+                                  Já existe um {e.tipo} {e.id_mm} no parque {e.parque}
+                                  {e.variedade ? ` · ${e.variedade}` : ''}{e.dimensoes ? ` · ${e.dimensoes}` : ''} · {e.quantidade} · {e.ativo ? 'em stock' : 'sem stock — consumido/vendido'}
+                                </div>
+                              ))}
+                              {livre && (
+                                <Button type="button" size="sm" variant="outline" onClick={() => updateBlocoResultante(idx, { suffix: livre })}>
+                                  Usar {bloco.id_mm}{livre} (próximo livre)
+                                </Button>
+                              )}
+                            </div>
+                          );
+                        })()}
                         {blocosResultantes.length > 2 && (
                           <Button
                             type="button"
