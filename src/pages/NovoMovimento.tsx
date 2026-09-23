@@ -749,6 +749,7 @@ export default function NovoMovimento() {
                     />
                   </div>
                 )}
+                {novoProdutoForma !== 'chapa' && (<>
                 <div className="space-y-2">
                   <Label>{t('movements.largura')}</Label>
                   <Input
@@ -767,6 +768,7 @@ export default function NovoMovimento() {
                     placeholder="cm"
                   />
                 </div>
+                </>)}
                 {novoProdutoForma === 'bloco' && (
                   <div className="space-y-2">
                     <Label>{t('movements.peso')}</Label>
