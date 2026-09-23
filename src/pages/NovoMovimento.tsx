@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
 import { ArrowLeft, ArrowRight, Check, ArrowDownToLine, ArrowRightLeft, Package, AlertCircle, Loader2 } from 'lucide-react';
@@ -25,7 +25,6 @@ import { useEnumLabel } from '@/lib/enumLabels';
 import { usePermissoes } from '@/hooks/usePermissoes';
 import { procurarIdMm, type IdMmExistente } from '@/lib/idMmExistente';
 import { IdMmDuplicadoDialog } from '@/components/movimentos/IdMmDuplicadoDialog';
-import { useRef } from 'react';
 
 const PEDREIRAS = ['Del Rey', 'Mol', 'Olival do Pires'];
 
@@ -535,6 +534,20 @@ export default function NovoMovimento() {
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
+      <IdMmDuplicadoDialog
+        open={idMmDialogOpen}
+        idMm={novoProdutoIdMM.trim()}
+        tipoNovo={novoProdutoForma as 'bloco' | 'chapa' | 'ladrilho'}
+        parqueNovo={locais?.find(l => l.id === novoProdutoParqueDestinoId)?.codigo}
+        existentes={idMmExistentes}
+        onOutraNumeracao={() => { setIdMmDialogOpen(false); setTimeout(() => { idMmInputRef.current?.focus(); idMmInputRef.current?.select(); }, 50); }}
+        onContinuar={() => {
+          setIdMmConfirmado(`${novoProdutoForma}:${novoProdutoIdMM.trim()}`);
+          setIdMmDialogOpen(false);
+          if (avancarAposConfirmar) setStep(5);
+        }}
+        onCancelar={() => setIdMmDialogOpen(false)}
+      />
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold">{t('movements.pageTitle')}</h1>

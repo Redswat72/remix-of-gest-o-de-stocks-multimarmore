@@ -96,6 +96,20 @@ export default function Producao() {
   });
   const [blocosResultantes, setBlocosResultantes] = useState<BlocoResultante[]>([]);
 
+  // Números já ocupados (blocos, chapas, ladrilho; todos os parques; inclusive inativos)
+  const [idsOcupados, setIdsOcupados] = useState<IdMmExistente[]>([]);
+  const idsOcupadosSet = new Set(idsOcupados.map(e => e.id_mm.toUpperCase()));
+  const proximoSufixoLivre = (excluirIdx: number) => {
+    const usados = new Set(blocosResultantes.filter((_, i) => i !== excluirIdx).map(b => b.suffix));
+    for (let i = 0; i < 26 * 27; i++) {
+      const suf = suffixFor(i);
+      if (usados.has(suf)) continue;
+      if (idsOcupadosSet.has(`${(bloco?.id_mm ?? '').toUpperCase()}${suf}`)) continue;
+      return suf;
+    }
+    return null;
+  };
+
   const DENSIDADE_KG_M3 = 2750;
   const calcPesoAuto = (c: number | null, l: number | null, a: number | null) => {
     if (!c || !l || !a) return null;
