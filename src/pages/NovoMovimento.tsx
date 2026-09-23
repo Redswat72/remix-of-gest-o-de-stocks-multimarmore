@@ -87,6 +87,19 @@ export default function NovoMovimento() {
   const [blocoFoto3, setBlocoFoto3] = useState('');
   const [ladrilhoFoto1, setLadrilhoFoto1] = useState('');
   const [ladrilhoFoto2, setLadrilhoFoto2] = useState('');
+  const [pargaDims, setPargaDims] = useState<{ quantidade: number | ''; comprimento: number | ''; altura: number | ''; espessura: number | '' }[]>(
+    Array.from({ length: 4 }, () => ({ quantidade: '', comprimento: '', altura: '', espessura: '' }))
+  );
+  const chapaTotais = pargaDims.reduce(
+    (acc, p) => {
+      const q = Number(p.quantidade) || 0;
+      acc.num += q;
+      acc.m2 += (q * (Number(p.comprimento) || 0) * (Number(p.altura) || 0)) / 10000;
+      return acc;
+    },
+    { num: 0, m2: 0 }
+  );
+  const chapaSemArea = chapaTotais.m2 <= 0;
   const [pargaFotos, setPargaFotos] = useState<{ primeira: string; ultima: string }[]>([
     { primeira: '', ultima: '' },
     { primeira: '', ultima: '' },
@@ -266,7 +279,6 @@ export default function NovoMovimento() {
               pedreira_origem: origemMaterial === 'producao_propria' ? pedreiraOrigem : null,
               sem_documento: origemMaterial === 'producao_propria',
               entrada_stock: today,
-              ativo: true,
               foto1_url: blocoFoto1 || null,
               foto2_url: blocoFoto2 || null,
               foto3_url: blocoFoto3 || null,
@@ -280,14 +292,20 @@ export default function NovoMovimento() {
             id_mm: novoProdutoIdMM,
             parque: parqueCodigo,
             variedade: novoProdutoVariedade || null,
-            largura: novoProdutoLargura || null,
-            altura: novoProdutoAltura || null,
-            num_chapas: novoProdutoNumChapas || null,
+            num_chapas: chapaTotais.num || null,
+            quantidade_m2: Math.round(chapaTotais.m2 * 10000) / 10000,
             fornecedor: origemMaterial === 'adquirido' ? fornecedor || null : null,
             entrada_stock: today,
           };
           for (let i = 0; i < 4; i++) {
             const n = i + 1;
+            const d = pargaDims[i];
+            if (d.quantidade !== '' || d.comprimento !== '' || d.altura !== '' || d.espessura !== '') {
+              chapaInsert[`parga${n}_quantidade`] = d.quantidade === '' ? null : d.quantidade;
+              chapaInsert[`parga${n}_comprimento`] = d.comprimento === '' ? null : d.comprimento;
+              chapaInsert[`parga${n}_altura`] = d.altura === '' ? null : d.altura;
+              chapaInsert[`parga${n}_espessura`] = d.espessura === '' ? null : d.espessura;
+            }
             if (pargaFotos[i].primeira) chapaInsert[`parga${n}_foto_primeira`] = pargaFotos[i].primeira;
             if (pargaFotos[i].ultima) chapaInsert[`parga${n}_foto_ultima`] = pargaFotos[i].ultima;
           }
@@ -372,7 +390,9 @@ export default function NovoMovimento() {
 
         toast({
           title: t('movements.registado.title'),
-          description: t('movements.registado.desc'),
+          description: novoProdutoForma === 'chapa' && chapaSemArea
+            ? 'Atenção: a chapa ficou sem área e sem valor até as medidas das pargas serem preenchidas.'
+            : t('movements.registado.desc'),
         });
         navigate('/historico');
         return;
@@ -416,18 +436,9 @@ export default function NovoMovimento() {
         observacoes: observacoes || undefined,
       };
 
+      // Saída: a app só insere o movimento. A base de dados desconta chapas/pargas,
+      // recalcula m²/valor, atualiza o stock e a coluna `ativo`.
       await createMovimento.mutateAsync(formData);
-
-      if (tipo === 'saida') {
-        const table = itemTipo === 'bloco' ? 'blocos' : itemTipo === 'chapa' ? 'chapas' : 'ladrilho';
-        const { error: updateErr } = await supabaseEmpresa
-          .from(table)
-          .update({ ativo: false } as any)
-          .eq('id_mm', itemIdMm);
-        if (updateErr) {
-          console.error('Movimento registado, mas falhou marcar produto como inactivo:', updateErr);
-        }
-      }
 
       toast({
         title: t('movements.registado.title'),
@@ -768,18 +779,7 @@ export default function NovoMovimento() {
                     />
                   </div>
                 )}
-                {novoProdutoForma === 'chapa' && (
-                  <div className="space-y-2">
-                    <Label>{t('movements.numChapas')}</Label>
-                    <Input
-                      type="number"
-                      min={1}
-                      value={novoProdutoNumChapas}
-                      onChange={(e) => setNovoProdutoNumChapas(e.target.value ? Number(e.target.value) : '')}
-                      placeholder={t('movements.numChapasFill')}
-                    />
-                  </div>
-                )}
+
                 {novoProdutoForma === 'ladrilho' && (
                   <div className="space-y-2">
                     <Label>{t('movements.numPecas')}</Label>
@@ -817,9 +817,38 @@ export default function NovoMovimento() {
               {novoProdutoForma === 'chapa' && (
                 <div className="space-y-3">
                   <Label className="text-base font-semibold">{t('movements.fotografiasPargas')}</Label>
+                  <div className="text-sm rounded-md border p-3 bg-muted/40">
+                    Total: <strong>{chapaTotais.num}</strong> chapas · <strong>{chapaTotais.m2.toLocaleString('pt-PT', { maximumFractionDigits: 2 })}</strong> m²
+                    {chapaSemArea && (
+                      <p className="text-destructive mt-1">Sem medidas: a chapa pode ser gravada, mas fica sem área e sem valor até as pargas serem preenchidas.</p>
+                    )}
+                  </div>
                   {[1, 2, 3, 4].map((n) => (
                     <div key={n} className="space-y-2 border rounded-lg p-3">
                       <Label className="text-sm font-medium">{t('production.parga', { n })}</Label>
+                      <div className="grid gap-2 grid-cols-2 sm:grid-cols-4">
+                        {([
+                          ['quantidade', t('movements.numChapas'), 'un'],
+                          ['comprimento', 'Comprimento', 'cm'],
+                          ['altura', t('movements.altura'), 'cm'],
+                          ['espessura', 'Espessura', 'cm'],
+                        ] as const).map(([campo, lbl, ph]) => (
+                          <div key={campo} className="space-y-1">
+                            <Label className="text-xs text-muted-foreground">{lbl}</Label>
+                            <Input
+                              type="number"
+                              min={0}
+                              step={campo === 'quantidade' ? 1 : 0.1}
+                              placeholder={ph}
+                              value={pargaDims[n - 1][campo]}
+                              onChange={(e) => {
+                                const v = e.target.value === '' ? '' : Number(e.target.value);
+                                setPargaDims(prev => prev.map((p, i) => (i === n - 1 ? { ...p, [campo]: v } : p)));
+                              }}
+                            />
+                          </div>
+                        ))}
+                      </div>
                       <div className="grid gap-3 sm:grid-cols-2">
                         <div className="space-y-1">
                           <Label className="text-xs text-muted-foreground">{t('movements.fotoPrimeira')}</Label>
