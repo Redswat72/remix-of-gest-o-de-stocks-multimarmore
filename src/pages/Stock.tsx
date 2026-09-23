@@ -1,3 +1,4 @@
+import { SemStockAviso } from '@/components/inventario/SemStockAviso';
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Filter, Download, Package, ChevronDown, ChevronUp } from 'lucide-react';
@@ -48,7 +49,7 @@ export default function Stock() {
 
   const { podeVerValores } = usePermissoes();
 
-  const { data: items, isLoading } = useStockUnificado({
+  const { data: items, inativosExatos, isLoading } = useStockUnificado({
     forma: (formaFilter || undefined) as FormaInventario | undefined,
     busca: busca || undefined,
   });
@@ -199,6 +200,8 @@ export default function Stock() {
           </div>
         </CardContent>
       </Card>
+
+      <SemStockAviso items={inativosExatos} />
 
       {/* Tabela */}
       <Card>

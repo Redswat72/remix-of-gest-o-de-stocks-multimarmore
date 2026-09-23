@@ -83,8 +83,7 @@ export function useStockUnificado(options: UseStockUnificadoOptions = {}) {
   const blocosQuery = useQuery({
     queryKey: ['blocos-unificado', empresa],
     queryFn: async () => {
-      const all = await fetchAll<Bloco>(supabase, 'blocos');
-      return all.filter(b => b.ativo !== false);
+      return fetchAll<Bloco>(supabase, 'blocos');
     },
     enabled: !!empresa && (!forma || forma === 'bloco'),
   });
@@ -183,8 +182,15 @@ export function useStockUnificado(options: UseStockUnificadoOptions = {}) {
     }
   }
 
-  // Apply filters
-  let filtered = items;
+  // Só produtos ativos (a BD mantém a coluna `ativo`)
+  const isAtivo = (i: ItemUnificado) => (i.raw as any)?.ativo !== false;
+  let filtered = items.filter(isAtivo);
+
+  // Pesquisa por número exato: mostrar inativos como "sem stock"
+  const termoExato = busca?.trim().toLowerCase();
+  const inativosExatos = termoExato
+    ? items.filter(i => !isAtivo(i) && (i.idMm ?? '').toLowerCase() === termoExato && (!forma || i.forma === forma))
+    : [];
 
   if (forma) {
     filtered = filtered.filter(i => i.forma === forma);
@@ -213,9 +219,10 @@ export function useStockUnificado(options: UseStockUnificadoOptions = {}) {
 
   return {
     data: filtered,
-    allBlocos: blocosQuery.data || [],
-    allChapas: chapasQuery.data || [],
-    allLadrilho: ladrilhoQuery.data || [],
+    inativosExatos,
+    allBlocos: (blocosQuery.data || []).filter(b => b.ativo !== false),
+    allChapas: (chapasQuery.data || []).filter(c => (c as any).ativo !== false),
+    allLadrilho: (ladrilhoQuery.data || []).filter(l => (l as any).ativo !== false),
     isLoading,
     error,
   };

@@ -37,7 +37,7 @@ async function fetchAllLadrilho(supabase: any, parque?: string): Promise<Ladrilh
     from += PAGE;
   }
 
-  return all;
+  return all.filter(l => (l as any).ativo !== false);
 }
 
 export function useLadrilho(parque?: string) {

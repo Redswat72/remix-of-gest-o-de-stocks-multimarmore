@@ -75,7 +75,8 @@ async function fetchAll(supabase: SupabaseClient, table: string): Promise<Row[]>
     if (data.length < PAGE) break;
     from += PAGE;
   }
-  return all;
+  // Só produtos ativos (com stock)
+  return all.filter(r => (r as any).ativo !== false);
 }
 
 /** Cria uma folha com TODAS as colunas existentes nos registos */

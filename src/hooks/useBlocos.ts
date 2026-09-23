@@ -21,7 +21,8 @@ async function fetchAllBlocos(supabase: any, parque?: string): Promise<Bloco[]> 
     if (data.length < PAGE) break;
     from += PAGE;
   }
-  return all;
+  // Só produtos com stock (ativo mantido pela BD)
+  return all.filter(b => (b as any).ativo !== false);
 }
 
 export function useBlocos(parque?: string) {
@@ -42,11 +43,7 @@ export function useResumoBlocos() {
   return useQuery({
     queryKey: ['resumo-blocos', empresa],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('blocos')
-        .select('quantidade_kg, valor_inventario');
-
-      if (error) throw error;
+      const data = await fetchAllBlocos(supabase);
 
       const total_blocos = data.length;
       const total_kg = data.reduce((sum, b) => sum + (b.quantidade_kg || 0), 0);
