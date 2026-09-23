@@ -23,6 +23,9 @@ import { PhotoUploadField } from '@/components/movimentos/PhotoUploadField';
 import { useAppT } from '@/hooks/useAppT';
 import { useEnumLabel } from '@/lib/enumLabels';
 import { usePermissoes } from '@/hooks/usePermissoes';
+import { procurarIdMm, type IdMmExistente } from '@/lib/idMmExistente';
+import { IdMmDuplicadoDialog } from '@/components/movimentos/IdMmDuplicadoDialog';
+import { useRef } from 'react';
 
 const PEDREIRAS = ['Del Rey', 'Mol', 'Olival do Pires'];
 
@@ -80,6 +83,14 @@ export default function NovoMovimento() {
   const [novoProdutoParqueDestinoId, setNovoProdutoParqueDestinoId] = useState('');
   const [novoProdutoNumChapas, setNovoProdutoNumChapas] = useState<number | ''>('');
   const [novoProdutoNumPecas, setNovoProdutoNumPecas] = useState<number | ''>('');
+  const [novoProdutoPreco, setNovoProdutoPreco] = useState<number | ''>('');
+
+  // Alerta de número já existente
+  const idMmInputRef = useRef<HTMLInputElement>(null);
+  const [idMmExistentes, setIdMmExistentes] = useState<IdMmExistente[]>([]);
+  const [idMmDialogOpen, setIdMmDialogOpen] = useState(false);
+  const [idMmConfirmado, setIdMmConfirmado] = useState<string | null>(null);
+  const [avancarAposConfirmar, setAvancarAposConfirmar] = useState(false);
 
   // Photo URL fields
   const [blocoFoto1, setBlocoFoto1] = useState('');
@@ -199,8 +210,10 @@ export default function NovoMovimento() {
     return (stockDisponivel ?? 0) < quantidade;
   };
 
-  const nextStep = () => {
+  const nextStep = async () => {
     if (tipo === 'entrada' && step === 3) {
+      if (!canProceed()) return;
+      if (await verificarIdMm(true)) return;
       setStep(5);
       return;
     }
@@ -231,6 +244,22 @@ export default function NovoMovimento() {
   };
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  /** Verifica se o id_mm já existe (todas as tabelas, todos os parques, inclusive inativos). Devolve true se houver conflito por decidir. */
+  const verificarIdMm = async (avancar: boolean): Promise<boolean> => {
+    const id = novoProdutoIdMM.trim();
+    if (!id || idMmConfirmado === `${novoProdutoForma}:${id}`) return false;
+    const encontrados = await procurarIdMm(supabaseEmpresa as any, [id]);
+    if (encontrados.length === 0) return false;
+    setIdMmExistentes(encontrados);
+    setAvancarAposConfirmar(avancar);
+    setIdMmDialogOpen(true);
+    return true;
+  };
+
+  const precoNum = isAdmin && novoProdutoPreco !== '' ? Number(novoProdutoPreco) : null;
+  const ladrilhoM2 = (Number(novoProdutoNumPecas) || 0) * (Number(novoProdutoComprimento) || 0) * (Number(novoProdutoLargura) || 0) / 10000;
+  const round2 = (v: number) => Math.round(v * 100) / 100;
 
   const handleSubmit = async () => {
     if (!tipo || !user) return;
@@ -275,6 +304,8 @@ export default function NovoMovimento() {
               largura: novoProdutoLargura || null,
               altura: novoProdutoAltura || null,
               quantidade_kg: novoProdutoPeso || null,
+              preco_unitario: precoNum,
+              valor_inventario: precoNum != null && novoProdutoPeso ? round2((Number(novoProdutoPeso) / 1000) * precoNum) : null,
               fornecedor: origemMaterial === 'adquirido' ? fornecedor || null : null,
               pedreira_origem: origemMaterial === 'producao_propria' ? pedreiraOrigem : null,
               sem_documento: origemMaterial === 'producao_propria',
@@ -294,6 +325,8 @@ export default function NovoMovimento() {
             variedade: novoProdutoVariedade || null,
             num_chapas: chapaTotais.num || null,
             quantidade_m2: Math.round(chapaTotais.m2 * 10000) / 10000,
+            preco_unitario: precoNum,
+            valor_inventario: precoNum != null && chapaTotais.m2 > 0 ? round2(chapaTotais.m2 * precoNum) : null,
             fornecedor: origemMaterial === 'adquirido' ? fornecedor || null : null,
             entrada_stock: today,
           };
@@ -327,6 +360,9 @@ export default function NovoMovimento() {
               largura: novoProdutoLargura || null,
               altura: novoProdutoAltura || null,
               num_pecas: novoProdutoNumPecas || null,
+              ...(ladrilhoM2 > 0 ? { quantidade_m2: Math.round(ladrilhoM2 * 10000) / 10000 } : {}),
+              preco_unitario: precoNum,
+              valor_inventario: precoNum != null && ladrilhoM2 > 0 ? round2(ladrilhoM2 * precoNum) : null,
               fornecedor: origemMaterial === 'adquirido' ? fornecedor || null : null,
               entrada_stock: today,
               foto1_url: ladrilhoFoto1 || null,
@@ -722,8 +758,10 @@ export default function NovoMovimento() {
               <div className="space-y-2">
                 <Label>{t('movements.idMM.label')} <span className="text-destructive">*</span></Label>
                 <Input
+                  ref={idMmInputRef}
                   value={novoProdutoIdMM}
                   onChange={(e) => setNovoProdutoIdMM(e.target.value)}
+                  onBlur={() => { void verificarIdMm(false); }}
                   placeholder={t('movements.idMM.placeholder')}
                 />
               </div>
@@ -782,6 +820,19 @@ export default function NovoMovimento() {
                   </div>
                 )}
 
+                {isAdmin && (
+                  <div className="space-y-2">
+                    <Label>Preço unitário ({novoProdutoForma === 'bloco' ? '€/ton' : '€/m²'})</Label>
+                    <Input
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      value={novoProdutoPreco}
+                      onChange={(e) => setNovoProdutoPreco(e.target.value ? Number(e.target.value) : '')}
+                      placeholder="Opcional"
+                    />
+                  </div>
+                )}
                 {novoProdutoForma === 'ladrilho' && (
                   <div className="space-y-2">
                     <Label>{t('movements.numPecas')}</Label>
