@@ -1,3 +1,4 @@
+import { SemStockAviso } from '@/components/inventario/SemStockAviso';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Filter, Grid, List, ChevronDown, ChevronUp, Loader2, Package } from 'lucide-react';
@@ -39,7 +40,7 @@ export default function Produtos() {
   const [showFilters, setShowFilters] = useState(true);
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
-  const { data: items, isLoading } = useStockUnificado({
+  const { data: items, inativosExatos, isLoading } = useStockUnificado({
     forma: formaFilter === 'all' ? undefined : formaFilter as FormaInventario,
     busca: search || undefined,
   });
@@ -105,6 +106,8 @@ export default function Produtos() {
           </CollapsibleContent>
         </Card>
       </Collapsible>
+
+      <SemStockAviso items={inativosExatos} />
 
       {isLoading ? (
         <div className="flex items-center justify-center py-12"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
