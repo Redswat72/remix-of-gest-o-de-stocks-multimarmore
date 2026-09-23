@@ -29,7 +29,7 @@ async function fetchAllLight<T>(
     if (data.length < PAGE) break;
     from += PAGE;
   }
-  return all;
+  return all.filter((r: any) => r.ativo !== false);
 }
 
 export interface BreakdownBloco {
@@ -59,17 +59,17 @@ export function useDashboardBreakdown() {
         fetchAllLight<BreakdownBloco>(
           supabase,
           'blocos',
-          'parque, quantidade_kg, valor_inventario'
+          '*'
         ),
         fetchAllLight<BreakdownChapa>(
           supabase,
           'chapas',
-          'parque, quantidade_m2, valor_inventario'
+          '*'
         ),
         fetchAllLight<BreakdownLadrilho>(
           supabase,
           'ladrilho',
-          'parque, quantidade_m2, valor_inventario'
+          '*'
         ),
       ]);
       return { blocos, chapas, ladrilhos };

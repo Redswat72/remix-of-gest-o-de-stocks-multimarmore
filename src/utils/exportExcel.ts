@@ -67,13 +67,14 @@ function downloadWorkbook(wb: XLSX.WorkBook, tipo: string, empresaNome: string) 
 
 // ─── BLOCOS ──────────────────────────────────────────────
 export async function exportBlocos(supabase: SupabaseClient, opts: ExportOptions) {
-  const { data, error } = await supabase
+  const { data: rawData, error } = await supabase
     .from('blocos')
-    .select('id_mm, parque, variedade, bloco_origem, quantidade_kg, preco_unitario, valor_inventario')
+    .select('*')
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  if (!data || data.length === 0) throw new Error('Sem dados para exportar');
+  const data = (rawData ?? []).filter((r: any) => r.ativo !== false);
+  if (data.length === 0) throw new Error('Sem dados para exportar');
 
   const rows = data.map((b: any) => ({
     'ID MM': b.id_mm,
@@ -102,13 +103,14 @@ export async function exportBlocos(supabase: SupabaseClient, opts: ExportOptions
 
 // ─── CHAPAS ──────────────────────────────────────────────
 export async function exportChapas(supabase: SupabaseClient, opts: ExportOptions) {
-  const { data, error } = await supabase
+  const { data: rawData, error } = await supabase
     .from('chapas')
     .select('*')
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  if (!data || data.length === 0) throw new Error('Sem dados para exportar');
+  const data = (rawData ?? []).filter((r: any) => r.ativo !== false);
+  if (data.length === 0) throw new Error('Sem dados para exportar');
 
   const rows = data.map((c: Chapa) => ({
     'ID MM': c.id_mm,
@@ -139,13 +141,14 @@ export async function exportChapas(supabase: SupabaseClient, opts: ExportOptions
 
 // ─── LADRILHOS ───────────────────────────────────────────
 export async function exportLadrilhos(supabase: SupabaseClient, opts: ExportOptions) {
-  const { data, error } = await supabase
+  const { data: rawData, error } = await supabase
     .from('ladrilho')
-    .select('variedade, dimensoes, butch_no, num_pecas, quantidade_m2, peso, preco_unitario, valor_inventario')
+    .select('*')
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  if (!data || data.length === 0) throw new Error('Sem dados para exportar');
+  const data = (rawData ?? []).filter((r: any) => r.ativo !== false);
+  if (data.length === 0) throw new Error('Sem dados para exportar');
 
   const rows = data.map((l: Ladrilho) => ({
     'Variedade': l.variedade ?? '',

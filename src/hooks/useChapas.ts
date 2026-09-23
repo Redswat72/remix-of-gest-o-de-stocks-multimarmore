@@ -22,7 +22,7 @@ async function fetchAllChapas(supabase: any, parque?: string, bundleId?: string)
     if (data.length < PAGE) break;
     from += PAGE;
   }
-  return all;
+  return all.filter(c => (c as any).ativo !== false);
 }
 
 export function useChapas(parque?: string, bundleId?: string) {
