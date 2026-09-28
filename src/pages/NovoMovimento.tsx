@@ -508,10 +508,6 @@ export default function NovoMovimento() {
     }
 
     setTimeout(() => {
-      if (newTipo === 'entrada' && localRestrito) {
-        setNovoProdutoParqueDestinoId(localRestrito.id);
-        return;
-      }
       if (userLocal && !isAdmin) {
         if (newTipo === 'entrada') {
           setNovoProdutoParqueDestinoId(userLocal.id);
@@ -964,23 +960,18 @@ export default function NovoMovimento() {
                 <Select
                   value={novoProdutoParqueDestinoId}
                   onValueChange={setNovoProdutoParqueDestinoId}
-                  disabled={!!localRestrito || restritoAoParque}
+                  disabled={restritoAoParque}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder={t('movements.parqueDestino.placeholder')} />
                   </SelectTrigger>
                   <SelectContent>
-                    {locaisEntrada?.map(l => (
+                    {locais?.map(l => (
                       <SelectItem key={l.id} value={l.id}>{l.nome}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                {localRestrito && (
-                  <p className="text-sm text-muted-foreground">
-                    {localRestrito.codigo} — {localRestrito.nome}
-                  </p>
-                )}
-                {!localRestrito && restritoAoParque && (
+                {restritoAoParque && (
                   <p className="text-sm text-muted-foreground">
                     {t('movements.parqueDestino.associado', { nome: parqueOperadorNome ?? '' })}
                   </p>
