@@ -236,7 +236,9 @@ function StockGlobalTab() {
         ? { comprimento: item.comprimento, largura: item.largura, altura: item.altura }
         : null;
       const chapa = item.forma === 'chapa' ? item.raw : null;
-      const ladrilho = item.forma === 'ladrilho' ? item.raw : null;
+      const ladrilho = item.forma === 'ladrilho'
+        ? item.raw as unknown as Record<string, unknown>
+        : null;
       return {
         [empresaConfig?.idPrefix ?? "IDMM"]: item.referencia,
         "Forma": enumLabel('tipoProduto', item.forma) || item.forma,
@@ -252,7 +254,7 @@ function StockGlobalTab() {
           : chapa
             ? formatChapaDimensoes(chapa as unknown as Record<string, unknown>)
             : ladrilho
-              ? formatLadrilhoDimensoes(ladrilho) || ladrilho.dimensoes || ""
+              ? formatLadrilhoDimensoes(ladrilho) || String(ladrilho.dimensoes ?? "")
               : item.dimensoes || "",
         "Quantidade": item.quantidade,
         "Unidade": item.unidade,
