@@ -2,6 +2,7 @@ import * as XLSX from 'xlsx';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { formatChapaDimensoes } from '@/lib/chapaDimensoes';
 import { formatBlocoDimensoes } from '@/lib/blocoDimensoes';
+import { formatLadrilhoDimensoes } from '@/lib/ladrilhoDimensoes';
 
 interface ExportOptions {
   empresaNome: string;
@@ -56,7 +57,16 @@ function prettyLabel(key: string): string {
   if (key === 'comprimento') return 'Comprimento (cm)';
   if (key === 'largura') return 'Largura (cm)';
   if (key === 'altura') return 'Altura (cm)';
+  if (key === 'espessura') return 'Espessura (cm)';
   if (key === 'dimensoes') return 'Dimensões';
+  if (key === 'dimensoes_chapa') return 'Dimensões';
+  const pargaMedida = key.match(/^parga(\d)_(comprimento|altura|espessura)$/);
+  if (pargaMedida) {
+    const medida = pargaMedida[2].charAt(0).toUpperCase() + pargaMedida[2].slice(1);
+    return `Parga ${pargaMedida[1]} - ${medida} (cm)`;
+  }
+  const pargaQuantidade = key.match(/^parga(\d)_quantidade$/);
+  if (pargaQuantidade) return `Parga ${pargaQuantidade[1]} - Quantidade`;
   return key
     .split('_')
     .map(p => (p.length <= 2 ? p.toUpperCase() : p.charAt(0).toUpperCase() + p.slice(1)))
@@ -144,10 +154,15 @@ export async function exportStockCompleto(supabase: SupabaseClient, opts: Export
     dimensoes_chapa: formatChapaDimensoes(c),
   }));
 
+  const ladrilhoComDim = ladrilho.map(l => ({
+    ...l,
+    dimensoes: formatLadrilhoDimensoes(l) || l.dimensoes || '',
+  }));
+
   const wb = XLSX.utils.book_new();
   buildSheet(wb, 'Blocos', blocosComDim, opts.corHeader);
   buildSheet(wb, 'Chapas', chapasComDim, opts.corHeader);
-  buildSheet(wb, 'Ladrilhos', ladrilho, opts.corHeader);
+  buildSheet(wb, 'Ladrilhos', ladrilhoComDim, opts.corHeader);
 
   if (wb.SheetNames.length === 0) {
     throw new Error('Sem dados para exportar');

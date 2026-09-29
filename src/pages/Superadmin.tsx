@@ -33,6 +33,7 @@ import { useEnumLabel } from "@/lib/enumLabels";
 import { formatNumber, formatCurrency } from "@/lib/format";
 import { formatBlocoDimensoes } from "@/lib/blocoDimensoes";
 import { formatChapaDimensoes } from "@/lib/chapaDimensoes";
+import { formatLadrilhoDimensoes } from "@/lib/ladrilhoDimensoes";
 
 export default function Superadmin() {
   const t = useAppT();
@@ -235,20 +236,24 @@ function StockGlobalTab() {
         ? { comprimento: item.comprimento, largura: item.largura, altura: item.altura }
         : null;
       const chapa = item.forma === 'chapa' ? item.raw : null;
+      const ladrilho = item.forma === 'ladrilho' ? item.raw : null;
       return {
         [empresaConfig?.idPrefix ?? "IDMM"]: item.referencia,
         "Forma": enumLabel('tipoProduto', item.forma) || item.forma,
         "Variedade": item.variedade || "",
         "Parque": item.parque,
         "Fornecedor": item.fornecedor || "",
-        "Comprimento (cm)": bloco?.comprimento ?? "",
-        "Largura (cm)": bloco?.largura ?? "",
-        "Altura (cm)": bloco?.altura ?? "",
+        "Comprimento (cm)": bloco?.comprimento ?? ladrilho?.comprimento ?? "",
+        "Largura (cm)": bloco?.largura ?? ladrilho?.largura ?? "",
+        "Altura (cm)": bloco?.altura ?? ladrilho?.altura ?? "",
+        "Espessura (cm)": ladrilho?.espessura ?? "",
         "Dimensões": bloco
           ? formatBlocoDimensoes(bloco)
           : chapa
             ? formatChapaDimensoes(chapa as unknown as Record<string, unknown>)
-            : item.dimensoes || "",
+            : ladrilho
+              ? formatLadrilhoDimensoes(ladrilho) || ladrilho.dimensoes || ""
+              : item.dimensoes || "",
         "Quantidade": item.quantidade,
         "Unidade": item.unidade,
         "Valor (€)": item.valor ?? 0,

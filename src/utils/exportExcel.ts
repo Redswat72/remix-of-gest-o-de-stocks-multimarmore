@@ -3,6 +3,7 @@ import type { Bloco, Chapa, Ladrilho } from '@/types/inventario';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { formatChapaDimensoes } from '@/lib/chapaDimensoes';
 import { formatBlocoDimensoes } from '@/lib/blocoDimensoes';
+import { formatLadrilhoDimensoes } from '@/lib/ladrilhoDimensoes';
 
 interface ExportOptions {
   empresaNome: string;
@@ -136,6 +137,26 @@ export async function exportChapas(supabase: SupabaseClient, opts: ExportOptions
     'Bundle/Parga': c.bundle_id ?? '',
     'Parque': c.parque,
     'Variedade': c.variedade ?? '',
+    'Fornecedor': c.fornecedor ?? '',
+    'Ano de Entrada': c.entrada_stock ?? '',
+    'Largura direta (cm)': c.largura ?? '',
+    'Altura direta (cm)': c.altura ?? '',
+    'Parga 1 - Quantidade': c.parga1_quantidade ?? '',
+    'Parga 1 - Comprimento (cm)': c.parga1_comprimento ?? '',
+    'Parga 1 - Altura (cm)': c.parga1_altura ?? '',
+    'Parga 1 - Espessura (cm)': c.parga1_espessura ?? '',
+    'Parga 2 - Quantidade': c.parga2_quantidade ?? '',
+    'Parga 2 - Comprimento (cm)': c.parga2_comprimento ?? '',
+    'Parga 2 - Altura (cm)': c.parga2_altura ?? '',
+    'Parga 2 - Espessura (cm)': c.parga2_espessura ?? '',
+    'Parga 3 - Quantidade': c.parga3_quantidade ?? '',
+    'Parga 3 - Comprimento (cm)': c.parga3_comprimento ?? '',
+    'Parga 3 - Altura (cm)': c.parga3_altura ?? '',
+    'Parga 3 - Espessura (cm)': c.parga3_espessura ?? '',
+    'Parga 4 - Quantidade': c.parga4_quantidade ?? '',
+    'Parga 4 - Comprimento (cm)': c.parga4_comprimento ?? '',
+    'Parga 4 - Altura (cm)': c.parga4_altura ?? '',
+    'Parga 4 - Espessura (cm)': c.parga4_espessura ?? '',
     'Dimensões (C×A×E cm)': formatChapaDimensoes(c as unknown as Record<string, unknown>),
     'Chapas': c.num_chapas ?? 0,
     'm²': c.quantidade_m2,
@@ -151,7 +172,7 @@ export async function exportChapas(supabase: SupabaseClient, opts: ExportOptions
   const totalChapas = data.reduce((s, c) => s + (c.num_chapas || 0), 0);
   const totalM2 = data.reduce((s, c) => s + (c.quantidade_m2 || 0), 0);
   const totalValor = data.reduce((s, c) => s + (c.valor_inventario || 0), 0);
-  addTotalsRow(ws, data.length + 1, { 0: 'TOTAIS', 5: totalChapas, 6: totalM2, 8: totalValor }, headers.length);
+  addTotalsRow(ws, data.length + 1, { 0: 'TOTAIS', 25: totalChapas, 26: totalM2, 28: totalValor }, headers.length);
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Chapas');
@@ -165,8 +186,18 @@ export async function exportLadrilhos(supabase: SupabaseClient, opts: ExportOpti
   if (data.length === 0) throw new Error('Sem dados para exportar');
 
   const rows = data.map((l: Ladrilho) => ({
+    'ID MM': l.id_mm ?? '',
+    'Parque': l.parque,
+    'Tipo': l.tipo ?? '',
     'Variedade': l.variedade ?? '',
-    'Dimensões': l.dimensoes ?? '',
+    'Acabamento': l.acabamento ?? '',
+    'Fornecedor': l.fornecedor ?? '',
+    'Ano de Entrada': l.entrada_stock ?? '',
+    'Comprimento (cm)': l.comprimento ?? '',
+    'Largura (cm)': l.largura ?? '',
+    'Altura (cm)': l.altura ?? '',
+    'Espessura (cm)': l.espessura ?? '',
+    'Dimensões': formatLadrilhoDimensoes(l) || l.dimensoes || '',
     'Butch No': l.butch_no ?? '',
     'Peças': l.num_pecas ?? 0,
     'm²': l.quantidade_m2,
@@ -184,7 +215,7 @@ export async function exportLadrilhos(supabase: SupabaseClient, opts: ExportOpti
   const totalM2 = data.reduce((s, l) => s + (l.quantidade_m2 || 0), 0);
   const totalPeso = data.reduce((s, l) => s + (l.peso || 0), 0);
   const totalValor = data.reduce((s, l) => s + (l.valor_inventario || 0), 0);
-  addTotalsRow(ws, data.length + 1, { 0: 'TOTAIS', 3: totalPecas, 4: totalM2, 5: totalPeso, 7: totalValor }, headers.length);
+  addTotalsRow(ws, data.length + 1, { 0: 'TOTAIS', 13: totalPecas, 14: totalM2, 15: totalPeso, 17: totalValor }, headers.length);
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Ladrilhos');
