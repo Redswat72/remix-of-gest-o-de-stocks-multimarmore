@@ -31,6 +31,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useAppT } from "@/hooks/useAppT";
 import { useEnumLabel } from "@/lib/enumLabels";
 import { formatNumber, formatCurrency } from "@/lib/format";
+import { formatBlocoDimensoes } from "@/lib/blocoDimensoes";
+import { formatChapaDimensoes } from "@/lib/chapaDimensoes";
 
 export default function Superadmin() {
   const t = useAppT();
@@ -228,15 +230,28 @@ function StockGlobalTab() {
 
   const handleExport = () => {
     if (!filteredItems.length) return;
-    const exportData = filteredItems.map((item) => ({
-      [empresaConfig?.idPrefix ?? "IDMM"]: item.referencia,
-      "Forma": enumLabel('tipoProduto', item.forma) || item.forma,
-      "Variedade": item.variedade || "-",
-      "Parque": item.parque,
-      "Quantidade": item.quantidade,
-      "Unidade": item.unidade,
-      "Valor (€)": item.valor ?? 0,
-    }));
+    const exportData = filteredItems.map((item) => {
+      const bloco = item.forma === 'bloco' ? item.raw : null;
+      const chapa = item.forma === 'chapa' ? item.raw : null;
+      return {
+        [empresaConfig?.idPrefix ?? "IDMM"]: item.referencia,
+        "Forma": enumLabel('tipoProduto', item.forma) || item.forma,
+        "Variedade": item.variedade || "",
+        "Parque": item.parque,
+        "Fornecedor": item.fornecedor || "",
+        "Comprimento (cm)": bloco?.comprimento ?? "",
+        "Largura (cm)": bloco?.largura ?? "",
+        "Altura (cm)": bloco?.altura ?? "",
+        "Dimensões": bloco
+          ? formatBlocoDimensoes(bloco)
+          : chapa
+            ? formatChapaDimensoes(chapa as unknown as Record<string, unknown>)
+            : item.dimensoes || "",
+        "Quantidade": item.quantidade,
+        "Unidade": item.unidade,
+        "Valor (€)": item.valor ?? 0,
+      };
+    });
     exportToExcel(exportData, `stock-global-${empresaConfig?.id ?? "empresa"}`);
   };
 

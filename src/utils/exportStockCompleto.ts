@@ -53,6 +53,9 @@ function addTotalsRow(ws: XLSX.WorkSheet, rowIndex: number, totals: Record<numbe
 
 /** Converte snake_case em rótulo legível: quantidade_kg -> "Quantidade Kg" */
 function prettyLabel(key: string): string {
+  if (key === 'comprimento') return 'Comprimento (cm)';
+  if (key === 'largura') return 'Largura (cm)';
+  if (key === 'altura') return 'Altura (cm)';
   if (key === 'dimensoes') return 'Dimensões';
   return key
     .split('_')
@@ -77,8 +80,8 @@ async function fetchAll(supabase: SupabaseClient, table: string): Promise<Row[]>
     if (data.length < PAGE) break;
     from += PAGE;
   }
-  // Só produtos ativos (com stock)
-  return all.filter(r => (r as any).ativo !== false);
+  // Nas tabelas com coluna `ativo`, exportar exclusivamente os registos ativos.
+  return all.filter(r => !Object.prototype.hasOwnProperty.call(r, 'ativo') || r.ativo === true);
 }
 
 /** Cria uma folha com TODAS as colunas existentes nos registos */
