@@ -231,7 +231,9 @@ function StockGlobalTab() {
   const handleExport = () => {
     if (!filteredItems.length) return;
     const exportData = filteredItems.map((item) => {
-      const bloco = item.forma === 'bloco' ? item.raw : null;
+      const bloco = item.forma === 'bloco'
+        ? { comprimento: item.comprimento, largura: item.largura, altura: item.altura }
+        : null;
       const chapa = item.forma === 'chapa' ? item.raw : null;
       return {
         [empresaConfig?.idPrefix ?? "IDMM"]: item.referencia,

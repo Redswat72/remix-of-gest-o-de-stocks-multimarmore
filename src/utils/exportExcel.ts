@@ -74,7 +74,9 @@ export async function exportBlocos(supabase: SupabaseClient, opts: ExportOptions
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  const data = (rawData ?? []).filter((r: any) => r.ativo === true);
+  const data = (rawData ?? []).filter((r: any) =>
+    !Object.prototype.hasOwnProperty.call(r, 'ativo') || r.ativo === true
+  );
   if (data.length === 0) throw new Error('Sem dados para exportar');
 
   const rows = data.map((b: any) => ({
