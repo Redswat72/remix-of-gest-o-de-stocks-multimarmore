@@ -9,6 +9,26 @@ interface ExportOptions {
   corHeader: string; // hex like '#1a56db'
 }
 
+async function fetchAllRows(supabase: SupabaseClient, table: string): Promise<Record<string, any>[]> {
+  const pageSize = 1000;
+  const rows: Record<string, any>[] = [];
+
+  for (let from = 0; ; from += pageSize) {
+    const { data, error } = await supabase
+      .from(table)
+      .select('*')
+      .order('id', { ascending: true })
+      .range(from, from + pageSize - 1);
+
+    if (error) throw error;
+    if (!data?.length) break;
+    rows.push(...data);
+    if (data.length < pageSize) break;
+  }
+
+  return rows;
+}
+
 function hexToArgb(hex: string): string {
   return 'FF' + hex.replace('#', '').toUpperCase();
 }
@@ -68,12 +88,7 @@ function downloadWorkbook(wb: XLSX.WorkBook, tipo: string, empresaNome: string) 
 
 // ─── BLOCOS ──────────────────────────────────────────────
 export async function exportBlocos(supabase: SupabaseClient, opts: ExportOptions) {
-  const { data: rawData, error } = await supabase
-    .from('blocos')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (error) throw error;
+  const rawData = await fetchAllRows(supabase, 'blocos');
   const data = (rawData ?? []).filter((r: any) =>
     !Object.prototype.hasOwnProperty.call(r, 'ativo') || r.ativo === true
   );
@@ -112,12 +127,7 @@ export async function exportBlocos(supabase: SupabaseClient, opts: ExportOptions
 
 // ─── CHAPAS ──────────────────────────────────────────────
 export async function exportChapas(supabase: SupabaseClient, opts: ExportOptions) {
-  const { data: rawData, error } = await supabase
-    .from('chapas')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (error) throw error;
+  const rawData = await fetchAllRows(supabase, 'chapas');
   const data = (rawData ?? []).filter((r: any) => r.ativo !== false);
   if (data.length === 0) throw new Error('Sem dados para exportar');
 
@@ -150,12 +160,7 @@ export async function exportChapas(supabase: SupabaseClient, opts: ExportOptions
 
 // ─── LADRILHOS ───────────────────────────────────────────
 export async function exportLadrilhos(supabase: SupabaseClient, opts: ExportOptions) {
-  const { data: rawData, error } = await supabase
-    .from('ladrilho')
-    .select('*')
-    .order('created_at', { ascending: false });
-
-  if (error) throw error;
+  const rawData = await fetchAllRows(supabase, 'ladrilho');
   const data = (rawData ?? []).filter((r: any) => r.ativo !== false);
   if (data.length === 0) throw new Error('Sem dados para exportar');
 
