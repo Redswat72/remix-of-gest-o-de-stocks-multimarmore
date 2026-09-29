@@ -129,7 +129,9 @@ export async function exportBlocos(supabase: SupabaseClient, opts: ExportOptions
 // ─── CHAPAS ──────────────────────────────────────────────
 export async function exportChapas(supabase: SupabaseClient, opts: ExportOptions) {
   const rawData = await fetchAllRows(supabase, 'chapas');
-  const data = (rawData ?? []).filter((r: any) => r.ativo !== false);
+  const data = (rawData ?? []).filter((r: any) =>
+    !Object.prototype.hasOwnProperty.call(r, 'ativo') || r.ativo === true
+  );
   if (data.length === 0) throw new Error('Sem dados para exportar');
 
   const rows = data.map((c: Chapa) => ({
@@ -182,7 +184,9 @@ export async function exportChapas(supabase: SupabaseClient, opts: ExportOptions
 // ─── LADRILHOS ───────────────────────────────────────────
 export async function exportLadrilhos(supabase: SupabaseClient, opts: ExportOptions) {
   const rawData = await fetchAllRows(supabase, 'ladrilho');
-  const data = (rawData ?? []).filter((r: any) => r.ativo !== false);
+  const data = (rawData ?? []).filter((r: any) =>
+    !Object.prototype.hasOwnProperty.call(r, 'ativo') || r.ativo === true
+  );
   if (data.length === 0) throw new Error('Sem dados para exportar');
 
   const rows = data.map((l: Ladrilho) => ({

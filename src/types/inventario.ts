@@ -73,6 +73,7 @@ export interface Chapa {
   acabamento: string | null;
   observacoes: string | null;
   created_at: string;
+  ativo?: boolean | null;
 }
 
 export interface Ladrilho {
@@ -96,8 +97,10 @@ export interface Ladrilho {
   preco_unitario: number | null;
   valor_inventario: number | null;
   entrada_stock: string | null;
+  fornecedor?: string | null;
   foto_amostra_url: string | null;
   created_at: string;
+  ativo?: boolean | null;
 }
 
 export interface Banda {
