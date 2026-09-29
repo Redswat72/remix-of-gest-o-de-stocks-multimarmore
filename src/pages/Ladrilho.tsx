@@ -15,6 +15,7 @@ import { PARQUES_OPTIONS } from "@/lib/parques";
 import InventarioDetailModal from "@/components/inventario/InventarioDetailModal";
 import { useAppT } from "@/hooks/useAppT";
 import { formatCurrency, formatNumber } from "@/lib/format";
+import { formatLadrilhoDimensoes } from "@/lib/ladrilhoDimensoes";
 
 export default function Ladrilho() {
   const t = useAppT();
@@ -90,6 +91,7 @@ export default function Ladrilho() {
               <TableHead>{t('inventory.col.type')}</TableHead>
               <TableHead>{t('inventory.col.variety')}</TableHead>
               <TableHead>{t('inventory.col.finish')}</TableHead>
+              <TableHead>{t('inventory.col.dimensions')}</TableHead>
               <TableHead className="text-right">{t('inventory.col.length')}</TableHead>
               <TableHead className="text-right">{t('inventory.col.width')}</TableHead>
               <TableHead className="text-right">{t('inventory.col.thickness')}</TableHead>
@@ -106,6 +108,9 @@ export default function Ladrilho() {
                 <TableCell>{ladrilho.tipo || "—"}</TableCell>
                 <TableCell>{ladrilho.variedade || "—"}</TableCell>
                 <TableCell>{ladrilho.acabamento || "—"}</TableCell>
+                <TableCell className="whitespace-nowrap">
+                  {formatLadrilhoDimensoes(ladrilho) ? `${formatLadrilhoDimensoes(ladrilho)} cm` : '—'}
+                </TableCell>
                 <TableCell className="text-right">{formatNumber(ladrilho.comprimento, 0) || '—'}</TableCell>
                 <TableCell className="text-right">{formatNumber(ladrilho.largura, 0) || '—'}</TableCell>
                 <TableCell className="text-right">{formatNumber(ladrilho.espessura, 1) || '—'}</TableCell>
