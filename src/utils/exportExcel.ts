@@ -2,6 +2,7 @@ import * as XLSX from 'xlsx';
 import type { Bloco, Chapa, Ladrilho } from '@/types/inventario';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { formatChapaDimensoes } from '@/lib/chapaDimensoes';
+import { formatBlocoDimensoes } from '@/lib/blocoDimensoes';
 
 interface ExportOptions {
   empresaNome: string;
@@ -73,7 +74,7 @@ export async function exportBlocos(supabase: SupabaseClient, opts: ExportOptions
     .order('created_at', { ascending: false });
 
   if (error) throw error;
-  const data = (rawData ?? []).filter((r: any) => r.ativo !== false);
+  const data = (rawData ?? []).filter((r: any) => r.ativo === true);
   if (data.length === 0) throw new Error('Sem dados para exportar');
 
   const rows = data.map((b: any) => ({
@@ -81,6 +82,12 @@ export async function exportBlocos(supabase: SupabaseClient, opts: ExportOptions
     'Parque': b.parque,
     'Variedade': b.variedade ?? '',
     'Origem': b.bloco_origem ?? '',
+    'Fornecedor': b.fornecedor ?? '',
+    'Ano de Entrada': b.entrada_stock ?? '',
+    'Comprimento (cm)': b.comprimento ?? '',
+    'Largura (cm)': b.largura ?? '',
+    'Altura (cm)': b.altura ?? '',
+    'Dimensões': formatBlocoDimensoes(b),
     'Peso (kg)': b.quantidade_kg ?? 0,
     'Preço/kg (€)': b.preco_unitario ?? 0,
     'Valor (€)': b.valor_inventario ?? 0,
@@ -94,7 +101,7 @@ export async function exportBlocos(supabase: SupabaseClient, opts: ExportOptions
   // Totals row
   const totalKg = data.reduce((s, b: any) => s + (b.quantidade_kg || 0), 0);
   const totalValor = data.reduce((s, b: any) => s + (b.valor_inventario || 0), 0);
-  addTotalsRow(ws, data.length + 1, { 0: 'TOTAIS', 4: totalKg, 6: totalValor }, headers.length);
+  addTotalsRow(ws, data.length + 1, { 0: 'TOTAIS', 10: totalKg, 12: totalValor }, headers.length);
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Blocos');

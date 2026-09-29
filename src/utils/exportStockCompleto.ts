@@ -1,6 +1,7 @@
 import * as XLSX from 'xlsx';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { formatChapaDimensoes } from '@/lib/chapaDimensoes';
+import { formatBlocoDimensoes } from '@/lib/blocoDimensoes';
 
 interface ExportOptions {
   empresaNome: string;
@@ -52,6 +53,7 @@ function addTotalsRow(ws: XLSX.WorkSheet, rowIndex: number, totals: Record<numbe
 
 /** Converte snake_case em rótulo legível: quantidade_kg -> "Quantidade Kg" */
 function prettyLabel(key: string): string {
+  if (key === 'dimensoes') return 'Dimensões';
   return key
     .split('_')
     .map(p => (p.length <= 2 ? p.toUpperCase() : p.charAt(0).toUpperCase() + p.slice(1)))
@@ -128,6 +130,11 @@ export async function exportStockCompleto(supabase: SupabaseClient, opts: Export
     fetchAll(supabase, 'ladrilho'),
   ]);
 
+  const blocosComDim = blocos.map(b => ({
+    ...b,
+    dimensoes: formatBlocoDimensoes(b),
+  }));
+
   // Dimensões consolidadas (pargas ou, em fallback, largura/altura)
   const chapasComDim = chapas.map(c => ({
     ...c,
@@ -135,7 +142,7 @@ export async function exportStockCompleto(supabase: SupabaseClient, opts: Export
   }));
 
   const wb = XLSX.utils.book_new();
-  buildSheet(wb, 'Blocos', blocos, opts.corHeader);
+  buildSheet(wb, 'Blocos', blocosComDim, opts.corHeader);
   buildSheet(wb, 'Chapas', chapasComDim, opts.corHeader);
   buildSheet(wb, 'Ladrilhos', ladrilho, opts.corHeader);
 
