@@ -20,6 +20,7 @@ import InventarioDetailModal from "@/components/inventario/InventarioDetailModal
 import MedicaoPendenteModal from "@/components/inventario/MedicaoPendenteModal";
 import { useAppT } from "@/hooks/useAppT";
 import { formatCurrency, formatNumber } from "@/lib/format";
+import { formatBlocoDimensoes } from "@/lib/blocoDimensoes";
 
 export default function Blocos() {
   const t = useAppT();
@@ -109,6 +110,7 @@ export default function Blocos() {
               <TableHead>{t('inventory.col.yard')}</TableHead>
               <TableHead>{t('inventory.col.variety')}</TableHead>
               <TableHead>{t('inventory.col.origin')}</TableHead>
+              <TableHead>{t('inventory.col.dimensions')}</TableHead>
               <TableHead className="text-right">{t('inventory.col.weight')}</TableHead>
               {podeVerValores && <TableHead className="text-right">{t('inventory.col.pricePerKg')}</TableHead>}
               {podeVerValores && <TableHead className="text-right">{t('inventory.col.value')}</TableHead>}
@@ -127,6 +129,9 @@ export default function Blocos() {
                   <TableCell onClick={() => setSelectedId(bloco.id)}><Badge variant="outline">{bloco.parque}</Badge></TableCell>
                   <TableCell onClick={() => setSelectedId(bloco.id)}>{bloco.variedade || "—"}</TableCell>
                   <TableCell onClick={() => setSelectedId(bloco.id)}>{bloco.bloco_origem || "—"}</TableCell>
+                  <TableCell className="whitespace-nowrap" onClick={() => setSelectedId(bloco.id)}>
+                    {formatBlocoDimensoes(bloco) ? `${formatBlocoDimensoes(bloco)} cm` : '—'}
+                  </TableCell>
                   <TableCell className="text-right" onClick={() => setSelectedId(bloco.id)}>
                     {bloco.quantidade_kg != null ? `${formatNumber(bloco.quantidade_kg) || '—'} kg` : '—'}
                   </TableCell>
