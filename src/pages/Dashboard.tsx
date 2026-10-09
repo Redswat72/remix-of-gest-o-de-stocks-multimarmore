@@ -18,6 +18,7 @@ import { formatCurrency, formatNumber } from "@/lib/format";
 
 export default function Dashboard() {
   const t = useAppT();
+  const localInfo = useLocaisInfo();
   const { empresaConfig } = useEmpresa();
   const { podeVerValores } = usePermissoes();
   const { data: resumoBlocos, isLoading: loadingBlocos } = useResumoBlocos();
