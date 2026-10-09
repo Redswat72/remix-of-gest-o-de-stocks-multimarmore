@@ -181,7 +181,7 @@ export default function Stock() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2">
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-3">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
