@@ -159,6 +159,9 @@
   .badge-producao {
     @apply bg-purple/15 text-purple border-purple/30;
   }
+  .badge-prestador {
+    @apply bg-warning/15 text-warning border-warning/40 font-semibold;
+  }
   .badge-cancelado {
     @apply bg-muted text-muted-foreground border-border;
   }

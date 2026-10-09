@@ -24,7 +24,8 @@
     "inicio": "Início",
     "novo": "Novo",
     "sair": "Sair",
-    "trocarEmpresa": "Trocar empresa"
+    "trocarEmpresa": "Trocar empresa",
+    "prestadores": "Prestadores"
   },
   "header": {
     "searchPlaceholder": "Pesquisar produtos, clientes...",
@@ -166,7 +167,6 @@
     "recalculateStock": "Erro ao recalcular stock",
     "generateTemplate": "Não foi possível gerar o modelo: {{msg}}"
   },
-
   "empty": {
     "noResults": "Sem resultados",
     "noData": "Sem dados disponíveis"
@@ -761,7 +761,6 @@
       "acabamento": "Acabamento",
       "acabamentoDesc": "opcional"
     }
-
   },
   "inventory": {
     "allYards": "Todos os parques",
@@ -851,7 +850,6 @@
       "origin": "Origem",
       "supplier": "Fornecedor",
       "entryYear": "Ano de Entrada",
-
       "dimensions": "Dimensões",
       "butchNo": "Butch No",
       "finish": "Acabamento",
@@ -886,7 +884,6 @@
         "origin": "Origem",
         "supplier": "Fornecedor",
         "entryDate": "Ano de Entrada",
-
         "lengthCm": "Comprimento (cm)",
         "widthCm": "Largura (cm)",
         "heightCm": "Altura (cm)",
@@ -1217,7 +1214,8 @@
     "colTotalValue": "Valor Total",
     "total": "Total",
     "yardValue": "Valor por Parque",
-    "chartValueLabel": "Valor"
+    "chartValueLabel": "Valor",
+    "emPrestadores": "Em prestadores"
   },
   "stock": {
     "title": "Consultar Stock",
@@ -1303,5 +1301,26 @@
       "user_roles": "Roles",
       "profiles": "Perfis"
     }
+  },
+  "prestadores": {
+    "noPrestador": "No prestador: {{nome}}",
+    "grupoParques": "Parques",
+    "grupoPrestadores": "Prestadores de serviços",
+    "emPrestadores": "Em prestadores (todos)",
+    "novo": "+ Novo prestador",
+    "novoTitulo": "Novo prestador de serviços",
+    "novoDesc": "O código é gerado automaticamente (PS001, PS002, ...).",
+    "nome": "Nome",
+    "morada": "Morada (opcional)",
+    "nomeObrigatorio": "Indique o nome do prestador.",
+    "criado": "Prestador criado",
+    "atualizado": "Prestador atualizado",
+    "titulo": "Prestadores de serviços",
+    "subtitulo": "Locais externos onde o material é resinado ou cortado. Desativar não apaga: apenas deixa de aparecer nos destinos.",
+    "editar": "Editar prestador",
+    "vazio": "Ainda não há prestadores.",
+    "origemPrestador": "Este material está num prestador; pode escolher o prestador como origem para o retorno.",
+    "nav": "Prestadores",
+    "tipoLocal": "Tipo de local"
   }
 }
