@@ -105,7 +105,9 @@ export function ProdutoForm({ produto, currentLocalId, onSubmit, onCancel, isLoa
   const [pargaFotos, setPargaFotos] = useState<PargaFotos>(emptyPargaFotos);
   const [gettingLocation, setGettingLocation] = useState(false);
 
-  const { data: locais = [] } = useLocaisAtivos();
+  const { data: todosLocaisAtivos = [] } = useLocaisAtivos();
+  // Produtos só se criam nos nossos parques, nunca em prestadores.
+  const locais = todosLocaisAtivos.filter(l => l.tipo !== 'prestador');
 
   const produtoWithPeso = produto as (Produto & { peso_ton?: number | null }) | null | undefined;
 

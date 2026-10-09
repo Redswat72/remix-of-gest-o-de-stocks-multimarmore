@@ -73,7 +73,8 @@ export function useDashboardStats() {
       const { count: locaisAtivos } = await supabase
         .from('locais')
         .select('*', { count: 'exact', head: true })
-        .eq('ativo', true);
+        .eq('ativo', true)
+        .neq('tipo', 'prestador');
 
       const calcStats = (movimentos: any[] | null): MovimentoStats => {
         if (!movimentos) return { entradas: 0, saidas: 0, transferencias: 0, total: 0 };
