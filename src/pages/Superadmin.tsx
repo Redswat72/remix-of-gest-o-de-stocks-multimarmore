@@ -98,6 +98,7 @@ function ImportarButton() {
 function StockGlobalTab() {
   const { toast } = useToast();
   const t = useAppT();
+  const localInfo = useLocaisInfo();
   const enumLabel = useEnumLabel();
   
   const { empresaConfig } = useEmpresa();
