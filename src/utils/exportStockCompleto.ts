@@ -3,6 +3,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { formatChapaDimensoes } from '@/lib/chapaDimensoes';
 import { formatBlocoDimensoes } from '@/lib/blocoDimensoes';
 import { formatLadrilhoDimensoes } from '@/lib/ladrilhoDimensoes';
+import { carregarLocaisExport } from '@/lib/locais';
 
 interface ExportOptions {
   empresaNome: string;
@@ -59,6 +60,7 @@ function prettyLabel(key: string): string {
   if (key === 'altura') return 'Altura (cm)';
   if (key === 'espessura') return 'Espessura (cm)';
   if (key === 'dimensoes') return 'Dimensões';
+  if (key === 'tipo_local') return 'Tipo de local';
   if (key === 'dimensoes_chapa') return 'Dimensões';
   const pargaMedida = key.match(/^parga(\d)_(comprimento|altura|espessura)$/);
   if (pargaMedida) {
@@ -143,18 +145,31 @@ export async function exportStockCompleto(supabase: SupabaseClient, opts: Export
     fetchAll(supabase, 'ladrilho'),
   ]);
 
-  const blocosComDim = blocos.map(b => ({
+  const loc = await carregarLocaisExport(supabase);
+  /** Mostra o nome do prestador na coluna parque e acrescenta logo a seguir o tipo de local. */
+  const comLocal = (r: Row): Row => {
+    const out: Row = {};
+    Object.entries(r).forEach(([k, v]) => {
+      if (k === 'parque') {
+        out.parque = loc.parqueLabel(v as string);
+        out.tipo_local = loc.tipoLocal(v as string);
+      } else out[k] = v;
+    });
+    return out;
+  };
+
+  const blocosComDim = blocos.map(comLocal).map(b => ({
     ...b,
     dimensoes: formatBlocoDimensoes(b),
   }));
 
   // Dimensões consolidadas (pargas ou, em fallback, largura/altura)
-  const chapasComDim = chapas.map(c => ({
+  const chapasComDim = chapas.map(comLocal).map(c => ({
     ...c,
     dimensoes_chapa: formatChapaDimensoes(c),
   }));
 
-  const ladrilhoComDim = ladrilho.map(l => ({
+  const ladrilhoComDim = ladrilho.map(comLocal).map(l => ({
     ...l,
     dimensoes: formatLadrilhoDimensoes(l) || l.dimensoes || '',
   }));

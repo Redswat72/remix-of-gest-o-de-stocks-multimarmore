@@ -15,7 +15,9 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useSearchInventario, type InventarioItem } from '@/hooks/useSearchInventario';
 import { useClientes } from '@/hooks/useClientes';
-import { useLocaisAtivos } from '@/hooks/useLocais';
+import { useLocaisAtivos, useLocais } from '@/hooks/useLocais';
+import { PrestadorDialog } from '@/pages/Prestadores';
+import { SelectGroup, SelectLabel, SelectSeparator } from '@/components/ui/select';
 import { useStockProdutoLocal } from '@/hooks/useStock';
 import { useCreateMovimento } from '@/hooks/useMovimentos';
 import type { TipoMovimento, TipoDocumento, OrigemMaterial, FormaProduto, MovimentoFormData } from '@/types/database';
@@ -123,6 +125,18 @@ export default function NovoMovimento() {
   );
   const { data: clientes } = useClientes();
   const { data: locais } = useLocaisAtivos();
+  const { data: todosLocais } = useLocais();
+  const [novoPrestadorOpen, setNovoPrestadorOpen] = useState(false);
+  // Origem/entrada: só parques. Destino da transferência: parques + prestadores de serviços.
+  const parquesAtivos = locais?.filter(l => l.tipo !== 'prestador') ?? [];
+  const prestadoresAtivos = locais?.filter(l => l.tipo === 'prestador') ?? [];
+  // Retorno: se o material está num prestador, esse prestador pode ser a origem.
+  const localDoItem = todosLocais?.find(l => l.codigo === selectedItem?.parque);
+  const itemNoPrestador = localDoItem?.tipo === 'prestador';
+  const origemOptions = [
+    ...(itemNoPrestador && localDoItem ? [localDoItem] : []),
+    ...(restritoAoParque ? parquesAtivos.filter(l => l.id === parqueOperadorId) : parquesAtivos),
+  ];
 
   // Stock validation
   const { data: stockDisponivel } = useStockProdutoLocal(
@@ -131,8 +145,8 @@ export default function NovoMovimento() {
     tipo === 'entrada' ? undefined : localOrigemId
   );
 
-  const selectedLocalOrigem = locais?.find(l => l.id === localOrigemId);
-  const selectedLocalDestino = locais?.find(l => l.id === (tipo === 'entrada' ? novoProdutoParqueDestinoId : localDestinoId));
+  const selectedLocalOrigem = todosLocais?.find(l => l.id === localOrigemId);
+  const selectedLocalDestino = todosLocais?.find(l => l.id === (tipo === 'entrada' ? novoProdutoParqueDestinoId : localDestinoId));
 
   // Set default local for entrada
   useEffect(() => {
@@ -147,6 +161,12 @@ export default function NovoMovimento() {
       setLocalOrigemId(parqueOperadorId);
     }
   }, [tipo, restritoAoParque, parqueOperadorId]);
+
+  useEffect(() => {
+    if ((tipo === 'transferencia' || tipo === 'saida') && itemNoPrestador && localDoItem) {
+      setLocalOrigemId(localDoItem.id);
+    }
+  }, [tipo, itemNoPrestador, localDoItem?.id]);
 
   const canProceed = (): boolean => {
     switch (step) {
@@ -440,7 +460,7 @@ export default function NovoMovimento() {
       const itemTipo = selectedItem?.tipo || '';
 
       if (tipo === 'transferencia') {
-        const destCodigo = locais?.find(l => l.id === localDestinoId)?.codigo || '';
+        const destCodigo = todosLocais?.find(l => l.id === localDestinoId)?.codigo || '';
         const { error: updateErr } = await supabaseEmpresa.rpc('transferir_produto', {
           p_id_mm: itemIdMm,
           p_tipo: itemTipo,
@@ -966,7 +986,7 @@ export default function NovoMovimento() {
                     <SelectValue placeholder={t('movements.parqueDestino.placeholder')} />
                   </SelectTrigger>
                   <SelectContent>
-                    {locais?.map(l => (
+                    {parquesAtivos.map(l => (
                       <SelectItem key={l.id} value={l.id}>{l.nome}</SelectItem>
                     ))}
                   </SelectContent>
@@ -1104,19 +1124,22 @@ export default function NovoMovimento() {
                     <Select
                       value={localOrigemId}
                       onValueChange={setLocalOrigemId}
-                      disabled={restritoAoParque}
+                      disabled={restritoAoParque && !itemNoPrestador}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder={t('movements.parqueOrigem.placeholderOrigem')} />
                       </SelectTrigger>
                       <SelectContent>
-                        {(restritoAoParque ? locais?.filter(l => l.id === parqueOperadorId) : locais)?.map(l => (
+                        {origemOptions.map(l => (
                           <SelectItem key={l.id} value={l.id} disabled={l.id === localDestinoId}>
-                            {l.nome}
+                            {l.tipo === 'prestador' ? `${t('prestadores.noPrestador', { nome: l.nome })}` : l.nome}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
+                    {itemNoPrestador && (
+                      <p className="text-sm text-muted-foreground">{t('prestadores.origemPrestador')}</p>
+                    )}
                   </div>
 
                   <div className="flex justify-center">
@@ -1125,18 +1148,48 @@ export default function NovoMovimento() {
 
                   <div className="space-y-2">
                     <Label>{t('movements.parqueDestino.label')}</Label>
-                    <Select value={localDestinoId} onValueChange={setLocalDestinoId}>
+                    <Select
+                      value={localDestinoId}
+                      onValueChange={(v) => {
+                        if (v === '__novo_prestador__') { setNovoPrestadorOpen(true); return; }
+                        setLocalDestinoId(v);
+                      }}
+                    >
                       <SelectTrigger>
                         <SelectValue placeholder={t('movements.parqueOrigem.placeholderDestino')} />
                       </SelectTrigger>
                       <SelectContent>
-                        {locais?.map(l => (
-                          <SelectItem key={l.id} value={l.id} disabled={l.id === localOrigemId}>
-                            {l.nome}
-                          </SelectItem>
-                        ))}
+                        <SelectGroup>
+                          <SelectLabel>{t('prestadores.grupoParques')}</SelectLabel>
+                          {parquesAtivos.map(l => (
+                            <SelectItem key={l.id} value={l.id} disabled={l.id === localOrigemId}>
+                              {l.nome}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                        <SelectSeparator />
+                        <SelectGroup>
+                          <SelectLabel>{t('prestadores.grupoPrestadores')}</SelectLabel>
+                          {prestadoresAtivos.map(l => (
+                            <SelectItem key={l.id} value={l.id} disabled={l.id === localOrigemId}>
+                              {l.nome}
+                            </SelectItem>
+                          ))}
+                          {isAdmin && (
+                            <SelectItem value="__novo_prestador__" className="text-primary font-medium">
+                              {t('prestadores.novo')}
+                            </SelectItem>
+                          )}
+                        </SelectGroup>
                       </SelectContent>
                     </Select>
+                    {isAdmin && (
+                      <PrestadorDialog
+                        open={novoPrestadorOpen}
+                        onOpenChange={setNovoPrestadorOpen}
+                        onSaved={(l) => setLocalDestinoId(l.id)}
+                      />
+                    )}
                   </div>
 
                   {stockDisponivel !== undefined && localOrigemId && (
@@ -1164,7 +1217,7 @@ export default function NovoMovimento() {
                         <SelectValue placeholder={t('movements.parqueOrigem.placeholder')} />
                       </SelectTrigger>
                       <SelectContent>
-                        {(restritoAoParque ? locais?.filter(l => l.id === parqueOperadorId) : locais)?.map(l => (
+                        {origemOptions.map(l => (
                           <SelectItem key={l.id} value={l.id}>{l.nome}</SelectItem>
                         ))}
                       </SelectContent>

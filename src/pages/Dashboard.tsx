@@ -11,12 +11,14 @@ import { useEmpresa } from "@/context/EmpresaContext";
 import { usePermissoes } from "@/hooks/usePermissoes";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PARQUES, type ParqueCode } from "@/lib/parques";
+import { useLocaisInfo } from "@/lib/locais";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { useAppT } from "@/hooks/useAppT";
 import { formatCurrency, formatNumber } from "@/lib/format";
 
 export default function Dashboard() {
   const t = useAppT();
+  const localInfo = useLocaisInfo();
   const { empresaConfig } = useEmpresa();
   const { podeVerValores } = usePermissoes();
   const { data: resumoBlocos, isLoading: loadingBlocos } = useResumoBlocos();
@@ -47,39 +49,47 @@ export default function Dashboard() {
   const parqueBreakdown = useMemo(() => {
     const map: Record<string, { blocos_kg: number; chapas_m2: number; ladrilho_m2: number; valor: number; blocos_count: number; chapas_count: number; ladrilho_count: number }> = {};
 
+    // Material em prestadores não soma aos parques: vai para uma linha própria.
+    const PREST = '__prestadores__';
+    const chave = (p: string) => (localInfo.isPrestador(p) ? PREST : p);
     const ensure = (p: string) => {
       if (!map[p]) map[p] = { blocos_kg: 0, chapas_m2: 0, ladrilho_m2: 0, valor: 0, blocos_count: 0, chapas_count: 0, ladrilho_count: 0 };
     };
 
     allBlocos?.forEach((b) => {
-      ensure(b.parque);
-      map[b.parque].blocos_kg += b.quantidade_kg || 0;
-      map[b.parque].blocos_count += 1;
-      map[b.parque].valor += b.valor_inventario || 0;
+      const kb = chave(b.parque);
+      ensure(kb);
+      map[kb].blocos_kg += b.quantidade_kg || 0;
+      map[kb].blocos_count += 1;
+      map[kb].valor += b.valor_inventario || 0;
     });
 
     allChapas?.forEach((c) => {
-      ensure(c.parque);
-      map[c.parque].chapas_m2 += c.quantidade_m2 || 0;
-      map[c.parque].chapas_count += 1;
-      map[c.parque].valor += c.valor_inventario || 0;
+      const kc = chave(c.parque);
+      ensure(kc);
+      map[kc].chapas_m2 += c.quantidade_m2 || 0;
+      map[kc].chapas_count += 1;
+      map[kc].valor += c.valor_inventario || 0;
     });
 
     allLadrilhos?.forEach((l) => {
-      ensure(l.parque);
-      map[l.parque].ladrilho_m2 += l.quantidade_m2 || 0;
-      map[l.parque].ladrilho_count += 1;
-      map[l.parque].valor += l.valor_inventario || 0;
+      const kl = chave(l.parque);
+      ensure(kl);
+      map[kl].ladrilho_m2 += l.quantidade_m2 || 0;
+      map[kl].ladrilho_count += 1;
+      map[kl].valor += l.valor_inventario || 0;
     });
 
     return Object.entries(map)
-      .sort(([a], [b]) => a.localeCompare(b))
+      .sort(([a], [b]) => (a === PREST ? 1 : b === PREST ? -1 : a.localeCompare(b)))
       .map(([parque, data]) => ({
-        parque,
-        nome: PARQUES[parque as ParqueCode] || parque,
+        parque: parque === PREST ? t('dashboard.emPrestadores') : parque,
+        nome: parque === PREST
+          ? localInfo.prestadores.map(p => p.nome).join(', ')
+          : localInfo.porCodigo.get(parque)?.nome || PARQUES[parque as ParqueCode] || parque,
         ...data,
       }));
-  }, [allBlocos, allChapas, allLadrilhos]);
+  }, [allBlocos, allChapas, allLadrilhos, localInfo, t]);
 
   const chartData = parqueBreakdown.map((p) => ({
     parque: p.parque,

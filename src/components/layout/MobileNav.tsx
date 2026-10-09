@@ -12,6 +12,7 @@ import {
   User,
   Scissors,
   ShieldCheck,
+  Truck,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';

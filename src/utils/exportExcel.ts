@@ -4,6 +4,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { formatChapaDimensoes } from '@/lib/chapaDimensoes';
 import { formatBlocoDimensoes } from '@/lib/blocoDimensoes';
 import { formatLadrilhoDimensoes } from '@/lib/ladrilhoDimensoes';
+import { carregarLocaisExport } from '@/lib/locais';
 
 interface ExportOptions {
   empresaNome: string;
@@ -94,10 +95,12 @@ export async function exportBlocos(supabase: SupabaseClient, opts: ExportOptions
     !Object.prototype.hasOwnProperty.call(r, 'ativo') || r.ativo === true
   );
   if (data.length === 0) throw new Error('Sem dados para exportar');
+  const loc = await carregarLocaisExport(supabase);
 
   const rows = data.map((b: any) => ({
     'ID MM': b.id_mm,
-    'Parque': b.parque,
+    'Parque': loc.parqueLabel(b.parque),
+    'Tipo de local': loc.tipoLocal(b.parque),
     'Variedade': b.variedade ?? '',
     'Origem': b.bloco_origem ?? '',
     'Fornecedor': b.fornecedor ?? '',
@@ -119,7 +122,7 @@ export async function exportBlocos(supabase: SupabaseClient, opts: ExportOptions
   // Totals row
   const totalKg = data.reduce((s, b: any) => s + (b.quantidade_kg || 0), 0);
   const totalValor = data.reduce((s, b: any) => s + (b.valor_inventario || 0), 0);
-  addTotalsRow(ws, data.length + 1, { 0: 'TOTAIS', 10: totalKg, 12: totalValor }, headers.length);
+  addTotalsRow(ws, data.length + 1, { 0: 'TOTAIS', 11: totalKg, 13: totalValor }, headers.length);
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Blocos');
@@ -133,11 +136,13 @@ export async function exportChapas(supabase: SupabaseClient, opts: ExportOptions
     !Object.prototype.hasOwnProperty.call(r, 'ativo') || r.ativo === true
   );
   if (data.length === 0) throw new Error('Sem dados para exportar');
+  const loc = await carregarLocaisExport(supabase);
 
   const rows = data.map((c: Chapa) => ({
     'ID MM': c.id_mm,
     'Bundle/Parga': c.bundle_id ?? '',
-    'Parque': c.parque,
+    'Parque': loc.parqueLabel(c.parque),
+    'Tipo de local': loc.tipoLocal(c.parque),
     'Variedade': c.variedade ?? '',
     'Fornecedor': c.fornecedor ?? '',
     'Ano de Entrada': c.entrada_stock ?? '',
@@ -174,7 +179,7 @@ export async function exportChapas(supabase: SupabaseClient, opts: ExportOptions
   const totalChapas = data.reduce((s, c) => s + (c.num_chapas || 0), 0);
   const totalM2 = data.reduce((s, c) => s + (c.quantidade_m2 || 0), 0);
   const totalValor = data.reduce((s, c) => s + (c.valor_inventario || 0), 0);
-  addTotalsRow(ws, data.length + 1, { 0: 'TOTAIS', 25: totalChapas, 26: totalM2, 28: totalValor }, headers.length);
+  addTotalsRow(ws, data.length + 1, { 0: 'TOTAIS', 26: totalChapas, 27: totalM2, 29: totalValor }, headers.length);
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Chapas');
@@ -188,10 +193,12 @@ export async function exportLadrilhos(supabase: SupabaseClient, opts: ExportOpti
     !Object.prototype.hasOwnProperty.call(r, 'ativo') || r.ativo === true
   );
   if (data.length === 0) throw new Error('Sem dados para exportar');
+  const loc = await carregarLocaisExport(supabase);
 
   const rows = data.map((l: Ladrilho) => ({
     'ID MM': l.id_mm ?? '',
-    'Parque': l.parque,
+    'Parque': loc.parqueLabel(l.parque),
+    'Tipo de local': loc.tipoLocal(l.parque),
     'Tipo': l.tipo ?? '',
     'Variedade': l.variedade ?? '',
     'Acabamento': l.acabamento ?? '',
@@ -219,7 +226,7 @@ export async function exportLadrilhos(supabase: SupabaseClient, opts: ExportOpti
   const totalM2 = data.reduce((s, l) => s + (l.quantidade_m2 || 0), 0);
   const totalPeso = data.reduce((s, l) => s + (l.peso || 0), 0);
   const totalValor = data.reduce((s, l) => s + (l.valor_inventario || 0), 0);
-  addTotalsRow(ws, data.length + 1, { 0: 'TOTAIS', 13: totalPecas, 14: totalM2, 15: totalPeso, 17: totalValor }, headers.length);
+  addTotalsRow(ws, data.length + 1, { 0: 'TOTAIS', 14: totalPecas, 15: totalM2, 16: totalPeso, 18: totalValor }, headers.length);
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Ladrilhos');

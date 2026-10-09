@@ -12,7 +12,9 @@ import { usePermissoes } from "@/hooks/usePermissoes";
 import { ExportExcelButton } from "@/components/ExportExcelButton";
 import { exportChapas } from "@/utils/exportExcel";
 import { Search } from "lucide-react";
-import { PARQUES_OPTIONS } from "@/lib/parques";
+import { useLocaisInfo, filtroParaQuery } from "@/lib/locais";
+import { ParqueBadge } from "@/components/inventario/ParqueBadge";
+import { ParqueFiltroSelect } from "@/components/inventario/ParqueFiltroSelect";
 import InventarioDetailModal from "@/components/inventario/InventarioDetailModal";
 import { useAppT } from "@/hooks/useAppT";
 import { formatCurrency, formatNumber } from "@/lib/format";
@@ -22,16 +24,19 @@ export default function Chapas() {
   const t = useAppT();
   const [parqueFiltro, setParqueFiltro] = useState("__all__");
   const [busca, setBusca] = useState("");
+  const localInfo = useLocaisInfo();
   const supabase = useSupabaseEmpresa();
   const { empresaConfig } = useEmpresa();
   const { podeVerValores } = usePermissoes();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  const { data: chapas, isLoading } = useChapas(parqueFiltro === "__all__" ? undefined : parqueFiltro);
+  const { data: chapas, isLoading } = useChapas(filtroParaQuery(parqueFiltro));
 
   const chapasFiltradas = chapas?.filter((chapa) => {
+    if (!localInfo.match(chapa.parque, parqueFiltro)) return false;
     const searchLower = busca.toLowerCase();
     return (
+      localInfo.nome(chapa.parque).toLowerCase().includes(searchLower) ||
       chapa.id_mm.toLowerCase().includes(searchLower) ||
       chapa.parque.toLowerCase().includes(searchLower) ||
       chapa.bundle_id?.toLowerCase().includes(searchLower) ||
@@ -70,17 +75,7 @@ export default function Chapas() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input placeholder={t('inventory.slabs.searchPlaceholder')} value={busca} onChange={(e) => setBusca(e.target.value)} className="pl-10" />
             </div>
-            <Select value={parqueFiltro} onValueChange={setParqueFiltro}>
-              <SelectTrigger className="w-full sm:w-[200px]">
-                <SelectValue placeholder={t('inventory.filterByYard')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__all__">{t('inventory.allYards')}</SelectItem>
-                {PARQUES_OPTIONS.map(({ value, label }) => (
-                  <SelectItem key={value} value={value}>{label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <ParqueFiltroSelect value={parqueFiltro} onChange={setParqueFiltro} />
           </div>
         </CardContent>
       </Card>
@@ -106,7 +101,7 @@ export default function Chapas() {
               <TableRow key={chapa.id} className="cursor-pointer hover:bg-muted/50" onClick={() => setSelectedId(chapa.id)}>
                 <TableCell className="font-medium">{chapa.id_mm}</TableCell>
                 <TableCell>{chapa.bundle_id || "—"}</TableCell>
-                <TableCell><Badge variant="outline">{chapa.parque}</Badge></TableCell>
+                <TableCell><ParqueBadge parque={chapa.parque} /></TableCell>
                 <TableCell>{chapa.variedade || "—"}</TableCell>
                 <TableCell>{chapa.acabamento || "—"}</TableCell>
                 <TableCell>{formatChapaDimensoes(chapa as unknown as Record<string, unknown>) || "—"}</TableCell>

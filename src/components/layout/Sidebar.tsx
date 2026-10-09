@@ -21,6 +21,7 @@ import {
   Store,
   ExternalLink,
   ShieldCheck,
+  Truck,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -52,6 +53,7 @@ const navItems: NavItem[] = [
   { href: '/historico', labelKey: 'nav.historico', icon: History },
   { href: '/produtos', labelKey: 'nav.produtos', icon: Boxes },
   { href: '/clientes', labelKey: 'nav.clientes', icon: Users, adminOnly: true },
+  { href: '/prestadores', labelKey: 'nav.prestadores', icon: Truck, adminOnly: true },
   { href: '/superadmin', labelKey: 'nav.superadmin', icon: MapPin, superadminOnly: true },
   { href: '/importar-stock', labelKey: 'nav.importarExcel', icon: FileSpreadsheet, superadminOnly: true },
   { href: '/auditoria', labelKey: 'nav.auditoria', icon: ClipboardList, superadminOnly: true },

@@ -37,9 +37,13 @@ export interface Local {
   nome: string;
   morada: string | null;
   ativo: boolean;
+  /** 'parque' (nossos locais) ou 'prestador' (prestador de serviços). */
+  tipo?: TipoLocal | null;
   created_at: string;
   updated_at: string;
 }
+
+export type TipoLocal = 'parque' | 'prestador';
 
 export interface Profile {
   id: string;
@@ -250,4 +254,5 @@ export interface LocalFormData {
   codigo: string;
   nome: string;
   morada?: string;
+  tipo?: TipoLocal;
 }

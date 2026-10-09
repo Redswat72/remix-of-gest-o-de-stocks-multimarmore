@@ -24,7 +24,8 @@
     "inicio": "Home",
     "novo": "New",
     "sair": "Sign out",
-    "trocarEmpresa": "Switch company"
+    "trocarEmpresa": "Switch company",
+    "prestadores": "Providers"
   },
   "header": {
     "searchPlaceholder": "Search products, customers...",
@@ -166,7 +167,6 @@
     "recalculateStock": "Error recalculating stock",
     "generateTemplate": "Could not generate the template: {{msg}}"
   },
-
   "empty": {
     "noResults": "No results",
     "noData": "No data available"
@@ -761,7 +761,6 @@
       "acabamento": "Finish",
       "acabamentoDesc": "optional"
     }
-
   },
   "inventory": {
     "allYards": "All yards",
@@ -851,7 +850,6 @@
       "origin": "Origin",
       "supplier": "Supplier",
       "entryYear": "Entry Year",
-
       "dimensions": "Dimensions",
       "butchNo": "Batch No",
       "finish": "Finish",
@@ -886,7 +884,6 @@
         "origin": "Origin",
         "supplier": "Supplier",
         "entryDate": "Entry Year",
-
         "lengthCm": "Length (cm)",
         "widthCm": "Width (cm)",
         "heightCm": "Height (cm)",
@@ -1217,7 +1214,8 @@
     "colTotalValue": "Total Value",
     "total": "Total",
     "yardValue": "Value by Yard",
-    "chartValueLabel": "Value"
+    "chartValueLabel": "Value",
+    "emPrestadores": "At providers"
   },
   "stock": {
     "title": "View Stock",
@@ -1303,5 +1301,26 @@
       "user_roles": "Roles",
       "profiles": "Profiles"
     }
+  },
+  "prestadores": {
+    "noPrestador": "At provider: {{nome}}",
+    "grupoParques": "Yards",
+    "grupoPrestadores": "Service providers",
+    "emPrestadores": "At providers (all)",
+    "novo": "+ New provider",
+    "novoTitulo": "New service provider",
+    "novoDesc": "The code is generated automatically (PS001, PS002, ...).",
+    "nome": "Name",
+    "morada": "Address (optional)",
+    "nomeObrigatorio": "Enter the provider name.",
+    "criado": "Provider created",
+    "atualizado": "Provider updated",
+    "titulo": "Service providers",
+    "subtitulo": "External sites where material is resined or cut. Deactivating does not delete; it only hides it from destinations.",
+    "editar": "Edit provider",
+    "vazio": "No providers yet.",
+    "origemPrestador": "This material is at a provider; you can pick the provider as origin for the return.",
+    "nav": "Providers",
+    "tipoLocal": "Location type"
   }
 }

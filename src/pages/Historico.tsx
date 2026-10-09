@@ -34,7 +34,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 import { useMovimentos, useCancelMovimento, useDeleteAdenda, type MovimentoComDetalhes } from '@/hooks/useMovimentos';
-import { useLocaisAtivos } from '@/hooks/useLocais';
+import { useLocais } from '@/hooks/useLocais';
 import { useProfiles } from '@/hooks/useProfiles';
 import { exportToExcel } from '@/lib/exportExcel';
 import { useAppT } from '@/hooks/useAppT';
@@ -87,7 +87,7 @@ export default function Historico() {
   const totalCount = result?.count ?? 0;
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
-  const { data: locais } = useLocaisAtivos();
+  const { data: locais } = useLocais();
   const { data: profiles } = useProfiles();
 
   const handleDeleteAdenda = async (adendaId: string) => {

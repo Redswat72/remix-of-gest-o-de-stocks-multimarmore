@@ -11,7 +11,9 @@ import { usePermissoes } from "@/hooks/usePermissoes";
 import { ExportExcelButton } from "@/components/ExportExcelButton";
 import { exportLadrilhos } from "@/utils/exportExcel";
 import { Search } from "lucide-react";
-import { PARQUES_OPTIONS } from "@/lib/parques";
+import { useLocaisInfo, filtroParaQuery } from "@/lib/locais";
+import { ParqueBadge } from "@/components/inventario/ParqueBadge";
+import { ParqueFiltroSelect } from "@/components/inventario/ParqueFiltroSelect";
 import InventarioDetailModal from "@/components/inventario/InventarioDetailModal";
 import { useAppT } from "@/hooks/useAppT";
 import { formatCurrency, formatNumber } from "@/lib/format";
@@ -21,15 +23,18 @@ export default function Ladrilho() {
   const t = useAppT();
   const [parqueFiltro, setParqueFiltro] = useState("__all__");
   const [busca, setBusca] = useState("");
-  const { data: ladrilhos, isLoading } = useLadrilho(parqueFiltro === "__all__" ? undefined : parqueFiltro);
+  const localInfo = useLocaisInfo();
+  const { data: ladrilhos, isLoading } = useLadrilho(filtroParaQuery(parqueFiltro));
   const supabase = useSupabaseEmpresa();
   const { empresaConfig } = useEmpresa();
   const { podeVerValores } = usePermissoes();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   const ladrilhosFiltrados = ladrilhos?.filter((ladrilho) => {
+    if (!localInfo.match(ladrilho.parque, parqueFiltro)) return false;
     const searchLower = busca.toLowerCase();
     return (
+      localInfo.nome(ladrilho.parque).toLowerCase().includes(searchLower) ||
       ladrilho.parque.toLowerCase().includes(searchLower) ||
       ladrilho.variedade?.toLowerCase().includes(searchLower) ||
       ladrilho.dimensoes?.toLowerCase().includes(searchLower) ||
@@ -68,17 +73,7 @@ export default function Ladrilho() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input placeholder={t('inventory.tiles.searchPlaceholder')} value={busca} onChange={(e) => setBusca(e.target.value)} className="pl-10" />
             </div>
-            <Select value={parqueFiltro} onValueChange={setParqueFiltro}>
-              <SelectTrigger className="w-full sm:w-[200px]">
-                <SelectValue placeholder={t('inventory.filterByYard')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__all__">{t('inventory.allYards')}</SelectItem>
-                {PARQUES_OPTIONS.map(({ value, label }) => (
-                  <SelectItem key={value} value={value}>{label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <ParqueFiltroSelect value={parqueFiltro} onChange={setParqueFiltro} />
           </div>
         </CardContent>
       </Card>

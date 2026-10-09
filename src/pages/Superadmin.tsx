@@ -14,6 +14,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useToast } from "@/hooks/use-toast";
 import { useUsers, type User } from "@/hooks/useUsers";
 import { useLocais, useCreateLocal, useUpdateLocal } from "@/hooks/useLocais";
+import { useLocaisInfo } from "@/lib/locais";
+import { ParqueBadge } from "@/components/inventario/ParqueBadge";
 import { useStockUnificado } from "@/hooks/useStockUnificado";
 import { exportToExcel } from "@/lib/exportExcel";
 import { gerarModeloExcel } from "@/lib/excelTemplateGenerator";
@@ -96,6 +98,7 @@ function ImportarButton() {
 function StockGlobalTab() {
   const { toast } = useToast();
   const t = useAppT();
+  const localInfo = useLocaisInfo();
   const enumLabel = useEnumLabel();
   
   const { empresaConfig } = useEmpresa();
@@ -243,7 +246,8 @@ function StockGlobalTab() {
         [empresaConfig?.idPrefix ?? "IDMM"]: item.referencia,
         "Forma": enumLabel('tipoProduto', item.forma) || item.forma,
         "Variedade": item.variedade || "",
-        "Parque": item.parque,
+        "Parque": localInfo.isPrestador(item.parque) ? localInfo.nome(item.parque) : item.parque,
+        "Tipo de local": localInfo.isPrestador(item.parque) ? "Prestador de serviços" : "Parque",
         "Fornecedor": item.fornecedor || "",
         "Comprimento (cm)": bloco?.comprimento ?? ladrilho?.comprimento ?? "",
         "Largura (cm)": bloco?.largura ?? ladrilho?.largura ?? "",
@@ -419,7 +423,7 @@ function StockGlobalTab() {
                         {item.forma === 'bloco' ? (item.idMm || item.referencia) : item.referencia}
                       </TableCell>
                       <TableCell>{item.variedade || '—'}</TableCell>
-                      <TableCell>{item.parque}</TableCell>
+                      <TableCell><ParqueBadge parque={item.parque} /></TableCell>
                       <TableCell className="text-right">{formatNumber(item.quantidade)} {item.unidade}</TableCell>
                       <TableCell className="text-right font-medium">{formatCurrency(item.valor)}</TableCell>
                     </TableRow>
@@ -443,7 +447,9 @@ function StockGlobalTab() {
 function GestaoLocaisTab() {
   const { toast } = useToast();
   const t = useAppT();
-  const { data: locais, isLoading } = useLocais();
+  // Prestadores de serviços são geridos em /prestadores.
+  const { data: todosLocais, isLoading } = useLocais();
+  const locais = todosLocais?.filter(l => l.tipo !== 'prestador');
   const createLocal = useCreateLocal();
   const updateLocal = useUpdateLocal();
   const [dialogOpen, setDialogOpen] = useState(false);
