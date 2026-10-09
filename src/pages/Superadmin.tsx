@@ -443,7 +443,9 @@ function StockGlobalTab() {
 function GestaoLocaisTab() {
   const { toast } = useToast();
   const t = useAppT();
-  const { data: locais, isLoading } = useLocais();
+  // Prestadores de serviços são geridos em /prestadores.
+  const { data: todosLocais, isLoading } = useLocais();
+  const locais = todosLocais?.filter(l => l.tipo !== 'prestador');
   const createLocal = useCreateLocal();
   const updateLocal = useUpdateLocal();
   const [dialogOpen, setDialogOpen] = useState(false);

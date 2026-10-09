@@ -26,6 +26,7 @@ import NovoMovimento from "./pages/NovoMovimento";
 import Historico from "./pages/Historico";
 import MovimentosValidar from "./pages/MovimentosValidar";
 import Superadmin from "./pages/Superadmin";
+import Prestadores from "./pages/Prestadores";
 import Auditoria from "./pages/Auditoria";
 import Produtos from "./pages/Produtos";
 import ImportarStock from "./pages/ImportarStock";
@@ -89,6 +90,7 @@ const App = () => (
                 <Route path="/movimento/novo" element={<ProtectedRoute><AppLayout><NovoMovimento /></AppLayout></ProtectedRoute>} />
                 <Route path="/movimentos/validar" element={<ProtectedRoute adminOnly><AppLayout><MovimentosValidar /></AppLayout></ProtectedRoute>} />
                 <Route path="/historico" element={<ProtectedRoute><AppLayout><Historico /></AppLayout></ProtectedRoute>} />
+                <Route path="/prestadores" element={<ProtectedRoute adminOnly><AppLayout><Prestadores /></AppLayout></ProtectedRoute>} />
                 <Route path="/superadmin" element={<ProtectedRoute superadminOnly><AppLayout><Superadmin /></AppLayout></ProtectedRoute>} />
                 <Route path="/auditoria" element={<ProtectedRoute superadminOnly><AppLayout><Auditoria /></AppLayout></ProtectedRoute>} />
                 <Route path="/importar-stock" element={<ProtectedRoute superadminOnly><AppLayout><ImportarStock /></AppLayout></ProtectedRoute>} />
