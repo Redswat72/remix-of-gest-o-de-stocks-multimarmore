@@ -20,6 +20,9 @@ import { exportStockCompleto } from '@/utils/exportStockCompleto';
 import { useAppT } from '@/hooks/useAppT';
 import { useEnumLabel } from '@/lib/enumLabels';
 import { formatCurrency, formatNumber } from '@/lib/format';
+import { useLocaisInfo, FILTRO_TODOS } from '@/lib/locais';
+import { ParqueBadge } from '@/components/inventario/ParqueBadge';
+import { ParqueFiltroSelect } from '@/components/inventario/ParqueFiltroSelect';
 
 type SortField = 'referencia' | 'variedade' | 'quantidade' | 'valor';
 type SortOrder = 'asc' | 'desc';
@@ -44,6 +47,8 @@ export default function Stock() {
   const supabase = useSupabaseEmpresa();
   const [busca, setBusca] = useState('');
   const [formaFilter, setFormaFilter] = useState<string>('');
+  const [parqueFiltro, setParqueFiltro] = useState<string>(FILTRO_TODOS);
+  const localInfo = useLocaisInfo();
   const [sortField, setSortField] = useState<SortField>('referencia');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
 
@@ -64,7 +69,7 @@ export default function Stock() {
 
   const sortedItems = useMemo(() => {
     if (!items) return [];
-    return [...items].sort((a, b) => {
+    return items.filter(i => localInfo.match(i.parque, parqueFiltro)).sort((a, b) => {
       let cmp = 0;
       switch (sortField) {
         case 'referencia': cmp = getDisplayReferencia(a).localeCompare(getDisplayReferencia(b)); break;
@@ -74,15 +79,15 @@ export default function Stock() {
       }
       return sortOrder === 'asc' ? cmp : -cmp;
     });
-  }, [items, sortField, sortOrder]);
+  }, [items, sortField, sortOrder, localInfo, parqueFiltro]);
 
   const toggleSort = (field: SortField) => {
     if (sortField === field) setSortOrder(p => p === 'asc' ? 'desc' : 'asc');
     else { setSortField(field); setSortOrder('asc'); }
   };
 
-  const clearFilters = () => { setBusca(''); setFormaFilter(''); };
-  const hasFilters = busca || formaFilter;
+  const clearFilters = () => { setBusca(''); setFormaFilter(''); setParqueFiltro(FILTRO_TODOS); };
+  const hasFilters = busca || formaFilter || parqueFiltro !== FILTRO_TODOS;
 
   const SortIcon = ({ field }: { field: SortField }) => {
     if (sortField !== field) return null;
@@ -257,7 +262,7 @@ export default function Stock() {
                       <TableCell className="font-mono font-medium">{getDisplayReferencia(item)}</TableCell>
                       <TableCell className="text-muted-foreground">{item.variedade || '—'}</TableCell>
                       <TableCell>
-                        <Badge variant="outline">{item.parque}</Badge>
+                        <ParqueBadge parque={item.parque} />
                       </TableCell>
                       <TableCell className="text-muted-foreground">{item.acabamento || '—'}</TableCell>
                       <TableCell className="text-muted-foreground text-sm whitespace-nowrap">

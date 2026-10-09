@@ -15,7 +15,9 @@ import { useAuth } from "@/hooks/useAuth";
 import { ExportExcelButton } from "@/components/ExportExcelButton";
 import { exportBlocos } from "@/utils/exportExcel";
 import { Search, Scissors, Ruler, Factory } from "lucide-react";
-import { PARQUES_OPTIONS } from "@/lib/parques";
+import { useLocaisInfo, filtroParaQuery } from "@/lib/locais";
+import { ParqueBadge } from "@/components/inventario/ParqueBadge";
+import { ParqueFiltroSelect } from "@/components/inventario/ParqueFiltroSelect";
 import InventarioDetailModal from "@/components/inventario/InventarioDetailModal";
 import MedicaoPendenteModal from "@/components/inventario/MedicaoPendenteModal";
 import { useAppT } from "@/hooks/useAppT";
@@ -27,6 +29,7 @@ export default function Blocos() {
   const navigate = useNavigate();
   const [parqueFiltro, setParqueFiltro] = useState("__all__");
   const [busca, setBusca] = useState("");
+  const localInfo = useLocaisInfo();
   const supabase = useSupabaseEmpresa();
   const { empresaConfig } = useEmpresa();
   const { podeVerValores } = usePermissoes();
@@ -35,13 +38,15 @@ export default function Blocos() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [medicaoBloco, setMedicaoBloco] = useState<{ id: string; id_mm: string } | null>(null);
 
-  const { data: blocos, isLoading } = useBlocos(parqueFiltro === "__all__" ? undefined : parqueFiltro);
+  const { data: blocos, isLoading } = useBlocos(filtroParaQuery(parqueFiltro));
 
   const blocosAtivos = blocos?.filter(b => (b as any).ativo !== false);
 
   const blocosFiltrados = blocosAtivos?.filter((bloco) => {
+    if (!localInfo.match(bloco.parque, parqueFiltro)) return false;
     const searchLower = busca.toLowerCase();
     return (
+      localInfo.nome(bloco.parque).toLowerCase().includes(searchLower) ||
       bloco.id_mm.toLowerCase().includes(searchLower) ||
       bloco.parque.toLowerCase().includes(searchLower) ||
       bloco.variedade?.toLowerCase().includes(searchLower) ||
@@ -86,17 +91,7 @@ export default function Blocos() {
                 className="pl-10"
               />
             </div>
-            <Select value={parqueFiltro} onValueChange={setParqueFiltro}>
-              <SelectTrigger className="w-full sm:w-[200px]">
-                <SelectValue placeholder={t('inventory.filterByYard')} />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="__all__">{t('inventory.allYards')}</SelectItem>
-                {PARQUES_OPTIONS.map(({ value, label }) => (
-                  <SelectItem key={value} value={value}>{label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <ParqueFiltroSelect value={parqueFiltro} onChange={setParqueFiltro} />
           </div>
         </CardContent>
       </Card>
@@ -126,7 +121,7 @@ export default function Blocos() {
               return (
                 <TableRow key={bloco.id} className="cursor-pointer hover:bg-muted/50">
                   <TableCell className="font-medium" onClick={() => setSelectedId(bloco.id)}>{bloco.id_mm}</TableCell>
-                  <TableCell onClick={() => setSelectedId(bloco.id)}><Badge variant="outline">{bloco.parque}</Badge></TableCell>
+                  <TableCell onClick={() => setSelectedId(bloco.id)}><ParqueBadge parque={bloco.parque} /></TableCell>
                   <TableCell onClick={() => setSelectedId(bloco.id)}>{bloco.variedade || "—"}</TableCell>
                   <TableCell onClick={() => setSelectedId(bloco.id)}>{bloco.bloco_origem || "—"}</TableCell>
                   <TableCell className="whitespace-nowrap" onClick={() => setSelectedId(bloco.id)}>
