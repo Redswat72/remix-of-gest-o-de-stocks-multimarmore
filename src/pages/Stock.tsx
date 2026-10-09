@@ -202,6 +202,7 @@ export default function Stock() {
                 <SelectItem value="ladrilho">{enumLabel('tipoProduto', 'ladrilho')}</SelectItem>
               </SelectContent>
             </Select>
+            <ParqueFiltroSelect value={parqueFiltro} onChange={setParqueFiltro} className="w-full" />
           </div>
         </CardContent>
       </Card>
