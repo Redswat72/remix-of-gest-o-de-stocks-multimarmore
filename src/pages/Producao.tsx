@@ -359,7 +359,7 @@ export default function Producao() {
       }
 
       if (!user?.id) {
-        await supabase.from('chapas').delete().eq('id', chapaId);
+        await rollbackChapa();
         throw new Error('Utilizador não autenticado: operador_id é obrigatório.');
       }
       let localOrigemId: string | null = null;
@@ -371,7 +371,7 @@ export default function Producao() {
       localOrigemId = (localProd as { id: string } | null)?.id
         ?? (bloco.parque === PARQUE_PRODUCAO ? '01fcf8ae-cef1-4a5d-bae2-8e7d8b3e5bd8' : null);
       if (!localOrigemId) {
-        await supabase.from('chapas').delete().eq('id', chapaId);
+        await rollbackChapa();
         throw new Error(`Parque ${bloco.parque} não encontrado.`);
       }
 
@@ -387,10 +387,10 @@ export default function Producao() {
         quantidade: 1,
         data_movimento: data,
         operador_id: user.id,
-        observacoes: `Bloco ${bloco.id_mm} serrado em ${totalChapas} chapas (${areaRounded} m², corte ${tipoCorte})`,
+        observacoes: `Bloco ${bloco.id_mm} serrado em ${novasChapas} chapas (${novaArea} m², corte ${tipoCorte})${existingChapa ? ` — acrescentadas à chapa existente (total ${totalChapas} chapas, ${areaRounded} m²)` : ''}`,
       } as Record<string, unknown>);
       if (movError) {
-        await supabase.from('chapas').delete().eq('id', chapaId);
+        await rollbackChapa();
         if (tipoCorte === 'total') {
           await supabase.from('blocos').update({ ativo: true, valor_inventario: bloco.valor_inventario, quantidade_kg: bloco.quantidade_kg }).eq('id', bloco.id);
         }
