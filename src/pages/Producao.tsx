@@ -228,46 +228,81 @@ export default function Producao() {
 
       const chapaIdMm = bloco.id_mm;
 
-      const { data: existingChapa, error: existsErr } = await supabase
+      const { data: existingRows, error: existsErr } = await supabase
         .from('chapas')
-        .select('id')
+        .select('*')
         .eq('id_mm', chapaIdMm)
-        .maybeSingle();
+        .limit(2);
       if (existsErr) throw existsErr;
-      if (existingChapa) {
-        throw new Error(`Já existe uma chapa com id_mm "${chapaIdMm}". Não foi criado registo duplicado.`);
+      if ((existingRows?.length ?? 0) > 1) {
+        throw new Error(`Existem várias chapas com id_mm "${chapaIdMm}". Contacte o administrador antes de lançar nova produção.`);
       }
+      const existingChapa = (existingRows?.[0] ?? null) as Record<string, any> | null;
 
-      const pargasNorm = pargas.map(p => ({ ...p, espessura: p.espessura ?? 2 }));
-
-      const areaTotal = pargasNorm.reduce((sum, p) => {
-        if (!p.quantidade || !p.comprimento || !p.altura) return sum;
-        return sum + (p.quantidade * p.comprimento * p.altura) / 10000;
-      }, 0);
-      const areaRounded = Math.round(areaTotal * 100) / 100;
+      const pargasNorm = pargas
+        .map(p => ({ ...p, espessura: p.espessura ?? 2 }))
+        .filter(p => !!p.quantidade);
+      if (pargasNorm.length === 0) throw new Error('Indique pelo menos uma parga com quantidade.');
 
       const precoUnit = bloco.preco_unitario ?? null;
-      const valorInv = precoUnit != null ? Math.round(areaRounded * precoUnit * 100) / 100 : null;
-      const totalChapas = pargasNorm.reduce((sum, p) => sum + (p.quantidade || 0), 0);
+
+      // Monta pargas finais: se a chapa já existe (corte parcial anterior), acrescenta nas posições livres
+      type PargaFinal = { quantidade: number; comprimento: number | null; altura: number | null; espessura: number | null; foto_primeira: string | null; foto_ultima: string | null; nome: string };
+      const slots: (PargaFinal | null)[] = [null, null, null, null];
+      if (existingChapa) {
+        if (existingChapa.parque && existingChapa.parque !== bloco.parque) {
+          throw new Error(`Já existe a chapa "${chapaIdMm}" no parque ${existingChapa.parque}. Só é possível acrescentar chapas no mesmo parque do bloco (${bloco.parque}).`);
+        }
+        for (let i = 0; i < 4; i++) {
+          const q = Number(existingChapa[`parga${i + 1}_quantidade`]) || 0;
+          if (q > 0) {
+            slots[i] = {
+              quantidade: q,
+              comprimento: existingChapa[`parga${i + 1}_comprimento`] ?? null,
+              altura: existingChapa[`parga${i + 1}_altura`] ?? null,
+              espessura: existingChapa[`parga${i + 1}_espessura`] ?? null,
+              foto_primeira: existingChapa[`parga${i + 1}_foto_primeira`] ?? null,
+              foto_ultima: existingChapa[`parga${i + 1}_foto_ultima`] ?? null,
+              nome: existingChapa[`parga${i + 1}_nome`] || `Parga ${i + 1}`,
+            };
+          }
+        }
+      }
+      const livres = slots.map((s, i) => (s ? -1 : i)).filter(i => i >= 0);
+      if (livres.length < pargasNorm.length) {
+        throw new Error(`A chapa "${chapaIdMm}" já tem ${4 - livres.length} pargas registadas. Só cabem mais ${livres.length} (máximo 4 por chapa).`);
+      }
+      pargasNorm.forEach((p, k) => {
+        const idx = livres[k];
+        slots[idx] = {
+          quantidade: p.quantidade!,
+          comprimento: p.comprimento,
+          altura: p.altura,
+          espessura: p.espessura,
+          foto_primeira: p.foto_primeira,
+          foto_ultima: p.foto_ultima,
+          nome: `Parga ${idx + 1}`,
+        };
+      });
+
+      const novasChapas = pargasNorm.reduce((s, p) => s + (p.quantidade || 0), 0);
+      const novaArea = Math.round(pargasNorm.reduce((s, p) => (!p.comprimento || !p.altura ? s : s + (p.quantidade! * p.comprimento * p.altura) / 10000), 0) * 100) / 100;
+      const totalChapas = slots.reduce((s, p) => s + (p?.quantidade || 0), 0);
+      const areaTotal = slots.reduce((s, p) => (!p || !p.comprimento || !p.altura ? s : s + (p.quantidade * p.comprimento * p.altura) / 10000), 0);
+      const areaRounded = Math.round(areaTotal * 100) / 100;
+      const precoChapa = existingChapa?.preco_unitario ?? precoUnit;
+      const valorInv = precoChapa != null ? Math.round(areaRounded * Number(precoChapa) * 100) / 100 : null;
 
       const chapaData: Record<string, unknown> = {
-        id_mm: chapaIdMm,
-        parque: bloco.parque,
-        variedade: bloco.variedade,
-        entrada_stock: data,
-        linha: linha || null,
         quantidade_m2: areaRounded,
         num_chapas: totalChapas,
-        preco_unitario: precoUnit,
         valor_inventario: valorInv,
-        observacoes: `Produção a partir do bloco ${bloco.id_mm}`,
       };
-
       for (let i = 0; i < 4; i++) {
-        const p = pargasNorm[i];
+        const p = slots[i];
         const idx = i + 1;
-        if (p.quantidade) {
-          chapaData[`parga${idx}_nome`] = `Parga ${idx}`;
+        if (p) {
+          chapaData[`parga${idx}_nome`] = p.nome;
           chapaData[`parga${idx}_quantidade`] = p.quantidade;
           chapaData[`parga${idx}_comprimento`] = p.comprimento;
           chapaData[`parga${idx}_altura`] = p.altura;
@@ -277,13 +312,38 @@ export default function Producao() {
         }
       }
 
-      const { data: chapaInserted, error: chapaError } = await supabase
-        .from('chapas')
-        .insert(chapaData)
-        .select('id')
-        .single();
-      if (chapaError) throw chapaError;
-      const chapaId = (chapaInserted as { id: string }).id;
+      let chapaId: string;
+      let rollbackChapa: () => Promise<void>;
+      if (existingChapa) {
+        const anterior: Record<string, unknown> = {};
+        Object.keys(chapaData).forEach(k => { anterior[k] = existingChapa[k] ?? null; });
+        if ('ativo' in existingChapa) {
+          chapaData.ativo = true;
+          anterior.ativo = existingChapa.ativo;
+        }
+        const { error: updErr } = await supabase.from('chapas').update(chapaData).eq('id', existingChapa.id);
+        if (updErr) throw updErr;
+        chapaId = existingChapa.id;
+        rollbackChapa = async () => { await supabase.from('chapas').update(anterior).eq('id', chapaId); };
+      } else {
+        Object.assign(chapaData, {
+          id_mm: chapaIdMm,
+          parque: bloco.parque,
+          variedade: bloco.variedade,
+          entrada_stock: data,
+          linha: linha || null,
+          preco_unitario: precoUnit,
+          observacoes: `Produção a partir do bloco ${bloco.id_mm}`,
+        });
+        const { data: chapaInserted, error: chapaError } = await supabase
+          .from('chapas')
+          .insert(chapaData)
+          .select('id')
+          .single();
+        if (chapaError) throw chapaError;
+        chapaId = (chapaInserted as { id: string }).id;
+        rollbackChapa = async () => { await supabase.from('chapas').delete().eq('id', chapaId); };
+      }
 
       const blocoUpdate = tipoCorte === 'total'
         ? { ativo: false, valor_inventario: 0, quantidade_kg: 0 }
@@ -294,7 +354,7 @@ export default function Producao() {
         .update(blocoUpdate)
         .eq('id', bloco.id);
       if (blocoError) {
-        await supabase.from('chapas').delete().eq('id', chapaId);
+        await rollbackChapa();
         throw blocoError;
       }
 
