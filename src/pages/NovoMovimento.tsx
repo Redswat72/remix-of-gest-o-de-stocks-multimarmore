@@ -70,6 +70,9 @@ export default function NovoMovimento() {
   const [clienteNome, setClienteNome] = useState('');
   const [matriculaViatura, setMatriculaViatura] = useState('');
   const [observacoes, setObservacoes] = useState('');
+  // Baixa para marketing (só admins): saída sem documento nem cliente
+  const [baixaMarketing, setBaixaMarketing] = useState(false);
+  const [motivoMarketing, setMotivoMarketing] = useState('');
   const [searchProduto, setSearchProduto] = useState('');
   const [selectedItem, setSelectedItem] = useState<InventarioItem | null>(null);
 
@@ -173,6 +176,7 @@ export default function NovoMovimento() {
       case 1:
         return !!tipo;
       case 2:
+        if (tipo === 'saida' && baixaMarketing) return !!motivoMarketing;
         if (tipo === 'transferencia' || tipo === 'saida') {
           if (tipoDocumento === 'sem_documento') return false;
           if (!numeroDocumento.trim()) return false;
@@ -203,7 +207,7 @@ export default function NovoMovimento() {
           return !!localOrigemId && !!localDestinoId && localOrigemId !== localDestinoId;
         }
         if (tipo === 'saida') {
-          return !!localOrigemId && !!clienteNome.trim();
+          return !!localOrigemId && (baixaMarketing || !!clienteNome.trim());
         }
         return false;
       case 5:
@@ -478,7 +482,7 @@ export default function NovoMovimento() {
         quantidade: Number(quantidade),
         local_origem_id: localOrigemId || undefined,
         local_destino_id: tipo !== 'saida' ? localDestinoId : undefined,
-        cliente_nome: tipo === 'saida' ? clienteNome.trim() : undefined,
+        cliente_nome: tipo === 'saida' ? (baixaMarketing ? `Marketing — ${motivoMarketing}` : clienteNome.trim()) : undefined,
         matricula_viatura: matriculaViatura || undefined,
         observacoes: observacoes || undefined,
       };
@@ -725,7 +729,35 @@ export default function NovoMovimento() {
                 </>
               )}
 
-              {(tipo === 'transferencia' || tipo === 'saida') && (
+              {tipo === 'saida' && isAdmin && (
+                <div className="space-y-3 rounded-md border p-3">
+                  <label className="flex items-center gap-2 text-sm font-medium cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={baixaMarketing}
+                      onChange={(e) => {
+                        setBaixaMarketing(e.target.checked);
+                        setTipoDocumento(e.target.checked ? 'sem_documento' : 'guia_transporte');
+                        if (!e.target.checked) setMotivoMarketing('');
+                      }}
+                    />
+                    Baixa para marketing / uso interno (sem documento)
+                  </label>
+                  {baixaMarketing && (
+                    <div className="space-y-2">
+                      <Label>Motivo <span className="text-destructive">*</span></Label>
+                      <Select value={motivoMarketing} onValueChange={setMotivoMarketing}>
+                        <SelectTrigger><SelectValue placeholder="Escolher motivo" /></SelectTrigger>
+                        <SelectContent>
+                          {MOTIVOS_MARKETING.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {(tipo === 'transferencia' || (tipo === 'saida' && !baixaMarketing)) && (
                 <>
                   <div className="space-y-2">
                     <Label>{t('movements.tipoDocumento')} <span className="text-destructive">*</span></Label>
@@ -1234,6 +1266,12 @@ export default function NovoMovimento() {
                     </Alert>
                   )}
 
+                  {baixaMarketing ? (
+                    <Alert>
+                      <AlertCircle className="h-4 w-4" />
+                      <AlertDescription>Baixa para marketing — motivo: <strong>{motivoMarketing}</strong>. Sem cliente.</AlertDescription>
+                    </Alert>
+                  ) : (
                   <div className="space-y-2">
                     <Label>{t('movements.cliente.label')} <span className="text-destructive">*</span></Label>
                     <Input
@@ -1245,6 +1283,7 @@ export default function NovoMovimento() {
                       <p className="text-sm text-destructive">{t('movements.cliente.required')}</p>
                     )}
                   </div>
+                  )}
                 </>
               )}
             </div>
