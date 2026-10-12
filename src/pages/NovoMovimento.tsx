@@ -29,6 +29,7 @@ import { procurarIdMm, type IdMmExistente } from '@/lib/idMmExistente';
 import { IdMmDuplicadoDialog } from '@/components/movimentos/IdMmDuplicadoDialog';
 
 const PEDREIRAS = ['Del Rey', 'Mol', 'Olival do Pires'];
+const MOTIVOS_MARKETING = ['Amostras', 'Feiras / stands', 'Showroom', 'Outras situações de marketing'];
 
 export default function NovoMovimento() {
   const navigate = useNavigate();
@@ -515,6 +516,8 @@ export default function NovoMovimento() {
   };
 
   const handleTipoChange = (newTipo: TipoMovimento) => {
+    setBaixaMarketing(false);
+    setMotivoMarketing('');
     setTipo(newTipo);
     setLocalOrigemId('');
     setLocalDestinoId('');
@@ -1379,7 +1382,7 @@ export default function NovoMovimento() {
                       </div>
                       <div className="flex justify-between py-2 border-b">
                         <span className="text-muted-foreground">{t('movements.resumo.cliente')}</span>
-                        <span>{clienteNome}</span>
+                        <span>{baixaMarketing ? `Marketing — ${motivoMarketing}` : clienteNome}</span>
                       </div>
                     </>
                   )}
