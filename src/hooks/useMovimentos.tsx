@@ -163,6 +163,7 @@ export function useCreateMovimento() {
       insertPayload.id_mm = formData.id_mm || null;
       insertPayload.tipo_produto = formData.tipo_produto || null;
       if (formData.produto_id) insertPayload.produto_id = formData.produto_id;
+      if (formData.parga_saida) insertPayload.parga_saida = formData.parga_saida;
 
       let { data, error } = await supabase
         .from('movimentos')
@@ -185,6 +186,9 @@ export function useCreateMovimento() {
 
       if (error) {
         const msg = error.message || '';
+        if (msg.includes('parga_saida')) {
+          throw new Error('A base de dados ainda não aceita a escolha da parga. Corra o SQL de atualização das saídas de chapas.');
+        }
         if (formData.tipo === 'saida' && msg.includes('movimento_saida_cliente')) {
           throw new Error('Indique o nome do cliente em texto livre antes de registar a saída.');
         }

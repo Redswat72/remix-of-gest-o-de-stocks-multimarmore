@@ -201,6 +201,8 @@ export interface MovimentoFormData {
   cliente_nome?: string;
   matricula_viatura?: string;
   observacoes?: string;
+  /** Saída de chapas: parga (1..4) de onde saem as chapas */
+  parga_saida?: number;
 }
 
 export interface ProdutoFormData {

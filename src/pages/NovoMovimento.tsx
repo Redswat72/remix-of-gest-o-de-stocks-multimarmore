@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useNavigate, Navigate } from 'react-router-dom';
 import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
 import { ArrowLeft, ArrowRight, Check, ArrowDownToLine, ArrowRightLeft, Package, AlertCircle, Loader2 } from 'lucide-react';
@@ -76,6 +77,8 @@ export default function NovoMovimento() {
   const [motivoMarketing, setMotivoMarketing] = useState('');
   const [searchProduto, setSearchProduto] = useState('');
   const [selectedItem, setSelectedItem] = useState<InventarioItem | null>(null);
+  // Saída de chapas: parga escolhida (1..4)
+  const [pargaSaida, setPargaSaida] = useState<number | null>(null);
 
   // New product form state (for Entrada)
   const [novoProdutoForma, setNovoProdutoForma] = useState<FormaProduto>('bloco');
@@ -172,6 +175,39 @@ export default function NovoMovimento() {
     }
   }, [tipo, itemNoPrestador, localDoItem?.id]);
 
+  const isSaidaChapa = tipo === 'saida' && selectedItem?.tipo === 'chapa';
+  const { data: pargasDisponiveis = [] } = useQuery({
+    queryKey: ['saida-chapa-pargas', selectedItem?.id_mm, selectedItem?.parque],
+    enabled: !!isSaidaChapa && !!selectedItem?.id_mm,
+    queryFn: async () => {
+      const { data, error } = await supabaseEmpresa
+        .from('chapas')
+        .select('*')
+        .eq('id_mm', selectedItem!.id_mm)
+        .eq('parque', selectedItem!.parque)
+        .limit(1);
+      if (error) throw error;
+      const c = (data?.[0] ?? null) as Record<string, any> | null;
+      if (!c) return [];
+      const out: { n: number; qtd: number; label: string }[] = [];
+      for (let n = 1; n <= 4; n++) {
+        const qtd = Number(c[`parga${n}_quantidade`]) || 0;
+        if (qtd <= 0) continue;
+        const dims = [c[`parga${n}_comprimento`], c[`parga${n}_altura`], c[`parga${n}_espessura`]]
+          .filter(v => v != null && v !== '').map(v => String(v).replace('.', ',')).join('×');
+        out.push({ n, qtd, label: `Parga ${n} — ${dims ? dims + ' cm' : 'sem medidas'} — ${qtd} un.` });
+      }
+      return out;
+    },
+  });
+  useEffect(() => {
+    if (!isSaidaChapa) { setPargaSaida(null); return; }
+    if (pargasDisponiveis.length === 1) setPargaSaida(pargasDisponiveis[0].n);
+    else if (pargaSaida && !pargasDisponiveis.some(p => p.n === pargaSaida)) setPargaSaida(null);
+  }, [isSaidaChapa, pargasDisponiveis]);
+  const pargaEscolhida = pargasDisponiveis.find(p => p.n === pargaSaida) || null;
+  const precisaParga = isSaidaChapa && pargasDisponiveis.length > 0;
+
   const canProceed = (): boolean => {
     switch (step) {
       case 1:
@@ -200,6 +236,10 @@ export default function NovoMovimento() {
       case 3:
         if (tipo === 'entrada') {
           return !!novoProdutoIdMM.trim() && !!novoProdutoParqueDestinoId && typeof quantidade === 'number' && quantidade > 0;
+        }
+        if (precisaParga) {
+          if (!pargaEscolhida) return false;
+          if (typeof quantidade === 'number' && quantidade > pargaEscolhida.qtd) return false;
         }
         return !!produtoId && typeof quantidade === 'number' && quantidade > 0;
       case 4:
@@ -488,7 +528,10 @@ export default function NovoMovimento() {
         local_destino_id: tipo !== 'saida' ? localDestinoId : undefined,
         cliente_nome: tipo === 'saida' ? (baixaMarketing ? `Marketing — ${motivoMarketing}` : clienteNome.trim()) : undefined,
         matricula_viatura: matriculaViatura || undefined,
-        observacoes: observacoes || undefined,
+        observacoes: (precisaParga && pargaEscolhida
+          ? [`Saída da ${pargaEscolhida.label}`, observacoes].filter(Boolean).join(' · ')
+          : observacoes) || undefined,
+        parga_saida: precisaParga && pargaEscolhida ? pargaEscolhida.n : undefined,
       };
 
       // Saída: a app só insere o movimento. A base de dados desconta chapas/pargas,
@@ -1128,11 +1171,27 @@ export default function NovoMovimento() {
                 </Card>
               )}
 
+              {precisaParga && (
+                <div className="space-y-2">
+                  <Label>Parga / dimensão das chapas</Label>
+                  <Select value={pargaSaida ? String(pargaSaida) : ''} onValueChange={(v) => setPargaSaida(Number(v))}>
+                    <SelectTrigger><SelectValue placeholder="Escolha a parga com a dimensão correta" /></SelectTrigger>
+                    <SelectContent>
+                      {pargasDisponiveis.map(p => (
+                        <SelectItem key={p.n} value={String(p.n)}>{p.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {!pargaEscolhida && <p className="text-sm text-destructive">Escolha a parga</p>}
+                </div>
+              )}
+
               <div className="space-y-2">
                 <Label>{t('movements.quantidade')}</Label>
                 <Input
                   type="number"
                   min={1}
+                  max={pargaEscolhida?.qtd}
                   step={1}
                   value={quantidade}
                   onChange={(e) => {
@@ -1147,6 +1206,9 @@ export default function NovoMovimento() {
                 />
                 {quantidade === '' && (
                   <p className="text-sm text-destructive">Indique a quantidade</p>
+                )}
+                {pargaEscolhida && typeof quantidade === 'number' && quantidade > pargaEscolhida.qtd && (
+                  <p className="text-sm text-destructive">Esta parga só tem {pargaEscolhida.qtd} chapas.</p>
                 )}
               </div>
             </div>
@@ -1344,6 +1406,13 @@ export default function NovoMovimento() {
                     <span className="text-muted-foreground">{t('movements.resumo.quantidade')}</span>
                     <span className="font-semibold">{quantidade}</span>
                   </div>
+
+                  {precisaParga && pargaEscolhida && (
+                    <div className="flex justify-between py-2 border-b">
+                      <span className="text-muted-foreground">Parga</span>
+                      <span>{pargaEscolhida.label}</span>
+                    </div>
+                  )}
 
                   {tipo === 'entrada' && (
                     <>
