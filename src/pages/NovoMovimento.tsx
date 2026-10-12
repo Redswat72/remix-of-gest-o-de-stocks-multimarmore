@@ -477,7 +477,10 @@ export default function NovoMovimento() {
       const formData: MovimentoFormData = {
         tipo,
         tipo_documento: tipoDocumento,
-        numero_documento: numeroDocumento || undefined,
+        // Baixa de marketing: referência interna para cumprir a regra de saídas na BD
+        numero_documento: tipo === 'saida' && baixaMarketing
+          ? `MKT-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}`
+          : (numeroDocumento || undefined),
         id_mm: itemIdMm,
         tipo_produto: itemTipo,
         quantidade: Number(quantidade),
