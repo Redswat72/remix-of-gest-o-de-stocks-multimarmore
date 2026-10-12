@@ -222,7 +222,7 @@ export default function Producao() {
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!bloco) throw new Error(t('production.blocoNaoSelecionado'));
-      if (bloco.parque !== PARQUE_PRODUCAO) throw new Error(`Este bloco está no parque ${bloco.parque}. Transfere-o para ${PARQUE_PRODUCAO} (Plurirochas) antes de serrar.`);
+      if (!blocoNoParqueProducao) throw new Error(`Este bloco está no parque ${bloco.parque}. Transfere-o para ${PARQUE_PRODUCAO} (Plurirochas) antes de serrar.`);
       if (!operadorAutorizado) throw new Error(`Só operadores da Plurirochas (${PARQUE_PRODUCAO}) ou admins podem lançar produções.`);
       if (!tipoCorte) throw new Error(t('production.selecioneTipoCorte'));
 
@@ -303,12 +303,17 @@ export default function Producao() {
         throw new Error('Utilizador não autenticado: operador_id é obrigatório.');
       }
       let localOrigemId: string | null = null;
-      const { data: localMM002 } = await supabase
+      const { data: localProd } = await supabase
         .from('locais')
         .select('id')
-        .eq('codigo', 'MM002')
+        .eq('codigo', bloco.parque)
         .maybeSingle();
-      localOrigemId = (localMM002 as { id: string } | null)?.id ?? '01fcf8ae-cef1-4a5d-bae2-8e7d8b3e5bd8';
+      localOrigemId = (localProd as { id: string } | null)?.id
+        ?? (bloco.parque === PARQUE_PRODUCAO ? '01fcf8ae-cef1-4a5d-bae2-8e7d8b3e5bd8' : null);
+      if (!localOrigemId) {
+        await supabase.from('chapas').delete().eq('id', chapaId);
+        throw new Error(`Parque ${bloco.parque} não encontrado.`);
+      }
 
       const { error: movError } = await supabase.from('movimentos').insert({
         tipo: 'producao',
@@ -531,7 +536,9 @@ export default function Producao() {
   };
 
   const hasAnyParga = pargas.some(p => p.quantidade && p.quantidade > 0);
-  const blocoNoParqueProducao = !!bloco && bloco.parque === PARQUE_PRODUCAO;
+  // Admins/superadmins também podem produzir na MTX (MM003)
+  const parquesProducao = (isAdmin || isSuperadmin) ? [PARQUE_PRODUCAO, 'MM003'] : [PARQUE_PRODUCAO];
+  const blocoNoParqueProducao = !!bloco && parquesProducao.includes(bloco.parque);
   const operadorAutorizado = isAdmin || isSuperadmin || userLocal?.codigo === PARQUE_PRODUCAO;
   const podeProduzir = blocoNoParqueProducao && operadorAutorizado;
   const canSaveChapas = bloco && podeProduzir && tipoResultado === 'chapas' && tipoCorte && hasAnyParga && !saveMutation.isPending;
