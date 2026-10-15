@@ -197,6 +197,7 @@ function BlocoFields({ data, podeVerValores }: { data: Bloco; podeVerValores: bo
     <>
       <DetailRow label="ID MM" value={data.id_mm} />
       <DetailRow label={t('inventory.detail.yard')} value={data.parque} />
+      <DetailRow label={t('inventory.detail.row')} value={data.linha} />
       <DetailRow label={t('inventory.detail.variety')} value={data.variedade} />
       <DetailRow label={t('inventory.detail.origin')} value={data.bloco_origem} />
       <DetailRow label={t('inventory.detail.supplier')} value={data.fornecedor} />
@@ -219,6 +220,7 @@ function ChapaFields({ data, podeVerValores }: { data: Chapa; podeVerValores: bo
       <DetailRow label="ID MM" value={data.id_mm} />
       <DetailRow label={t('inventory.detail.bundleParga')} value={data.bundle_id} />
       <DetailRow label={t('inventory.detail.yard')} value={data.parque} />
+      <DetailRow label={t('inventory.detail.row')} value={data.linha} />
       <DetailRow label={t('inventory.detail.variety')} value={data.variedade} />
       <DetailRow label={t('inventory.detail.finish')} value={data.acabamento} />
       <DetailRow label={t('inventory.detail.supplier')} value={(data as any).fornecedor} />
