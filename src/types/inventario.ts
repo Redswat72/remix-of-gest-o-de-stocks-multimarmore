@@ -80,6 +80,7 @@ export interface Ladrilho {
   id: string;
   id_mm: string | null;
   parque: string;
+  linha: string | null;
   tipo: string | null;
   dimensoes: string | null;
   comprimento: number | null;

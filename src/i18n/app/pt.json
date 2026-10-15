@@ -861,6 +861,7 @@
       "pargaLast": "Parga {{n}} - Última",
       "pargaQtyLabel": "Qtd Parga {{n}}",
       "yard": "Parque",
+      "row": "Fila",
       "variety": "Variedade",
       "pargaLabel": "Parga {{n}}",
       "weightKg": "Peso (kg)"
@@ -881,6 +882,7 @@
       "fields": {
         "variety": "Variedade",
         "yard": "Parque",
+        "row": "Fila",
         "origin": "Origem",
         "supplier": "Fornecedor",
         "entryDate": "Ano de Entrada",

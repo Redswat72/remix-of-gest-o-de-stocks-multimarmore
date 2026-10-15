@@ -861,6 +861,7 @@
       "pargaLast": "Bundle {{n}} - Last",
       "pargaQtyLabel": "Bundle {{n}} Qty",
       "yard": "Yard",
+      "row": "Row",
       "variety": "Variety",
       "pargaLabel": "Bundle {{n}}",
       "weightKg": "Weight (kg)"
@@ -881,6 +882,7 @@
       "fields": {
         "variety": "Variety",
         "yard": "Yard",
+        "row": "Row",
         "origin": "Origin",
         "supplier": "Supplier",
         "entryDate": "Entry Year",
