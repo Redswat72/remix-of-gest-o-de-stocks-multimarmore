@@ -80,6 +80,7 @@ function getEditableFields(forma: FormaInventario, data: Bloco | Chapa | Ladrilh
     return [
       { label: t('inventory.edit.fields.variety'), field: 'variedade', value: d.variedade, type: 'text' },
       { label: t('inventory.edit.fields.yard'), field: 'parque', value: d.parque, type: 'text' },
+      { label: t('inventory.edit.fields.row'), field: 'linha', value: d.linha, type: 'text', operadorEditable: true },
       { label: t('inventory.edit.fields.origin'), field: 'bloco_origem', value: d.bloco_origem, type: 'text' },
       { label: t('inventory.edit.fields.supplier'), field: 'fornecedor', value: d.fornecedor, type: 'text' },
       { label: t('inventory.edit.fields.entryDate'), field: 'entrada_stock', value: toDateInput(d.entrada_stock), type: 'date' },
@@ -95,6 +96,7 @@ function getEditableFields(forma: FormaInventario, data: Bloco | Chapa | Ladrilh
     const base: EditableField[] = [
       { label: t('inventory.edit.fields.variety'), field: 'variedade', value: d.variedade, type: 'text' },
       { label: t('inventory.edit.fields.yard'), field: 'parque', value: d.parque, type: 'text' },
+      { label: t('inventory.edit.fields.row'), field: 'linha', value: d.linha, type: 'text', operadorEditable: true },
       { label: t('inventory.edit.fields.bundleId'), field: 'bundle_id', value: d.bundle_id, type: 'text' },
       { label: t('inventory.edit.fields.supplier'), field: 'fornecedor', value: d.fornecedor, type: 'text' },
       { label: t('inventory.edit.fields.entryDate'), field: 'entrada_stock', value: toDateInput((d as any).entrada_stock), type: 'date' },
@@ -127,6 +129,7 @@ function getEditableFields(forma: FormaInventario, data: Bloco | Chapa | Ladrilh
   return [
     { label: t('inventory.edit.fields.variety'), field: 'variedade', value: d.variedade, type: 'text' },
     { label: t('inventory.edit.fields.yard'), field: 'parque', value: d.parque, type: 'text' },
+    { label: t('inventory.edit.fields.row'), field: 'linha', value: d.linha, type: 'text', operadorEditable: true },
     { label: t('inventory.edit.fields.supplier'), field: 'fornecedor', value: (d as any).fornecedor ?? null, type: 'text' },
     { label: t('inventory.edit.fields.entryDate'), field: 'entrada_stock', value: toDateInput((d as any).entrada_stock), type: 'date' },
     { label: t('inventory.edit.fields.dimensions'), field: 'dimensoes', value: d.dimensoes, type: 'text' },
