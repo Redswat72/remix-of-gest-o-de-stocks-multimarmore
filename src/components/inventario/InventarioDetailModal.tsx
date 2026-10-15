@@ -269,6 +269,7 @@ function LadrilhoFields({ data, podeVerValores }: { data: Ladrilho; podeVerValor
       <DetailRow label={t('inventory.detail.finish')} value={data.acabamento} />
       <DetailRow label={t('inventory.detail.dimensions')} value={data.dimensoes} />
       <DetailRow label={t('inventory.detail.butchNo')} value={data.butch_no} />
+      <DetailRow label={t('inventory.detail.row')} value={data.linha} />
       <DetailRow label={t('inventory.detail.supplier')} value={(data as any).fornecedor} />
       <DetailRow label={t('inventory.detail.entryYear')} value={anoEntrada((data as any).entrada_stock)} />
       <Separator />
