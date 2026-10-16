@@ -1227,7 +1227,7 @@ export default function NovoMovimento() {
                   <p className="text-sm text-destructive">Indique a quantidade</p>
                 )}
                 {pargaEscolhida && typeof quantidade === 'number' && quantidade > pargaEscolhida.qtd && (
-                  <p className="text-sm text-destructive">Esta parga só tem {pargaEscolhida.qtd} chapas.</p>
+                  <p className="text-sm text-destructive">{pargaEscolhida.n === 0 ? "No total só há" : "Esta parga só tem"} {pargaEscolhida.qtd} chapas.</p>
                 )}
               </div>
             </div>
