@@ -205,8 +205,15 @@ export default function NovoMovimento() {
     if (pargasDisponiveis.length === 1) setPargaSaida(pargasDisponiveis[0].n);
     else if (pargaSaida && !pargasDisponiveis.some(p => p.n === pargaSaida)) setPargaSaida(null);
   }, [isSaidaChapa, pargasDisponiveis]);
-  const pargaEscolhida = pargasDisponiveis.find(p => p.n === pargaSaida) || null;
+  const totalTodasPargas = pargasDisponiveis.reduce((s, p) => s + p.qtd, 0);
+  const pargaEscolhida = pargaSaida === 0 && pargasDisponiveis.length > 1
+    ? { n: 0, qtd: totalTodasPargas, label: `Todas as pargas (${pargasDisponiveis.map(p => p.n).join(', ')}) — ${totalTodasPargas} un.` }
+    : (pargasDisponiveis.find(p => p.n === pargaSaida) || null);
   const precisaParga = isSaidaChapa && pargasDisponiveis.length > 0;
+  const selecionarTodasPargas = () => {
+    setPargaSaida(0);
+    setQuantidade(totalTodasPargas);
+  };
 
   const canProceed = (): boolean => {
     switch (step) {
@@ -531,7 +538,8 @@ export default function NovoMovimento() {
         observacoes: (precisaParga && pargaEscolhida
           ? [`Saída da ${pargaEscolhida.label}`, observacoes].filter(Boolean).join(' · ')
           : observacoes) || undefined,
-        parga_saida: precisaParga && pargaEscolhida ? pargaEscolhida.n : undefined,
+        // Todas as pargas (n=0): sem parga específica — a BD desconta todas.
+        parga_saida: precisaParga && pargaEscolhida && pargaEscolhida.n > 0 ? pargaEscolhida.n : undefined,
       };
 
       // Saída: a app só insere o movimento. A base de dados desconta chapas/pargas,
@@ -1174,14 +1182,25 @@ export default function NovoMovimento() {
               {precisaParga && (
                 <div className="space-y-2">
                   <Label>Parga / dimensão das chapas</Label>
-                  <Select value={pargaSaida ? String(pargaSaida) : ''} onValueChange={(v) => setPargaSaida(Number(v))}>
+                  <Select
+                    value={pargaSaida !== null ? String(pargaSaida) : ''}
+                    onValueChange={(v) => { const n = Number(v); if (n === 0) selecionarTodasPargas(); else setPargaSaida(n); }}
+                  >
                     <SelectTrigger><SelectValue placeholder="Escolha a parga com a dimensão correta" /></SelectTrigger>
                     <SelectContent>
+                      {pargasDisponiveis.length > 1 && (
+                        <SelectItem value="0">Todas as pargas — {totalTodasPargas} un.</SelectItem>
+                      )}
                       {pargasDisponiveis.map(p => (
                         <SelectItem key={p.n} value={String(p.n)}>{p.label}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
+                  {pargasDisponiveis.length > 1 && (
+                    <Button type="button" variant="outline" size="sm" onClick={selecionarTodasPargas}>
+                      Selecionar todas as pargas ({totalTodasPargas} chapas)
+                    </Button>
+                  )}
                   {!pargaEscolhida && <p className="text-sm text-destructive">Escolha a parga</p>}
                 </div>
               )}
