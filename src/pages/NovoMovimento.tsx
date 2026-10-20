@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, Navigate } from 'react-router-dom';
@@ -37,6 +38,7 @@ export default function NovoMovimento() {
   const { toast } = useToast();
   const { user, userLocal, isAdmin, podeRegistarMovimento } = useAuth();
   const createMovimento = useCreateMovimento();
+  const queryClient = useQueryClient();
   const supabaseEmpresa = useSupabaseEmpresa();
   const t = useAppT();
   const enumLabel = useEnumLabel();
@@ -563,6 +565,8 @@ export default function NovoMovimento() {
             if (selectedItem?.parque) upd = upd.eq('parque', selectedItem.parque);
             const { error: updErr } = await upd;
             if (updErr) throw updErr;
+            queryClient.invalidateQueries({ queryKey: [itemTipo === 'bloco' ? 'blocos-unificado' : 'ladrilho-unificado'] });
+            queryClient.invalidateQueries({ queryKey: [tabela] });
           }
         } catch (e) {
           console.error('Saída registada, mas falhou marcar o artigo como inativo:', e);
