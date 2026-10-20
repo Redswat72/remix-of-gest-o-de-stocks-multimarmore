@@ -542,9 +542,33 @@ export default function NovoMovimento() {
         parga_saida: precisaParga && pargaEscolhida && pargaEscolhida.n > 0 ? pargaEscolhida.n : undefined,
       };
 
-      // Saída: a app só insere o movimento. A base de dados desconta chapas/pargas,
-      // recalcula m²/valor, atualiza o stock e a coluna `ativo`.
+      // Saída: a app insere o movimento. A base de dados desconta chapas/pargas,
+      // recalcula m²/valor e atualiza o stock (e o `ativo` das chapas).
       await createMovimento.mutateAsync(formData);
+
+      // Blocos e ladrilho: a BD retira o stock mas não marca o artigo como inativo.
+      // Se já não resta stock em nenhum local, o artigo deixa de aparecer nas listagens.
+      if (tipo === 'saida' && (itemTipo === 'bloco' || itemTipo === 'ladrilho') && itemIdMm) {
+        try {
+          const { data: restante, error: restErr } = await supabaseEmpresa
+            .from('stock')
+            .select('quantidade')
+            .eq('id_mm', itemIdMm)
+            .eq('tipo_produto', itemTipo)
+            .gt('quantidade', 0);
+          if (restErr) throw restErr;
+          if (!restante || restante.length === 0) {
+            const tabela = itemTipo === 'bloco' ? 'blocos' : 'ladrilho';
+            let upd = supabaseEmpresa.from(tabela).update({ ativo: false } as any).eq('id_mm', itemIdMm);
+            if (selectedItem?.parque) upd = upd.eq('parque', selectedItem.parque);
+            const { error: updErr } = await upd;
+            if (updErr) throw updErr;
+          }
+        } catch (e) {
+          console.error('Saída registada, mas falhou marcar o artigo como inativo:', e);
+        }
+      }
+
 
       toast({
         title: t('movements.registado.title'),
