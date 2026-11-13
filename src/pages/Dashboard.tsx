@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { formatTons, kgToTons, tonsToKg } from '@/lib/blocoPeso';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useResumoBlocos } from "@/hooks/useBlocos";
@@ -154,7 +155,7 @@ export default function Dashboard() {
           <CardContent>
             <p className="text-2xl font-bold">{resumoBlocos?.total_blocos || 0}</p>
             <p className="text-xs text-muted-foreground">
-              {formatNumber(resumoBlocos?.total_kg || 0, 0)} kg
+              {formatTons(resumoBlocos?.total_kg || 0)}
             </p>
             {podeVerValores && (
               <p className="text-sm font-medium text-primary mt-1">
@@ -245,7 +246,7 @@ export default function Dashboard() {
                   <TableRow key={row.parque}>
                     <TableCell className="font-medium">{row.parque}</TableCell>
                     <TableCell>{row.nome}</TableCell>
-                    <TableCell className="text-right">{formatNumber(row.blocos_kg, 0)}</TableCell>
+                    <TableCell className="text-right">{formatNumber(row.blocos_kg / 1000, 3)}</TableCell>
                     <TableCell className="text-right">{formatNumber(row.chapas_m2, 2)}</TableCell>
                     <TableCell className="text-right">{formatNumber(row.ladrilho_m2, 2)}</TableCell>
                     {podeVerValores && <TableCell className="text-right font-medium">{formatCurrency(row.valor)}</TableCell>}
@@ -255,7 +256,7 @@ export default function Dashboard() {
                 <TableRow className="border-t-2 font-bold">
                   <TableCell colSpan={2}>{t('dashboard.total')}</TableCell>
                   <TableCell className="text-right">
-                    {formatNumber(parqueBreakdown.reduce((s, r) => s + r.blocos_kg, 0), 0)}
+                    {formatNumber(parqueBreakdown.reduce((s, r) => s + r.blocos_kg, 0) / 1000, 3)}
                   </TableCell>
                   <TableCell className="text-right">
                     {formatNumber(parqueBreakdown.reduce((s, r) => s + r.chapas_m2, 0), 2)}

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { formatTons, kgToTons, tonsToKg } from '@/lib/blocoPeso';
 import { useSearchParams } from 'react-router-dom';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -434,7 +435,7 @@ export default function Producao() {
           throw new Error(`Bloco ${bloco.id_mm}${b.suffix}: preencha comprimento, largura e altura.`);
         }
         if (!b.peso_kg || b.peso_kg <= 0) {
-          throw new Error(`Bloco ${bloco.id_mm}${b.suffix}: peso obrigatório (kg).`);
+          throw new Error(`Bloco ${bloco.id_mm}${b.suffix}: peso obrigatório (t).`);
         }
         if (!b.parque) {
           throw new Error(`Bloco ${bloco.id_mm}${b.suffix}: parque obrigatório.`);
@@ -465,7 +466,7 @@ export default function Producao() {
       ((locais as { id: string; codigo: string }[]) || []).forEach(l => localByCodigo.set(l.codigo, l.id));
 
       const detalhes = blocosResultantes
-        .map(b => `${bloco.id_mm}${b.suffix} (${b.comprimento}×${b.largura}×${b.altura} cm, ${b.peso_kg} kg, ${b.parque})`)
+        .map(b => `${bloco.id_mm}${b.suffix} (${b.comprimento}×${b.largura}×${b.altura} cm, ${formatTons(b.peso_kg)}, ${b.parque})`)
         .join('; ');
 
       // 1) Inserir novos blocos
@@ -660,7 +661,7 @@ export default function Producao() {
                 </div>
                 <div>
                   <span className="text-muted-foreground">{t('production.pesoKg')}</span>
-                  <p className="font-medium">{bloco.quantidade_kg != null ? `${bloco.quantidade_kg} kg` : '—'}</p>
+                  <p className="font-medium">{bloco.quantidade_kg != null ? formatTons(bloco.quantidade_kg) : '—'}</p>
                 </div>
               </div>
               {(bloco.foto1_url || bloco.foto2_url) && (
@@ -1010,13 +1011,14 @@ export default function Producao() {
                           />
                         </div>
                         <div className="space-y-1">
-                          <Label className="text-xs">Peso (kg) {!b.pesoManual && b.peso_kg != null && <span className="text-muted-foreground">(auto)</span>}</Label>
+                          <Label className="text-xs">Peso (t) {!b.pesoManual && b.peso_kg != null && <span className="text-muted-foreground">(auto)</span>}</Label>
                           <Input
                             type="number"
                             min={0}
-                            value={b.peso_kg ?? ''}
+                            step="0.001"
+                            value={b.peso_kg != null ? String(kgToTons(b.peso_kg)) : ''}
                             onChange={e => {
-                              const v = e.target.value ? Number(e.target.value) : null;
+                              const v = tonsToKg(e.target.value);
                               setBlocosResultantes(prev => {
                                 const next = [...prev];
                                 next[idx] = { ...next[idx], peso_kg: v, pesoManual: true };

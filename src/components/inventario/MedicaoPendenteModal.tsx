@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { formatTons, kgToTons, tonsToKg } from '@/lib/blocoPeso';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Loader2, Ruler } from 'lucide-react';
 import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
@@ -33,7 +34,7 @@ export default function MedicaoPendenteModal({ open, onOpenChange, blocoId, idMm
         comprimento: comprimento ? Number(comprimento) : null,
         largura: largura ? Number(largura) : null,
         altura: altura ? Number(altura) : null,
-        quantidade_kg: quantidadeKg ? Number(quantidadeKg) : null,
+        quantidade_kg: tonsToKg(quantidadeKg),
       };
       const { error } = await supabase.from('blocos').update(updates).eq('id', blocoId);
       if (error) throw error;
@@ -82,7 +83,7 @@ export default function MedicaoPendenteModal({ open, onOpenChange, blocoId, idMm
             </div>
             <div className="space-y-1">
               <Label>{t('inventory.measurement.weight')}</Label>
-              <Input type="number" min={0} step="0.01" value={quantidadeKg} onChange={e => setQuantidadeKg(e.target.value)} />
+              <Input type="number" min={0} step="0.001" value={quantidadeKg} onChange={e => setQuantidadeKg(e.target.value)} />
             </div>
           </div>
 

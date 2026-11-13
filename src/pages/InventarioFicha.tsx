@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { formatTons, kgToTons, tonsToKg } from '@/lib/blocoPeso';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Loader2, AlertCircle, QrCode, ZoomIn } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -330,7 +331,7 @@ function BlocoDetails({ data }: { data: Bloco }) {
       <DetailRow label={t('inventory.detail.entryYear')} value={anoEntrada(data.entrada_stock)} />
 
       <Separator />
-      <DetailRow label={t('inventory.detail.weight')} value={data.quantidade_kg != null ? `${formatNumber(data.quantidade_kg)} kg` : null} />
+      <DetailRow label={t('inventory.detail.weight')} value={data.quantidade_kg != null ? formatTons(data.quantidade_kg) : null} />
       {podeVerValores && <DetailRow label={t('inventory.detail.pricePerKg')} value={formatCurrency(data.preco_unitario) || '—'} />}
       {podeVerValores && <DetailRow label={t('inventory.detail.inventoryValue')} value={formatCurrency(data.valor_inventario) || '—'} />}
       {(data.comprimento || data.largura || data.altura) && (

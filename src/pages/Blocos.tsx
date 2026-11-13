@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { formatTons, kgToTons, tonsToKg } from '@/lib/blocoPeso';
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -128,7 +129,7 @@ export default function Blocos() {
                     {formatBlocoDimensoes(bloco) ? `${formatBlocoDimensoes(bloco)} cm` : '—'}
                   </TableCell>
                   <TableCell className="text-right" onClick={() => setSelectedId(bloco.id)}>
-                    {bloco.quantidade_kg != null ? `${formatNumber(bloco.quantidade_kg) || '—'} kg` : '—'}
+                    {bloco.quantidade_kg != null ? (formatTons(bloco.quantidade_kg) || '—') : '—'}
                   </TableCell>
                   {podeVerValores && <TableCell className="text-right" onClick={() => setSelectedId(bloco.id)}>{formatCurrency(bloco.preco_unitario) || '—'}</TableCell>}
                   {podeVerValores && <TableCell className="text-right font-medium" onClick={() => setSelectedId(bloco.id)}>{formatCurrency(bloco.valor_inventario) || '—'}</TableCell>}
@@ -202,7 +203,7 @@ export default function Blocos() {
               {t('inventory.blocks.totalLabel')}: <strong>{blocosFiltrados?.length || 0}</strong>
             </span>
             <span className="text-muted-foreground">
-              {t('inventory.total')}: <strong>{formatNumber(blocosFiltrados?.reduce((sum, b) => sum + (b.quantidade_kg || 0), 0) || 0) || '0'} kg</strong>
+              {t('inventory.total')}: <strong>{formatTons(blocosFiltrados?.reduce((sum, b) => sum + (b.quantidade_kg || 0), 0) || 0)}</strong>
             </span>
             {podeVerValores && (
               <span className="text-muted-foreground">

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { formatTons, kgToTons, tonsToKg } from '@/lib/blocoPeso';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Loader2, ZoomIn } from 'lucide-react';
 import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
@@ -203,7 +204,7 @@ function BlocoFields({ data, podeVerValores }: { data: Bloco; podeVerValores: bo
       <DetailRow label={t('inventory.detail.supplier')} value={data.fornecedor} />
       <DetailRow label={t('inventory.detail.entryYear')} value={anoEntrada((data as any).entrada_stock)} />
       <Separator />
-      <DetailRow label={t('inventory.detail.weight')} value={data.quantidade_kg != null ? `${formatNumber(data.quantidade_kg)} kg` : null} />
+      <DetailRow label={t('inventory.detail.weight')} value={data.quantidade_kg != null ? formatTons(data.quantidade_kg) : null} />
       {data.comprimento && <DetailRow label={t('inventory.detail.length')} value={`${data.comprimento}`} />}
       {data.largura && <DetailRow label={t('inventory.detail.width')} value={`${data.largura}`} />}
       {data.altura && <DetailRow label={t('inventory.detail.height')} value={`${data.altura}`} />}

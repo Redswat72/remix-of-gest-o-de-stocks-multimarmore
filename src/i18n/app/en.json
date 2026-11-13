@@ -354,7 +354,7 @@
     "comprimento": "Length (cm)",
     "largura": "Width (cm)",
     "altura": "Height (cm)",
-    "peso": "Weight (kg)",
+    "peso": "Weight (t)",
     "numChapas": "No. of Slabs",
     "numPecas": "No. of Pieces",
     "parqueDestino": {
@@ -535,7 +535,7 @@
     "comprimento": "Length",
     "largura": "Width",
     "altura": "Height",
-    "pesoKg": "Weight (kg)",
+    "pesoKg": "Weight (t)",
     "dadosProducao": "Production Data",
     "data": "Date",
     "numLinha": "Line No.",
@@ -802,7 +802,7 @@
       "yard": "Yard",
       "variety": "Variety",
       "origin": "Origin",
-      "weight": "Weight (kg)",
+      "weight": "Weight (t)",
       "pricePerKg": "Price/kg",
       "pricePerTon": "Price/ton",
       "pricePerM2": "Price/m²",
@@ -889,14 +889,15 @@
         "lengthCm": "Length (cm)",
         "widthCm": "Width (cm)",
         "heightCm": "Height (cm)",
-        "weightKg": "Weight (kg)",
+        "weightKg": "Weight (t)",
         "pricePerKg": "Price/kg",
         "numSlabs": "No. Slabs",
         "areaM2": "Area (m²)",
         "pricePerM2": "Price/m²",
         "bundleId": "Bundle ID",
         "dimensions": "Dimensions",
-        "numPieces": "No. Pieces"
+        "numPieces": "No. Pieces",
+        "weightTons": "Weight (t)"
       }
     },
     "measurement": {
@@ -905,7 +906,7 @@
       "length": "Length",
       "width": "Width",
       "height": "Height",
-      "weight": "Weight (kg)",
+      "weight": "Weight (t)",
       "save": "Save Measurement",
       "successMsg": "Measurement updated successfully"
     }
@@ -1210,7 +1211,7 @@
     "yardDistribution": "Distribution by Yard",
     "colYard": "Yard",
     "colName": "Name",
-    "colBlocksKg": "Blocks (kg)",
+    "colBlocksKg": "Blocks (t)",
     "colSlabsM2": "Slabs (m²)",
     "colTilesM2": "Tiles (m²)",
     "colTotalValue": "Total Value",
