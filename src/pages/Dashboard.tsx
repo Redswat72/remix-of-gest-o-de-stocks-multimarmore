@@ -246,7 +246,7 @@ export default function Dashboard() {
                   <TableRow key={row.parque}>
                     <TableCell className="font-medium">{row.parque}</TableCell>
                     <TableCell>{row.nome}</TableCell>
-                    <TableCell className="text-right">{formatNumber(row.blocos_kg, 0)}</TableCell>
+                    <TableCell className="text-right">{formatNumber(row.blocos_kg / 1000, 3)}</TableCell>
                     <TableCell className="text-right">{formatNumber(row.chapas_m2, 2)}</TableCell>
                     <TableCell className="text-right">{formatNumber(row.ladrilho_m2, 2)}</TableCell>
                     {podeVerValores && <TableCell className="text-right font-medium">{formatCurrency(row.valor)}</TableCell>}
@@ -256,7 +256,7 @@ export default function Dashboard() {
                 <TableRow className="border-t-2 font-bold">
                   <TableCell colSpan={2}>{t('dashboard.total')}</TableCell>
                   <TableCell className="text-right">
-                    {formatNumber(parqueBreakdown.reduce((s, r) => s + r.blocos_kg, 0), 0)}
+                    {formatNumber(parqueBreakdown.reduce((s, r) => s + r.blocos_kg, 0) / 1000, 3)}
                   </TableCell>
                   <TableCell className="text-right">
                     {formatNumber(parqueBreakdown.reduce((s, r) => s + r.chapas_m2, 0), 2)}

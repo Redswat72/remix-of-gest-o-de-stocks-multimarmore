@@ -354,7 +354,7 @@
     "comprimento": "Comprimento (cm)",
     "largura": "Largura (cm)",
     "altura": "Altura (cm)",
-    "peso": "Peso (kg)",
+    "peso": "Peso (t)",
     "numChapas": "Nº de Chapas",
     "numPecas": "Nº de Peças",
     "parqueDestino": {
@@ -535,7 +535,7 @@
     "comprimento": "Comprimento",
     "largura": "Largura",
     "altura": "Altura",
-    "pesoKg": "Peso (kg)",
+    "pesoKg": "Peso (t)",
     "dadosProducao": "Dados da Produção",
     "data": "Data",
     "numLinha": "Nº de Linha",
@@ -802,7 +802,7 @@
       "yard": "Parque",
       "variety": "Variedade",
       "origin": "Origem",
-      "weight": "Peso (kg)",
+      "weight": "Peso (t)",
       "pricePerKg": "Preço/kg",
       "pricePerTon": "Preço/ton",
       "pricePerM2": "Preço/m²",
@@ -864,7 +864,7 @@
       "row": "Fila",
       "variety": "Variedade",
       "pargaLabel": "Parga {{n}}",
-      "weightKg": "Peso (kg)"
+      "weightKg": "Peso (t)"
     },
     "edit": {
       "editBlock": "Editar Bloco",
@@ -889,14 +889,15 @@
         "lengthCm": "Comprimento (cm)",
         "widthCm": "Largura (cm)",
         "heightCm": "Altura (cm)",
-        "weightKg": "Peso (kg)",
+        "weightKg": "Peso (t)",
         "pricePerKg": "Preço/kg",
         "numSlabs": "Nº Chapas",
         "areaM2": "Área (m²)",
         "pricePerM2": "Preço/m²",
         "bundleId": "Bundle ID",
         "dimensions": "Dimensões",
-        "numPieces": "Nº Peças"
+        "numPieces": "Nº Peças",
+        "weightTons": "Peso (t)"
       }
     },
     "measurement": {
@@ -905,7 +906,7 @@
       "length": "Comprimento",
       "width": "Largura",
       "height": "Altura",
-      "weight": "Peso (kg)",
+      "weight": "Peso (t)",
       "save": "Guardar Medição",
       "successMsg": "Medição atualizada com sucesso"
     }
@@ -1210,7 +1211,7 @@
     "yardDistribution": "Distribuição por Parque",
     "colYard": "Parque",
     "colName": "Nome",
-    "colBlocksKg": "Blocos (kg)",
+    "colBlocksKg": "Blocos (t)",
     "colSlabsM2": "Chapas (m²)",
     "colTilesM2": "Ladrilho (m²)",
     "colTotalValue": "Valor Total",

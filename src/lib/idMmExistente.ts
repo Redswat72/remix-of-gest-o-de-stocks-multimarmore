@@ -1,3 +1,4 @@
+import { formatTons } from '@/lib/blocoPeso';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { formatChapaDimensoes } from '@/lib/chapaDimensoes';
 
@@ -33,7 +34,7 @@ function mapRow(tipo: TipoIdMm, r: Record<string, unknown>): IdMmExistente {
     const partes = [n(r.comprimento), n(r.largura), n(r.altura)].filter(v => v != null) as number[];
     dimensoes = (r.dimensoes as string) || (partes.length ? `${partes.map(fmt).join('×')} cm` : '');
     quantidade = tipo === 'bloco'
-      ? `${fmt(n(r.quantidade_kg) ?? 0)} kg`
+      ? (r.quantidade_kg == null || r.quantidade_kg === '' ? '— t' : formatTons(n(r.quantidade_kg)))
       : `${n(r.num_pecas) ?? 0} peças · ${fmt(n(r.quantidade_m2) ?? 0)} m²`;
   }
   return {
