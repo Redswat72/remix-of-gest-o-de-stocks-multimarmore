@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { formatTons, kgToTons, tonsToKg } from '@/lib/blocoPeso';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Pencil, Upload, X, Loader2, Image as ImageIcon, Trash2, Camera, Lock } from 'lucide-react';
 import { useSupabaseEmpresa } from '@/hooks/useSupabaseEmpresa';
@@ -87,7 +88,7 @@ function getEditableFields(forma: FormaInventario, data: Bloco | Chapa | Ladrilh
       { label: t('inventory.edit.fields.lengthCm'), field: 'comprimento', value: d.comprimento, type: 'number', operadorEditable: true },
       { label: t('inventory.edit.fields.widthCm'), field: 'largura', value: d.largura, type: 'number', operadorEditable: true },
       { label: t('inventory.edit.fields.heightCm'), field: 'altura', value: d.altura, type: 'number', operadorEditable: true },
-      { label: t('inventory.edit.fields.weightKg'), field: 'quantidade_kg', value: d.quantidade_kg, type: 'number', operadorEditable: true },
+      { label: t('inventory.edit.fields.weightTons'), field: 'quantidade_kg', value: kgToTons(d.quantidade_kg), type: 'number', operadorEditable: true },
       { label: t('inventory.edit.fields.pricePerKg'), field: 'preco_unitario', value: d.preco_unitario, type: 'number' },
     ];
   }
@@ -251,7 +252,9 @@ export default function InventarioEditModal({ forma, data, itemId, photosOnly = 
       if (isOperador && !f.operadorEditable) return;
       const newVal = fieldValues[f.field];
       if (f.type === 'number') {
-        updates[f.field] = newVal != null && newVal !== '' ? Number(newVal) : null;
+        updates[f.field] = f.field === 'quantidade_kg' && forma === 'bloco'
+          ? tonsToKg(newVal as string | number | null)
+          : newVal != null && newVal !== '' ? Number(newVal) : null;
       } else if (f.type === 'date') {
         updates[f.field] = newVal ? String(newVal) : null;
       } else {

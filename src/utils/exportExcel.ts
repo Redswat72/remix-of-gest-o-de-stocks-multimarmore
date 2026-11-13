@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx';
+import { formatTons, kgToTons, tonsToKg } from '@/lib/blocoPeso';
 import type { Bloco, Chapa, Ladrilho } from '@/types/inventario';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { formatChapaDimensoes } from '@/lib/chapaDimensoes';
@@ -109,7 +110,7 @@ export async function exportBlocos(supabase: SupabaseClient, opts: ExportOptions
     'Largura (cm)': b.largura ?? '',
     'Altura (cm)': b.altura ?? '',
     'Dimensões': formatBlocoDimensoes(b),
-    'Peso (kg)': b.quantidade_kg ?? 0,
+    'Peso (t)': kgToTons(b.quantidade_kg) ?? '',
     'Preço/kg (€)': b.preco_unitario ?? 0,
     'Valor (€)': b.valor_inventario ?? 0,
   }));
@@ -122,7 +123,7 @@ export async function exportBlocos(supabase: SupabaseClient, opts: ExportOptions
   // Totals row
   const totalKg = data.reduce((s, b: any) => s + (b.quantidade_kg || 0), 0);
   const totalValor = data.reduce((s, b: any) => s + (b.valor_inventario || 0), 0);
-  addTotalsRow(ws, data.length + 1, { 0: 'TOTAIS', 11: totalKg, 13: totalValor }, headers.length);
+  addTotalsRow(ws, data.length + 1, { 0: 'TOTAIS', 11: kgToTons(totalKg) ?? 0, 13: totalValor }, headers.length);
 
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Blocos');

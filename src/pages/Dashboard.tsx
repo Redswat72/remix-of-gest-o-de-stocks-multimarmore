@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { formatTons, kgToTons, tonsToKg } from '@/lib/blocoPeso';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useResumoBlocos } from "@/hooks/useBlocos";
@@ -154,7 +155,7 @@ export default function Dashboard() {
           <CardContent>
             <p className="text-2xl font-bold">{resumoBlocos?.total_blocos || 0}</p>
             <p className="text-xs text-muted-foreground">
-              {formatNumber(resumoBlocos?.total_kg || 0, 0)} kg
+              {formatTons(resumoBlocos?.total_kg || 0)}
             </p>
             {podeVerValores && (
               <p className="text-sm font-medium text-primary mt-1">

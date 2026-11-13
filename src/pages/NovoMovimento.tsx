@@ -1,4 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
+import { formatTons, kgToTons, tonsToKg } from '@/lib/blocoPeso';
 import { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate, Navigate } from 'react-router-dom';
@@ -368,7 +369,7 @@ export default function NovoMovimento() {
               comprimento: novoProdutoComprimento || null,
               largura: novoProdutoLargura || null,
               altura: novoProdutoAltura || null,
-              quantidade_kg: novoProdutoPeso || null,
+              quantidade_kg: novoProdutoPeso === '' ? null : tonsToKg(novoProdutoPeso),
               preco_unitario: precoNum,
               valor_inventario: precoNum != null && novoProdutoPeso ? round2((Number(novoProdutoPeso) / 1000) * precoNum) : null,
               fornecedor: origemMaterial === 'adquirido' ? fornecedor || null : null,
@@ -950,10 +951,10 @@ export default function NovoMovimento() {
                     <Label>{t('movements.peso')}</Label>
                     <Input
                       type="number"
-                      step="0.01"
+                      step="0.001"
                       value={novoProdutoPeso}
                       onChange={(e) => setNovoProdutoPeso(e.target.value ? Number(e.target.value) : '')}
-                      placeholder="kg"
+                      placeholder="t"
                     />
                   </div>
                 )}

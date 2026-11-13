@@ -1,4 +1,5 @@
 import { SemStockAviso } from '@/components/inventario/SemStockAviso';
+import { formatTons, kgToTons, tonsToKg } from '@/lib/blocoPeso';
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Filter, Download, Package, ChevronDown, ChevronUp } from 'lucide-react';
@@ -272,7 +273,7 @@ export default function Stock() {
                           : '—'}
                       </TableCell>
                       <TableCell className="text-right text-muted-foreground">
-                        {item.forma === 'bloco' && item.pesoKg ? `${formatNumber(item.pesoKg, 0)} kg` : '—'}
+                        {item.forma === 'bloco' && item.pesoKg ? formatTons(item.pesoKg) : '—'}
                       </TableCell>
                       <TableCell className="text-right">
                         {formatNumber(item.quantidade)} {item.unidade}
