@@ -167,8 +167,8 @@ export function ProdutoCard({ produto, onEdit, onDelete, isDeleting }: ProdutoCa
             {getDimensoes() && (
               <p>📐 {getDimensoes()}</p>
             )}
-            {produto.forma === 'bloco' && produto.peso_ton != null && produto.peso_ton > 0 && (
-              <p>⚖️ {new Intl.NumberFormat('pt-PT', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(produto.peso_ton)} ton</p>
+            {produto.forma === 'bloco' && produto.peso_ton != null && (
+              <p>⚖️ {new Intl.NumberFormat('pt-PT', { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(Number(produto.peso_ton))} t</p>
             )}
             {produto.area_m2 && (
               <p><span className="text-muted-foreground">{t('products.area')}:</span> {produto.area_m2.toFixed(2)} m²</p>

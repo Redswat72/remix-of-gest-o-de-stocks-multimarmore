@@ -26,7 +26,7 @@ export function StoreProductCard({ product, index = 0, inCart, onClick, onAddToC
 
   const formatQty = () => {
     if (product.quantidade == null) return null;
-    if (product.unidade === 'ton') return `${product.quantidade} ton`;
+    if (product.unidade === 'ton') return `${new Intl.NumberFormat('pt-PT', { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(product.quantidade)} t`;
     return `${product.quantidade} m²`;
   };
 

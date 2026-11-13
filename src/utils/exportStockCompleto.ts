@@ -1,3 +1,4 @@
+import { kgToTons } from '@/lib/blocoPeso';
 import * as XLSX from 'xlsx';
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { formatChapaDimensoes } from '@/lib/chapaDimensoes';
@@ -60,6 +61,8 @@ function prettyLabel(key: string): string {
   if (key === 'altura') return 'Altura (cm)';
   if (key === 'espessura') return 'Espessura (cm)';
   if (key === 'dimensoes') return 'Dimensões';
+  if (key === 'peso_t') return 'Peso (t)';
+  if (key === 'quantidade_kg') return 'Quantidade Kg (técnico, BD)';
   if (key === 'tipo_local') return 'Tipo de local';
   if (key === 'dimensoes_chapa') return 'Dimensões';
   const pargaMedida = key.match(/^parga(\d)_(comprimento|altura|espessura)$/);
@@ -160,6 +163,7 @@ export async function exportStockCompleto(supabase: SupabaseClient, opts: Export
 
   const blocosComDim = blocos.map(comLocal).map(b => ({
     ...b,
+    peso_t: kgToTons(b.quantidade_kg as number | null),
     dimensoes: formatBlocoDimensoes(b),
   }));
 

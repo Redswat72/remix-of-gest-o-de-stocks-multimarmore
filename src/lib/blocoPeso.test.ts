@@ -15,3 +15,11 @@ describe('peso dos blocos (kg na BD, t na app)', () => {
     expect(tonsToKg(0)).toBe(0);
   });
 });
+
+describe('lojas e exportação', () => {
+  it('bloco de 16450 kg aparece como 16,45 t sem dividir duas vezes', () => {
+    const t = kgToTons(16450);
+    expect(t).toBe(16.45);
+    expect(tonsToKg(t)).toBe(16450);
+  });
+});

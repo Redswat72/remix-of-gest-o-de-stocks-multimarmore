@@ -1,3 +1,4 @@
+import { kgToTons } from '@/lib/blocoPeso';
 import { useQuery } from '@tanstack/react-query';
 import { supabase as supabaseMultimarmore } from '@/lib/supabase-external';
 import { supabaseMagratex } from '@/lib/supabase-magratex';
@@ -87,8 +88,8 @@ export function useStoreProducts(company: CompanySlug) {
           variety: b.variedade ?? null,
           finish: null,
           line: b.linha ?? null,
-          quantidade: b.quantidade_kg ?? 0,
-          unidade: 'kg',
+          quantidade: kgToTons(b.quantidade_kg),
+          unidade: 'ton',
           blocoOrigem: b.bloco_origem ?? null,
           bundleId: null,
           numChapas: null,
@@ -97,7 +98,7 @@ export function useStoreProducts(company: CompanySlug) {
             : null,
           butchNo: null,
           numPecas: null,
-          peso: b.quantidade_kg ?? null,
+          peso: kgToTons(b.quantidade_kg),
           acabamento: null,
           pargas: [],
         });

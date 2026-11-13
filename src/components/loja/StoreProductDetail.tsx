@@ -31,7 +31,7 @@ export function StoreProductDetail({ product, open, onOpenChange, inCart, onAddT
 
   const formatQty = () => {
     if (product.quantidade == null) return null;
-    if (product.unidade === 'ton') return `${product.quantidade} ton`;
+    if (product.unidade === 'ton') return `${new Intl.NumberFormat('pt-PT', { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(product.quantidade)} t`;
     return `${product.quantidade} m²`;
   };
 
@@ -185,14 +185,14 @@ export function StoreProductDetail({ product, open, onOpenChange, inCart, onAddT
                   </div>
                 )}
 
-                {product.weight != null && product.weight > 0 && (
+                {(product.unidade === 'ton' ? product.peso != null : product.weight != null && product.weight > 0) && (
                   <div>
                     <div className="flex items-center gap-2 text-[#C9C3BA] mb-1">
                       <Scale className="h-4 w-4 text-[#1E5799]" />
                       <span className="text-xs uppercase">{t('product.weight')}</span>
                     </div>
                     <p className="font-medium text-[#F5F2ED]">
-                      {product.unidade === 'ton' ? `${product.peso} ton` : `${product.peso} kg`}
+                      {product.unidade === 'ton' ? `${new Intl.NumberFormat('pt-PT', { minimumFractionDigits: 3, maximumFractionDigits: 3 }).format(product.peso ?? 0)} t` : `${product.peso} kg`}
                     </p>
                   </div>
                 )}
