@@ -864,7 +864,7 @@
       "row": "Fila",
       "variety": "Variedade",
       "pargaLabel": "Parga {{n}}",
-      "weightKg": "Peso (t)"
+      "weightKg": "Peso (kg)"
     },
     "edit": {
       "editBlock": "Editar Bloco",

@@ -864,7 +864,7 @@
       "row": "Row",
       "variety": "Variety",
       "pargaLabel": "Bundle {{n}}",
-      "weightKg": "Weight (t)"
+      "weightKg": "Weight (kg)"
     },
     "edit": {
       "editBlock": "Edit Block",
