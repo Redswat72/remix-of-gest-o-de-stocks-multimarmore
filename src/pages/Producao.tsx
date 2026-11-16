@@ -2,7 +2,8 @@ import { isBlocoDisponivel } from '@/lib/blocoDisponivel';
 import { useState, useEffect } from 'react';
 import { formatTons, kgToTons, tonsToKg } from '@/lib/blocoPeso';
 import { useSearchParams } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { verificarPermissaoProducao, temGrantMM001Chapas, normalizarParque, type MotivoBloqueio } from '@/lib/permissoesProducao';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -47,7 +48,7 @@ export default function Producao() {
   const { empresa, empresaConfig } = useEmpresa();
   const queryClient = useQueryClient();
   const { uploadImage, isUploading } = useImageUpload();
-  const { user, isAdmin, isSuperadmin, userLocal } = useAuth();
+  const { user, isAdmin, isSuperadmin, isOperador, userLocal, profile } = useAuth();
   const PARQUE_PRODUCAO = 'MM002';
   const t = useAppT();
 
@@ -224,8 +225,10 @@ export default function Producao() {
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!bloco) throw new Error(t('production.blocoNaoSelecionado'));
-      if (!blocoNoParqueProducao) throw new Error(`Este bloco está no parque ${bloco.parque}. Transfere-o para ${PARQUE_PRODUCAO} (Plurirochas) antes de serrar.`);
-      if (!operadorAutorizado) throw new Error(`Só operadores da Plurirochas (${PARQUE_PRODUCAO}) ou admins podem lançar produções.`);
+      {
+        const m = motivoChapas;
+        if (m !== 'ok') throw new Error(mensagemBloqueio(m, 'chapas'));
+      }
       if (!tipoCorte) throw new Error(t('production.selecioneTipoCorte'));
 
       const chapaIdMm = bloco.id_mm;
@@ -425,8 +428,11 @@ export default function Producao() {
   const saveBlocosMutation = useMutation({
     mutationFn: async () => {
       if (!bloco) throw new Error(t('production.blocoNaoSelecionado'));
-      if (bloco.parque !== PARQUE_PRODUCAO) throw new Error(`Este bloco está no parque ${bloco.parque}. Transfere-o para ${PARQUE_PRODUCAO} (Plurirochas) antes de dividir.`);
-      if (!operadorAutorizado) throw new Error(`Só operadores da Plurirochas (${PARQUE_PRODUCAO}) ou admins podem lançar produções.`);
+      if (normalizarParque(bloco.parque) !== PARQUE_PRODUCAO) throw new Error(`A divisão em blocos só é possível na Plurirochas (${PARQUE_PRODUCAO}). Este bloco está em ${bloco.parque}.`);
+      {
+        const m = motivoBlocos;
+        if (m !== 'ok') throw new Error(mensagemBloqueio(m, 'blocos'));
+      }
       if (!user?.id) throw new Error('Utilizador não autenticado: operador_id é obrigatório.');
       if (blocosResultantes.length < 2) throw new Error('Indique pelo menos 2 blocos resultantes.');
 
@@ -598,13 +604,8 @@ export default function Producao() {
   };
 
   const hasAnyParga = pargas.some(p => p.quantidade && p.quantidade > 0);
-  // Admins/superadmins também podem produzir na MTX (MM003)
-  const parquesProducao = (isAdmin || isSuperadmin) ? [PARQUE_PRODUCAO, 'MM003'] : [PARQUE_PRODUCAO];
-  const blocoNoParqueProducao = !!bloco && parquesProducao.includes(bloco.parque);
-  const operadorAutorizado = isAdmin || isSuperadmin || userLocal?.codigo === PARQUE_PRODUCAO;
-  const podeProduzir = blocoNoParqueProducao && operadorAutorizado;
-  const canSaveChapas = bloco && podeProduzir && tipoResultado === 'chapas' && tipoCorte && hasAnyParga && !saveMutation.isPending;
-  const canSaveBlocos = bloco && podeProduzir && tipoResultado === 'blocos' && blocosResultantes.length >= 2 && !saveBlocosMutation.isPending;
+  const canSaveChapas = bloco && podeChapas && tipoResultado === 'chapas' && tipoCorte && hasAnyParga && !saveMutation.isPending;
+  const canSaveBlocos = bloco && podeBlocos && tipoResultado === 'blocos' && blocosResultantes.length >= 2 && !saveBlocosMutation.isPending;
 
   return (
     <div className="space-y-6">
