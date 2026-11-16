@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useSupabaseEmpresa } from './useSupabaseEmpresa';
 import { useEmpresa } from '@/context/EmpresaContext';
+import { isBlocoDisponivel } from '@/lib/blocoDisponivel';
 import type { Bloco } from '@/types/inventario';
 
 async function fetchAllBlocos(supabase: any, parque?: string): Promise<Bloco[]> {
@@ -22,7 +23,7 @@ async function fetchAllBlocos(supabase: any, parque?: string): Promise<Bloco[]> 
     from += PAGE;
   }
   // Só produtos com stock (ativo mantido pela BD)
-  return all.filter(b => (b as any).ativo !== false);
+  return all.filter(b => isBlocoDisponivel(b as any));
 }
 
 export function useBlocos(parque?: string) {
