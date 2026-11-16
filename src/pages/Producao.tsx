@@ -422,7 +422,14 @@ export default function Producao() {
         .select('id')
         .eq('codigo', bloco.parque)
         .maybeSingle();
-      localOrigemId = (localProd as { id: string } | null)?.id
+      if (!localProd) {
+        // Fallback: códigos guardados com parênteses/espaços (ex.: "[MM001]")
+        const { data: todos } = await supabase.from('locais').select('id, codigo');
+        const alvo = normalizarParque(bloco.parque);
+        const m = ((todos ?? []) as Array<{ id: string; codigo: string }>).find(l => normalizarParque(l.codigo) === alvo);
+        if (m) localOrigemId = m.id;
+      }
+      localOrigemId = localOrigemId ?? (localProd as { id: string } | null)?.id
         ?? (bloco.parque === PARQUE_PRODUCAO ? '01fcf8ae-cef1-4a5d-bae2-8e7d8b3e5bd8' : null);
       if (!localOrigemId) {
         await rollbackChapa();
