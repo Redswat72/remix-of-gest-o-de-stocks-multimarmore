@@ -190,7 +190,7 @@ export function useUniqueStoneNames(company: CompanySlug) {
       const client = getClient(company);
 
       const [blocos, chapas, ladrilho] = await Promise.all([
-        client.from('blocos').select('variedade'),
+        client.from('blocos').select('variedade').gt('quantidade_kg', 0).neq('ativo', false),
         client.from('chapas').select('variedade'),
         client.from('ladrilho').select('variedade'),
       ]);
