@@ -2,7 +2,8 @@ import { isBlocoDisponivel } from '@/lib/blocoDisponivel';
 import { useState, useEffect } from 'react';
 import { formatTons, kgToTons, tonsToKg } from '@/lib/blocoPeso';
 import { useSearchParams } from 'react-router-dom';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { verificarPermissaoProducao, temGrantMM001Chapas, normalizarParque, type MotivoBloqueio } from '@/lib/permissoesProducao';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -47,7 +48,7 @@ export default function Producao() {
   const { empresa, empresaConfig } = useEmpresa();
   const queryClient = useQueryClient();
   const { uploadImage, isUploading } = useImageUpload();
-  const { user, isAdmin, isSuperadmin, userLocal } = useAuth();
+  const { user, isAdmin, isSuperadmin, isOperador, userLocal, profile } = useAuth();
   const PARQUE_PRODUCAO = 'MM002';
   const t = useAppT();
 
@@ -220,12 +221,63 @@ export default function Producao() {
     }
   };
 
+  // ---- Permissões de produção por parque (função pura em lib/permissoesProducao) ----
+  const parqueBlocoNorm = normalizarParque(bloco?.parque);
+  const precisaGrantMM001 = empresa === 'multimarmore' && parqueBlocoNorm === 'MM001' && !!user?.id;
+  const grantQuery = useQuery({
+    queryKey: ['permissoes_producao_parque', empresa, user?.id, 'MM001'],
+    enabled: precisaGrantMM001 && !!supabase,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { data, error } = await supabase!
+        .from('permissoes_producao_parque' as any)
+        .select('parque_codigo, operacao')
+        .eq('user_id', user!.id)
+        .eq('parque_codigo', 'MM001')
+        .eq('operacao', 'chapas');
+      if (error) throw error;
+      return (data ?? []) as unknown as Array<{ parque_codigo: string; operacao: string }>;
+    },
+  });
+  // Bloqueia enquanto a consulta corre ou falha
+  const grantMM001Chapas = precisaGrantMM001 && grantQuery.isSuccess && temGrantMM001Chapas(grantQuery.data);
+  const grantPendente = precisaGrantMM001 && grantQuery.isLoading;
+  const grantErro = precisaGrantMM001 && grantQuery.isError;
+  const ctxPerm = {
+    parqueBloco: bloco?.parque,
+    isAdmin: isAdmin || isSuperadmin,
+    isOperador,
+    userLocalCodigo: userLocal?.codigo,
+    temProducao: profile?.tem_producao,
+    grantMM001Chapas,
+  };
+  const motivoChapas: MotivoBloqueio = verificarPermissaoProducao(ctxPerm, 'chapas');
+  const motivoBlocos: MotivoBloqueio = verificarPermissaoProducao(ctxPerm, 'blocos');
+  const podeChapas = motivoChapas === 'ok';
+  const podeBlocos = motivoBlocos === 'ok';
+  const podeProduzir = podeChapas || podeBlocos;
+  const mensagemBloqueio = (m: MotivoBloqueio, op: 'chapas' | 'blocos') => {
+    if (grantPendente) return 'A verificar autorizações de produção…';
+    if (grantErro) return 'Não foi possível verificar as autorizações de produção. Tenta novamente.';
+    if (m === 'parque_nao_produtivo') return `O parque ${bloco?.parque ?? '—'} não é um parque de produção. Transfere o bloco para ${PARQUE_PRODUCAO} (Plurirochas) antes de o produzir.`;
+    if (m === 'operacao_nao_permitida') return op === 'blocos'
+      ? `A divisão em blocos só é possível na Plurirochas (${PARQUE_PRODUCAO}).`
+      : 'Operação não permitida neste parque.';
+    return `Sem autorização para produzir neste parque (${bloco?.parque ?? '—'}).`;
+  };
+  useEffect(() => {
+    if (tipoResultado === 'chapas' && !podeChapas) setTipoResultado('');
+    if (tipoResultado === 'blocos' && !podeBlocos) setTipoResultado('');
+  }, [podeChapas, podeBlocos, tipoResultado]);
+
   // ---- Save: fluxo Chapas (existente) ----
   const saveMutation = useMutation({
     mutationFn: async () => {
       if (!bloco) throw new Error(t('production.blocoNaoSelecionado'));
-      if (!blocoNoParqueProducao) throw new Error(`Este bloco está no parque ${bloco.parque}. Transfere-o para ${PARQUE_PRODUCAO} (Plurirochas) antes de serrar.`);
-      if (!operadorAutorizado) throw new Error(`Só operadores da Plurirochas (${PARQUE_PRODUCAO}) ou admins podem lançar produções.`);
+      {
+        const m = motivoChapas;
+        if (m !== 'ok') throw new Error(mensagemBloqueio(m, 'chapas'));
+      }
       if (!tipoCorte) throw new Error(t('production.selecioneTipoCorte'));
 
       const chapaIdMm = bloco.id_mm;
@@ -370,7 +422,14 @@ export default function Producao() {
         .select('id')
         .eq('codigo', bloco.parque)
         .maybeSingle();
-      localOrigemId = (localProd as { id: string } | null)?.id
+      if (!localProd) {
+        // Fallback: códigos guardados com parênteses/espaços (ex.: "[MM001]")
+        const { data: todos } = await supabase.from('locais').select('id, codigo');
+        const alvo = normalizarParque(bloco.parque);
+        const m = ((todos ?? []) as Array<{ id: string; codigo: string }>).find(l => normalizarParque(l.codigo) === alvo);
+        if (m) localOrigemId = m.id;
+      }
+      localOrigemId = localOrigemId ?? (localProd as { id: string } | null)?.id
         ?? (bloco.parque === PARQUE_PRODUCAO ? '01fcf8ae-cef1-4a5d-bae2-8e7d8b3e5bd8' : null);
       if (!localOrigemId) {
         await rollbackChapa();
@@ -425,8 +484,11 @@ export default function Producao() {
   const saveBlocosMutation = useMutation({
     mutationFn: async () => {
       if (!bloco) throw new Error(t('production.blocoNaoSelecionado'));
-      if (bloco.parque !== PARQUE_PRODUCAO) throw new Error(`Este bloco está no parque ${bloco.parque}. Transfere-o para ${PARQUE_PRODUCAO} (Plurirochas) antes de dividir.`);
-      if (!operadorAutorizado) throw new Error(`Só operadores da Plurirochas (${PARQUE_PRODUCAO}) ou admins podem lançar produções.`);
+      if (normalizarParque(bloco.parque) !== PARQUE_PRODUCAO) throw new Error(`A divisão em blocos só é possível na Plurirochas (${PARQUE_PRODUCAO}). Este bloco está em ${bloco.parque}.`);
+      {
+        const m = motivoBlocos;
+        if (m !== 'ok') throw new Error(mensagemBloqueio(m, 'blocos'));
+      }
       if (!user?.id) throw new Error('Utilizador não autenticado: operador_id é obrigatório.');
       if (blocosResultantes.length < 2) throw new Error('Indique pelo menos 2 blocos resultantes.');
 
@@ -598,13 +660,8 @@ export default function Producao() {
   };
 
   const hasAnyParga = pargas.some(p => p.quantidade && p.quantidade > 0);
-  // Admins/superadmins também podem produzir na MTX (MM003)
-  const parquesProducao = (isAdmin || isSuperadmin) ? [PARQUE_PRODUCAO, 'MM003'] : [PARQUE_PRODUCAO];
-  const blocoNoParqueProducao = !!bloco && parquesProducao.includes(bloco.parque);
-  const operadorAutorizado = isAdmin || isSuperadmin || userLocal?.codigo === PARQUE_PRODUCAO;
-  const podeProduzir = blocoNoParqueProducao && operadorAutorizado;
-  const canSaveChapas = bloco && podeProduzir && tipoResultado === 'chapas' && tipoCorte && hasAnyParga && !saveMutation.isPending;
-  const canSaveBlocos = bloco && podeProduzir && tipoResultado === 'blocos' && blocosResultantes.length >= 2 && !saveBlocosMutation.isPending;
+  const canSaveChapas = bloco && podeChapas && tipoResultado === 'chapas' && tipoCorte && hasAnyParga && !saveMutation.isPending;
+  const canSaveBlocos = bloco && podeBlocos && tipoResultado === 'blocos' && blocosResultantes.length >= 2 && !saveBlocosMutation.isPending;
 
   return (
     <div className="space-y-6">
@@ -676,26 +733,17 @@ export default function Producao() {
         </CardContent>
       </Card>
 
-      {bloco && !blocoNoParqueProducao && (
+      {bloco && !podeProduzir && (
         <Card className="border-destructive">
           <CardHeader>
-            <CardTitle className="text-lg text-destructive">Bloco fora do parque de produção</CardTitle>
+            <CardTitle className="text-lg text-destructive">
+              {grantPendente ? 'A verificar autorizações' : motivoChapas === 'parque_nao_produtivo' ? 'Bloco fora do parque de produção' : 'Sem autorização neste parque'}
+            </CardTitle>
             <CardDescription>
-              Este bloco está no parque <strong>{bloco.parque}</strong>. Só é possível serrar/dividir blocos que estejam
-              registados na <strong>Plurirochas ({PARQUE_PRODUCAO})</strong>. Transfere o bloco para {PARQUE_PRODUCAO} antes de o produzir,
-              para que o percurso físico fique registado (transferência → produção).
-            </CardDescription>
-          </CardHeader>
-        </Card>
-      )}
-
-      {bloco && blocoNoParqueProducao && !operadorAutorizado && (
-        <Card className="border-destructive">
-          <CardHeader>
-            <CardTitle className="text-lg text-destructive">Sem permissão para produzir</CardTitle>
-            <CardDescription>
-              Só operadores associados ao parque <strong>{PARQUE_PRODUCAO} (Plurirochas)</strong> ou administradores podem lançar produções.
-              O teu parque atual é <strong>{userLocal?.codigo ?? '—'}</strong>.
+              {mensagemBloqueio(motivoChapas, 'chapas')}
+              {motivoChapas === 'sem_autorizacao_parque' && !grantPendente && (
+                <> O teu parque atual é <strong>{userLocal?.codigo ?? '—'}</strong>.</>
+              )}
             </CardDescription>
           </CardHeader>
         </Card>
@@ -719,8 +767,8 @@ export default function Producao() {
                   }
                 }}
               >
-                <div className="flex items-start gap-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer">
-                  <RadioGroupItem value="chapas" id="res-chapas" className="mt-1" />
+                <div className={`flex items-start gap-3 p-3 rounded-lg border ${podeChapas ? 'hover:bg-muted/50 cursor-pointer' : 'opacity-50'}`}>
+                  <RadioGroupItem value="chapas" id="res-chapas" className="mt-1" disabled={!podeChapas} />
                   <div>
                     <Label htmlFor="res-chapas" className="font-medium cursor-pointer flex items-center gap-2">
                       <Layers className="h-4 w-4" /> Chapas
@@ -728,13 +776,15 @@ export default function Producao() {
                     <p className="text-sm text-muted-foreground">Bloco serrado em chapas (pargas).</p>
                   </div>
                 </div>
-                <div className="flex items-start gap-3 p-3 rounded-lg border hover:bg-muted/50 cursor-pointer">
-                  <RadioGroupItem value="blocos" id="res-blocos" className="mt-1" />
+                <div className={`flex items-start gap-3 p-3 rounded-lg border ${podeBlocos ? 'hover:bg-muted/50 cursor-pointer' : 'opacity-50'}`}>
+                  <RadioGroupItem value="blocos" id="res-blocos" className="mt-1" disabled={!podeBlocos} />
                   <div>
                     <Label htmlFor="res-blocos" className="font-medium cursor-pointer flex items-center gap-2">
                       <Boxes className="h-4 w-4" /> Blocos
                     </Label>
-                    <p className="text-sm text-muted-foreground">Bloco dividido em blocos menores.</p>
+                    <p className="text-sm text-muted-foreground">
+                      {podeBlocos ? 'Bloco dividido em blocos menores.' : `Divisão em blocos só disponível na Plurirochas (${PARQUE_PRODUCAO}).`}
+                    </p>
                   </div>
                 </div>
               </RadioGroup>
