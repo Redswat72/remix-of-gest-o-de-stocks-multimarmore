@@ -1,3 +1,4 @@
+import { isBlocoDisponivel } from '@/lib/blocoDisponivel';
 import { useQuery } from '@tanstack/react-query';
 import { useSupabaseEmpresa } from './useSupabaseEmpresa';
 import { useEmpresa } from '@/context/EmpresaContext';
@@ -60,7 +61,7 @@ export function useDashboardBreakdown() {
           supabase,
           'blocos',
           '*'
-        ),
+        ).then(rows => rows.filter((b: any) => isBlocoDisponivel(b))),
         fetchAllLight<BreakdownChapa>(
           supabase,
           'chapas',

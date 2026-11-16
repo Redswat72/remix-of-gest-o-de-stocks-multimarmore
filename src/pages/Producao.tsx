@@ -1,3 +1,4 @@
+import { isBlocoDisponivel } from '@/lib/blocoDisponivel';
 import { useState, useEffect } from 'react';
 import { formatTons, kgToTons, tonsToKg } from '@/lib/blocoPeso';
 import { useSearchParams } from 'react-router-dom';
@@ -166,7 +167,7 @@ export default function Producao() {
         .maybeSingle();
 
       if (error) throw error;
-      if (!result) {
+      if (!result || !isBlocoDisponivel(result as any)) {
         setNotFound(true);
         return;
       }

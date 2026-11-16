@@ -1,3 +1,4 @@
+import { isBlocoDisponivel } from '@/lib/blocoDisponivel';
 import * as XLSX from 'xlsx';
 import { formatTons, kgToTons, tonsToKg } from '@/lib/blocoPeso';
 import type { Bloco, Chapa, Ladrilho } from '@/types/inventario';
@@ -94,7 +95,7 @@ export async function exportBlocos(supabase: SupabaseClient, opts: ExportOptions
   const rawData = await fetchAllRows(supabase, 'blocos');
   const data = (rawData ?? []).filter((r: any) =>
     !Object.prototype.hasOwnProperty.call(r, 'ativo') || r.ativo === true
-  );
+  ).filter((r: any) => isBlocoDisponivel(r));
   if (data.length === 0) throw new Error('Sem dados para exportar');
   const loc = await carregarLocaisExport(supabase);
 

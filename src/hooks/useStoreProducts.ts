@@ -1,3 +1,4 @@
+import { isBlocoDisponivel } from '@/lib/blocoDisponivel';
 import { kgToTons } from '@/lib/blocoPeso';
 import { useQuery } from '@tanstack/react-query';
 import { supabase as supabaseMultimarmore } from '@/lib/supabase-external';
@@ -67,7 +68,7 @@ export function useStoreProducts(company: CompanySlug) {
       const products: StoreProduct[] = [];
 
       // Map blocos
-      for (const b of blocos) {
+      for (const b of blocos.filter((x: any) => isBlocoDisponivel(x))) {
         const images = collectImages(b.foto1_url, b.foto2_url);
         products.push({
           id: b.id,
@@ -189,7 +190,7 @@ export function useUniqueStoneNames(company: CompanySlug) {
       const client = getClient(company);
 
       const [blocos, chapas, ladrilho] = await Promise.all([
-        client.from('blocos').select('variedade'),
+        client.from('blocos').select('variedade').gt('quantidade_kg', 0).neq('ativo', false),
         client.from('chapas').select('variedade'),
         client.from('ladrilho').select('variedade'),
       ]);

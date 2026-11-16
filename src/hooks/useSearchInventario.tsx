@@ -26,6 +26,7 @@ export function useSearchInventario(search?: string) {
         .select('id, id_mm, variedade, parque')
         .ilike('id_mm', `%${search}%`)
         .eq('ativo', true)
+        .gt('quantidade_kg', 0)
         .limit(20);
 
       if (blocos) {

@@ -1,3 +1,4 @@
+import { isBlocoDisponivel } from '@/lib/blocoDisponivel';
 import { useQuery } from '@tanstack/react-query';
 import { useSupabaseEmpresa } from './useSupabaseEmpresa';
 import { useEmpresa } from '@/context/EmpresaContext';
@@ -183,13 +184,15 @@ export function useStockUnificado(options: UseStockUnificadoOptions = {}) {
   }
 
   // Só produtos ativos (a BD mantém a coluna `ativo`)
-  const isAtivo = (i: ItemUnificado) => (i.raw as any)?.ativo !== false;
+  const isAtivo = (i: ItemUnificado) =>
+    i.forma === 'bloco' ? isBlocoDisponivel(i.raw as any) : (i.raw as any)?.ativo !== false;
   let filtered = items.filter(isAtivo);
 
   // Pesquisa por número exato: mostrar inativos como "sem stock"
   const termoExato = busca?.trim().toLowerCase();
+  // Blocos consumidos (0 kg/inativos) nunca são reintroduzidos na pesquisa operacional.
   const inativosExatos = termoExato
-    ? items.filter(i => !isAtivo(i) && (i.idMm ?? '').toLowerCase() === termoExato && (!forma || i.forma === forma))
+    ? items.filter(i => i.forma !== 'bloco' && !isAtivo(i) && (i.idMm ?? '').toLowerCase() === termoExato && (!forma || i.forma === forma))
     : [];
 
   if (forma) {
@@ -220,7 +223,7 @@ export function useStockUnificado(options: UseStockUnificadoOptions = {}) {
   return {
     data: filtered,
     inativosExatos,
-    allBlocos: (blocosQuery.data || []).filter(b => b.ativo !== false),
+    allBlocos: (blocosQuery.data || []).filter(b => isBlocoDisponivel(b as any)),
     allChapas: (chapasQuery.data || []).filter(c => (c as any).ativo !== false),
     allLadrilho: (ladrilhoQuery.data || []).filter(l => (l as any).ativo !== false),
     isLoading,

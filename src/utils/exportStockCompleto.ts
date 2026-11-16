@@ -1,3 +1,4 @@
+import { isBlocoDisponivel } from '@/lib/blocoDisponivel';
 import { kgToTons } from '@/lib/blocoPeso';
 import * as XLSX from 'xlsx';
 import type { SupabaseClient } from '@supabase/supabase-js';
@@ -161,7 +162,7 @@ export async function exportStockCompleto(supabase: SupabaseClient, opts: Export
     return out;
   };
 
-  const blocosComDim = blocos.map(comLocal).map(b => ({
+  const blocosComDim = blocos.filter((b: any) => isBlocoDisponivel(b)).map(comLocal).map(b => ({
     ...b,
     peso_t: kgToTons(b.quantidade_kg as number | null),
     dimensoes: formatBlocoDimensoes(b),
