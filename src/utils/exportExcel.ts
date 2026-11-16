@@ -94,8 +94,8 @@ function downloadWorkbook(wb: XLSX.WorkBook, tipo: string, empresaNome: string) 
 export async function exportBlocos(supabase: SupabaseClient, opts: ExportOptions) {
   const rawData = await fetchAllRows(supabase, 'blocos');
   const data = (rawData ?? []).filter((r: any) =>
-    !Object.prototype.hasOwnProperty.call(r, 'ativo') || r.ativo === true) && isBlocoDisponivel(r as any
-  );
+    !Object.prototype.hasOwnProperty.call(r, 'ativo') || r.ativo === true
+  ).filter((r: any) => isBlocoDisponivel(r));
   if (data.length === 0) throw new Error('Sem dados para exportar');
   const loc = await carregarLocaisExport(supabase);
 
