@@ -6,4 +6,4 @@
 
 - Block visibility in stock/product/search/store/export uses `isBlocoDisponivel` (src/lib/blocoDisponivel.ts: kg > 0 and ativo not false), so consumed blocks stay in DB/history but never appear as stock.
 
-- Production permissions per yard go through the pure `verificarPermissaoProducao` (src/lib/permissoesProducao.ts); MM001 additionally requires an explicit grant row in the Multimarmore `permissoes_producao_parque` table, so role alone never authorises it.
+- Production permissions per yard go through the pure `verificarPermissaoProducao` (src/lib/permissoesProducao.ts); MM001 additionally requires an explicit grant row in the Multimarmore `permissoes_producao_parque` table, so role alone never authorises it. An admin holding that grant may produce slabs and split blocks in any yard; an MM001 operator with the grant and `tem_producao` may do both only in MM001.

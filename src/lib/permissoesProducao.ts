@@ -2,9 +2,11 @@
  * Regras puras de permissão de produção por parque.
  * - MM002 (Plurirochas): admins ou operadores do MM002 → chapas e divisão em blocos.
  * - MM003 (MTX): admins → só chapas.
- * - MM001 (Sede/Bencatel): só chapas, e só com grant explícito em
- *   permissoes_producao_parque (MM001/'chapas') + (admin OU operador MM001 com tem_producao).
- *   Ser admin NÃO basta. Ninguém divide blocos em MM001.
+ * - MM001 (Sede/Bencatel): só com grant explícito em permissoes_producao_parque
+ *   (MM001/'chapas') + (admin OU operador MM001 com tem_producao) → chapas e divisão.
+ *   Ser admin NÃO basta.
+ * - Admin com o grant MM001 (Vanessa/Ana) pode produzir chapas e dividir blocos em
+ *   qualquer parque (MM001, MM002, MM003, MM004…). O grant é a autorização global.
  */
 export type OperacaoProducao = 'chapas' | 'blocos';
 
@@ -27,6 +29,8 @@ export function normalizarParque(p: string | null | undefined): string {
 export function verificarPermissaoProducao(ctx: ContextoPermissaoProducao, op: OperacaoProducao): MotivoBloqueio {
   const parque = normalizarParque(ctx.parqueBloco);
   const local = normalizarParque(ctx.userLocalCodigo);
+  // Admin autorizado (grant MM001): produz chapas e divide blocos em qualquer parque.
+  if (ctx.isAdmin && ctx.grantMM001Chapas) return 'ok';
   if (parque === 'MM002') {
     return ctx.isAdmin || (ctx.isOperador && local === 'MM002') ? 'ok' : 'sem_autorizacao_parque';
   }
@@ -37,7 +41,7 @@ export function verificarPermissaoProducao(ctx: ContextoPermissaoProducao, op: O
   if (parque === 'MM001') {
     const elegivel = ctx.isAdmin || (ctx.isOperador && local === 'MM001' && ctx.temProducao === true);
     if (!ctx.grantMM001Chapas || !elegivel) return 'sem_autorizacao_parque';
-    return op === 'chapas' ? 'ok' : 'operacao_nao_permitida';
+    return 'ok';
   }
   return 'parque_nao_produtivo';
 }

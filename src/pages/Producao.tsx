@@ -223,7 +223,8 @@ export default function Producao() {
 
   // ---- Permissões de produção por parque (função pura em lib/permissoesProducao) ----
   const parqueBlocoNorm = normalizarParque(bloco?.parque);
-  const precisaGrantMM001 = empresa === 'multimarmore' && parqueBlocoNorm === 'MM001' && !!user?.id;
+  // Grant necessário no MM001 para todos; para admins em qualquer parque (autorização global).
+  const precisaGrantMM001 = empresa === 'multimarmore' && !!user?.id && (parqueBlocoNorm === 'MM001' || isAdmin || isSuperadmin);
   const grantQuery = useQuery({
     queryKey: ['permissoes_producao_parque', empresa, user?.id, 'MM001'],
     enabled: precisaGrantMM001 && !!supabase,
@@ -261,7 +262,7 @@ export default function Producao() {
     if (grantErro) return 'Não foi possível verificar as autorizações de produção. Tenta novamente.';
     if (m === 'parque_nao_produtivo') return `O parque ${bloco?.parque ?? '—'} não é um parque de produção. Transfere o bloco para ${PARQUE_PRODUCAO} (Plurirochas) antes de o produzir.`;
     if (m === 'operacao_nao_permitida') return op === 'blocos'
-      ? `A divisão em blocos só é possível na Plurirochas (${PARQUE_PRODUCAO}).`
+      ? `A divisão em blocos não está disponível neste parque (${bloco?.parque ?? '—'}).`
       : 'Operação não permitida neste parque.';
     return `Sem autorização para produzir neste parque (${bloco?.parque ?? '—'}).`;
   };
@@ -484,7 +485,6 @@ export default function Producao() {
   const saveBlocosMutation = useMutation({
     mutationFn: async () => {
       if (!bloco) throw new Error(t('production.blocoNaoSelecionado'));
-      if (normalizarParque(bloco.parque) !== PARQUE_PRODUCAO) throw new Error(`A divisão em blocos só é possível na Plurirochas (${PARQUE_PRODUCAO}). Este bloco está em ${bloco.parque}.`);
       {
         const m = motivoBlocos;
         if (m !== 'ok') throw new Error(mensagemBloqueio(m, 'blocos'));
@@ -783,7 +783,7 @@ export default function Producao() {
                       <Boxes className="h-4 w-4" /> Blocos
                     </Label>
                     <p className="text-sm text-muted-foreground">
-                      {podeBlocos ? 'Bloco dividido em blocos menores.' : `Divisão em blocos só disponível na Plurirochas (${PARQUE_PRODUCAO}).`}
+                      {podeBlocos ? 'Bloco dividido em blocos menores.' : 'Divisão em blocos não disponível neste parque ou sem autorização.'}
                     </p>
                   </div>
                 </div>
